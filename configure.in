@@ -40,129 +40,145 @@ AM_PROG_LEX
 AC_PROG_YACC
 
 # Various MPI implementations we can use
-AC_ARG_WITH(MPILAM, [  --with-lammpi           Use LAM/MPI for message passing])
-AC_ARG_WITH(MPILAM_libs, [  --with-lammpi-libs      Location of LAM/MPI libraries])
-AC_ARG_WITH(MPILAM_includes, [  --with-lammpi-includes  Location of LAM/MPI include files])
+AC_ARG_WITH(lammpi, 
+            AC_HELP_STRING([--with-lammpi], [Use LAM/MPI for message passing]),
+            [LAMMPI=1], [LAMMPI=0])
 
-AC_ARG_WITH(MPICH, [  --with-mpich            Use MPICH for message passing])
-AC_ARG_WITH(MPICH_libs, [  --with-mpich-libs       Location of MPICH libraries])
-AC_ARG_WITH(MPICH_includes, [  --with-mpich-includes   Location of MPICH include files])
+AC_ARG_WITH(lammpi_libs, [  --with-lammpi-libs      Location of LAM/MPI libraries], [LAMMPI_LIBS=$withval])
 
-AC_ARG_WITH(IBMPE, [  --with-ibmpe            Use IBM Parallel Environment for message passing])
-AC_ARG_WITH(IBMPE_libs, [  --with-ibmpe-libs       Location of IBM/PE libraries])
-AC_ARG_WITH(IBMPE_includes, [  --with-ibmpe-includes   Location of IBM/PE include files])
+AC_ARG_WITH(lammpi_includes, [  --with-lammpi-includes  Location of LAM/MPI include files], [LAMMPI_INCLUDES=$withval])
+
+
+
+AC_ARG_WITH(mpich, [  --with-mpich            Use MPICH for message passing], [MPICH=1])
+
+AC_ARG_WITH(mpich_libs, [  --with-mpich-libs       Location of MPICH libraries], [MPICH_LIBS=$withval])
+
+AC_ARG_WITH(mpich_includes, [  --with-mpich-includes   Location of MPICH include files], [MPICH_INCLUDES=$withval])
+
+
+
+AC_ARG_WITH(ibmpe, [  --with-ibmpe            Use IBM Parallel Environment for message passing])
+
+AC_ARG_WITH(ibmpe_libs, [  --with-ibmpe-libs       Location of IBM/PE libraries])
+
+AC_ARG_WITH(ibmpe_includes, [  --with-ibmpe-includes   Location of IBM/PE include files])
+
 
 dnl Obviously "there can be only one" MPI library
-if [[ ! -z "$with_MPILAM" ]] || [[ ! -z "$with_MPILAM_libs" ]] || [[ ! -z "$with_MPILAM_includes" ]]; then
+if [[ ! -z "$with_lammpi" ]] || [[ ! -z "$with_lammpi_libs" ]] || [[ ! -z "$with_lammpi_includes" ]]; then
 
-        if [[ ! -z "$with_MPICH" ]] || [[ ! -z "$with_MPICH_libs" ]] || [[ ! -z "$with_MPICH_includes" ! -z "$with_IBMPE" ]] || [[ ! -z "$with_IBMPE_libs" ]] || [[ ! -z "$with_IBMPE_includes" ]]; then
+        if [[ ! -z "$with_mpich" ]] || [[ ! -z "$with_mpich_libs" ]] || [[ ! -z "$with_mpich_includes" ]] || [[ ! -z "$with_ibmpe" ]] || [[ ! -z "$with_ibmpe_libs" ]] || [[ ! -z "$with_ibmpe_includes" ]]; then
                 AC_MSG_ERROR(There can be only one MPI libary.)
         fi
 fi
 
-if [[ ! -z "$with_MPICH" ]] || [[ ! -z "$with_MPICH_libs" ]] || [[ ! -z "$with_MPICH_includes" ]]; then
+if [[ ! -z "$with_mpich" ]] || [[ ! -z "$with_mpich_libs" ]] || [[ ! -z "$with_mpich_includes" ]]; then
 
-        if [[ ! -z "$with_MPILAM" ]] || [[ ! -z "$with_MPILAM_libs" ]] || [[ ! -z "$with_MPILAM_includes" ! -z "$with_IBMPE" ]] || [[ ! -z "$with_IBMPE_libs" ]] || [[ ! -z "$with_IBMPE_includes" ]]; then
+        if [[ ! -z "$with_lammpi" ]] || [[ ! -z "$with_lammpi_libs" ]] || [[ ! -z "$with_lammpi_includes" ]] || [[ ! -z "$with_ibmpe" ]] || [[ ! -z "$with_ibmpe_libs" ]] || [[ ! -z "$with_ibmpe_includes" ]]; then
                 AC_MSG_ERROR(There can be only one MPI libary.)
         fi
 fi
 
-if [[ ! -z "$with_IBMPE" ]] || [[ ! -z "$with_IBMPE_libs" ]] || [[ ! -z "$with_IBMPE_includes" ]]; then
+if [[ ! -z "$with_ibmpe" ]] || [[ ! -z "$with_ibmpe_libs" ]] || [[ ! -z "$with_ibmpe_includes" ]]; then
 
-        if [[ ! -z "$with_MPILAM" ]] || [[ ! -z "$with_MPILAM_libs" ]] || [[ ! -z "$with_MPILAM_includes" ! -z "$with_MPICH" ]] || [[ ! -z "$with_MPICH_libs" ]] || [[ ! -z "$with_MPICH_includes" ]]; then
+        if [[ ! -z "$with_lammpi" ]] || [[ ! -z "$with_lammpi_libs" ]] || [[ ! -z "$with_lammpi_includes" ]] || [[ ! -z "$with_mpich" ]] || [[ ! -z "$with_mpich_libs" ]] || [[ ! -z "$with_mpich_includes" ]]; then
                 AC_MSG_ERROR(There can be only one MPI libary.)
         fi
 fi
+
 
 dnl But there must be an MPI library
-if [[ -z "$with_MPILAM" ]] && [[ -z "$with_MPILAM_libs" ]] && [[ -z "$with_MPILAM_includes" ]] && [[ -z "$with_IBMPE" ]] && [[ -z "$with_IBMPE_libs" ]] && [[ -z "$with_IBMPE_includes" ]] && [[ -z "$with_MPICH" ]] && [[ -z "$with_MPICH_libs" ]] && [[ -z "$with_MPICH_includes" ]]; then
+if [[ -z "$with_lammpi" ]] && [[ -z "$with_lammpi_libs" ]] && [[ -z "$with_lammpi_includes" ]] && [[ -z "$with_ibmpe" ]] && [[ -z "$with_ibmpe_libs" ]] && [[ -z "$with_ibmpe_includes" ]] && [[ -z "$with_mpich" ]] && [[ -z "$with_mpich_libs" ]] && [[ -z "$with_mpich_includes" ]]; then
    AC_MSG_ERROR([An MPI library must be specified. Use one of --with-mpich, 
 --with-lammpi, or --with-ibmpe.])
 fi
 
 dnl Debug?
+CFLAGS=
+CXXFLAGS=
 if test "x$WANT_DEBUG" = "x1"; then
         AC_DEFINE([DEBUG], [1], [Turn on debugging messages])
-        CXXFLAGS="$CFLAGS -g"
+        CXXFLAGS="-g"
 else
         AC_DEFINE([NDEBUG], [1], [Turn off assertions])
-        CXXFLAGS="$CFLAGS -O2"
+        CXXFLAGS="-O2"
 fi
 
 
 dnl Checks for libraries.
-if [[ ! -z "$with_IBMPE" ]] || [[ ! -z "$with_IBMPE_libs" ]] || [[ ! -z "$with_IBMPE_includes" ]]; then
-        IBMPE_LIBS=""
-        IBMPE_INCLUDES=""
-        if [[ ! -z "$with_IBMPE_libs" ]]; then
-                IBMPE_LIBS="$with_IBMPE_libs"
+if [[ ! -z "$with_ibmpe" ]] || [[ ! -z "$with_ibmpe_libs" ]] || [[ ! -z "$with_ibmpe_includes" ]]; then
+        ibmpe_LIBS=""
+        ibmpe_INCLUDES=""
+        if [[ ! -z "$with_ibmpe_libs" ]]; then
+                ibmpe_LIBS="$with_ibmpe_libs"
         fi
-        if [[ ! -z "$with_IBMPE_includes" ]]; then
-                IBMPE_INCLUDES="$with_IBMPE_includes"
+        if [[ ! -z "$with_ibmpe_includes" ]]; then
+                ibmpe_INCLUDES="$with_ibmpe_includes"
         fi
 
         AC_CHECK_LIB(mpi, MPI_Init, [LDADD="$LDADD -lmpi"], [
             AC_MSG_ERROR(*** Can't find the IBM PE MPI libraries.)],
-            [-L$IBMPE_LIBS])
+            [-L$ibmpe_LIBS])
 
-        AC_CHECK_HEADER(mpi.h, [], [AC_MSG_ERROR([*** Can't find the IBM PE MPI header files])], [-I$IBMPE_INCLUDES])
+        CPPFLAGS="$CPPFLAGS -I$ibmpe_INCLUDES"
+        AC_CHECK_HEADER(mpi.h, [], [AC_MSG_ERROR([*** Can't find the IBM PE MPI header files])])
 
 fi
 
-if [[ ! -z "$with_MPICH" ]] || [[ ! -z "$with_MPICH_libs" ]] || [[ ! -z "$with_MPICH_includes" ]]; then
-        MPICH_LIBS=""
-        MPICH_INCLUDES=""
-        if [[ ! -z "$with_MPICH_libs" ]]; then
-                MPICH_LIBS="$with_MPICH_libs"
+if [[ ! -z "$with_mpich" ]] || [[ ! -z "$with_mpich_libs" ]] || [[ ! -z "$with_mpich_includes" ]]; then
+        mpich_LIBS=""
+        mpich_INCLUDES=""
+        if [[ ! -z "$with_mpich_libs" ]]; then
+                mpich_LIBS="$with_mpich_libs"
         fi
-        if [[ ! -z "$with_MPICH_includes" ]]; then
-                MPICH_INCLUDES="$with_MPICH_includes"
+        if [[ ! -z "$with_mpich_includes" ]]; then
+                mpich_INCLUDES="$with_mpich_includes"
         fi
 
         AC_CHECK_LIB(mpi, MPI_Init, [LDADD="$LDADD -lmpi"], [
-            AC_MSG_ERROR(*** Can't find the MPICH libraries.)],
-            [-L$MPICH_LIBS])
+            AC_MSG_ERROR(*** Can't find the mpich libraries.)],
+            [-L$mpich_LIBS])
 
-        AC_CHECK_HEADER(mpi.h, [], [AC_MSG_ERROR([*** Can't find the MPICH header files])], [-I$MPICH_INCLUDES])
+        CPPFLAGS="$CPPFLAGS -I$mpich_INCLUDES"
+        AC_CHECK_HEADER(mpi.h, [], [AC_MSG_ERROR([*** Can't find the mpich header files])])
 
 fi
 
-if [[ ! -z "$with_MPILAM" ]] || [[ ! -z "$with_MPILAM_libs" ]] || [[ ! -z "$with_MPILAM_includes" ]]; then
-        MPILAM_LIBS=""
-        MPILAM_INCLUDES=""
-        if [[ ! -z "$with_MPILAM_libs" ]]; then
-                MPILAM_LIBS="$with_MPILAM_libs"
+if [[ ! -z "$with_lammpi" ]] || [[ ! -z "$with_lammpi_libs" ]] || [[ ! -z "$with_lammpi_includes" ]]; then
+        lammpi_LIBS=""
+        lammpi_INCLUDES=""
+        if [[ ! -z "$with_lammpi_libs" ]]; then
+                lammpi_LIBS="$with_lammpi_libs"
         fi
-        if [[ ! -z "$with_MPILAM_includes" ]]; then
-                MPILAM_INCLUDES="$with_MPILAM_includes"
+        if [[ ! -z "$with_lammpi_includes" ]]; then
+                lammpi_INCLUDES="$with_lammpi_includes"
         fi
 
         AC_CHECK_LIB(mpi, MPI_Init, [LDADD="$LDADD -lmpi"], [
             AC_MSG_ERROR(*** Can't find the LAM/MPI libraries.)],
-            [-L$MPILAM_LIBS])
+            ["-L$lammpi_LIBS"])
 
-        AC_CHECK_HEADER(mpi.h, [], [AC_MSG_ERROR([*** Can't find the LAM/MPI header files])], [-I$MPILAM_INCLUDES])
+        CPPFLAGS="$CPPFLAGS -I$lammpi_INCLUDES"
+        AC_CHECK_HEADER(mpi.h, [], [AC_MSG_WARN([*** Can't find the LAM/MPI header files])])
 
 fi
 
 AC_CHECK_LIB(popt, poptGetContext, LDADD="$LDADD -lpopt", [
     AC_MSG_ERROR(*** Cannot find the popt library); exit])
 
-AC_CHECK_HEADER([popt.h], [], [AC_MSG_ERROR([*** popt headers required.])])
+AC_CHECK_HEADER([popt.h], [], [AC_MSG_WARN([*** popt headers required.])])
 
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS(unistd.h sys/param.h sys/time.h time.h sys/mkdev.h sys/sysmacros.h string.h memory.h fcntl.h dirent.h sys/ndir.h ndir.h alloca.h locale.h )
 
 
-jm_CHECK_TYPE_STRUCT_UTIMBUF
 AC_HEADER_MAJOR
 AC_FUNC_ALLOCA
 AC_STRUCT_TM
 AC_STRUCT_ST_BLOCKS
 AC_FUNC_CLOSEDIR_VOID
-AC_CHECK_FUNCS(mkfifo)
-AC_CHECK_FUNC(mknod)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 

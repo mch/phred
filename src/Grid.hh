@@ -18,11 +18,10 @@
 
 class Grid {
  private:
+ protected:
   void alloc_grid();
   void free_grid();
   void init_datatypes();
-
- protected:
 
   // Global grid size (i.e. all domains)
   unsigned int global_dimx_;
@@ -40,18 +39,27 @@ class Grid {
   unsigned int dimy_;
   unsigned int dimz_;
 
+  // Time and space steppings; the distance between each point in the
+  // grid.
+  delta_t deltax_;
+  delta_t deltay_;
+  delta_t deltaz_;
+  delta_t deltat_;
+
   // Number of materials we know about (0 is PEC)
   unsigned int num_materials_;
 
   // E Field Material Coefficients
   mat_coef_t *Ca_;
-  mat_coef_t *Cb1_;
-  mat_coef_t *Cb2_;
+  mat_coef_t *Cbx_;
+  mat_coef_t *Cby_;
+  mat_coef_t *Cbz_;
   
   // H Field Coefficients
   mat_coef_t *Da_;
-  mat_coef_t *Db1_;
-  mat_coef_t *Db2_;
+  mat_coef_t *Dbz_;
+  mat_coef_t *Dby_;
+  mat_coef_t *Dbz_;
 
   // Field data, {x,y,z}
   field_t ***ex_;
@@ -67,6 +75,10 @@ class Grid {
   field_t ***ex_sum_;
   field_t ***ey_sum_;
   field_t ***ez_sum_;
+
+  // The material for each point in the grid. This is an index into
+  // the material arrays, Ca, Cbx, etc. 
+  unsigned int ***material_;
 
   // A grid is a cube with six faces. Those faces either need to have
   // boundary conditions, or they are subdomain boundaries and they
@@ -109,8 +121,23 @@ class Grid {
   void free_material();
 
   // Grid actions
-  setup_grid(int global_x, int global_y, int global_z, 
-	     int x, int y, int z);
+  void setup_grid(int global_x, int global_y, int global_z, 
+                  int x, int y, int z, 
+                  delta_t deltax, delta_t deltay, delta_t deltaz,
+                  delta_t deltat);
+
+  // Define geometry in the grid (i.e. assign material indicies to
+  // grid points). All definitions are done in global coordinates. It
+  // is the grid's job to calculate the region within the subdomain
+  // and assign the material indicies appropriatly. 
+  void define_box(int x_start, int x_stop, int y_start, int y_stop, 
+                  int z_start, int z_stop, unsigned int mat_index);
+
+  // Boundary condition and subdomain boundary operations. 
+  void set_boundary(unsigned int face, BoundaryCondition bc);
+
+  // Set the rank of the processor this face needs to be shared with. 
+  void set_face_rank(unsigned int face, int rank);
 };
 
 #endif // GRID

@@ -6,7 +6,10 @@ phred_SOURCES=phred.c \
 	getopt1.c \
 	getopt.h \
 	lex.yy.c \
-	jan-grammer.tab.c
+	jan-grammer.tab.c \
+	Grid.cc \
+	Material.cc \
+	MaterialLib.cc 
 
 EXTRA_DIST=phred.spec.in
 

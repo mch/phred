@@ -50,9 +50,6 @@ using namespace std; // Too lazy to type namespaces all the time.
 
 static void usage (int status);
 
-/* The name the program was run with, stripped of any leading path. */
-char *program_name;
-
 static struct poptOption options[] = 
   {
     {"help", 'h', POPT_ARG_NON, 0, 'h'},
@@ -66,30 +63,45 @@ static int decode_switches (int argc, char **argv);
 int
 main (int argc, char **argv)
 {
-  int i, rank, size;
+  int i, rank, size, pn_len;
+  string prog_name;
+  char *temp;
 
   MPI_Init(&argc, &args);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   if (rank == 0)
-    {
-      program_name = argv[0];
-      
-      // MPI implementations are not required to distribute command line
-      // args, although MPICH does.
-      i = decode_switches (argc, const_cast<const char **>(argv));
-    } 
-  else 
-    {
-      program_name = 0;
-    }
+  {
+    prog_name = argv[0];
+    pn_len = prog_name.size();
+    
+    // MPI implementations are not required to distribute command line
+    // args, although MPICH does.
+    i = decode_switches (argc, const_cast<const char **>(argv));
+  } 
 
-  /* do the work */
+  // Our first try at MPI
+  MPI_Bcast(&pn_len, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  if (rank != 0)
+    temp = new char(pn_len + 1);
+  else
+    temp = const_cast<char *>(prog_name.c_str());
+
+  MPI_Bcast(&temp, pn_len + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+  if (rank != 0)
+  {
+    prog_name = temp;
+    delete[] temp;
+  }
+
+  cout << "My rank is " << rank << ", and my program name is " 
+       << prog_name << endl;
   
-  // MPI Goodness?
-
-  // Parse the input script
+  // Parse the input script (each process will just load it's own file
+  // for now. ) 
 
   // Allocate data structures
 

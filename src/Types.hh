@@ -11,10 +11,17 @@ enum BoundaryCondition {
   HSYM,
   IMPEDANCE,
   PML
-}
+};
 
 // Material types
-enum MaterialType {PERF_COND}
+enum MaterialType {
+  PERF_COND, 
+  NON_PERMEABLE, 
+  CONDUCTIVE, 
+  DEBYE, 
+  LORENTZ, 
+  DRUDE
+};
 
 // Material coefficients
 typedef float mat_coef_t; 
@@ -25,3 +32,6 @@ typedef double mat_prop_t;
 // Grid field components, THE MPI DATATYPE MUST MATCH!
 typedef double field_t;
 #define GRID_MPI_TYPE MPI_DOUBLE
+
+// Grid spacings
+typedef double delta_t;
