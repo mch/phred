@@ -243,6 +243,10 @@ void MatlabElement::reshape_buffer(int N, int M, MPI_Datatype type)
   MPI_Status status;
 
   char *new_buf = new char[buffer_size_];
+  
+#ifdef DEBUG
+  cerr << "Reshaping buffer to " << N << " by " << M << endl;
+#endif
 
   if (!new_buf)
     throw MemoryException();
@@ -432,12 +436,16 @@ MATLAB_array_type MatlabArray::get_array_class(MATLAB_data_type type)
   if (type >= miINT8 && type < miSINGLE)
     ret = static_cast<MATLAB_array_type>(type + mxSINGLE_CLASS);
   else if (type == miSINGLE)
-  //  ret = static_cast<MATLAB_array_type>(mxSINGLE_CLASS);
+    //ret = static_cast<MATLAB_array_type>(mxSINGLE_CLASS);
     ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
   else if (type == miDOUBLE)
     ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
   else
     throw DataWriterException("Invalid MATLAB data type given.");
+
+#ifdef DEBUG
+  cerr << "MatlabArray::get_array_class, array class is " << ret << endl;
+#endif
 
   return ret;
 }
@@ -485,7 +493,7 @@ void MatlabDataWriter::header_setup()
 
 void MatlabDataWriter::init(const Grid &grid)
 {
-  //test();
+  test();
 
   if (filename_.length() > 0 && rank_ == 0)
   {
@@ -552,8 +560,14 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
   try {
     if (len > 0)
     {
-      //cout << "Buffering data for matlab output from " << 
-      //  variable.get_name() << ", " << len << " bytes. " << endl;
+#ifdef DEBUG
+      cerr << "Buffering data for matlab output from " << 
+        variable.get_name() << ", " << len << " bytes. " << endl;
+      cerr << "\tMatlabDataWriter, recieved data, floats are: " 
+           << reinterpret_cast<float *>(ptr)[0] << " and " 
+           << reinterpret_cast<float *>(ptr)[1] << endl;
+      cerr << "\tPointer is " << ptr << endl;
+#endif
 
       vars_[variable.get_name()]->append_buffer(len, ptr);
     }
@@ -584,21 +598,21 @@ void MatlabDataWriter::test()
   dims2.push_back(4);
   dims2.push_back(2);
   dims2.push_back(2);
-  double data2[] = {1, 2, 3, 4, 1, 2, 3, 4, 7, 8, 9, 5, 7, 8, 9, 5};
+  float data2[] = {1, 2, 3, 4, 1, 2, 3, 4, 7, 8, 9, 5, 7, 8, 9, 5};
 
-  MatlabArray *ma = new MatlabArray("test2", dims, true, MPI_SHORT, false);
+  MatlabArray *ma = new MatlabArray("test2", dims, true, MPI_DOUBLE, false);
   MatlabArray *ma2 = new MatlabArray("abc", dims2, false, MPI_DOUBLE, false);
 
   if (!ma || !ma2)
     throw MemoryException();
 
-  short int data[] = {2, 3, 4, 5};
-  ma->append_buffer(2 * sizeof(short int), reinterpret_cast<void *>(data));
-  ma->append_buffer(2 * sizeof(short int), reinterpret_cast<void *>(data + 2));
-  ma->append_buffer(2 * sizeof(short int), reinterpret_cast<void *>(data));
+  double data[] = {2, 3, 4, 5};
+  ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data));
+  ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data + 2));
+  ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data));
 
-  ma2->append_buffer(16 * sizeof(double), reinterpret_cast<void *>(data2));
-  ma2->append_buffer(16 * sizeof(double), reinterpret_cast<void *>(data2));
+  ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
+  ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
   
   ofstream tf("a.mat",  ofstream::out | ofstream::binary
              | ofstream::trunc);

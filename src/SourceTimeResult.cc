@@ -56,6 +56,11 @@ map<string, Variable *> &SourceTimeResult::get_result(const Grid &grid,
     result_[0] = grid.get_deltat() * time_step; 
     result_[1] = te_.source_function(grid, time_step);
     var_.set_num(1); 
+
+    cerr << "SourceTimeResult, data is " << result_[0] 
+         << " and " << result_[1] << endl;
+    cerr << "Pointer is " << reinterpret_cast<void *>(result_) << endl;
+
   } 
   else {
     var_.set_num(0); 
