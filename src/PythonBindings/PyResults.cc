@@ -130,7 +130,7 @@ void export_results()
     .def("set_region", &FarfieldResult2::set_region, 
          "Set the CSGBox which defines the surface over which "
          "currents should be calculated.")
-    .def("use_face", &FarfieldResult::use_face,
+    .def("use_face", &FarfieldResult2::use_face,
          "Exclude or include faces from the Huygen's surface. This breaks "
          "the surface equivalence theorm slightly, use with caution. ")
     ;

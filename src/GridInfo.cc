@@ -28,7 +28,13 @@ GridInfo::GridInfo()
     dimx_no_sd_(0), dimy_no_sd_(0), dimz_no_sd_(0), 
     start_x_no_sd_(0), start_y_no_sd_(0), start_z_no_sd_(0),
     deltax_(0), deltay_(0), deltaz_(0), deltat_(0)
-{}
+{
+  // Default the boundaries to ewalls
+  for (int i = 0; i < 6; i++)
+  {
+    face_bc_[i] = shared_ptr<BoundaryCond>(new Ewall());
+  }
+}
 
 GridInfo::GridInfo(const GridInfo &info) {
   *this = info;

@@ -94,7 +94,8 @@ void FarfieldResult::dump_temps()
 FarfieldResult::FarfieldResult()
   : r_(100),
     Wx_(0), Wy_(0), Wz_(0), Ux_(0), Uy_(0), Uz_(0),
-    E_theta_(0), E_phi_(0)
+    E_theta_(0), E_phi_(0), e_theta_real_(0), e_theta_imag_(0),
+    e_phi_real_(0), e_phi_imag_(0), rcs_(0)
 {
   for (int i = 0; i < 6; i++)
     use_face_[i] = true;
@@ -619,9 +620,9 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
       // This index is for the pointers storing the previous value
       // of the fields on the face.
       data.idx = 0;
-      data.xshift = 0.5;
-      data.yshift = 0.5;
-      data.zshift = 0.5;
+      data.xshift = 0.0;
+      data.yshift = 0.0;
+      data.zshift = 0.0;
 
       switch (face_idx)
       {
@@ -633,7 +634,11 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         data.U_t2 = Uz_;
 
         data.cellsize = grid.get_deltay() * grid.get_deltaz();
-        data.xshift = 0.0;
+
+        if (face_idx == FRONT)
+          data.xshift = -0.5;
+        else
+          data.xshift = 0.5;
         break;
             
       case LEFT:
@@ -644,7 +649,11 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         data.U_t2 = Ux_;
         
         data.cellsize = grid.get_deltax() * grid.get_deltaz();
-        data.yshift = 0.0;
+
+        if (face_idx == RIGHT)
+          data.yshift = -0.5;
+        else
+          data.yshift = 0.5;
         break;
         
       case TOP:
@@ -655,7 +664,11 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         data.U_t2 = Uy_;
         
         data.cellsize = grid.get_deltax() * grid.get_deltay();
-        data.zshift = 0.0;
+
+        if (face_idx == TOP)
+          data.zshift = -0.5;
+        else
+          data.zshift = 0.5;
         break;
       }            
 

@@ -291,6 +291,15 @@ void FDTD::run()
   {
     cout << "Grid is " << get_num_x_cells() << "x" << get_num_y_cells()
          << "x" << get_num_z_cells() << " cells in size.\n";
+
+    if (MPI_SIZE > 1)
+    {
+      cout << "The Grid on this node is " 
+           << local_ginfo_.dimx_ << "x" 
+           << local_ginfo_.dimy_ << "x" 
+           << local_ginfo_.dimz_ << " cells in size.\n";
+    }
+
     cout << "Time step size is " << get_time_delta() 
          << ". Executing for " << time_steps_ << " time steps.\n\n";
     cout << "Initializing results, data writers, and excitations..." << endl;
