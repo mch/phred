@@ -39,7 +39,7 @@ using namespace std;
 
 class Material 
 {
- private:
+private:
   MaterialType type_;
   unsigned int material_id_; /**< id used to reference constants in
                                 the grid. */
@@ -73,7 +73,12 @@ class Material
   
   Material();
   ~Material();
-  
+
+  /**
+   * Returns a reference to a map of material material properties. 
+   */ 
+  const map<string, mat_prop_t> &get_properties() const;
+
   /**
    * Returns the material ID used to index into arrays of
    * constants. Grid use only. 

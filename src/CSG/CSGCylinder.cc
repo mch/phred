@@ -33,11 +33,18 @@ CSGStatus CSGCylinder::is_point_inside(float x, float y, float z) const
 {
   CSGStatus ret = OUTSIDE;
 
-  float r = sqrt(pow(centre_[0] - x, 2) + pow(centre_[1] - y, 2));
+  if (z > centre_[2] - height_ / 2 
+      && z < centre_[2] + height_ / 2
+      && y > centre_[1] - radius_
+      && y < centre_[1] + radius_
+      && x > centre_[0] - radius_
+      && x < centre_[0] + radius_)
+  {
+    float r = sqrt(pow(centre_[0] - x, 2) + pow(centre_[1] - y, 2));
 
-  if (r < radius_ && z > centre_[2] - height_ / 2 
-      && z < centre_[2] + height_ / 2)
-    ret = INSIDE;
+    if (r < radius_)
+      ret = INSIDE;
+  }
 
   return ret; 
 }

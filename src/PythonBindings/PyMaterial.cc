@@ -44,5 +44,7 @@ void export_materials()
   class_<MaterialLib>("MaterialLib", "Materials Library")
     .def("add_material", &MaterialLib::add_material)
     .def("num_materials", &MaterialLib::num_materials)
+    .def("save_file", &MaterialLib::save_material_file)
+    .def("load_file", &MaterialLib::load_material_file)
     ;
 }

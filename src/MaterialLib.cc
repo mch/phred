@@ -22,6 +22,10 @@
 #include "MaterialLib.hh"
 #include "Exceptions.hh"
 
+#include <fstream>
+
+using namespace std;
+
 MaterialLib::MaterialLib()
 {
   Material temp, temp2;
@@ -60,4 +64,47 @@ const Material &MaterialLib::get_material(const char *name) const
     throw UnknownMaterialException("Unknown material requested.");
 
   return (*iter).second;
+}
+
+void MaterialLib::load_material_file(const char *filename)
+{
+  
+}
+
+void MaterialLib::save_material_file(const char *filename)
+{
+  ofstream file;
+
+  file.open(filename, ofstream::trunc | ofstream::out);
+  
+  if(file.is_open())
+  {
+    file << "Phred " << PACKAGE_VERSION << " Material Library\n\n";
+    
+    map<string, Material>::const_iterator iter = materials_.begin();
+    map<string, Material>::const_iterator iter_e = materials_.end();
+
+    for (; iter != iter_e; ++iter)
+    {
+      file << (*iter).second.get_name() << " " << (*iter).second.get_epsilon()
+           << " " << (*iter).second.get_mu()
+           << " " << (*iter).second.get_sigma()
+           << " " << (*iter).second.get_sigma_star() << "\n";
+
+      const map<string, mat_prop_t> &props = (*iter).second.get_properties();
+
+      map<string, mat_prop_t>::const_iterator piter = props.begin();
+      map<string, mat_prop_t>::const_iterator piter_e = props.end();
+
+      for (; piter != piter_e; ++piter)
+      {
+        file << (*piter).first << " " << (*piter).second << "\n";
+      }
+      file << "\n";
+    }
+
+    file.close();
+  } else {
+    throw DataWriterException("Unable to open a file to write material database to.");
+  }
 }

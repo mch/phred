@@ -113,3 +113,8 @@ mat_prop_t Material::get_plasma_freq() const
 {
   return fp_;
 }
+
+const map<string, mat_prop_t> &Material::get_properties() const
+{
+  return properties_;
+}
