@@ -8,7 +8,7 @@
  * to the face are set to zero, but the one normal to the face is set
  * such that it's derivate at the face is zero. 
  */
-class Hwall : public BoundaryCondition
+class Hwall : public BoundaryCond
 {
 private:
 protected:

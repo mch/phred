@@ -8,10 +8,13 @@
  * to the face are set to zero, but the one normal to the face is set
  * such that it's derivate at the face is zero. 
  */
-class Ewall : public BoundaryCondition
+class Ewall : public BoundaryCond
 {
 private:
 protected:
+
+  template<class T>
+  void helper(region r, Grid &grid);
 
 public:
   Ewall();

@@ -2,19 +2,43 @@
 #define BOUNDARY_CONDITION_H
 
 #include "Grid.hh"
+#include "GridPlane.hh"
 
 /**
  * An abstract base class for boundary conditions. Subclass this to
  * implement real ones.
  */
-class BoundaryCondition
+class BoundaryCond
 {
 private:
 protected:
+  /** \struct region
+   * \brief min and max coordinates that can be used to define a
+   * block within the grid. Or a face. 
+   */
+  typedef struct {
+    unsigned int xmin;
+    unsigned int xmax;
+    unsigned int ymin;
+    unsigned int ymax;
+    unsigned int zmin;
+    unsigned int zmax;
+  } region;
+
+  /**
+   * Returns the min and max coordinates along each axis for a given
+   * face. Each boundary condition implements it's own loops, but
+   * this factors out some of the tedious work in anycase. 
+   *
+   * @param face the Face to work on, as defined in Types.hh
+   * @param grid the Grid object that we are looking at
+   * @return a region containing the coordinate mins and maxs
+   */
+  region find_face(Face face, Grid &grid);
 
 public:
-  BoundaryCondition() {}
-  virtual ~BoundaryCondition() {}
+  BoundaryCond() {}
+  virtual ~BoundaryCond() {}
 
   /**
    * Implement this method to apply the boundary condition. This is

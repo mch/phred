@@ -222,6 +222,10 @@ main (int argc, char **argv)
   grid.define_box(0, 100, 0, 100, 0, 100, 1);
   grid.define_box(40, 60, 40, 60, 40, 60, 2);
 
+  // Excitation
+  Gaussm ex;
+  ex.set_parameters(1, 500e12, 300e12);
+
   // Main loop
   unsigned int num_time_steps = 100;
   unsigned int ts = 0;
@@ -229,12 +233,13 @@ main (int argc, char **argv)
   cout << "main loop begins." << endl;  
   for (ts = 0; ts < num_time_steps; ts++) {
     // Excitations
+    ex.excite(grid, ts);
 
-    // E Field update
-
-    // H Field update
+    // Fields update
+    grid.update_fields();
 
     // Boundary condition application
+    grid.apply_boundaries();
 
     // Subdomain interface plane sharing
 

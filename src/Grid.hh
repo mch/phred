@@ -17,19 +17,17 @@
  * accident. 
  *
  * \bug Sanity checks on stability are required.
- *
- * \bug Assertions when in debug mode should be used for set/get
- * functions. 
- *
- * \bug Set/get functions should be inline. 
  */
 
 #ifndef GRID_H
 #define GRID_H
 
+#include "config.h" // must come before assert.h
+
 #include <mpi.h>
 
 #include <time.h>
+#include <assert.h>
 
 #include "Types.hh"
 #include "MaterialLib.hh"
@@ -344,6 +342,7 @@ class Grid {
   inline void set_ex(unsigned int x, unsigned int y, 
                      unsigned int z, field_t val)
   {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     ex_[x][y][z] = val;
   }
 
@@ -357,6 +356,7 @@ class Grid {
   inline void set_ey(unsigned int x, unsigned int y, 
                      unsigned int z, field_t val)
   {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     ey_[x][y][z] = val;
   }
 
@@ -371,6 +371,7 @@ class Grid {
   inline void set_ez(unsigned int x, unsigned int y, 
                      unsigned int z, field_t val)
   {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     ez_[x][y][z] = val;
   }
 
@@ -385,6 +386,7 @@ class Grid {
   inline void set_hx(unsigned int x, unsigned int y, 
                      unsigned int z, field_t val)
   {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     hx_[x][y][z] = val;
   }
 
@@ -398,6 +400,7 @@ class Grid {
   inline void set_hy(unsigned int x, unsigned int y, 
                      unsigned int z, field_t val)
   {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     hy_[x][y][z] = val;
   }
 
@@ -411,7 +414,95 @@ class Grid {
   inline void set_hz(unsigned int x, unsigned int y, 
                      unsigned int z, field_t val)
   {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     hz_[x][y][z] = val;
+  }
+
+
+  /**
+   * Return Ex at some point in space.
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * @param z the z coordinate
+   * @return the value of ex
+   */
+  inline field_t get_ex(unsigned int x, unsigned int y, 
+                        unsigned int z)
+  {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
+    return ex_[x][y][z];
+  }
+
+  /**
+   * Return Ey at some point in space.
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * @param z the z coordinate
+   * @return the value of ey
+   */
+  inline field_t get_ey(unsigned int x, unsigned int y, 
+                        unsigned int z)
+  {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
+    return ey_[x][y][z];
+  }
+
+
+  /**
+   * Return Ez at some point in space.
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * @param z the z coordinate
+   * @return the value of ez
+   */
+  inline field_t get_ez(unsigned int x, unsigned int y, 
+                        unsigned int z)
+  {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
+    return ez_[x][y][z];
+  }
+
+
+  /**
+   * Return Hx at some point in space.
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * @param z the z coordinate
+   * @return the value of hx
+   */
+  inline field_t get_hx(unsigned int x, unsigned int y, 
+                        unsigned int z)
+  {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
+    return hx_[x][y][z];
+  }
+
+  /**
+   * Return Hy at some point in space.
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * @param z the z coordinate
+   * @return the value of hy
+   */
+  inline field_t get_hy(unsigned int x, unsigned int y, 
+                        unsigned int z)
+  {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
+    return hy_[x][y][z];
+  }
+
+  /**
+   * Return Hz at some point in space.
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * @param z the z coordinate
+   * @return the value of hz
+   */
+  inline field_t get_hz(unsigned int x, unsigned int y, 
+                        unsigned int z)
+  {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
+    return hz_[x][y][z];
   }
 
 };

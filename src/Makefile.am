@@ -4,6 +4,7 @@ phred_SOURCES=phred.cc \
 	Grid.cc \
 	Grid.hh \
 	GridInfo.hh \
+	GridPlane.hh \
 	FreqGrid.hh \
 	FreqGrid.cc \
 	Material.cc \
@@ -19,7 +20,9 @@ phred_SOURCES=phred.cc \
 	TimeExcitation.cc \
 	SpaceExcitation.hh \
 	BoundaryCondition.hh \
+	BoundaryCondition.cc \
 	Ewall.hh \
+	Ewall.cc \
 	Hwall.hh \
 	Types.hh \
 	SubdomainAlg.hh \

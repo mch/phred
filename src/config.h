@@ -13,7 +13,7 @@
 /* #undef C_ALLOCA */
 
 /* Turn on debugging messages */
-/* #undef DEBUG */
+#define DEBUG 1
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
@@ -36,7 +36,7 @@
 #define HAVE_LIBMPI 1
 
 /* Define to 1 if you have the `popt' library (-lpopt). */
-/* #undef HAVE_LIBPOPT */
+#define HAVE_LIBPOPT 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
@@ -84,7 +84,7 @@
 /* #undef HAVE_SYS_STAT_H */
 
 /* Define to 1 if you have the <sys/sysmacros.h> header file. */
-#define HAVE_SYS_SYSMACROS_H 1
+/* #undef HAVE_SYS_SYSMACROS_H */
 
 /* Define to 1 if you have the <sys/time.h> header file. */
 #define HAVE_SYS_TIME_H 1
@@ -107,7 +107,7 @@
 /* #undef MAJOR_IN_SYSMACROS */
 
 /* Turn off assertions */
-#define NDEBUG 1
+/* #undef NDEBUG */
 
 /* Name of package */
 #define PACKAGE "phred"
@@ -130,9 +130,9 @@
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
 /* #undef STACK_DIRECTION */
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -142,7 +142,7 @@
 /* #undef TM_IN_SYS_TIME */
 
 /* Use the popt library */
-/* #undef USE_POPT */
+#define USE_POPT 1
 
 /* Version number of package */
 #define VERSION "0.1.0"
