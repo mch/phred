@@ -19,9 +19,9 @@ AC_SUBST(ISODATE)
 dnl Optional programs
 AC_ARG_WITH(netcdf, AC_HELP_STRING([--without-netcdf], [Don't use NetCDF library]))
 
-AC_ARG_WITH(hdf, AC_HELP_STRING([--without-hdf], [Don't use the HDF4 library]))
-
 AC_ARG_WITH(hdf5, AC_HELP_STRING([--without-hdf5], [Don't use the HDF5 library]))
+
+AC_ARG_WITH(hdf, AC_HELP_STRING([--with-hdf], [Use the HDF4 library]))
 
 AC_ARG_WITH(doubleprecision, AC_HELP_STRING([--with-double-precision], [Uses doubles (64-bits) instead of floats (32 bits) for field quantities. Double precision won't work with the AltiVec engine.]))
 
@@ -87,21 +87,7 @@ AC_ARG_VAR([DOT], [Set to YES if dot from the graphviz package is available for 
 AC_LANG(C++)
 
 dnl Use popt? 
-AC_ARG_WITH(popt, AC_HELP_STRING([--without-popt], [Don't use popt for handling command line options (the executable will only accept an option file)]))
-
-dnl netCDF support? 
-dnl AC_ARG_WITH(netcdf-libs, AC_HELP_STRING([--with-netcdf-libs], [Location of netCDF libraries]))
-
-dnl AC_ARG_WITH(netcdf-includes, AC_HELP_STRING([--with-netcdf-includes], [Location of netCDF include files]))
-
-dnl HDF support? 
-dnl AC_ARG_WITH(hdf4-libs, AC_HELP_STRING([--with-hdf4-libs], [Location of HDF 4 libraries]))
-
-dnl AC_ARG_WITH(hdf4-includes, AC_HELP_STRING([--with-hdf4-includes], [Location of HDF 4 include files]))
-
-dnl AC_ARG_WITH(hdf5-libs, AC_HELP_STRING([--with-hdf5-libs], [Location of HDF 5 libraries]))
-
-dnl AC_ARG_WITH(hdf5-includes, AC_HELP_STRING([--with-hdf5-includes], [Location of HDF 5 include files]))
+AC_ARG_WITH(popt, AC_HELP_STRING([--with-popt], [Use popt for handling command (not recommended right now)]))
 
 dnl Various MPI implementations we can use. We can usually assume that the 
 dnl compiler command script adds the right libraries and include paths, 
@@ -200,7 +186,7 @@ AC_CHECK_HEADER(mpi.h, [], [
         AC_MSG_ERROR([*** Can't find any MPI header files. ])])
 
 
-if [[ ! "$with_popt" = no ]]; then
+if [[ "$with_popt" = "yes" ]]; then
         AC_MSG_WARN([The use of popt has been seen to cause mysterious seg faults! RECOMMEND --without-popt!])
         AC_DEFINE([USE_POPT], [1], [Use the popt library])
         AC_CHECK_LIB(popt, poptGetContext, [], [])
@@ -215,12 +201,16 @@ AC_CHECK_LIB(netcdf, ncopen, [
                   [$with_netcdf_includes])], [], [$with_netcdf_libs])
 fi 
 
-if [[ ! "$with_hdf" = "no" ]]; then 
+if [[ "$with_hdf" = "yes" ]]; then 
 AC_CHECK_LIB(mfhdf, hdf_close, [
     LIBS="-lmfhdf -ldf -ljpeg -lz $LIBS"
     AC_CHECK_HEADER([hdf.h], [
         AC_DEFINE([USE_HDF4], [1], [Use HDF4 as a DataWriter])], [], 
                   [$with_hdf4_includes])], [], [-ldf -ljpeg -lz])
+
+if [[ ! "$with_netcdf" = "no" ]]; then 
+AC_MSG_WARN([Using HDF and NetCDF together may not work; they have clashing symbols.])
+fi
 fi
 
 if [[ ! "$with_hdf5" = "no" ]]; then 

@@ -23,6 +23,17 @@ void SubdomainBc::apply(Face face, Grid &grid)
             grid.get_face_start(face, FC_HY, 0), t);
   send_recv(grid.get_face_start(face, FC_HZ, 1),
             grid.get_face_start(face, FC_HZ, 0), t);
+
+  // Send and recieve and data we've be contracted to do. 
+  vector<Data>::iterator tx_iter = tx_data_.begin();
+  vector<Data>::iterator rx_iter = rx_data_.begin();
+  vector<Data>::iterator tx_iter_end = tx_data_.end();
+
+  while (tx_iter != tx_iter_end) 
+  {
+    send_recv((*tx_iter).get_ptr(), (*rx_iter).get_ptr(), 
+              (*tx_iter).get_datatype());
+  }
 }
 
 void SubdomainBc::send_recv(void *tx_ptr, void *rx_ptr, MPI_Datatype &t)
@@ -56,4 +67,10 @@ void SubdomainBc::set_rank(int rank)
 int SubdomainBc::get_rank()
 {
   return rank_;
+}
+
+void SubdomainBc::add_tx_rx_pair(const Data &rx, const Data &tx)
+{
+  tx_data_.push_back(tx);
+  rx_data_.push_back(rx);
 }

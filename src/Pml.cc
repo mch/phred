@@ -256,6 +256,16 @@ void Pml::apply(Face face, Grid &grid)
     break;
   }
 
+  cout << "Pml update on face " << static_cast<int>(face) 
+       << "in grid ranges x={" << grid_r.xmin << "," 
+       << grid_r.xmax << "}, y={" << grid_r.ymin << "," 
+       << grid_r.ymax << "}, z={" << grid_r.zmin << ","
+       << grid_r.zmax << "}.\n"
+       << "pml range x={" << pml_r_.xmin << "," 
+       << pml_r_.xmax << "}, y={" << pml_r_.ymin << "," 
+       << pml_r_.ymax << "}, z={" << pml_r_.zmin << ","
+       << pml_r_.zmax << "}.\n";
+
   pml_update_hx(grid_r, grid);
   pml_update_hy(grid_r, grid);
   pml_update_hz(grid_r, grid);
@@ -462,7 +472,7 @@ void Pml::pml_update_hz(const region_t &grid_r, Grid &grid)
 
 float Pml::sigma_over_eps_int(float x)
 {
-  if (geometric_profile_ <= 0.0)
+  if (!geometric_profile_)
   {
     if (x <= 0.0)
       return 0.0;
@@ -486,7 +496,7 @@ float Pml::sigma_over_eps_int(float x)
 
     else 
       return ratio_m_ * delta_bndy_ 
-        * (pow(g_, delta_bndy_ / geometric_delta_) - 1.)
+        * (pow(g_, delta_bndy_ / geometric_delta_) - 1.0)
         / log(g_);
   }
 }

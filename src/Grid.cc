@@ -61,7 +61,13 @@ void Grid::set_define_mode(bool d)
     // Sanity checks (like the grid has non zero size in all dimensions)
     
     // Stability check
-    
+    float temp = C * sqrt( 1/(pow(get_deltax(), static_cast<float>(2.0))) + 
+                           1/(pow(get_deltay(), static_cast<float>(2.0))) + 
+                           1/(pow(get_deltaz(), static_cast<float>(2.0))));
+
+    if (get_deltat() > 1/temp)
+      throw StabilityException();
+
     // Initialize the MPI Derived data types
     init_datatypes();
 
@@ -105,10 +111,20 @@ void Grid::set_define_mode(bool d)
 
       // Initialize the PML's
       Pml *p = dynamic_cast<Pml *>(&info_.get_boundary(static_cast<Face>(i)));
-      if (p)
+      if (p) {
         p->setup(static_cast<Face>(i), *this);
+
+        // Check ajacent faces and see if there are any subdomains
+        // that need to have data shared across them.
+        
+      }
     }
     
+    cout << "Grid update region: x={" << update_r_.xmin << "," 
+         << update_r_.xmax << "}, y={" << update_r_.ymin << "," 
+         << update_r_.ymax << "}, z={" << update_r_.zmin << ","
+         << update_r_.zmax << "}.\n";
+
     // Calculate common PML coefficients. 
     pml_common_.init_coeffs(*this);
 

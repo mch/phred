@@ -5,11 +5,12 @@
 
 #include "config.h"
 
+#include "Exceptions.hh"
+
 #ifdef USE_NETCDF
 #include <netcdf.h>
 #endif
 
-#include <exception>
 #include <map>
 #include <vector>
 
@@ -51,7 +52,6 @@ protected:
     vector<int> dim_ids_;
     vector<int> dim_lens_;
     int var_id_;
-    unsigned int time_step_;
     bool time_dim_;
   } ncdfvar_t; 
   
@@ -79,8 +79,10 @@ protected:
 
   /**
    * Implements the function from DataWriter. This calls the function
-   * below. */
-  unsigned int write_data(Data &data, MPI_Datatype t, 
+   * below. 
+   */
+  unsigned int write_data(unsigned int time_step, 
+                          Data &data, MPI_Datatype t, 
                           void *ptr, unsigned int len);  
 
 
@@ -133,7 +135,7 @@ public:
   NetCDFDataWriter(int rank, int size)
     : DataWriter(rank, size)
   {
-    throw exception(); //("NetCDF Support is not available.");
+    throw NoNetCDFException(); //("NetCDF Support is not available.");
   }
 
   ~NetCDFDataWriter()

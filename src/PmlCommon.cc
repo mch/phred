@@ -143,7 +143,7 @@ void PmlCommon::init_ratios(Face face, Grid &grid, Pml *p)
   delta_t d_space;
   int step; 
   unsigned int idx;
-  float *arr;
+  float *arr1, * arr2;
 
   switch (face)
   {
@@ -151,52 +151,58 @@ void PmlCommon::init_ratios(Face face, Grid &grid, Pml *p)
     d_space = grid.get_deltax();
     step = 1;
     idx = 0;
-    arr  = ratio_x_;
+    arr1 = ratio_x_;
+    arr2 = ratio_star_x_;
     break;
 
   case FRONT:
     d_space = grid.get_deltax();
     step = -1; 
     idx = grid.get_ldx() - 1;
-    arr  = ratio_x_;
+    arr1 = ratio_x_;
+    arr2 = ratio_star_x_;
     break;
 
   case LEFT:
     d_space = grid.get_deltay();
     step = 1;
     idx = 0;
-    arr  = ratio_y_;
+    arr1 = ratio_y_;
+    arr2 = ratio_star_y_;
     break;
 
   case RIGHT:
     d_space = grid.get_deltay();
     step = -1; 
     idx = grid.get_ldy() - 1;
-    arr  = ratio_y_;
+    arr1 = ratio_y_;
+    arr2 = ratio_star_y_;
     break;
 
   case BOTTOM:
     d_space = grid.get_deltaz();
     step = 1;
     idx = 0;
-    arr  = ratio_z_;
+    arr1 = ratio_z_;
+    arr2 = ratio_star_z_;
     break;
 
   case TOP:
     d_space = grid.get_deltaz();
     step = -1; 
     idx = grid.get_ldz() - 1;
-    arr  = ratio_z_;
+    arr1 = ratio_z_;
+    arr2 = ratio_star_z_;
     break;
   }
 
   for (unsigned int i = 0; i <= p->get_thickness(); i++)
   {
-    arr[idx] = 1.0 / d_space 
+    arr1[idx] = 1.0 / d_space 
       * ( p->sigma_over_eps_int((i+0.5)*d_space) 
           - p->sigma_over_eps_int((i-0.5)*d_space));
     
-    arr[idx] = 1.0 / d_space 
+    arr2[idx] = 1.0 / d_space 
       * ( p->sigma_over_eps_int((i+1.0)*d_space) 
           - p->sigma_over_eps_int((i)*d_space));
     

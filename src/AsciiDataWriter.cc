@@ -40,7 +40,8 @@ void AsciiDataWriter::add_variable(Result &result)
   time_dim_ = result.has_time_dimension();
 }
 
-unsigned int AsciiDataWriter::write_data(Data &data, MPI_Datatype t, 
+unsigned int AsciiDataWriter::write_data(unsigned int time_step, 
+                                         Data &data, MPI_Datatype t, 
                                          void *ptr, unsigned int len)
 {
   if (!file_.is_open()) 

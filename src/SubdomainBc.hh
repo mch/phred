@@ -4,12 +4,14 @@
 #include "BoundaryCondition.hh"
 #include "Data.hh"
 
+#include <vector>
+
+using namespace std;
+
 /**
  * This boundary condition talks to another rank and exchanges
  * information about the overlapping region with it. 
  * 
- * \bug SET start_ptr from grid!
- * \bug Load recieved data back into grid!
  */
 class SubdomainBc : public BoundaryCond
 {
@@ -17,6 +19,21 @@ private:
 protected:
   int neighbour_;
   int rank_;
+
+  /**
+   * A list of items to transmit each time the boundary condition is
+   * applied. The communication is assumed to be bidirectional and
+   * non-overlapping; there must be one rx_data_ item for each
+   * tx_data_ item, and it must be possible to send or recieve in any
+   * order. No buffering is provided. 
+   */ 
+  vector<Data> tx_data_;
+
+  /**
+   * A list of items to recieve each time the boundary condition is
+   * applied. 
+   */ 
+  vector<Data> rx_data_;
 
   /**
    * A helper function that sends arrays of data between two ranks. 
@@ -68,5 +85,16 @@ public:
    * @return our rank
    */
   int get_rank();
+
+  /**
+   * Add a tx/rx data pair to be exchanged each time this boundary
+   * condition is applied. The datatype used by both Data objects MUST
+   * be the same.  
+   *
+   * @param rx A Data object describing the data we will recieve.
+   * @param tx A Data object describing the data we will transmit. 
+   */
+  void add_tx_rx_pair(const Data &rx, const Data &tx);
+
 };
 #endif // SUBDOMAIN_BC_H

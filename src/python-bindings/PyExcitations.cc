@@ -41,4 +41,12 @@ BOOST_PYTHON_MODULE(Excitation)
          &TimeExcitationWrap::default_excite)
     .def("call_sf", call_sf)
     ;
+
+  class_<Gaussm, bases<TimeExcitation> >("Gaussm")
+    .def("set_parameters", &Gaussm::set_parameters)
+    .def("get_alpha", &Gaussm::get_alpha)
+    .def("get_deltaf", &Gaussm::get_deltaf)
+    .def("get_f0", &Gaussm::get_f0)
+    .def("source_function", &Gaussm::source_function)
+    ;
 }

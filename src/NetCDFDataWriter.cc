@@ -41,7 +41,7 @@ void NetCDFDataWriter::init()
   }
   else
   {
-    throw DataWriterException("A filename must be set before calling init()!");
+    throw DataWriterException("A filename must be set before calling init().");
   }
 }
 
@@ -67,7 +67,7 @@ void NetCDFDataWriter::add_variable(Result &result)
     return; 
 
   if (!fopen_)
-    throw DataWriterException("Must call init() before adding variables!");
+    throw DataWriterException("Must call init() before adding variables.");
 
   var.dim_lens_ = result.get_dim_lengths();
   const vector<string> &dim_names = result.get_dim_names();
@@ -88,7 +88,7 @@ void NetCDFDataWriter::add_variable(Result &result)
   }
 
   status = nc_redef(ncid_);
-  if (status != NC_NOERR)
+  if (status != NC_NOERR && status != NC_EINDEFINE)
     handle_error(status);
 
   // Add dimension id's
@@ -118,8 +118,8 @@ void NetCDFDataWriter::add_variable(Result &result)
         handle_error(status);
     }
     
-    dids.push_back(tdim);
-    var.dim_lens_.push_back(0);
+    dids.insert(dids.begin(), tdim);
+    var.dim_lens_.insert(var.dim_lens_.begin(), 0);
   }
 
   var.dim_ids_ = dids;
@@ -127,18 +127,9 @@ void NetCDFDataWriter::add_variable(Result &result)
   // Add variable
   int *dimids = new int[dids.size()];
 
-  if (var.time_dim_)
-  {
-    for (unsigned int i = 1; i < dids.size(); i++)
-      dimids[i] = dids[i-1];
+  for (unsigned int i = 0; i < dids.size(); i++)
+    dimids[i] = dids[i];
   
-    // Time dim has to be first
-    dimids[0] = dids[dids.size() - 1];
-  } else {
-    for (unsigned int i = 0; i < dids.size(); i++)
-      dimids[i] = dids[i];
-  }
-
   // Does the variable already exist? 
   status = nc_inq_varid(ncid_, var.var_name_.c_str(), &var.var_id_);
   if (status == NC_NOERR)
@@ -149,14 +140,14 @@ void NetCDFDataWriter::add_variable(Result &result)
     if (status != NC_NOERR)
       handle_error(status);
     
-    if (ndims != dids.size())
-      throw DataWriterError("NetCDF variable name found, but wrong number of dimensions!");
+    if (static_cast<unsigned int>(ndims) != dids.size())
+      throw DataWriterException("NetCDF variable name found, but wrong number of dimensions.");
 
     status = nc_inq_vardimid(ncid_, var.var_id_, dimids);
     if (status != NC_NOERR)
       handle_error(status);
     
-    int len = 0;
+    size_t len = 0;
     for (unsigned int i = 0; i < dids.size(); i++)
     {
       status = nc_inq_dimlen(ncid_, dimids[i], &len);
@@ -164,7 +155,8 @@ void NetCDFDataWriter::add_variable(Result &result)
       if (status != NC_NOERR)
         handle_error(status);
       
-      //if (len != 
+      if (static_cast<int>(len) != var.dim_lens_[i])
+        throw DataWriterException("Found a variable with the right name, but one of it's dimensions is the wrong length.");
     }
   } 
   else 
@@ -181,9 +173,14 @@ void NetCDFDataWriter::add_variable(Result &result)
   status = nc_enddef(ncid_);
   if (status != NC_NOERR)
     handle_error(status);
+
+  // Remember the variable!
+  vars_[var.var_name_] = var;
+
 }
 
-unsigned int NetCDFDataWriter::write_data(Data &data, MPI_Datatype t, 
+unsigned int NetCDFDataWriter::write_data(unsigned int time_step, 
+                                          Data &data, MPI_Datatype t, 
                                           void *ptr, unsigned int len)
 {
   if (!fopen_)
@@ -207,9 +204,8 @@ unsigned int NetCDFDataWriter::write_data(Data &data, MPI_Datatype t,
   
   if (var.time_dim_)
   {
-    count[sz - 1] = 1;
-    start[sz - 1] = var.time_step_;
-    var.time_step_++;
+    count[0] = 1;
+    start[0] = time_step;
   }
 
   return write_data(var.var_id_, start, count, data.get_datatype(), 
@@ -367,7 +363,7 @@ int NetCDFDataWriter::get_dim(int i, int size, string basename)
         if (status == NC_NOERR) {
           status = nc_inq_dimlen(ncid_, dimid, &len);
 
-          if (status == NC_NOERR) 
+          if (status != NC_NOERR) 
             handle_error(status);
 
           if (len == sz) 
@@ -391,7 +387,7 @@ int NetCDFDataWriter::get_dim(int i, int size, string basename)
   return dimid;
 }
 
-void NetCDFDataWriter::handle_error(char *int status)
+void NetCDFDataWriter::handle_error(int status)
 {
   throw DataWriterException(nc_strerror(status));
 }

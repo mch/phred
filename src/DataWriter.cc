@@ -2,10 +2,10 @@
 
 void DataWriter::handle_data(unsigned int time_step, Data &data)
 {
-  gather_data(data);
+  gather_data(time_step, data);
 }
 
-void DataWriter::gather_data(Data &data)
+void DataWriter::gather_data(unsigned int time_step, Data &data)
 {
   // Is the data on the right rank? 
   unsigned int nums_snd[2], *nums_recv;
@@ -68,7 +68,7 @@ void DataWriter::gather_data(Data &data)
       
       MPI_Datatype t = data.get_datatype();
         
-      write_data(data, t, ptr_head, total);
+      write_data(time_step, data, t, ptr_head, total);
 
       delete[] ptr_head;
     }
