@@ -491,9 +491,6 @@ public:
   field_t *W_t1, *W_t2;
   field_t *U_t1, *U_t2;
 
-  // An index into the above variables. 
-  int idx;
-
   // Current time step
   unsigned int tstep;
 
@@ -522,11 +519,8 @@ public:
 
   unsigned int ff_tsteps;
 
-  // Sign change, to make this match Jan's implementation. This is due
-  // to the fact that we're approximating a time derivative across two
-  // time steps, and the fact that the currents have various signs in
-  // them.... not sure exactly where this comes from though...
-  // This should be either -1 or +1. 
+  // Correct of the direction of the outward normal vector of the
+  // surface of the Huygens box.
   field_t signchange;
 
   // Angle data
@@ -556,9 +550,6 @@ public:
     field_t zt = (z - static_cast<int>(data.grid_centre.z)) * data.dz
       + (data.zshift * data.dz);
 
-    // Distance to source point
-    field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
-
     // Angles to the far field observation point
     field_t phi, theta;
     int wuidx = 0;
@@ -578,8 +569,6 @@ public:
         // floor(335.9999967972875) = 336!!!
 
         // Time is takes this source point to influence the farfield.
-//     field_t tau = (data.obs_radius - (xt * sin(data.phi) * cos(data.theta)
-//       + yt * sin(data.phi) * sin(data.theta) + zt * cos(data.phi))) / C;
         double tau = (data.tstep * data.dt) 
           - ((xt * sin(theta) * cos(phi)
               + yt * sin(theta) * sin(phi) 
@@ -588,38 +577,54 @@ public:
 
         // Farfield time step for this result. 
         double dtemp = tau / data.dt + 0.5;
-        //int U_n = static_cast<int>(floor(tau / data.dt + 0.5));
         int U_n = static_cast<int>(floor(dtemp));
-        dtemp = tau / data.dt;
-        //int W_n = static_cast<int>(floor(tau / data.dt));
+
+        // Magnetic fields are a 1/2 time step ahead
+        dtemp = tau / data.dt + 1.0;
         int W_n = static_cast<int>(floor(dtemp));
 
         assert(U_n >= 0 && (U_n + 1) < data.ff_tsteps);
         assert(W_n >= 0 && (W_n + 1) < data.ff_tsteps);
 
-        double U_a = (tau/data.dt + 0.5) - U_n;
-        double W_a = (tau/data.dt) - W_n;
+        double U_a = 0.5 - (tau/data.dt) + U_n;
+        double U_b = 2.0 * (tau/data.dt - U_n);
+        double U_c = 0.5 + (tau/data.dt) - U_n;
+
+        double W_a = 0.5 - (tau/data.dt + 0.5) + W_n;
+        double W_b = 2.0 * (tau/data.dt + 0.5 - W_n);
+        double W_c = 0.5 + (tau/data.dt + 0.5) - W_n;
 
         assert(U_a >= 0.0 && U_a <= 1.0);
+        assert(U_b >= -1.0 && U_b <= 1.0);
+        assert(U_c >= 0.0 && U_c <= 1.0);
+
         assert(W_a >= 0.0 && W_a <= 1.0);
+        assert(W_b >= -1.0 && W_b <= 1.0);
+        assert(W_c >= 0.0 && W_c <= 1.0);
 
-        field_t temp = data.signchange * data.cellsize; //  / (data.dt);
+        field_t temp = data.cellsize * data.signchange; //  / (data.dt);
 
-        data.U_t1[wuidx + U_n] += temp * (1 - U_a) * (f.et2_avg);
-        data.U_t1[wuidx + U_n + 1] += temp * U_a * (f.et2_avg);
+        data.U_t1[wuidx + U_n - 1] += temp * U_a * (f.et2_avg);
+        data.U_t1[wuidx + U_n] += temp * U_b * (f.et2_avg);
+        data.U_t1[wuidx + U_n + 1] += temp * U_c * (f.et2_avg);
 
-        data.U_t2[wuidx + U_n] -= temp * (1 - U_a) * (f.et1_avg);
-        data.U_t2[wuidx + U_n + 1] -= temp * U_a * (f.et1_avg);
+        data.W_t2[wuidx + W_n - 1] += W_a * temp * (f.ht1_avg);
+        data.W_t2[wuidx + W_n] += W_b * temp * (f.ht1_avg);
+        data.W_t2[wuidx + W_n + 1] += W_c * temp * (f.ht1_avg);
+
+        // These are -= due to the sign change going from field
+        // components to currents.
+        data.U_t2[wuidx + U_n - 1] -= temp * U_a * (f.et1_avg);
+        data.U_t2[wuidx + U_n] -= temp * U_b * (f.et1_avg);
+        data.U_t2[wuidx + U_n + 1] -= temp * U_c * (f.et1_avg);
         
-        data.W_t1[wuidx + W_n] -= (1 - W_a) * temp * (f.ht2_avg);
-        data.W_t1[wuidx + W_n + 1] -= W_a * temp * (f.ht2_avg);
+        data.W_t1[wuidx + W_n - 1] -= W_a * temp * (f.ht2_avg);
+        data.W_t1[wuidx + W_n] -= W_b * temp * (f.ht2_avg);
+        data.W_t1[wuidx + W_n + 1] -= W_c * temp * (f.ht2_avg);
 
-        data.W_t2[wuidx + W_n] += (1 - W_a) * temp * (f.ht1_avg);
-        data.W_t2[wuidx + W_n + 1] += W_a * temp * (f.ht1_avg);
       }
     }
 
-    data.idx++;
   }
 };
 
@@ -650,10 +655,11 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
 
       // This index is for the pointers storing the previous value
       // of the fields on the face.
-      data.idx = 0;
       data.xshift = 0.0;
       data.yshift = 0.0;
       data.zshift = 0.0;
+
+      int cell = 0;
 
       switch (face_idx)
       {
@@ -667,9 +673,114 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         data.cellsize = grid.get_deltay() * grid.get_deltaz();
 
         if (face_idx == FRONT)
+        {
           data.xshift = -0.5;
+          cell = (*region_).xmax() - 1;
+        }
         else
+        {
           data.xshift = 0.5;
+          cell = (*region_).xmin();
+        }
+
+//         for (int yidx = (*region_).ymin(); yidx < (*region_).ymax(); yidx++)
+//         {
+//           for (int zidx = (*region_).zmin(); zidx < (*region_).zmax(); zidx++)
+//           {
+//             field_t xt = (cell - static_cast<int>(data.grid_centre.x)) 
+//               * data.dx + (data.xshift * data.dx);
+//             field_t yt = (yidx - static_cast<int>(data.grid_centre.y)) 
+//               * data.dy + (data.yshift * data.dy);
+//             field_t zt = (zidx - static_cast<int>(data.grid_centre.z)) 
+//               * data.dz + (data.zshift * data.dz);
+
+//             // Angles to the far field observation point
+//             field_t phi, theta;
+//             int wuidx = 0;
+
+//             for (int phi_idx = 0; phi_idx < phi_data_->length(); phi_idx++)
+//             {
+//               for (int theta_idx = 0; theta_idx < theta_data_->length(); 
+//                    theta_idx++)
+//               {
+//                 phi = phi_data_->get(phi_idx);
+//                 theta = theta_data_->get(theta_idx);
+//                 wuidx = WU_index(phi_idx, theta_idx, 0, 
+//                                  theta_data_->length(), 
+//                                  data.ff_tsteps);
+
+//                 double tau = (data.tstep * data.dt) 
+//                   - ((xt * sin(theta) * cos(phi)
+//                       + yt * sin(theta) * sin(phi) 
+//                       + zt * cos(theta))) / C
+//                   + data.t_cross;
+
+//                 // Farfield time step for this result. 
+//                 double dtemp = tau / data.dt + 0.5;
+//                 int U_n = static_cast<int>(floor(dtemp));
+
+//                 // Magnetic fields are a 1/2 time step ahead
+//                 dtemp = tau / data.dt;// + 1.0;
+//                 int W_n = static_cast<int>(floor(dtemp));
+
+//                 assert(U_n >= 0 && (U_n + 1) < data.ff_tsteps);
+//                 assert(W_n >= 0 && (W_n + 1) < data.ff_tsteps);
+
+//                 double U_a = 0.5 - (tau/data.dt) + U_n;
+//                 double U_b = 2.0 * (tau/data.dt - U_n);
+//                 double U_c = 0.5 + (tau/data.dt) - U_n;
+
+//                 double W_a = 0.5 - (tau/data.dt - 0.5) + W_n;
+//                 double W_b = 2.0 * (tau/data.dt - 0.5 - W_n);
+//                 double W_c = 0.5 + (tau/data.dt - 0.5) - W_n;
+
+//                 assert(U_a >= 0.0 && U_a <= 1.0);
+//                 assert(U_b >= -1.0 && U_b <= 1.0);
+//                 assert(U_c >= 0.0 && U_c <= 1.0);
+
+//                 assert(W_a >= 0.0 && W_a <= 1.0);
+//                 assert(W_b >= -1.0 && W_b <= 1.0);
+//                 assert(W_c >= 0.0 && W_c <= 1.0);
+
+//                 field_t temp = data.cellsize; //  / (data.dt);
+
+//                 field_t ey = 0.5 * (grid.get_ey(cell, yidx, zidx) 
+//                                     + grid.get_ey(cell, yidx, zidx + 1));
+//                 field_t ez = 0.5 * (grid.get_ez(cell, yidx, zidx) 
+//                                     + grid.get_ez(cell, yidx, zidx + 1));
+
+//                 field_t hy = 0.25 * (grid.get_hy(cell, yidx, zidx) 
+//                                      + grid.get_hy(cell, yidx + 1, zidx)
+//                                      + grid.get_hy(cell - 1, yidx, zidx)
+//                                      + grid.get_hy(cell - 1, yidx + 1, zidx));
+//                 field_t hz = 0.25 * (grid.get_hz(cell, yidx, zidx) 
+//                                      + grid.get_hz(cell, yidx + 1, zidx)
+//                                      + grid.get_hz(cell - 1, yidx, zidx)
+//                                      + grid.get_hz(cell - 1, yidx + 1, zidx));
+
+//                 Uy_[wuidx + U_n - 1] += temp * U_a * ez;
+//                 Uy_[wuidx + U_n] += temp * U_b * ez;
+//                 Uy_[wuidx + U_n + 1] += temp * U_c * ez;
+
+//                 Wz_[wuidx + W_n - 1] += W_a * temp * hy;
+//                 Wz_[wuidx + W_n] += W_b * temp * hy;
+//                 Wz_[wuidx + W_n + 1] += W_c * temp * hy;
+
+//                 // These are -= due to the sign change going from field
+//                 // components to currents.
+//                 Uz_[wuidx + U_n - 1] -= temp * U_a * ey;
+//                 Uz_[wuidx + U_n] -= temp * U_b * ey;
+//                 Uz_[wuidx + U_n + 1] -= temp * U_c * ey;
+        
+//                 Wy_[wuidx + W_n - 1] -= W_a * temp * hz;
+//                 Wy_[wuidx + W_n] -= W_b * temp * hz;
+//                 Wy_[wuidx + W_n + 1] -= W_c * temp * hz;
+
+//               }
+//             }
+//           }
+//         } // end outer
+        
         break;
             
       case LEFT:
@@ -682,9 +793,16 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         data.cellsize = grid.get_deltax() * grid.get_deltaz();
 
         if (face_idx == RIGHT)
+        {
           data.yshift = -0.5;
+          cell = (*region_).ymax() - 1;
+        }
         else
+        {
           data.yshift = 0.5;
+          cell = (*region_).ymin();
+        }
+
         break;
         
       case TOP:
@@ -697,24 +815,33 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         data.cellsize = grid.get_deltax() * grid.get_deltay();
 
         if (face_idx == TOP)
+        {
           data.zshift = -0.5;
+          cell = (*region_).zmax() - 1;
+        }
         else
+        {
           data.zshift = 0.5;
+          cell = (*region_).zmin();
+        }
+
         break;
       }            
 
+      // This corrects for the direction of the outward surface normal
+      // of the Huygens box.
       if (face_idx == BACK || face_idx == LEFT || face_idx == BOTTOM)
         data.signchange = -1.0;
       else
         data.signchange = 1.0;
-
+      
       Face face = static_cast<Face>(face_idx);
       PlaneTiling<FFAlg, FFData>::loop(grid, *region_, 
                                        face, data);
     } // for face
-
+    
   } // if (result_time...)
-
+  
   return variables_;
 }
 
@@ -743,6 +870,9 @@ map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
       {
         field_t phi = phi_data_.get(phi_idx);
         field_t theta = theta_data_.get(theta_idx);
+        idx = WU_index(phi_idx, theta_idx, fft_idx, 
+                       theta_data_.length(), 
+                       ff_tsteps_);
 
         W_t = temp * (Wx_[idx] * cos(theta) * cos(phi)
                       + Wy_[idx] * cos(theta) * sin(phi)
@@ -783,7 +913,6 @@ map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
           dft_idx++;
         }
 
-        idx++;
       } // end for ff_tsteps
 
     } // end for theta

@@ -531,15 +531,23 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
     cells.zmax = (*region_).zmax();
 
     unsigned int index = 0;
+    
+    field_t shift = 0.0;
 
     switch (face_idx)
     {
     case FRONT:
     case BACK:
-      if (face_idx == BACK)
+      if (face_idx == BACK) 
+      {
+        shift = 0.5;
         cells.xmax = cells.xmin + 1;
+      }
       else
+      {
+        shift = -0.5;
         cells.xmin = cells.xmax - 1;
+      }
 
       index = f_idx * (*region_).ylen() * (*region_).zlen();
 
@@ -550,50 +558,24 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
         {
           for (int kdx = cells.zmin; kdx < cells.zmax; kdx++, index++)
           {
-            field_t xt = (idx - static_cast<int>(grid_centre.x)) * dx;
+            field_t xt = (idx - static_cast<int>(grid_centre.x)) * dx
+              + shift * dx;
             field_t yt = (jdx - static_cast<int>(grid_centre.y)) * dy;
             field_t zt = (kdx - static_cast<int>(grid_centre.z)) * dz;
 
-            // Distance to source point
-            field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
-
-            // Angles to source point
-            field_t sp_phi = acos(zt / r_prime);
-            field_t sp_theta = acos(xt / (r_prime * sin(sp_phi)));
-
-            if (isnan(sp_theta)) // can happen if zt == r_prime
-            {
-              sp_theta = 0;
-            }
-
-            complex<field_t> cos_t_cos_p(cos(sp_theta) * cos(sp_phi), 0);
-            complex<field_t> cos_t_sin_p(cos(sp_theta) * sin(sp_phi), 0);
-            complex<field_t> sin_t(sin(sp_theta), 0);
-            complex<field_t> sin_p(sin(sp_phi), 0);
-            complex<field_t> cos_p(cos(sp_phi), 0);
-
-
             // Exponential phase term, r' cos \psi = \vec{r}' \cdot \hat{r}
             // CHECK THIS!
-             field_t exp_phase = xt * sin(theta) * cos(phi) 
-               + yt * sin(theta) * sin(phi)
-               + zt * cos(theta);
-//             field_t exp_phase = xt * sin(phi) * cos(theta)
-//               + yt * sin(phi) * sin(theta) 
-//               + zt * cos(phi);
+            field_t exp_phase = xt * sin(theta) * cos(phi)
+              + yt * sin(theta) * sin(phi) 
+              + zt * cos(theta);
 
             complex<field_t> temp(0, k * exp_phase);
             temp = exp(temp) * complex<field_t>(dy * dz, 0);
 
-            p.N_theta += (Jt1[index] * cos_t_sin_p 
-                          - Jt2[index] * sin_t) * temp;
-
-            p.N_phi += (Jt1[index] * cos_p) * temp;
-            
-            p.L_theta += (Mt1[index] * cos_t_sin_p 
-                          - Mt2[index] * sin_t) * temp;
-            
-            p.L_phi += (Mt1[index] * cos_p) * temp;
+            p.Ny += Jt1[idx] * temp;
+            p.Nz += Jt2[idx] * temp;
+            p.Ly += Mt1[idx] * temp;
+            p.Lz += Mt2[idx] * temp;
           }
         }
       }
@@ -603,10 +585,16 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
     case LEFT:
     case RIGHT:
       if (face_idx == LEFT)
+      {
+        shift = 0.5;
         cells.ymax = cells.ymin + 1;
+      }
       else
+      {
+        shift = -0.5;
         cells.ymin = cells.ymax - 1;
-        
+      }
+ 
       index = f_idx * (*region_).xlen() * (*region_).zlen();
 
       // Jt1 == Jz, Jt2 == Jx. Jy == 0
@@ -617,49 +605,23 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
           for (int kdx = cells.zmin; kdx < cells.zmax; kdx++, index++)
           {
             field_t xt = (idx - static_cast<int>(grid_centre.x)) * dx;
-            field_t yt = (jdx - static_cast<int>(grid_centre.y)) * dy;
+            field_t yt = (jdx - static_cast<int>(grid_centre.y)) * dy
+              + shift * dy;
             field_t zt = (kdx - static_cast<int>(grid_centre.z)) * dz;
-
-            // Distance to source point
-            field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
-
-            // Angles to source point
-            field_t sp_phi = acos(zt / r_prime);
-            field_t sp_theta = acos(xt / (r_prime * sin(sp_phi)));
-
-            if (isnan(sp_theta)) // can happen if zt == r_prime
-            {
-              sp_theta = 0;
-            }
-
-            complex<field_t> cos_t_cos_p(cos(sp_theta) * cos(sp_phi), 0);
-            complex<field_t> cos_t_sin_p(cos(sp_theta) * sin(sp_phi), 0);
-            complex<field_t> sin_t(sin(sp_theta), 0);
-            complex<field_t> sin_p(sin(sp_phi), 0);
-            complex<field_t> cos_p(cos(sp_phi), 0);
 
             // Exponential phase term, r' cos \psi = \vec{r}' \cdot \hat{r}
             // CHECK THIS!
             field_t exp_phase = xt * sin(theta) * cos(phi) 
               + yt * sin(theta) * sin(phi)
               + zt * cos(theta);
-//             field_t exp_phase = xt * sin(phi) * cos(theta)
-//               + yt * sin(phi) * sin(theta) 
-//               + zt * cos(phi);
 
             complex<field_t> temp(0, k * exp_phase);
-
             temp = exp(temp) * complex<field_t>(dx * dz, 0);
 
-            p.N_theta += (Jt2[index] * cos_t_cos_p
-                          - Jt1[index] * sin_t) * temp;
-
-            p.N_phi += (complex<field_t>(-1,0) * Jt2[index] * sin_p) * temp;
-            
-            p.L_theta += (Mt2[index] * cos_t_cos_p 
-                          - Mt1[index] * sin_t) * temp;
-            
-            p.L_phi += (complex<field_t>(-1,0) * Mt2[index] * sin_p) * temp;
+            p.Nz += Jt1[idx] * temp;
+            p.Nx += Jt2[idx] * temp;
+            p.Lz += Mt1[idx] * temp;
+            p.Lx += Mt2[idx] * temp;
           }
         }
       }
@@ -669,9 +631,15 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
     case TOP:
     case BOTTOM:
       if (face_idx == TOP)
+      {
+        shift = -0.5;
         cells.zmin = cells.zmax - 1;
+      }
       else
+      {
+        shift = 0.5;
         cells.zmax = cells.zmin + 1;
+      }
 
       index = f_idx * (*region_).ylen() * (*region_).xlen();
 
@@ -684,88 +652,22 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
           {
             field_t xt = (idx - static_cast<int>(grid_centre.x)) * dx;
             field_t yt = (jdx - static_cast<int>(grid_centre.y)) * dy;
-            field_t zt = (kdx - static_cast<int>(grid_centre.z)) * dz;
-
-            // Distance to source point
-            field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
-
-            // Angles to source point
-            field_t sp_phi = acos(zt / r_prime);
-            field_t sp_theta = acos(xt / (r_prime * sin(sp_phi)));
-            
-            if (isnan(sp_theta)) // can happen if xt == 0 or yt == 0
-            {
-              sp_theta = 0;
-            }
-
-            complex<field_t> cos_t_cos_p(cos(sp_theta) * cos(sp_phi), 0);
-            complex<field_t> cos_t_sin_p(cos(sp_theta) * sin(sp_phi), 0);
-            complex<field_t> sin_t(sin(sp_theta), 0);
-            complex<field_t> sin_p(sin(sp_phi), 0);
-            complex<field_t> cos_p(cos(sp_phi), 0);
+            field_t zt = (kdx - static_cast<int>(grid_centre.z)) * dz
+              + shift * dz;
 
             // Exponential phase term, r' cos \psi = \vec{r}' \cdot \hat{r}
             // CHECK THIS!
             field_t exp_phase = xt * sin(theta) * cos(phi) 
               + yt * sin(theta) * sin(phi)
               + zt * cos(theta);
-//             field_t exp_phase = xt * sin(phi) * cos(theta)
-//               + yt * sin(phi) * sin(theta) 
-//               + zt * cos(phi);
 
             complex<field_t> temp(0, k * exp_phase);
-
             temp = exp(temp) * complex<field_t>(dy * dx, 0);
 
-            p.N_theta += (Jt1[index] * cos_t_cos_p
-                          + Jt2[index] * cos_t_sin_p) * temp;
-
-            p.N_phi += (complex<field_t>(-1,0) * Jt1[index] * sin_p
-                        + Jt2[index] * cos_p) * temp;
-            
-            p.L_theta += (Mt1[index] * cos_t_cos_p 
-                          + Mt2[index] * cos_t_sin_p) * temp;
-            
-            p.L_phi += (complex<field_t>(-1,0) * Mt1[index] * sin_p
-                        + Mt2[index] * cos_p) * temp;
-
-            // Ensure that there are no NaN's:
-            bool have_nan = false;
-            if (p.N_theta != p.N_theta)
-            {
-              cout << "p.N_theta is NaN! ";
-              have_nan = true;
-            }
-            if (p.N_phi != p.N_phi)
-            {
-              cout << "p.N_phi is NaN! ";
-              have_nan = true;
-            }
-
-            if (p.L_theta != p.L_theta)
-            {
-              cout << "p.N_theta is NaN! ";
-              have_nan = true;
-            }
-            if (p.L_phi != p.L_phi)
-            {
-              cout << "p.L_phi is NaN! ";
-              have_nan = true;
-            }
-            
-            if (have_nan)
-            {
-              cout << ", temp = " << temp 
-                   << ", index = " << index << ", Jt1[index] = "
-                   << Jt1[index] << ", Jt2[index] = " << Jt2[index]
-                   << ", Mt1[index] = " << Mt1[index] 
-                   << ", Mt2[index] = " << Mt2[index] 
-                   << ", idx = " << idx << ", jdx = " << jdx 
-                   << ", kdx = " << kdx << ", theta = " << theta
-                   << ", phi = " << phi << ", sp_theta = " 
-                   << sp_theta << ", sp_phi = " << sp_phi << endl;
-            }
-            
+            p.Nx += Jt1[idx] * temp;
+            p.Ny += Jt2[idx] * temp;
+            p.Lx += Mt1[idx] * temp;
+            p.Ly += Mt2[idx] * temp;            
           }
         }
       }
@@ -775,6 +677,19 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
     }
     
   } // end for (face_idx...)
+
+  p.N_theta = (p.Nx * cos(theta) * cos(phi)
+               + p.Ny * cos(theta) * sin(phi)
+               - p.Nz * sin(theta));
+  
+  p.N_phi = -p.Nx * sin(phi) + p.Ny * cos(phi);
+  
+  p.L_theta = (p.Lx * cos(theta) * cos(phi)
+               + p.Ly * cos(theta) * sin(phi)
+               - p.Lz * sin(theta));
+  
+  p.L_phi = -p.Lx * sin(phi) + p.Ly * cos(phi);
+
 #endif
   
 }
@@ -954,7 +869,11 @@ public:
   point origin;
   grid_point grid_centre;
 
-  // Cell sizes, since it will be necessary to convert cell numbers
+   // Shift along each axis to the location of the averaged value
+  // Will be either 0.0 or 0.5, depending on the plane of intergration
+  field_t xshift, yshift, zshift;
+
+ // Cell sizes, since it will be necessary to convert cell numbers
   // to real coordinates
   field_t dx, dy, dz;
 
@@ -990,24 +909,13 @@ public:
   static inline void alg(const int &x, const int &y, const int &z,
                          Fields_t &f, PotentialData &data)
   {
+    field_t xt = (x - static_cast<int>(data.grid_centre.x)) * data.dx
+      + (data.xshift * data.dx);
+    field_t yt = (y - static_cast<int>(data.grid_centre.y)) * data.dy
+      + (data.yshift * data.dy);
+    field_t zt = (z - static_cast<int>(data.grid_centre.z)) * data.dz
+      + (data.zshift * data.dz);
 
-    field_t xt = (x - static_cast<int>(data.grid_centre.x)) * data.dx;
-    field_t yt = (y - static_cast<int>(data.grid_centre.y)) * data.dy;
-    field_t zt = (z - static_cast<int>(data.grid_centre.z)) * data.dz;
-
-    // Distance to source point
-    field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
-
-    // Angles to source point
-    field_t sp_phi = acos(zt / r_prime);
-    field_t sp_theta = acos(xt / (r_prime * sin(sp_phi)));
-    
-    complex<field_t> cos_t_cos_p(cos(sp_theta) * cos(sp_phi), 0);
-    complex<field_t> cos_t_sin_p(cos(sp_theta) * sin(sp_phi), 0);
-    complex<field_t> sin_t(sin(sp_theta), 0);
-    complex<field_t> sin_p(sin(sp_phi), 0);
-    complex<field_t> cos_p(cos(sp_phi), 0);
-    
     // Exponential phase term, r' cos \psi = \vec{r}' \cdot \hat{r}
     // CHECK THIS! If this is correct, factor the sin and cos values
     // back to the data object. 
@@ -1026,8 +934,7 @@ public:
     // These depend on the face, because Jt1 and Jt2 are different for
     // each, but we need to know which is which so that the right
     // sin/cos constant can be multiplied in. 
-    PotentialFunc::calc_potentials(cos_t_cos_p, cos_t_sin_p,
-                                   sin_t, sin_p, cos_p, temp,
+    PotentialFunc::calc_potentials(temp,
                                    data);
 
     data.idx++;
@@ -1038,73 +945,39 @@ public:
 class YZPotentials
 {
 public:
-  static inline void calc_potentials(complex<field_t> &cos_t_cos_p,
-                                     complex<field_t> &cos_t_sin_p,
-                                     complex<field_t> &sin_t,
-                                     complex<field_t> &sin_p,
-                                     complex<field_t> &cos_p,
-                                     complex<field_t> temp,
+  static inline void calc_potentials(complex<field_t> temp,
                                      PotentialData &data)
   {
-    data.p.N_theta += (data.Jt1[data.idx] * cos_t_sin_p 
-                  - data.Jt2[data.idx] * sin_t) * temp;
-    
-    data.p.N_phi += (data.Jt1[data.idx] * cos_p) * temp;
-    
-    data.p.L_theta += (data.Mt1[data.idx] * cos_t_sin_p 
-                  - data.Mt2[data.idx] * sin_t) * temp;
-    
-    data.p.L_phi += (data.Mt1[data.idx] * cos_p) * temp;
+    data.p.Ny += data.Jt1[data.idx] * temp;
+    data.p.Nz += data.Jt2[data.idx] * temp;
+    data.p.Ly += data.Mt1[data.idx] * temp;
+    data.p.Lz += data.Mt2[data.idx] * temp;
   }
 };
 
 class XZPotentials
 {
 public:
-  static inline void calc_potentials(complex<field_t> &cos_t_cos_p,
-                                     complex<field_t> &cos_t_sin_p,
-                                     complex<field_t> &sin_t,
-                                     complex<field_t> &sin_p,
-                                     complex<field_t> &cos_p,
-                                     complex<field_t> temp,
+  static inline void calc_potentials(complex<field_t> temp,
                                      PotentialData &data)
   {
-    data.p.N_theta += (data.Jt2[data.idx] * cos_t_cos_p
-                  - data.Jt1[data.idx] * sin_t) * temp;
-    
-    data.p.N_phi += (complex<field_t>(-1,0) * data.Jt2[data.idx] 
-                     * sin_p) * temp;
-    
-    data.p.L_theta += (data.Mt2[data.idx] * cos_t_cos_p 
-                  - data.Mt1[data.idx] * sin_t) * temp;
-    
-    data.p.L_phi += (complex<field_t>(-1,0) * data.Mt2[data.idx] 
-                     * sin_p) * temp;
+    data.p.Nz += data.Jt1[data.idx] * temp;
+    data.p.Nx += data.Jt2[data.idx] * temp;
+    data.p.Lz += data.Mt1[data.idx] * temp;
+    data.p.Lx += data.Mt2[data.idx] * temp;
   }
 };
 
 class XYPotentials
 {
 public:
-  static inline void calc_potentials(complex<field_t> &cos_t_cos_p,
-                                     complex<field_t> &cos_t_sin_p,
-                                     complex<field_t> &sin_t,
-                                     complex<field_t> &sin_p,
-                                     complex<field_t> &cos_p,
-                                     complex<field_t> temp,
+  static inline void calc_potentials(complex<field_t> temp,
                                      PotentialData &data)
   {
-    data.p.N_theta += (data.Jt1[data.idx] * cos_t_cos_p
-                  + data.Jt2[data.idx] * cos_t_sin_p) * temp;
-    
-    data.p.N_phi += (complex<field_t>(-1,0) * data.Jt1[data.idx] * sin_p
-                + data.Jt2[data.idx] * cos_p) * temp;
-    
-    data.p.L_theta += (data.Mt1[data.idx] * cos_t_cos_p 
-                  + data.Mt2[data.idx] * cos_t_sin_p) * temp;
-    
-    data.p.L_phi += (complex<field_t>(-1,0) * data.Mt1[data.idx] * sin_p
-                + data.Mt2[data.idx] * cos_p) * temp;
+    data.p.Nx += data.Jt1[data.idx] * temp;
+    data.p.Ny += data.Jt2[data.idx] * temp;
+    data.p.Lx += data.Mt1[data.idx] * temp;
+    data.p.Ly += data.Mt2[data.idx] * temp;            
   }
 };
 

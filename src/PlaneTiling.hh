@@ -111,7 +111,7 @@ template<class Alg, class Data> class PlaneTiling;
 template<class Alg, class Data>
 class YZPlaneLoop
 {
-private:
+public:
   friend class PlaneTiling<Alg, Data>;
 
   static inline void loop(const Grid &grid, Data &data,
@@ -171,7 +171,7 @@ private:
 template<class Alg, class Data>
 class XZPlaneLoop
 {
-private:
+public:
   friend class PlaneTiling<Alg, Data>;
 
   static inline void loop(const Grid &grid, Data &data,
@@ -231,7 +231,7 @@ private:
 template<class Alg, class Data>
 class XYPlaneLoop
 {
-private:
+public:
   friend class PlaneTiling<Alg, Data>;
 
   static inline void loop(const Grid &grid, Data &data,

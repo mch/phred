@@ -78,12 +78,12 @@ void mn_benchmark()
 
    time_t start, now;
    clock_t cpu_start, cpu_now;
-   for (int numthreads = 1; numthreads <= max_threads; numthreads++)
+   //for (int numthreads = 1; numthreads <= max_threads; numthreads++)
      {
-       omp_set_num_threads(numthreads);
+       //omp_set_num_threads(numthreads);
        
-       cout << "100x100x100 million node 100 time step benchmark on "
-            << numthreads << " of " << max_threads << "...\n";
+       //cout << "100x100x100 million node 100 time step benchmark on "
+      //      << numthreads << " of " << max_threads << "...\n";
 
        start = time(NULL);
        cpu_start = clock();
@@ -91,11 +91,11 @@ void mn_benchmark()
        now = time(NULL);
        cpu_now = clock();
        
-       cout << numthreads << " of " 
-	    << omp_get_max_threads() << " threads took " 
-	    << now - start << " wall clock seconds, and "
-	    << (cpu_now - cpu_start) / static_cast<double>(CLOCKS_PER_SEC)
-	    << " cpu seconds." << endl;
+       //cout << numthreads << " of " 
+//	    << omp_get_max_threads() << " threads took " 
+//	    << now - start << " wall clock seconds, and "
+//	    << (cpu_now - cpu_start) / static_cast<double>(CLOCKS_PER_SEC)
+//	    << " cpu seconds." << endl;
      }
 
 #else

@@ -31,9 +31,21 @@
 #endif
 
 /**
- * A structure for passing around values during the farfield computation.
+ * A structure for passing around values during the farfield
+ * computation. The values are computed first in rectangular
+ * coordinates, and later converted to spherical.
  */ 
 typedef struct {
+  // Rectangular components
+  complex<field_t> Nx;
+  complex<field_t> Ny;
+  complex<field_t> Nz;
+
+  complex<field_t> Lx;
+  complex<field_t> Ly;
+  complex<field_t> Lz;
+
+  // Spherical Components
   complex<field_t> N_theta;
   complex<field_t> N_phi;
   complex<field_t> L_theta;
