@@ -50,3 +50,36 @@ shared_ptr<CSGObject> CSGArray::copy() const
 {
   return shared_ptr<CSGObject> (new CSGArray(*this));
 }
+
+void set_lengths(unsigned int xlen, unsigned int ylen, 
+                 unsigned int zlen)
+{
+  if (xlen < 1)
+    throw CSGException("The length of the array along the x dimension must be greater than or equal to 1.");
+
+  if (ylen < 1)
+    throw CSGException("The length of the array along the y dimension must be greater than or equal to 1.");
+
+  if (zlen < 1)
+    throw CSGException("The length of the array along the z dimension must be greater than or equal to 1.");
+
+  xlen_ = xlen;
+  ylen_ = ylen;
+  zlen_ = zlen;
+}
+
+void set_spacing(float x, float y, float z)
+{
+  if (x < 0)
+    throw CSGException("x spacing must not be less than zero.");
+
+  if (y < 0)
+    throw CSGException("y spacing must not be less than zero.");
+
+  if (z < 0)
+    throw CSGException("z spacing must not be less than zero.");
+
+  xspace_ = x;
+  yspace_ = y;
+  zspace_ = z;
+}

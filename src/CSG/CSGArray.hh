@@ -54,12 +54,37 @@ public:
    */ 
   shared_ptr<CSGObject> copy() const;
 
+  /**
+   * Set the lengths of the array, i.e. the number of items in the
+   * array along each dimension. Each must be greater than or equal
+   * to 1. set_lengths(1, 1, 1) means that only the original object
+   * is a member of the array. 
+   *
+   * The array starts at the position of the original object and
+   * advances along the x, y, and z dimensions in the positive
+   * direction. 
+   *
+   * This will throw a CSGException if any of the lengths is less
+   * than one. 
+   */
+  void set_lengths(unsigned int xlen, unsigned int ylen, 
+                   unsigned int zlen);
+
+  /**
+   * Sets the distance between the centers of the each element and
+   * the adjacent elements. 
+   *
+   * This will throw a CSGException if any of the spacings is less
+   * than zero.
+   */ 
+  void set_spacing(float x, float y, float z);
+
 private:
   // Spacing between the elements in each direction
   float xspace_, yspace_, zspace_;
 
   // Length of the array in each direction. Must be greater than one. 
-  unsigned int lenx_, leny_, lenz_;
+  unsigned int xlen_, ylen_, zlen_;
 
   // The child object we are making into an array. 
   shared_ptr<CSGObject> child_;
