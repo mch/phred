@@ -34,6 +34,11 @@ protected:
   field_t *result_; /**< Storage for the result. Interlevaved data;
                        freq, Real DFT value, Imag DFT value, etc */
 
+  field_t prev_e_[3]; /**< Previous values of the E components,
+                         because it is necessary to average over two
+                         time steps to get the value at dt*tstep,
+                         where the H components are.  */
+
   point space_point_; /**< The point in real space to aquire data at. */ 
 
   grid_point point_; /**< The point to aquire the data at (global) */

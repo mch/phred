@@ -31,6 +31,7 @@
 #include "../Results/FarfieldResult2.hh"
 #include "../Results/FarfieldResult.hh"
 #include "../Results/PowerResult.hh"
+#include "../Results/AvgPowerResult.hh"
 #include "../Results/FakeResult.hh"
 #include "../Results/GridResult.hh"
 #include "../Results/SurfaceCurrentResult.hh"
@@ -83,6 +84,11 @@ void export_results()
   class_<PowerResult, bases<DFTResult> >("PowerResult")
     .def(init<field_t, field_t, unsigned int>())
     .def("set_region", &PowerResult::set_region)
+    ;
+
+  class_<AvgPowerResult, bases<DFTResult> >("AvgPowerResult")
+    .def(init<field_t, field_t, unsigned int>())
+    .def("set_region", &AvgPowerResult::set_region)
     ;
 
   class_<SignalDFTResult, bases<DFTResult> >

@@ -19,8 +19,8 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef POWER_RESULT_H
-#define POWER_RESULT_H
+#ifndef AVG_POWER_RESULT_H
+#define AVG_POWER_RESULT_H
 
 #include <complex>
 
@@ -28,18 +28,14 @@
 #include "../GridPlane.hh"
 
 /**
- * Calculates the power flowing through a surface at specific
+ * Calculates the average power flowing through a surface at specific
  * frequencies. 
- *
- * \bug This now uses the averaging functions of the GridPlane. The
- * region the power is taken over must allow room for the averaging
- * functions to work. 
  */
-class PowerResult : public DFTResult
+class AvgPowerResult : public DFTResult
 {
 public:
 
-  PowerResult();
+  AvgPowerResult();
 
   /**
    * Constructor. Sets the frequency parameters at the same time. 
@@ -48,27 +44,32 @@ public:
    * @param freq_stop last frequency in the range
    * @param num_freqs total number of frequencies to report data for
    */
-  PowerResult(field_t freq_start, field_t freq_stop, 
+  AvgPowerResult(field_t freq_start, field_t freq_stop, 
               unsigned int num_freqs);
-  ~PowerResult();
+  ~AvgPowerResult();
 
   /**
    * Allocate memory, sanity checks. 
    */ 
-  virtual void init(const Grid &grid);
+  void init(const Grid &grid);
   
   /**
    * Free memory etc
    */
-  virtual void deinit();
+  void deinit();
 
   /**
-   * Looks at the grid and produces output
+   * Adds DFT'd values for this time step
    *
    * @param grid a reference to a Grid object
    */
   void calculate_result(const Grid &grid, 
                         unsigned int time_step);
+
+  /**
+   * Calculates the output average S from the stored DFT'ed E and H fields. 
+   */
+  void calculate_post_result(const Grid &grid);
 
   /**
    * Set the plane to do the calculation on
@@ -82,7 +83,11 @@ public:
 protected:
   field_t *power_real_; /**< Power at each frequency */ 
   field_t *power_imag_; /**< Power at each frequency */ 
-  field_t time_power_; /**< Power at the current instant in time domain */ 
+
+  complex<field_t> *et1_;
+  complex<field_t> *et2_;
+  complex<field_t> *ht1_;
+  complex<field_t> *ht2_;
 
   shared_ptr<CSGBox> box_; 
   Face face_;
@@ -94,7 +99,6 @@ protected:
   Variable real_var_; /**< Power data */
   Variable imag_var_; /**< Power data */
   Variable freq_var_; /**< Frequency data */
-  Variable power_var_; /**< Power at a time instant */ 
 
   unsigned int x_size_;
   unsigned int y_size_;
@@ -107,7 +111,7 @@ protected:
   /**
    * Print a string representation to an ostream.
    */
-  virtual ostream& to_string(ostream &os) const;
+  ostream& to_string(ostream &os) const;
 
 private:
 };

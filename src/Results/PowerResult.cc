@@ -227,19 +227,6 @@ void PowerResult::deinit()
     power_imag_ = 0;
   }
 
-//   if (et1_)
-//   {
-//     delete[] et1_;
-//     delete[] et2_;
-//     delete[] ht1_;
-//     delete[] ht2_;
-
-//     et1_ = 0;
-//     et2_ = 0;
-//     ht1_ = 0;
-//     ht2_ = 0;
-//   }
-
   if (prev_et1_)
   {
     delete[] prev_et1_;
@@ -296,68 +283,6 @@ public:
     ++data.idx;
   }
 };
-
-/**
- * This class is a meta-program template which calculates the power
- * through plane in the frequency domain.
- *
- * \bug THIS IS TOTALLY WRONG! Well, this tries to calculate the time
- * average power of a sine wave... I don't think this is the right
- * thing to do conceptually, and I'm not sure if it is implemented
- * correctly.
- */ 
-// class DFTPowerAlg
-// {
-// public:
-//   class Data
-//   {
-//   public:
-//     int idx;
-    
-//     field_t e_cos_temp;
-//     field_t e_sin_temp;
-
-//     field_t h_cos_temp;
-//     field_t h_sin_temp;
-
-//     complex<field_t> *et1_, *et2_, *ht1_, *ht2_;
-
-//     const field_t *prev_et1_, *prev_et2_;
-
-//     field_t p_real;
-//     field_t p_imag;
-
-//     field_t cell_area;
-//   };
-
-//   static inline void alg(const int &x, const int &y, const int &z, 
-//                          Fields_t &f, Data &data)
-//   {
-//     // It is necessary to store the old value of E so that the average
-//     // of two time steps can be calculated, otherwise the result will
-//     // be incorrect.
-//     field_t et1_tavg = (f.et1_avg + data.prev_et1_[data.idx]) / 2;
-//     field_t et2_tavg = (f.et2_avg + data.prev_et2_[data.idx]) / 2;
-
-//     data.et1_[data.idx] += complex<field_t>(et1_tavg * data.e_cos_temp, 
-//                                             -1 * f.et1_avg * data.e_sin_temp);
-//     data.et2_[data.idx] += complex<field_t>(et2_tavg * data.e_cos_temp, 
-//                                             -1 * f.et2_avg * data.e_sin_temp);
-//     data.ht1_[data.idx] += complex<field_t>(f.ht1_avg * data.h_cos_temp,
-//                                             -1 * f.ht1_avg * data.h_sin_temp);
-//     data.ht2_[data.idx] += complex<field_t>(f.ht2_avg * data.h_cos_temp, 
-//                                             -1 * f.ht2_avg * data.h_sin_temp);
-
-//     complex<field_t> temp = (data.et1_[data.idx] * conj(data.ht2_[data.idx])
-//       - data.et2_[data.idx] * conj(data.ht1_[data.idx])) * data.cell_area;
- 
-//     // Cheap, approximate integration.
-//     data.p_real += temp.real();
-//     data.p_imag += temp.imag();
-   
-//     ++data.idx;
-//   }
-// };
 
 /**
  * This class updates the stored value of the E tangential components 

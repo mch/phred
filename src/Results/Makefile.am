@@ -19,6 +19,8 @@ libresults_a_SOURCES = 	Result.hh \
 	FakeResult.cc \
 	PowerResult.hh \
 	PowerResult.cc \
+	AvgPowerResult.hh \
+	AvgPowerResult.cc \
 	SurfaceCurrentResult.hh \
 	SurfaceCurrentResult.cc \
 	GridResult.hh \

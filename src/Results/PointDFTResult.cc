@@ -28,7 +28,7 @@
 PointDFTResult::PointDFTResult()
   : result_(0)
 {
-  variables_["point_DFT"] = &var_;
+  post_vars_["point_DFT"] = &var_;
 }
 
 PointDFTResult::PointDFTResult(field_t freq_start,
@@ -36,7 +36,7 @@ PointDFTResult::PointDFTResult(field_t freq_start,
                                unsigned int num_freqs)
   : DFTResult(freq_start, freq_stop, num_freqs), result_(0)
 {
-  variables_["point_DFT"] = &var_;
+  post_vars_["point_DFT"] = &var_;
 }
 
 PointDFTResult::~PointDFTResult()
@@ -47,6 +47,9 @@ PointDFTResult::~PointDFTResult()
 
 void PointDFTResult::init(const Grid &grid)
 {
+  for (int i = 0; i < 3; i++)
+    prev_e_[0] = 0;
+
   ours_ = true; 
 
   point_ = grid.get_global_cell(space_point_);
@@ -121,14 +124,20 @@ void PointDFTResult::calculate_result(const Grid &grid,
                                       unsigned int time_step)
 {
   delta_t dt = grid.get_deltat();
-  delta_t e_time = dt * time_step;
-  delta_t h_time = dt * (static_cast<delta_t>(time_step) - 0.5);
+  delta_t h_time = dt * time_step;
+  delta_t e_time = dt * (static_cast<delta_t>(time_step) + 0.5);
 
   field_t e_cos_temp, e_sin_temp;
   field_t h_cos_temp, h_sin_temp;
 
+  field_t e_temp[3];
+
   if (ours_)
   {
+    e_temp[0] = (grid.get_ex(l_.x, l_.y, l_.z) + prev_e_[0]) / 2;
+    e_temp[1] = (grid.get_ey(l_.x, l_.y, l_.z) + prev_e_[1]) / 2;
+    e_temp[2] = (grid.get_ez(l_.x, l_.y, l_.z) + prev_e_[2]) / 2;
+
     for (unsigned int i = 0; i <= frequencies_.length(); i++)
     {
       e_cos_temp = cos(-2 * PI * result_[i*13] * e_time);
@@ -138,32 +147,34 @@ void PointDFTResult::calculate_result(const Grid &grid,
       h_sin_temp = sin(-2 * PI * result_[i*13] * h_time);
 
       result_[i*13 + 1] += grid.get_ex(l_.x, l_.y, l_.z) * e_cos_temp;
-    
       result_[i*13 + 2] += (-1) * grid.get_ex(l_.x, l_.y, l_.z) * e_sin_temp;
-
       result_[i*13 + 3] += grid.get_ey(l_.x, l_.y, l_.z) * e_cos_temp;
-    
       result_[i*13 + 4] += (-1) * grid.get_ey(l_.x, l_.y, l_.z) * e_sin_temp;
-
       result_[i*13 + 5] += grid.get_ez(l_.x, l_.y, l_.z) * e_cos_temp;
-    
       result_[i*13 + 6] += (-1) * grid.get_ez(l_.x, l_.y, l_.z) * e_sin_temp;
+
+      // Does this approach break things? 
+      // -> Sure seems that way!
+//       result_[i*13 + 1] += e_temp[0] * h_cos_temp;
+//       result_[i*13 + 2] += (-1) * e_temp[0] * h_sin_temp;
+//       result_[i*13 + 3] += e_temp[1] * h_cos_temp;
+//       result_[i*13 + 4] += (-1) * e_temp[1] * h_sin_temp;
+//       result_[i*13 + 5] += e_temp[2] * h_cos_temp;
+//       result_[i*13 + 6] += (-1) * e_temp[2] * h_sin_temp;
 
       // H components
       result_[i*13 + 7] += grid.get_hx(l_.x, l_.y, l_.z) * h_cos_temp;
-    
       result_[i*13 + 8] += (-1) * grid.get_hx(l_.x, l_.y, l_.z) * h_sin_temp;
-
       result_[i*13 + 9] += grid.get_hy(l_.x, l_.y, l_.z) * h_cos_temp;
-    
       result_[i*13 + 10] += (-1) * grid.get_hy(l_.x, l_.y, l_.z) * h_sin_temp;
-
       result_[i*13 + 11] += grid.get_hz(l_.x, l_.y, l_.z) * h_cos_temp;
-    
       result_[i*13 + 12] += (-1) * grid.get_hz(l_.x, l_.y, l_.z) * h_sin_temp;
     }
-  }
 
+    prev_e_[0] = grid.get_ex(l_.x, l_.y, l_.z);
+    prev_e_[1] = grid.get_ey(l_.x, l_.y, l_.z);
+    prev_e_[2] = grid.get_ez(l_.x, l_.y, l_.z);
+  }
 }
 
 ostream& PointDFTResult::to_string(ostream &os) const
