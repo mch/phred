@@ -266,8 +266,10 @@ string get_extension(string filename)
 // MAIN!
 int main (int argc, char **argv)
 {
-  time_t start, now, time_total = 0;
-  clock_t start_cpu, now_cpu, time_total_cpu = 0;
+  time_t start, now;
+  double time_total = 0.0;
+  clock_t start_cpu, now_cpu;
+  double time_total_cpu = 0.0;
 
   start=time(NULL);
   start_cpu = clock();
@@ -396,14 +398,16 @@ int main (int argc, char **argv)
 
   now = time(NULL);
   now_cpu = clock();
-  time_total += now - start;
-  time_total_cpu += now_cpu - start_cpu;
+
+  time_total = static_cast<double>(now) 
+    - static_cast<double>(start);
+  time_total_cpu = (static_cast<double>(now_cpu) 
+    - static_cast<double>(start_cpu)) 
+    / static_cast<double>(CLOCKS_PER_SEC);
 
   cout << "Phred is phinished. \nPhred executed for " 
-       << static_cast<double>(time_total) << " real seconds, and for "
-       << static_cast<double>(time_total_cpu) 
-          / static_cast<double>(CLOCKS_PER_SEC) 
-       << " CPU seconds. "
+       << time_total << " real seconds, and for "
+       << time_total_cpu << " CPU seconds. "
        << endl;
 
 #ifdef USE_RUSAGE
