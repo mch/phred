@@ -1,8 +1,8 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -153,122 +153,121 @@ void UPml::compute_regions(Face face, const Grid &grid)
       break;
     }
 
-    switch (face)
-    {
-    case FRONT:
-    case BACK:
-      if (grid.get_boundary(LEFT).get_type() == UPML)
-      {
-        grid_ey_r_.ymin += grid.get_boundary(LEFT).get_thickness();
-        grid_hy_r_.ymin += grid.get_boundary(LEFT).get_thickness() + 1;
-      }
+    // Don't overlap compute corners and edges more than once
+    // temporarially commented out...
+//     switch (face)
+//     {
+//     case FRONT:
+//     case BACK:
+//       if (grid.get_boundary(LEFT).get_type() == UPML)
+//       {
+//         grid_ey_r_.ymin += grid.get_boundary(LEFT).get_thickness();
+//         grid_hy_r_.ymin += grid.get_boundary(LEFT).get_thickness() + 1;
+//       }
 
-      if (grid.get_boundary(RIGHT).get_type() == UPML)
-      {
-        grid_ey_r_.ymax -= grid.get_boundary(LEFT).get_thickness();
-        grid_hy_r_.ymax -= grid.get_boundary(LEFT).get_thickness() + 1;
-      }
+//       if (grid.get_boundary(RIGHT).get_type() == UPML)
+//       {
+//         grid_ey_r_.ymax -= grid.get_boundary(LEFT).get_thickness();
+//         grid_hy_r_.ymax -= grid.get_boundary(LEFT).get_thickness() + 1;
+//       }
 
-      if (grid.get_boundary(TOP).get_type() == UPML)
-      {
-        grid_ez_r_.zmax -= grid.get_boundary(TOP).get_thickness();
-        grid_hz_r_.zmax -= grid.get_boundary(TOP).get_thickness() + 1;
-      }
+//       if (grid.get_boundary(TOP).get_type() == UPML)
+//       {
+//         grid_ez_r_.zmax -= grid.get_boundary(TOP).get_thickness();
+//         grid_hz_r_.zmax -= grid.get_boundary(TOP).get_thickness() + 1;
+//       }
 
-      if (grid.get_boundary(BOTTOM).get_type() == UPML)
-      {
-        grid_ez_r_.zmin += grid.get_boundary(BOTTOM).get_thickness();
-        grid_hz_r_.zmin += grid.get_boundary(BOTTOM).get_thickness() + 1;
-      }
-      break;
+//       if (grid.get_boundary(BOTTOM).get_type() == UPML)
+//       {
+//         grid_ez_r_.zmin += grid.get_boundary(BOTTOM).get_thickness();
+//         grid_hz_r_.zmin += grid.get_boundary(BOTTOM).get_thickness() + 1;
+//       }
+//       break;
 
-    case LEFT:
-    case RIGHT:
-      if (grid.get_boundary(FRONT).get_type() == UPML)
-      {
-        unsigned int thickness = grid.get_boundary(FRONT).get_thickness();
-        grid_ex_r_.xmax -= thickness;
-        grid_hx_r_.xmax -= thickness + 1;
-        grid_ez_r_.xmax -= thickness;
-        grid_hz_r_.xmax -= thickness + 1;
-      }
+//     case LEFT:
+//     case RIGHT:
+//       if (grid.get_boundary(FRONT).get_type() == UPML)
+//       {
+//         unsigned int thickness = grid.get_boundary(FRONT).get_thickness();
+//         grid_ex_r_.xmax -= thickness;
+//         grid_hx_r_.xmax -= thickness + 1;
+//         grid_ez_r_.xmax -= thickness;
+//         grid_hz_r_.xmax -= thickness + 1;
+//       }
 
-      if (grid.get_boundary(BACK).get_type() == UPML)
-      {
-        unsigned int thickness = grid.get_boundary(BACK).get_thickness();
-        grid_ex_r_.xmin += thickness;
-        grid_hx_r_.xmin += thickness + 1;
-        grid_ez_r_.xmin += thickness;
-        grid_hz_r_.xmin += thickness + 1;
-      }
+//       if (grid.get_boundary(BACK).get_type() == UPML)
+//       {
+//         unsigned int thickness = grid.get_boundary(BACK).get_thickness();
+//         grid_ex_r_.xmin += thickness;
+//         grid_hx_r_.xmin += thickness + 1;
+//         grid_ez_r_.xmin += thickness;
+//         grid_hz_r_.xmin += thickness + 1;
+//       }
 
-      if (grid.get_boundary(TOP).get_type() == UPML)
-      {
-        unsigned int thickness = grid.get_boundary(TOP).get_thickness();
-        grid_ez_r_.zmax -= thickness;
-        grid_hz_r_.zmax -= thickness + 1;
-        grid_ex_r_.zmax -= thickness;
-        grid_hx_r_.zmax -= thickness + 1;
-      }
+//       if (grid.get_boundary(TOP).get_type() == UPML)
+//       {
+//         unsigned int thickness = grid.get_boundary(TOP).get_thickness();
+//         grid_ez_r_.zmax -= thickness;
+//         grid_hz_r_.zmax -= thickness + 1;
+//         grid_ex_r_.zmax -= thickness;
+//         grid_hx_r_.zmax -= thickness + 1;
+//       }
 
-      if (grid.get_boundary(BOTTOM).get_type() == UPML)
-      {
-        unsigned int thickness = grid.get_boundary(BOTTOM).get_thickness();
-        grid_ez_r_.zmin += thickness;
-        grid_hz_r_.zmin += thickness + 1;
-        grid_ex_r_.zmin += thickness;
-        grid_hx_r_.zmin += thickness + 1;
-      }
-      break;
+//       if (grid.get_boundary(BOTTOM).get_type() == UPML)
+//       {
+//         unsigned int thickness = grid.get_boundary(BOTTOM).get_thickness();
+//         grid_ez_r_.zmin += thickness;
+//         grid_hz_r_.zmin += thickness + 1;
+//         grid_ex_r_.zmin += thickness;
+//         grid_hx_r_.zmin += thickness + 1;
+//       }
+//       break;
 
-    case TOP:
-    case BOTTOM:
-      if (grid.get_boundary(LEFT).get_type() == UPML)
-      {
-        unsigned int thickness = grid.get_boundary(LEFT).get_thickness();
-        grid_ey_r_.ymin += thickness;
-        grid_hy_r_.ymin += thickness + 1;
-        grid_ex_r_.ymin += thickness;
-        grid_hx_r_.ymin += thickness + 1;
-      }
+//     case TOP:
+//     case BOTTOM:
+//       if (grid.get_boundary(LEFT).get_type() == UPML)
+//       {
+//         unsigned int thickness = grid.get_boundary(LEFT).get_thickness();
+//         grid_ey_r_.ymin += thickness;
+//         grid_hy_r_.ymin += thickness + 1;
+//         grid_ex_r_.ymin += thickness;
+//         grid_hx_r_.ymin += thickness + 1;
+//       }
 
-      if (grid.get_boundary(RIGHT).get_type() == UPML)
-      {
-        unsigned int thickness = grid.get_boundary(LEFT).get_thickness();
-        grid_ey_r_.ymax -= thickness;
-        grid_hy_r_.ymax -= thickness + 1;
-        grid_ex_r_.ymax -= thickness;
-        grid_hx_r_.ymax -= thickness + 1;
-      }
+//       if (grid.get_boundary(RIGHT).get_type() == UPML)
+//       {
+//         unsigned int thickness = grid.get_boundary(LEFT).get_thickness();
+//         grid_ey_r_.ymax -= thickness;
+//         grid_hy_r_.ymax -= thickness + 1;
+//         grid_ex_r_.ymax -= thickness;
+//         grid_hx_r_.ymax -= thickness + 1;
+//       }
 
-      if (grid.get_boundary(FRONT).get_type() == UPML)
-      {
-        unsigned int thickness = grid.get_boundary(FRONT).get_thickness();
-        grid_ex_r_.xmax -= thickness;
-        grid_hx_r_.xmax -= thickness + 1;
-        grid_ey_r_.xmax -= thickness;
-        grid_hy_r_.xmax -= thickness;
-      }
+//       if (grid.get_boundary(FRONT).get_type() == UPML)
+//       {
+//         unsigned int thickness = grid.get_boundary(FRONT).get_thickness();
+//         grid_ex_r_.xmax -= thickness;
+//         grid_hx_r_.xmax -= thickness + 1;
+//         grid_ey_r_.xmax -= thickness;
+//         grid_hy_r_.xmax -= thickness;
+//       }
 
-      if (grid.get_boundary(BACK).get_type() == UPML)
-      {
-        unsigned int thickness = grid.get_boundary(BACK).get_thickness();
-        grid_ex_r_.xmin += thickness;
-        grid_hx_r_.xmin += thickness + 1;
-        grid_ey_r_.xmin += thickness;
-        grid_hy_r_.xmin += thickness;
-      }
-      break;
-    }
+//       if (grid.get_boundary(BACK).get_type() == UPML)
+//       {
+//         unsigned int thickness = grid.get_boundary(BACK).get_thickness();
+//         grid_ex_r_.xmin += thickness;
+//         grid_hx_r_.xmin += thickness + 1;
+//         grid_ey_r_.xmin += thickness;
+//         grid_hy_r_.xmin += thickness;
+//       }
+//       break;
+//     }
   }
 }
 
 void UPml::init(const Grid &grid, Face face)
 {
   common_ = UPmlCommon::get_upml_common(const_cast<Grid &>(grid));
-
-  d_file.open("upml_d.txt");
-  h_file.open("upml_h.txt");
 
   compute_regions(face, grid);
 
@@ -342,11 +341,6 @@ void UPml::deinit(const Grid &grid, Face face)
   }
 }
 
-void UPml::add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface)
-{
-
-}
-
 void UPml::apply(Face face, Grid &grid, FieldType type)
 {
   if (type == E)
@@ -408,7 +402,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
   
 }
 
-void UPml::update_ex(Grid &grid, bool pml) 
+void UPml::update_ex(Grid &grid) 
 {
   unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
 
@@ -421,6 +415,8 @@ void UPml::update_ex(Grid &grid, bool pml)
   field_t d_temp = 0;
 
   sig_idx = 0;
+
+  // Why is this outside of the for loop? OpenMP thing? 
   i = pml_r.xmin;
 
 #ifdef USE_OPENMP
@@ -442,37 +438,10 @@ void UPml::update_ex(Grid &grid, bool pml)
           pml_idx = pi(i, j, k);
           
           mid = grid.material_[grid_idx];
-          
-          if (pml) 
-          {
-            d_temp = d_[pml_idx] + grid.get_deltat() 
-              * ((grid.hz_[grid.pi(it, jt, kt)] 
-                  - grid.hz_[grid.pi(it, jt-1, kt)]) / grid.get_deltay()
-                 + (grid.hy_[grid_idx - 1] 
-                    - grid.hy_[grid_idx]) / grid.get_deltaz());
-            
-//             grid.ex_[grid_idx] = grid.ex_[grid_idx]
-//               + ( C1_[sig_idx][mid] * d_temp
-//                   - C2_[sig_idx][mid] * d_[pml_idx]);
-           
-            if (i == 2 && j ==9 && k == 9)
-              d_file << "ex_ = " << grid.ex_[grid_idx] << ", d_ = " 
-                     << d_temp << "\n\thz1_ = " << grid.hz_[grid_idx]
-                     << " hz2_ = " << grid.hz_[grid.pi(it, jt-1, kt)] 
-                     << "\n\thy1_ = " << grid.hy_[grid_idx - 1]
-                     << " hy2_ = " << grid.hy_[grid_idx] << endl;
 
-            d_[pml_idx] = d_temp;
-            
-          } else {
-            grid.ex_[grid_idx] = grid.Ca_[mid] * grid.ex_[grid_idx]
-              + grid.Cby_[mid] 
-              * (grid.hz_[grid.pi(it, jt, kt)] 
-                 - grid.hz_[grid.pi(it, jt-1, kt)])
-              + grid.Cbz_[mid] 
-              * (grid.hy_[grid_idx - 1] 
-                 - grid.hy_[grid_idx]);
-          }
+          // Update equations go here!
+
+          
         }
       }
       
@@ -484,7 +453,7 @@ void UPml::update_ex(Grid &grid, bool pml)
 #endif
 }
 
-void UPml::update_ey(Grid &grid, bool pml) 
+void UPml::update_ey(Grid &grid) 
 {
   unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
 
@@ -518,27 +487,7 @@ void UPml::update_ey(Grid &grid, bool pml)
           
           mid = grid.material_[grid_idx];
           
-          if (pml) 
-          {
-            d_temp = d_[pml_idx] + grid.get_deltat() 
-              * ((grid.hx_[grid_idx] 
-                  - grid.hx_[grid.pi(it, jt, kt-1)]) / grid.get_deltaz()
-                 + (grid.hz_[grid.pi(it-1, jt, kt)] 
-                    - grid.hz_[grid_idx]) / grid.get_deltax());
-            
-//             grid.ey_[grid_idx] = grid.ey_[grid_idx]
-//               + ( C1_[sig_idx][mid] * d_temp
-//                   - C2_[sig_idx][mid] * d_[pml_idx]);
-                                     
-            d_[pml_idx] = d_temp;
-                                     
-          } else {
-            grid.ey_[grid_idx] = grid.Ca_[mid] * grid.ey_[grid_idx]
-              + grid.Cbz_[mid] * (grid.hx_[grid_idx] 
-                                  - grid.hx_[grid.pi(it, jt, kt-1)])
-              + grid.Cbx_[mid] * (grid.hz_[grid.pi(it-1, jt, kt)] 
-                                  - grid.hz_[grid_idx]);
-          }
+          // Update equations go here!
         }
       }
 
@@ -549,7 +498,7 @@ void UPml::update_ey(Grid &grid, bool pml)
 #endif
 }
 
-void UPml::update_ez(Grid &grid, bool pml) 
+void UPml::update_ez(Grid &grid) 
 {
   unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
 
@@ -583,27 +532,7 @@ void UPml::update_ez(Grid &grid, bool pml)
           
           mid = grid.material_[grid_idx];
           
-          if (pml) 
-          {
-            d_temp = d_[pml_idx] + grid.get_deltat() 
-              * ((grid.hy_[grid.pi(it, jt, kt)] 
-                  - grid.hy_[grid.pi(it-1, jt, kt)]) / grid.get_deltax()
-                 + (grid.hx_[grid.pi(it, jt - 1, kt)] 
-                    - grid.hx_[grid_idx]) / grid.get_deltay());
-            
-//             grid.ez_[grid_idx] = grid.ez_[grid_idx]
-//               + ( C1_[sig_idx][mid] * d_temp
-//                   - C2_[sig_idx][mid] * d_[pml_idx]);
-                                     
-            d_[pml_idx] = d_temp;
-                                     
-          } else {
-            grid.ez_[grid_idx] = grid.Ca_[mid] * grid.ez_[grid_idx]
-              + grid.Cbx_[mid] * (grid.hy_[grid.pi(it, jt, kt)] 
-                                  - grid.hy_[grid.pi(it-1, jt, kt)])
-              + grid.Cby_[mid] * (grid.hx_[grid.pi(it, jt - 1, kt)] 
-                                  - grid.hx_[grid_idx]);
-          }
+          // Update equations go here!
         }
       }
       i++;
@@ -613,7 +542,7 @@ void UPml::update_ez(Grid &grid, bool pml)
 #endif
 }
 
-void UPml::update_hx(Grid &grid, bool pml)
+void UPml::update_hx(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
 
@@ -647,34 +576,7 @@ void UPml::update_hx(Grid &grid, bool pml)
           
           mid = grid.material_[grid_idx];
           
-          if (pml) 
-          {
-            h_temp = h_[pml_idx] - grid.get_deltat() 
-              * ((grid.ez_[grid.pi(it, jt, kt)] 
-                  - grid.ez_[grid.pi(it, jt+1, kt)]) / grid.get_deltay()
-                 + (grid.ey_[grid_idx + 1] 
-                    - grid.ey_[grid_idx]) / grid.get_deltaz());
-            
-//             grid.hx_[grid_idx] = grid.hx_[grid_idx]
-//               + ( D1_[sig_idx][mid] * h_temp
-//                   - D2_[sig_idx][mid] * h_[pml_idx]);
-
-            if (i == 2 && j ==9 && k == 9)
-              h_file << "hx_ = " << grid.hx_[grid_idx] << ", h_ = " 
-                     << h_temp << "\n\tez1_ = " << grid.ez_[grid_idx]
-                     << " ez2_ = " << grid.ez_[grid.pi(it, jt+1, kt)] 
-                     << "\n\tey1_ = " << grid.ey_[grid_idx + 1]
-                     << " ey2_ = " << grid.ey_[grid_idx] << endl;
-
-            h_[pml_idx] = h_temp;
-                                     
-          } else {
-            grid.hx_[grid_idx] = grid.Da_[mid] * grid.hx_[grid_idx]
-              + grid.Dby_[mid] * (grid.ez_[grid.pi(it, jt, kt)] 
-                             - grid.ez_[grid.pi(it, jt+1, kt)])
-              + grid.Dbz_[mid] * (grid.ey_[grid_idx + 1] 
-                             - grid.ey_[grid_idx]);
-          }
+          // Update equations go here. 
         }
       }
       sig_idx++;
@@ -685,7 +587,7 @@ void UPml::update_hx(Grid &grid, bool pml)
 #endif
 }
 
-void UPml::update_hy(Grid &grid, bool pml)
+void UPml::update_hy(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
 
@@ -718,27 +620,7 @@ void UPml::update_hy(Grid &grid, bool pml)
           
           mid = grid.material_[grid_idx];
           
-          if (pml) 
-          {
-            h_temp = h_[pml_idx] - grid.get_deltat() 
-              * ((grid.ex_[grid_idx] 
-                  - grid.ex_[grid.pi(it, jt, kt+1)]) / grid.get_deltaz()
-                 + (grid.ez_[grid.pi(it+1, jt, kt)] 
-                    - grid.ez_[grid_idx]) / grid.get_deltax());
-            
-//             grid.hy_[grid_idx] = grid.hy_[grid_idx]
-//               + ( D1_[sig_idx][mid] * h_temp
-//                   - D2_[sig_idx][mid] * h_[pml_idx]);
-                                     
-            h_[pml_idx] = h_temp;
-                                     
-          } else {
-            grid.hy_[grid_idx] = grid.Da_[mid] * grid.hy_[grid_idx]
-              + grid.Dbz_[mid] * (grid.ex_[grid_idx] 
-                                  - grid.ex_[grid.pi(it, jt, kt+1)])
-              + grid.Dbx_[mid] * (grid.ez_[grid.pi(it+1, jt, kt)] 
-                                  - grid.ez_[grid_idx]);
-          }
+          // Update equations go here. 
         }
       }
       i++;
@@ -748,7 +630,7 @@ void UPml::update_hy(Grid &grid, bool pml)
 #endif
 }
 
-void UPml::update_hz(Grid &grid, bool pml)
+void UPml::update_hz(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
 
@@ -781,27 +663,8 @@ void UPml::update_hz(Grid &grid, bool pml)
           
           mid = grid.material_[grid_idx];
           
-          if (pml) 
-          {
-            h_temp = h_[pml_idx] - grid.get_deltat() 
-              * ((grid.ey_[grid.pi(it, jt, kt)] 
-                  - grid.ey_[grid.pi(it+1, jt, kt)]) / grid.get_deltax()
-                 + (grid.ex_[grid.pi(it, jt + 1, kt)] 
-                    - grid.ex_[grid_idx]) / grid.get_deltay());
-            
-//             grid.hz_[grid_idx] = grid.hz_[grid_idx]
-//               + ( D1_[sig_idx][mid] * h_temp
-//                   - D2_[sig_idx][mid] * h_[pml_idx]);
-                                     
-            h_[pml_idx] = h_temp;
-                                     
-          } else {
-            grid.hz_[grid_idx] = grid.Da_[mid] * grid.hz_[grid_idx]
-              + grid.Dbx_[mid] * (grid.ey_[grid.pi(it, jt, kt)] 
-                                  - grid.ey_[grid.pi(it+1, jt, kt)])
-              + grid.Dby_[mid] * (grid.ex_[grid.pi(it, jt + 1, kt)] 
-                                  - grid.ex_[grid_idx]);
-          }
+          // Update equations go here. 
+
         }
       }
       i++;
@@ -809,4 +672,9 @@ void UPml::update_hz(Grid &grid, bool pml)
 #ifdef USE_OPENMP
   }
 #endif
+}
+
+void UPml::add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface)
+{
+
 }

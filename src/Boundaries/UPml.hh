@@ -1,8 +1,8 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,18 +52,15 @@ protected:
 //   void upml_update(Grid &grid);
 
   // Bools are ugly
-  void update_ex(Grid &grid, bool pml);
-  void update_ey(Grid &grid, bool pml);
-  void update_ez(Grid &grid, bool pml);
+  void update_ex(Grid &grid);
+  void update_ey(Grid &grid);
+  void update_ez(Grid &grid);
 
-  void update_hx(Grid &grid, bool pml);
-  void update_hy(Grid &grid, bool pml);
-  void update_hz(Grid &grid, bool pml);
+  void update_hx(Grid &grid);
+  void update_hy(Grid &grid);
+  void update_hz(Grid &grid);
 
   void compute_regions(Face face, const Grid &grid);
-
-  ofstream d_file;
-  ofstream h_file;
 
 public:
   UPml();
