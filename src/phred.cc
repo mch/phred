@@ -458,7 +458,7 @@ static void pml_test(int rank, int size)
 
   // Excitation
   Gaussm gm;
-  gm.set_parameters(1, 500e12, 300e12);
+  gm.set_parameters(1, 200e12, 100e12);
 
   Excitation ex(&gm);
   //BartlettExcitation ex(gm);
