@@ -67,6 +67,9 @@ void av_h_update();
 #ifdef USE_OPENMP
 void omp_e_update();
 void omp_h_update();
+
+void omp_e_update2();
+void omp_h_update2();
 #endif
 
 void e_update();

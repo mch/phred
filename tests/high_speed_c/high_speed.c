@@ -43,7 +43,7 @@ field_t gaussm(unsigned int time_step, field_t deltaf,
 int main(int argc, char **argv)
 {
   field_t eps[2], mu[2];
-  unsigned int num_time_steps = 100, i, j, k; 
+  unsigned int num_time_steps = 20, i, j, k; 
   FILE *fields;
   unsigned int x, y, z;
   x = 20;
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
   deltax_ = deltay_ = deltaz_ = 18.75e-9;
   deltat_ = 36e-18;
 
-  dimx_ = dimy_ = dimz_ = 40;
+  dimx_ = 100; dimy_ = 100; dimz_ = 200;
 
   eps[0] = 1;
   eps[1] = 2.2;
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
   printf("Current thread number: %i\n", omp_get_thread_num());
   printf("Dynamic thread adjustment? %s\n",
 	 (omp_get_dynamic() ? "yes" : "no"));
-  printf("In parallel? %s",
+  printf("In parallel? %s\n",
 	 (omp_in_parallel() ? "yes" : "no"));
   printf("Nested parallism? %s\n", 
 	 (omp_get_nested() ? "yes" : "no"));
