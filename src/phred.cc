@@ -138,7 +138,7 @@ static struct poptOption options[] =
     {"memory", 'm', POPT_ARG_NONE, 0, 'm'},
     {"mnps", 'b', POPT_ARG_NONE, 0, 'b'}, 
     {"quiet", 'q', POPT_ARG_NONE, 0, 'q'}, 
-    {"test", 't', POPT_ARG_NONE, 0, 't'},
+    {"test", 't', POPT_ARG_STRING, 0, 't'},
     {0, 0, 0, 0, 0}
   };
 #endif
@@ -148,10 +148,10 @@ static int decode_switches (int argc, char **argv);
 static string get_extension(string filename);
 
 // Ugly globals
-string inputfile;
+string inputfile, test_case;
 const char *program_name;
 bool interactive, estimate_memory, mnps, quiet, test_run;
-int MPI_RANK, MPI_SIZE;
+int MPI_RANK, MPI_SIZE, argi_g;
 
 /* Set all the option flags according to the switches specified.
    Return the index of the first non-option argument.  */
@@ -161,6 +161,7 @@ decode_switches (int argc, char **argv)
 #ifdef HAVE_LIBPOPT
   int c;
   char *arg = 0;
+  argi_g = 0;
 
   poptContext ctx = poptGetContext(0, argc, 
                                    const_cast<const char **>(argv), 
@@ -168,6 +169,8 @@ decode_switches (int argc, char **argv)
 
   while ((c = poptGetNextOpt (ctx)) > 0 || c == POPT_ERROR_BADOPT)
   {
+    argi_g++;
+
     if (c == POPT_ERROR_BADOPT)
       continue;
 
@@ -194,7 +197,7 @@ decode_switches (int argc, char **argv)
       else 
       {
         cout << "No filename given for the -f switch." << endl;
-        exit(0);
+        usage(0);
       }
       break;
 
@@ -211,6 +214,16 @@ decode_switches (int argc, char **argv)
       break;
 
     case 't':
+      arg = const_cast<char *>(poptGetOptArg(ctx));
+
+      if (arg)
+        test_case = arg;
+      else 
+      {
+        cout << "No testcase specified." << endl;
+        usage(0);
+      }
+
       test_run = true;
       break;
 
@@ -253,7 +266,15 @@ Options:\n\
                              processed per second (this does NOT include\n\
                              time spent in IO or other activities; only\n\
                              node update times are counted.\n\
-  -t, --test                 Run a hard coded test problem: transmission\n\
+  -t, --test                 Run a hard coded test problem; select from:\n\
+                             H   Single circular hole\n\
+                             M   Million node benchmark\n\
+                             V   Variable number of nodes benchmark; \n\
+                                 follow by the number of cells\n\
+                                 in the X, Y, and Z axis.\n\
+                             S   Square hole, followed by the size of \n\
+                                 the hole in the y dimension as\n\
+                                 an integer number of nanometers.\n\
                              through a single hole in a PEC plate.\n\
   -V, --version              output version information and exit\n\
 ");
@@ -415,11 +436,11 @@ int main (int argc, char **argv)
         else 
         {
           cout << "Unrecognized test option." << endl;
-          usage();
+          usage(0);
         }
         
       } else {
-        usage();
+        usage(0);
       }
 #else
       mn_benchmark();

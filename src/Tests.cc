@@ -425,13 +425,17 @@ void square_hole(int ysize)
   gm->set_parameters(ex_ampl, ex_freq_size, ex_centre_f);
 
   time_steps = static_cast<unsigned int>
-    (ceil((gm->length() + 2 * gridz / 3e8) / fdtd.get_time_delta()));
-  
+    (ceil((4 * gm->length() + 2 * gridz / 3e8) / fdtd.get_time_delta()));
+  time_steps = time_steps * 2;
+
   shared_ptr<GaussWindExcitation> ex 
     = shared_ptr<GaussWindExcitation>(new GaussWindExcitation(gm));
+//  shared_ptr<Excitation> ex 
+//      = shared_ptr<Excitation>(new Excitation(gm));
   shared_ptr<CSGBox> exbox 
     = shared_ptr<CSGBox>(new CSGBox());
-  exbox->set_size(gridx - 16 * deltax, gridy - 16 * deltay, deltaz);
+  exbox->set_size(gridx - 20 * deltax, gridy - 20 * deltay, 0);
+  //exbox->set_size(gridx, gridy, 0);
   exbox->set_centre(0, 0, ex_offset);
   ex->set_region(exbox);
   ex->set_soft(true);
@@ -442,11 +446,11 @@ void square_hole(int ysize)
   fdtd.add_excitation("fluffy", ex);
 
   // DATA WRITERS
-//   shared_ptr<NetCDFDataWriter> ncdw 
-//     = shared_ptr<NetCDFDataWriter>(new NetCDFDataWriter());
+  shared_ptr<NetCDFDataWriter> ncdw 
+    = shared_ptr<NetCDFDataWriter>(new NetCDFDataWriter());
 
-//   (*ncdw).set_filename(prefix + "planes.nc");
-//   fdtd.add_datawriter("ncdw", ncdw);
+  (*ncdw).set_filename(prefix + "planes.nc");
+  fdtd.add_datawriter("ncdw", ncdw);
   
   shared_ptr<MatlabDataWriter> mdw 
     = shared_ptr<MatlabDataWriter>(new MatlabDataWriter());
@@ -455,11 +459,21 @@ void square_hole(int ysize)
   fdtd.add_datawriter("mdw", mdw);
 
   // GRID RESULT: Should be disabled for the full problem
-//   shared_ptr<GridResult> gridr
-//     = shared_ptr<GridResult>(new GridResult);
+  shared_ptr<GridResult> gridr
+    = shared_ptr<GridResult>(new GridResult);
 
-//   fdtd.add_result("grid", gridr);
-//   fdtd.map_result_to_datawriter("grid", "ncdw");
+  fdtd.add_result("grid", gridr);
+  fdtd.map_result_to_datawriter("grid", "ncdw");
+
+  shared_ptr<PlaneResult> plnr1
+    = shared_ptr<PlaneResult>(new PlaneResult);
+  plnr1->set_time_param(0, time_steps, 10);
+  plnr1->set_plane(grid_point(fdtd.get_num_x_cells() / 2, \
+                            fdtd.get_num_y_cells() / 2, \
+                            fdtd.get_num_z_cells() / 2), LEFT);
+  plnr1->set_field(FC_EX);
+  fdtd.add_result("xz_ex", plnr1);
+  fdtd.map_result_to_datawriter("xz_ex", "ncdw");
 
   // INFORMATION ABOUT EXCIATION
   shared_ptr<SignalTimeResult> st
