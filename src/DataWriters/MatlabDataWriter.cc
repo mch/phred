@@ -341,10 +341,6 @@ void MatlabElement::reshape_buffer(int N, int M, MPI_Datatype type)
 
   char *new_buf = new char[buffer_size_];
   
-#ifdef DEBUG
-  cerr << "Reshaping buffer to " << N << " by " << M << endl;
-#endif
-
   if (!new_buf)
     throw MemoryException();
 
