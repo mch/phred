@@ -70,11 +70,6 @@
 /* MPI (rocks your socks right off) */
 #include <mpi.h>
 
-#ifdef HAVE_LIBPOPT
-/* popt plays way nicer with MPI than getopt. Trust me. */
-#include <popt.h>
-#endif
-
 /* Let's use C++ for things that aren't speed critical, because life
    is just so much easier that way. And safer. Practice safe hex. */
 #include <iostream>
@@ -87,12 +82,17 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "MaterialLib.hh"
 #include "Grid.hh"
 #include "SimpleSDAlg.hh"
+#include "config.h"
 
 #define EXIT_FAILURE 1
 
 static void usage (int status);
 
 #ifdef HAVE_LIBPOPT
+
+/* popt plays way nicer with MPI than getopt. Trust me. */
+#include <popt.h>
+
 static struct poptOption options[] = 
   {
     {"help", 'h', POPT_ARG_NONE, 0, 'h'},
@@ -131,46 +131,48 @@ main (int argc, char **argv)
   } 
 
   // Our first try at MPI
-  MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//   MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-  if (rank != 0) {
-    temp = new char(len + 1);
-  } else {
-    temp = const_cast<char *>(prog_name.c_str());
-  }
+//   if (rank != 0) {
+//     temp = new char(len + 1);
+//   } else {
+//     temp = const_cast<char *>(prog_name.c_str());
+//   }
 
-  MPI_Bcast(temp, len + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
+//   MPI_Bcast(temp, len + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-  if (rank != 0)
-  {
-    prog_name = temp;
-    delete[] temp;
-  }
+//   if (rank != 0)
+//   {
+//     prog_name = temp;
+//     delete[] temp;
+//   }
 
-  // Please sir, what file should I load? 
-  if (rank == 0)
-  {
-    len = inputfile.size();
-    temp = const_cast<char *>(inputfile.c_str());
-  }
+//   // Please sir, what file should I load? 
+//   if (rank == 0)
+//   {
+//     len = inputfile.size();
+//     temp = const_cast<char *>(inputfile.c_str());
+//   }
 
-  MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//   MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-  if (rank != 0) {
-    temp = new char(len + 1);
-  }
+//   if (rank != 0) {
+//     temp = new char(len + 1);
+//   }
 
-  MPI_Bcast(temp, len + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
+//   MPI_Bcast(temp, len + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-  if (rank != 0) {
-    inputfile = temp;
-    delete[] temp;
-  }
+//   if (rank != 0) {
+//     inputfile = temp;
+//     delete[] temp;
+//   }
 
-  cout << "My rank is " << rank << ", and my program name is " 
-       << prog_name << " which is " << len << " chars long." << endl;
-  cout << "I'm going to load data from the file '" << inputfile << "'."
-       << endl;
+//   cout << "My rank is " << rank << ", and my program name is " 
+//        << prog_name << " which is " << len << " chars long." << endl;
+//   cout << "I'm going to load data from the file '" << inputfile << "'."
+//        << endl;
+
+  cout << "phread version " << PACKAGE_VERSION << " starting." << endl;
 
   // Parse the input script (each process will just load it's own file
   // for now. ) 
@@ -223,7 +225,8 @@ main (int argc, char **argv)
   // Main loop
   unsigned int num_time_steps = 100;
   unsigned int ts = 0;
-  
+
+  cout << "main loop begins." << endl;  
   for (ts = 0; ts < num_time_steps; ts++) {
     // Excitations
 
@@ -240,6 +243,8 @@ main (int argc, char **argv)
     // Data block outputs
     
   }
+
+  cout << "phred is phinished." << endl;
 
   // Thank you and goodnight
   MPI_Barrier(MPI_COMM_WORLD);
@@ -318,7 +323,7 @@ Options:\n\
   -v, --verbose              print more information\n\
   -h, --help                 display this help and exit\n\
   -V, --version              output version information and exit\n\
-"));
+");
 #else
   printf ("Usage: %s FILENAME\n", program_name);
   printf("\
