@@ -21,6 +21,8 @@ c.abc_says_else()
 
 #include <Python.h>
 #include <boost/python.hpp>
+#include <boost/shared_ptr.hpp>
+using namespace boost;
 using namespace boost::python;
 
 #include <iostream>
@@ -171,7 +173,7 @@ public:
 class abc_container
 {
 private:
-  vector<ABC *> abcs_;
+  vector< shared_ptr<ABC> > abcs_;
   Fiction fact_;
 public:
   abc_container()
@@ -180,15 +182,15 @@ public:
   virtual ~abc_container()
   {}
 
-  void add_abc(ABC &abc)
+  void add_abc(shared_ptr<ABC> abc)
   {
-    abcs_.push_back(&abc);
+    abcs_.push_back(abc);
   }
 
   void abc_says()
   {
-    vector<ABC *>::iterator iter = abcs_.begin();
-    vector<ABC *>::iterator iter_e = abcs_.end();
+    vector<shared_ptr<ABC> >::iterator iter = abcs_.begin();
+    vector<shared_ptr<ABC> >::iterator iter_e = abcs_.end();
 
     int i = 0;
     while (iter != iter_e)
@@ -201,8 +203,8 @@ public:
 
   void abc_says_else()
   {
-    vector<ABC *>::iterator iter = abcs_.begin();
-    vector<ABC *>::iterator iter_e = abcs_.end();
+    vector<shared_ptr<ABC> >::iterator iter = abcs_.begin();
+    vector<shared_ptr<ABC> >::iterator iter_e = abcs_.end();
 
     int i = 0;
     while (iter != iter_e)
@@ -214,40 +216,40 @@ public:
   }
 };
 
-class AbcContWrap : public abc_container
-{
-public:
-  PyObject *self;
-  vector<object> objs_;
-  object slots[4];
+// class AbcContWrap : public abc_container
+// {
+// public:
+//   PyObject *self;
+//   vector<object> objs_;
+//   object slots[4];
 
-  AbcContWrap(PyObject *self_)
-    : self(self_) {}
+//   AbcContWrap(PyObject *self_)
+//     : self(self_) {}
 
-  void slot_abc(unsigned int s, object obj)
-  {
-    if (s < 4)
-    {
-      slots[s] = obj;
-    }
-  }
+//   void slot_abc(unsigned int s, object obj)
+//   {
+//     if (s < 4)
+//     {
+//       slots[s] = obj;
+//     }
+//   }
   
-  void add_abc(object obj) 
-  {
-    objs_.push_back(obj);
-    abc_container::add_abc(extract<ABC&>(obj));
-  }
+//   void add_abc(object obj) 
+//   {
+//     objs_.push_back(obj);
+//     abc_container::add_abc(extract<ABC&>(obj));
+//   }
 
-  void abc_says()
-  {
-    abc_container::abc_says();
-  }
+//   void abc_says()
+//   {
+//     abc_container::abc_says();
+//   }
 
-  void abc_says_else()
-  {
-    abc_container::abc_says_else();
-  }
-};
+//   void abc_says_else()
+//   {
+//     abc_container::abc_says_else();
+//   }
+// };
 
 
 BOOST_PYTHON_MODULE(boosttest)
@@ -273,11 +275,16 @@ BOOST_PYTHON_MODULE(boosttest)
     .def("say_else", &ABC::say_else)
     ;
 
-  class_<abc_container, AbcContWrap, boost::noncopyable>("abc_container")
-    .def("add_abc", &AbcContWrap::add_abc)
-    .def("slot_abc", &AbcContWrap::slot_abc)
-    .def("abc_says", &AbcContWrap::abc_says)
-    .def("abc_says_else", &AbcContWrap::abc_says_else)
+  //  class_<abc_container, AbcContWrap, boost::noncopyable>("abc_container")
+//     .def("add_abc", &AbcContWrap::add_abc)
+//     .def("slot_abc", &AbcContWrap::slot_abc)
+//     .def("abc_says", &AbcContWrap::abc_says)
+//     .def("abc_says_else", &AbcContWrap::abc_says_else)
+
+  class_<abc_container, boost::noncopyable>("abc_container")
+    .def("add_abc", &abc_container::add_abc)
+    .def("abc_says", &abc_container::abc_says)
+    .def("abc_says_else", &abc_container::abc_says_else)
     ;
 }
 
@@ -331,11 +338,11 @@ int main(int argc, char **argv)
                                 main_namespace.get(),
                                 main_namespace.get()));
 
-    numeric::array arr(make_tuple(1, 2, 3));
-    PyDict_SetItemString(main_namespace.get(), "garr", arr.ptr());
-    handle<> bonk(PyRun_String("zeros((3,3))", Py_single_input,
-                             main_namespace.get(),
-                             main_namespace.get()));
+//     numeric::array arr(make_tuple(1, 2, 3));
+//     PyDict_SetItemString(main_namespace.get(), "garr", arr.ptr());
+//     handle<> bonk(PyRun_String("zeros((3,3))", Py_single_input,
+//                              main_namespace.get(),
+//                              main_namespace.get()));
     
 //     handle<> zeros (PyRun_String("zeros", Py_single_input, 
 //                                  main_namespace.get(),
@@ -343,21 +350,21 @@ int main(int argc, char **argv)
 
     //numeric::array bk = extract<numeric::array>(bonk.get() );
 
-    numeric::array obj(make_tuple(make_tuple(1, 2), make_tuple(3, 4)));
-    //obj.resize(make_tuple(2,2));
-    PyDict_SetItemString(main_namespace.get(), "blargh", obj.ptr());
+//     numeric::array obj(make_tuple(make_tuple(1, 2), make_tuple(3, 4)));
+//     //obj.resize(make_tuple(2,2));
+//     PyDict_SetItemString(main_namespace.get(), "blargh", obj.ptr());
 
     //char* data_ptr=((PyArrayObject*)obj.ptr())->data;
     //char src_ptr[] = {2, 3, 6, 7};
     //memcpy(data_ptr, src_ptr, 4);
 
-    list muffins;
-    muffins.append(1);
-    muffins.append(2);
-    muffins.append(3);
-    muffins.append(4);
+//     list muffins;
+//     muffins.append(1);
+//     muffins.append(2);
+//     muffins.append(3);
+//     muffins.append(4);
 
-    PyDict_SetItemString(main_namespace.get(), "muffins", muffins.ptr());
+//     PyDict_SetItemString(main_namespace.get(), "muffins", muffins.ptr());
 
     //Py_Main(argc, argv);
     string buffer; // for multiline commands
