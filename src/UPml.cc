@@ -260,6 +260,9 @@ void UPml::compute_regions(Face face, const Grid &grid)
 
 void UPml::init(const Grid &grid, Face face)
 {
+  d_file.open("upml_d.txt");
+  h_file.open("upml_h.txt");
+
   compute_regions(face, grid);
 
   // Allocate memory
@@ -362,11 +365,11 @@ void UPml::init(const Grid &grid, Face face)
 //       D1_[idx][index] = (1 + (sig * grid.get_deltat())/(2*EPS_0)) / mu;
 //       D2_[idx][index] = (1 - (sig * grid.get_deltat())/(2*EPS_0)) / mu;
 
-      C1_[idx][index] = (1 + (sig * grid.get_deltat())/(2*eps)) / eps;
-      C2_[idx][index] = (1 - (sig * grid.get_deltat())/(2*eps)) / eps;
+      C1_[idx][index] = (1 + (sig * grid.get_deltat() * 0.5)/eps);
+      C2_[idx][index] = (1 - (sig * grid.get_deltat() * 0.5)/eps);
 
-      D1_[idx][index] = (1 + (sig * grid.get_deltat())/(2*eps)) / mu;
-      D2_[idx][index] = (1 - (sig * grid.get_deltat())/(2*eps)) / mu;
+      D1_[idx][index] = (1 + (sig * grid.get_deltat() * 0.5)/mu);
+      D2_[idx][index] = (1 - (sig * grid.get_deltat() * 0.5)/mu);
 
       cerr << "idx: " << idx << ", index: " << index 
            << ", C1 = " << C1_[idx][index]
@@ -520,7 +523,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     case LEFT:
     case RIGHT:
       update_ex(grid, false);   
-      update_ey(grid, false);
+      update_ey(grid, true);
       update_ez(grid, false);
       break;
 
@@ -528,7 +531,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     case BOTTOM:
       update_ex(grid, false);   
       update_ey(grid, false);
-      update_ez(grid, false);
+      update_ez(grid, true);
       break;
     }
   }
@@ -546,7 +549,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     case LEFT:
     case RIGHT:
       update_hx(grid, false);   
-      update_hy(grid, false);
+      update_hy(grid, true);
       update_hz(grid, false);
       break;
 
@@ -554,7 +557,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     case BOTTOM:
       update_hx(grid, false);   
       update_hy(grid, false);
-      update_hz(grid, false);
+      update_hz(grid, true);
       break;
     }
   } 
@@ -608,9 +611,16 @@ void UPml::update_ex(Grid &grid, bool pml)
             grid.ex_[grid_idx] = grid.ex_[grid_idx]
               + ( C1_[sig_idx][mid] * d_temp
                   - C2_[sig_idx][mid] * d_[pml_idx]);
-                                     
+           
+            if (i == 2 && j ==9 && k == 9)
+              d_file << "ex_ = " << grid.ex_[grid_idx] << ", d_ = " 
+                     << d_temp << "\n\thz1_ = " << grid.hz_[grid_idx]
+                     << " hz2_ = " << grid.hz_[grid.pi(it, jt-1, kt)] 
+                     << "\n\thy1_ = " << grid.hy_[grid_idx - 1]
+                     << " hy2_ = " << grid.hy_[grid_idx] << endl;
+
             d_[pml_idx] = d_temp;
-                                     
+            
           } else {
             grid.ex_[grid_idx] = grid.Ca_[mid] * grid.ex_[grid_idx]
               + grid.Cby_[mid] 
@@ -793,7 +803,14 @@ void UPml::update_hx(Grid &grid, bool pml)
             grid.hx_[grid_idx] = grid.hx_[grid_idx]
               + ( D1_[sig_idx][mid] * h_temp
                   - D2_[sig_idx][mid] * h_[pml_idx]);
-                                     
+
+            if (i == 2 && j ==9 && k == 9)
+              h_file << "hx_ = " << grid.hx_[grid_idx] << ", h_ = " 
+                     << h_temp << "\n\tez1_ = " << grid.ez_[grid_idx]
+                     << " ez2_ = " << grid.ez_[grid.pi(it, jt+1, kt)] 
+                     << "\n\tey1_ = " << grid.ey_[grid_idx + 1]
+                     << " ey2_ = " << grid.ey_[grid_idx] << endl;
+
             h_[pml_idx] = h_temp;
                                      
           } else {

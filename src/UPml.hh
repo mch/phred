@@ -22,6 +22,10 @@
 #ifndef UPML_BC_H
 #define UPML_BC_H
 
+#include <iostream>
+#include <fstream>
+using namespace std;
+
 #include "BoundaryCondition.hh"
 
 /**
@@ -75,6 +79,9 @@ protected:
   void free_coefs();
 
   void compute_regions(Face face, const Grid &grid);
+
+  ofstream d_file;
+  ofstream h_file;
 
 public:
   UPml();
