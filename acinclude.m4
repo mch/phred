@@ -481,6 +481,7 @@ x = blitz::tensor::i;
                         LDFLAGS="-L$withval/lib $LDFLAGS"
                 fi
                 LIBS="-lblitz $LIBS"
+                AC_DEFINE([HAVE_BLITZ], [1], [Using Blitz++])
         else
                 if test "$1" = required ; then
                         AC_MSG_ERROR_BLITZ
