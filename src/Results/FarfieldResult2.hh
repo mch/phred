@@ -233,6 +233,7 @@ private:
   Variable theta_;
   Variable phi_;
 
+  void export_dfts();
 };
 
 #endif
