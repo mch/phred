@@ -66,27 +66,67 @@ Data & FarfieldResult::get_result(const Grid &grid, unsigned int time_step)
         switch (output_type_)
         {
         case ETHETA:
+          *p = e_theta_re_[i][j];
+          ++p;
+          *p = e_theta_im_[i][j];
+          ++p;
           break;
 
         case EPHI:
+          *p = e_phi_re_[i][j];
+          ++p;
+          *p = e_phi_im_[i][j];
+          ++p;
           break;
 
         case HTHETA:
+          *p = h_theta_re_[i][j];
+          ++p;
+          *p = h_theta_im_[i][j];
+          ++p;
           break;
 
         case HPHI:
+          *p = h_phi_re_[i][j];
+          ++p;
+          *p = h_phi_im_[i][j];
+          ++p;
           break;
 
         case ETHETAPHI:
+          *p = e_theta_re_[i][j];
+          ++p;
+          *p = e_theta_im_[i][j];
+          ++p;
+          *p = e_phi_re_[i][j];
+          ++p;
+          *p = e_phi_im_[i][j];
+          ++p;
           break;
 
         case HTHETAPHI:
+          *p = h_theta_re_[i][j];
+          ++p;
+          *p = h_theta_im_[i][j];
+          ++p;
+          *p = h_phi_re_[i][j];
+          ++p;
+          *p = h_phi_im_[i][j];
+          ++p;
           break;
 
         case RCSNORM:
+          *p = (e_theta_im_[i][j] * e_theta_im_[i][j] 
+                + e_phi_im_[i][j] * e_phi_im_[i][j]) 
+            / ETH_0;
+          ++p;
           break;
 
         case RCSDBPOL:
+          *p = 10 * log10( (e_theta_im_[i][j] * e_theta_im_[i][j] 
+                            + e_phi_im_[i][j] * e_phi_im_[i][j]) 
+                           / ETH_0);
+          ++p;
           break;
         }
       }
@@ -206,12 +246,12 @@ void FarfieldResult::init(const Grid &grid)
 
   case RCSNORM:
     var_name_ = "Normalized RADAR cross-section";
-    num_cols = 4;
+    num_cols = 3;
     break;
 
   case RCSDBPOL:
     var_name_ = "Normalized RADAR cross-section in dB";
-    num_cols = 4;
+    num_cols = 3;
     break;
 
   case ETHETAPHI:
