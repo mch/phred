@@ -78,7 +78,8 @@ enum GridAuxData {
 /**
  * Boundary conditions. These can be appled to faces of the grid or to
  * the surfaces of materials. But normally just to the faces of the
- * grid.
+ * grid. When adding a boundary condition, be sure to update
+ * GridInfo::reorder_boundaries. 
  */
 enum BoundaryCondition {
   UNKNOWN, /**< The boundary condition is unknown; non-sane. */

@@ -1,8 +1,8 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,6 +21,11 @@
 
 #include "GridInfo.hh"
 
+#ifdef DEBUG
+#include <iostream>
+using namespace std;
+#endif
+
 GridInfo::GridInfo() 
   : global_dimx_(0), global_dimy_(0), global_dimz_(0), 
     start_x_(0), start_y_(0), start_z_(0),
@@ -33,6 +38,7 @@ GridInfo::GridInfo()
   for (int i = 0; i < 6; i++)
   {
     face_bc_[i] = shared_ptr<BoundaryCond>(new Ewall());
+    bc_order_[i] = static_cast<Face>(i);
   }
 }
 
@@ -76,6 +82,7 @@ GridInfo& GridInfo::operator=(const GridInfo &info)
   
   for (int i = 0; i < 6; i++) {
     face_bc_[i] = info.face_bc_[i];
+    bc_order_[i] = info.bc_order_[i];
   }
   
   return *this;
@@ -84,11 +91,15 @@ GridInfo& GridInfo::operator=(const GridInfo &info)
 void GridInfo::set_boundary(Face face, BoundaryCond *bc)
 {
   face_bc_[face] = shared_ptr<BoundaryCond>(bc);
+
+  reorder_boundaries();
 }
 
 void GridInfo::set_boundary(Face face, shared_ptr<BoundaryCond> bc)
 {
-    face_bc_[face] = bc;
+  face_bc_[face] = bc;
+
+  reorder_boundaries();
 }
 
 unsigned int GridInfo::get_face_thickness(Face face) const
@@ -104,18 +115,101 @@ unsigned int GridInfo::get_face_thickness(Face face) const
 
 void GridInfo::apply_boundaries(Grid &grid, FieldType type)
 {
-  for (unsigned int i = 0; i < 6; i++)
-  {
-    if (face_bc_[i].get() && face_bc_[i].get()->get_type() != SUBDOMAIN) {
-      face_bc_[i].get()->apply(static_cast<Face>(i), grid, type);
-    }
-  }
+  // Apply E/H walls
+  // Apply Periodic boundaries
+  // Apply UPML/PML
+  // Apply Subdomains last
 
-  for (unsigned int i = 0; i < 6; i++)
+  for (int i = 0; i < 6; i++)
   {
-    if (face_bc_[i].get() && face_bc_[i].get()->get_type() == SUBDOMAIN) {
-      face_bc_[i].get()->apply(static_cast<Face>(i), grid, type);
-    }
+    Face f = bc_order_[i];
+    
+    face_bc_[i].get()->apply(f, grid, type);
   }
+  
+//   for (unsigned int i = 0; i < 6; i++)
+//   {
+//     if (face_bc_[i].get() && face_bc_[i].get()->get_type() != SUBDOMAIN) {
+//       face_bc_[i].get()->apply(static_cast<Face>(i), grid, type);
+//     }
+//   }
+
+//   for (unsigned int i = 0; i < 6; i++)
+//   {
+//     if (face_bc_[i].get() && face_bc_[i].get()->get_type() == SUBDOMAIN) {
+//       face_bc_[i].get()->apply(static_cast<Face>(i), grid, type);
+//     }
+//   }
 }
 
+void GridInfo::reorder_boundaries()
+{
+  // Apply UPML/PML first, since they have to do a chunk of
+  // computation in the same way the grid does.
+  // Apply E/H walls next
+  // Apply Periodic boundaries
+  // Apply Subdomains last
+
+  int bc_idx = 0;
+
+  // This is kind of inefficient. But for 6 items, who cares. 
+  for (unsigned int i = 0; i < 6; i++)
+  {
+    BoundaryCondition t = face_bc_[i].get()->get_type();
+    
+    if ((t == PML || t == UPML) && bc_idx < 6)
+      bc_order_[bc_idx++] = static_cast<Face>(i);
+  }
+
+  for (unsigned int i = 0; i < 6; i++)
+  {
+    BoundaryCondition t = face_bc_[i].get()->get_type();
+    
+    if (t != SUBDOMAIN && t != PML && t != UPML && bc_idx < 6)
+      bc_order_[bc_idx++] = static_cast<Face>(i);
+  }
+
+  for (unsigned int i = 0; i < 6; i++)
+  {
+    BoundaryCondition t = face_bc_[i].get()->get_type();
+    
+    if (t == SUBDOMAIN && bc_idx < 6)
+      bc_order_[bc_idx++] = static_cast<Face>(i);
+  }
+
+#ifdef DEBUG
+  cout << "Boundary condition order: \n\t";
+  for (int i = 0; i < 6; i++)
+  {
+    cout << face_string(bc_order_[i]) << " [";
+
+    BoundaryCondition t = face_bc_[bc_order_[i]].get()->get_type();
+    switch (t)
+    {
+    case UNKNOWN:
+      cout << "unknown";
+      break;
+    case SUBDOMAIN:
+      cout << "subdomain";
+      break;
+    case EWALL:
+      cout << "ewall";
+      break;
+    case HWALL:
+      cout << "hwall";
+      break;
+    case PML:
+      cout << "pml";
+      break;
+    case UPML:
+      cout << "upml";
+      break;
+    case PERIODIC:
+      cout << "periodic";
+      break;
+    }
+    cout << "]\n\t";
+  }
+  cout << endl;
+#endif
+}

@@ -141,6 +141,22 @@ protected:
    */ 
   region_t local_domain_in_global_no_ol_;
 
+  /**
+   * The order in which to apply the boundary conditions. 
+   */ 
+  Face bc_order_[6];
+
+  /**
+   * Compute the contents of the bc_order_ array based on the
+   * following rules:
+   *
+   * 1) Apply E/H walls
+   * 2) Apply Periodic boundaries
+   * 3) Apply UPML/PML
+   * 4) Apply Subdomains last
+   */ 
+  void reorder_boundaries();
+
 public:
   GridInfo();
 

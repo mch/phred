@@ -82,7 +82,6 @@ void UPml::compute_regions(Face face, const Grid &grid)
   grid_hz_r_.xmax--;
   grid_hz_r_.ymax--;
 
-  // Corrections made by comparing to Jan's FDTD
   grid_ex_r_.xmax--;
   grid_ey_r_.ymax--;
   grid_ez_r_.zmax--;
@@ -99,19 +98,21 @@ void UPml::compute_regions(Face face, const Grid &grid)
       grid_ey_r_.xmax--;
       grid_ez_r_.xmax--;
 
-      grid_ex_r_.ymax--;
-      grid_ez_r_.ymax--;
+      // TEST
+//       grid_ex_r_.ymax--;
+//       grid_ez_r_.ymax--;
 
-      grid_ex_r_.zmax--;
-      grid_ey_r_.zmax--;
+//       grid_ex_r_.zmax--;
+//       grid_ey_r_.zmax--;
       break;
 
     case BACK:
-      grid_ex_r_.ymax--;
-      grid_ez_r_.ymax--;
+      // TEST
+//       grid_ex_r_.ymax--;
+//       grid_ez_r_.ymax--;
 
-      grid_ex_r_.zmax--;
-      grid_ey_r_.zmax--;
+//       grid_ex_r_.zmax--;
+//       grid_ey_r_.zmax--;
 
       break;
 
@@ -122,27 +123,30 @@ void UPml::compute_regions(Face face, const Grid &grid)
       grid_ex_r_.zmax--;
       grid_ey_r_.zmax--;
 
-      grid_ey_r_.xmax--;
-      grid_ez_r_.xmax--;
+      // TEST
+//       grid_ey_r_.xmax--;
+//       grid_ez_r_.xmax--;
 
-      grid_ez_r_.ymax--;
-      grid_ex_r_.ymax--;
+//       grid_ez_r_.ymax--;
+//       grid_ex_r_.ymax--;
       break;
 
     case BOTTOM:
-      grid_ey_r_.xmax--;
-      grid_ez_r_.xmax--;
+      // TEST
+//       grid_ey_r_.xmax--;
+//       grid_ez_r_.xmax--;
 
-      grid_ez_r_.ymax--;
-      grid_ex_r_.ymax--;
+//       grid_ez_r_.ymax--;
+//       grid_ex_r_.ymax--;
       break;
 
     case LEFT:
-      grid_ey_r_.xmax--;
-      grid_ez_r_.xmax--;
+      // TEST
+//       grid_ey_r_.xmax--;
+//       grid_ez_r_.xmax--;
 
-      grid_ex_r_.zmax--;
-      grid_ey_r_.zmax--;     
+//       grid_ex_r_.zmax--;
+//       grid_ey_r_.zmax--;     
       break;
 
     case RIGHT:
@@ -152,11 +156,12 @@ void UPml::compute_regions(Face face, const Grid &grid)
       grid_ez_r_.ymax--;
       grid_ex_r_.ymax--;
 
-      grid_ey_r_.xmax--;
-      grid_ez_r_.xmax--;
+      // TEST
+//       grid_ey_r_.xmax--;
+//       grid_ez_r_.xmax--;
 
-      grid_ex_r_.zmax--;
-      grid_ey_r_.zmax--;
+//       grid_ex_r_.zmax--;
+//       grid_ey_r_.zmax--;
       break;
     }
 
@@ -309,43 +314,45 @@ void UPml::init(const Grid &grid, Face face)
 
   }
 
-//   cout << "UPML Update region for face " << face << ":"
-//        << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
-//        << grid_ex_r_.xmax
-//        << ", y: " << grid_ex_r_.ymin << " -> " 
-//        << grid_ex_r_.ymax
-//        << ", z: " << grid_ex_r_.zmin << " -> " 
-//        << grid_ex_r_.zmax
-//        << "\n\tEy, x: " << grid_ey_r_.xmin << " -> " 
-//        << grid_ey_r_.xmax
-//        << ", y: " << grid_ey_r_.ymin << " -> " 
-//        << grid_ey_r_.ymax
-//        << ", z: " << grid_ey_r_.zmin << " -> " 
-//        << grid_ey_r_.zmax
-//        << "\n\tEz, x: " << grid_ez_r_.xmin << " -> " 
-//        << grid_ez_r_.xmax
-//        << ", y: " << grid_ez_r_.ymin << " -> " 
-//        << grid_ez_r_.ymax
-//        << ", z: " << grid_ez_r_.zmin << " -> " 
-//        << grid_ez_r_.zmax 
-//        << "\n\tHx, x: " << grid_hx_r_.xmin << " -> " 
-//        << grid_hx_r_.xmax
-//        << ", y: " << grid_hx_r_.ymin << " -> " 
-//        << grid_hx_r_.ymax
-//        << ", z: " << grid_hx_r_.zmin << " -> " 
-//        << grid_hx_r_.zmax
-//        << "\n\tHy, x: " << grid_hy_r_.xmin << " -> " 
-//        << grid_hy_r_.xmax
-//        << ", y: " << grid_hy_r_.ymin << " -> " 
-//        << grid_hy_r_.ymax
-//        << ", z: " << grid_hy_r_.zmin << " -> " 
-//        << grid_hy_r_.zmax
-//        << "\n\tHz, x: " << grid_hz_r_.xmin << " -> " 
-//        << grid_hz_r_.xmax
-//        << ", y: " << grid_hz_r_.ymin << " -> " 
-//        << grid_hz_r_.ymax
-//        << ", z: " << grid_hz_r_.zmin << " -> " 
-//        << grid_hz_r_.zmax << endl;
+#ifdef DEBUG
+  cout << "UPML Update region for face " << face << ":"
+       << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
+       << grid_ex_r_.xmax
+       << ", y: " << grid_ex_r_.ymin << " -> " 
+       << grid_ex_r_.ymax
+       << ", z: " << grid_ex_r_.zmin << " -> " 
+       << grid_ex_r_.zmax
+       << "\n\tEy, x: " << grid_ey_r_.xmin << " -> " 
+       << grid_ey_r_.xmax
+       << ", y: " << grid_ey_r_.ymin << " -> " 
+       << grid_ey_r_.ymax
+       << ", z: " << grid_ey_r_.zmin << " -> " 
+       << grid_ey_r_.zmax
+       << "\n\tEz, x: " << grid_ez_r_.xmin << " -> " 
+       << grid_ez_r_.xmax
+       << ", y: " << grid_ez_r_.ymin << " -> " 
+       << grid_ez_r_.ymax
+       << ", z: " << grid_ez_r_.zmin << " -> " 
+       << grid_ez_r_.zmax 
+       << "\n\tHx, x: " << grid_hx_r_.xmin << " -> " 
+       << grid_hx_r_.xmax
+       << ", y: " << grid_hx_r_.ymin << " -> " 
+       << grid_hx_r_.ymax
+       << ", z: " << grid_hx_r_.zmin << " -> " 
+       << grid_hx_r_.zmax
+       << "\n\tHy, x: " << grid_hy_r_.xmin << " -> " 
+       << grid_hy_r_.xmax
+       << ", y: " << grid_hy_r_.ymin << " -> " 
+       << grid_hy_r_.ymax
+       << ", z: " << grid_hy_r_.zmin << " -> " 
+       << grid_hy_r_.zmax
+       << "\n\tHz, x: " << grid_hz_r_.xmin << " -> " 
+       << grid_hz_r_.xmax
+       << ", y: " << grid_hz_r_.ymin << " -> " 
+       << grid_hz_r_.ymax
+       << ", z: " << grid_hz_r_.zmin << " -> " 
+       << grid_hz_r_.zmax << endl;
+#endif
 
   MPI_Type_contiguous(bc_r_.zmax, GRID_MPI_TYPE, &z_vector_);
   MPI_Type_commit(&z_vector_);
