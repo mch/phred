@@ -94,6 +94,13 @@ public:
   map<string, Variable *> &get_post_result(const Grid &grid);
 
   /**
+   * Set the box over which the currents should be calculated so that
+   * the farfield can be calculated from those currents.
+   */ 
+  void set_region(shared_ptr<CSGBox> box)
+  { box_ = box; }
+
+  /**
    * Set the range of theta (angle from the X axis) to calculate the
    * farfield data for. The range must not span more than 360 degrees. 
    *
