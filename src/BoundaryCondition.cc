@@ -82,3 +82,7 @@ region BoundaryCond::find_face(Face face, Grid &grid)
   
 // }
 
+unsigned int BoundaryCond::get_thickness()
+{
+  return thickness_;
+}

@@ -25,6 +25,12 @@ protected:
    */
   region find_face(Face face, Grid &grid);
 
+  /**
+   * The thickness of the boundary condition. Usually zero, but will
+   * be nonzero for PML's.
+   */
+  unsigned int thickness_;
+
 public:
   BoundaryCond() {}
   virtual ~BoundaryCond() {}
@@ -37,6 +43,17 @@ public:
    */
   virtual void apply(Face face,
                      Grid &grid) = 0;
+
+  /**
+   * Returns the thickness of the boundary condition. 
+   */
+  unsigned int get_thickness();
+
+  /**
+   * Creates a copy of the boundary condition object and returns a
+   * pointer to it. The callers is responsible for freeing it later. 
+   */
+  BoundaryCond *clone() = 0;
 
 };
 

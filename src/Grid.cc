@@ -8,20 +8,80 @@ Grid::Grid()
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
     Da_(0), Dbx_(0), Dby_(0), Dbz_(0),
     ex_(0), ey_(0), ez_(0), hx_(0), hy_(0), hz_(0), 
-    material_(0)
+    material_(0), define_(true)
 {
 
 }
 
 Grid::~Grid()
 {
+  define_ = true;
+
   free_grid();
   free_material();
 }
     
+void set_define_mode(bool d)
+{
+  bool ok = true;
+
+  if (!d) 
+  {
+    // Sanity checks
+    
+    // Stability check
+    
+    // Calculate update region by considering the thickness of the PML's. 
+    update_r_.xmin = 0;
+    update_r_.xmax = info_.dimx_;
+    update_r_.ymin = 0;
+    update_r_.ymax = info_.dimy_;
+    update_r_.zmin = 0;
+    update_r_.zmax = info_.dimz_;
+
+    unsigned int thickness = 0;
+    for (int i = 0; i < 6; i++)
+    {
+      if (info_.face_bc_[i])
+        thickness = info_.face_bc_[i];
+      else
+        thickness = 0;
+
+      switch (i) {
+      case FRONT:
+        update_r_.xmax -= thickness;
+      case BACK:
+        update_r_xmin += thickness;
+      case TOP:
+        update_r_.zmax -= thickness;
+      case BOTTOM:
+        update_r_.zmin += thickness;
+      case LEFT:
+        update_r_.ymin += thickness;
+      case RIGHT:
+        update_r_.ymax -= thickness;
+      }
+    }
+
+    if (ok)
+      define_ = d;
+    else 
+    {
+      cerr << "The grid is not in a sane condition which can be reasonably be solved. " << endl;
+    }
+  } else {
+    define_ = d;
+  }
+}
 
 void Grid::free_grid()
 {
+  if (!define_)
+  {
+    cerr << "Unable to free grid data; the grid is not in define mode." << endl;
+    return;
+  }
+
   // Slightly dangerous, but if one is allocated then all should 
   // be allocated. 
   if (ex_ || ey_ || ez_ || hx_ || hy_ || hz_) {
@@ -57,6 +117,12 @@ void Grid::free_grid()
 
 void Grid::free_material()
 {
+  if (!define_)
+  {
+    cerr << "Unable to free material data; the grid is not in define mode." << endl;
+    return;
+  }
+
   if (Ca_) {
     delete[] Ca_;
     delete[] Cbx_;
@@ -98,6 +164,11 @@ void Grid::init_datatypes()
 
 void Grid::alloc_grid()
 {
+  if (!define_)
+  {
+    cerr << "Unable to allocate grid data; the grid is not in define mode." << endl;
+    return;
+  }
 
   ex_ = new field_t **[get_ldx()];
   ey_ = new field_t **[get_ldx()];
@@ -150,6 +221,12 @@ void Grid::alloc_grid()
 
 void Grid::load_materials(MaterialLib &matlib)
 {
+  if (!define_)
+  {
+    cerr << "Unable to load material data; the grid is not in define mode." << endl;
+    return;
+  }
+
   // Clear up any material data that may already be loaded
   free_material();
 
@@ -252,6 +329,12 @@ void Grid::load_materials(MaterialLib &matlib)
 
 void Grid::setup_grid(const GridInfo &info)
 {
+  if (!define_)
+  {
+    cerr << "Unable to setup grid; the grid is not in define mode." << endl;
+    return;
+  }
+
   info_ = info;
 }
 
@@ -263,6 +346,12 @@ void Grid::define_box(unsigned int x_start, unsigned int x_stop,
 {
   // Given coordinates are global, so we have to convert them to local. 
   unsigned int xs, ys, zs, xe, ye, ze;
+
+  if (!define_)
+  {
+    cerr << "Unable to define a box; the grid is not in define mode." << endl;
+    return;
+  }
 
   xs = (get_lsx() > x_start) ? get_lsx() - 1 : x_start - get_lsx();
   ys = (get_lsy() > y_start) ? get_lsy() - 1 : y_start - get_lsy();
@@ -292,6 +381,12 @@ void Grid::define_box(unsigned int x_start, unsigned int x_stop,
 // Straight out of Taflove.
 void Grid::update_fields()
 {
+  if (define_)
+  {
+    cerr << "Unable to update fields; the grid is in define mode." << endl;
+    return;
+  }
+
   update_ex();
   update_ey();
   update_ez();
@@ -414,6 +509,12 @@ void Grid::update_hz()
 
 void Grid::apply_boundaries()
 {
+  if (define_)
+  {
+    cerr << "Unable to apply boundary conditions; the grid is in define mode." << endl;
+    return;
+  }
+
   for (int i = 0; i < 6; i++) {
     switch (info_.face_bc_[i]) {
     case SUBDOMAIN:

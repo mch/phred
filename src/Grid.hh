@@ -17,6 +17,13 @@
  * accident. 
  *
  * \bug Sanity checks on stability are required.
+ *
+ * \bug Since we have this define mode now, and a lot of the functions
+ * have to check that flag, there should be protected virtual helper
+ * functions that can be overridden to do the actual work, while the
+ * public functions are nonvirtual and just perform the define mode
+ * check and call the protected helper functions. Saves derived
+ * classes from having to duplicate code or messing up define mode. 
  */
 
 #ifndef GRID_H
@@ -50,6 +57,11 @@ class Grid {
 
   // Grid size information
   GridInfo info_;
+
+  // The region over which the Grid update equations are
+  // applied. Just the size given in info_ minus the offsets. This is
+  // calculated when we leave define mode. 
+  region update_r_;
 
   // Number of materials we know about (0 is PEC)
   unsigned int num_materials_;
@@ -89,15 +101,14 @@ class Grid {
   MPI_Datatype y_vector_;
   MPI_Datatype z_vector_;
 
- public:
-  Grid();
-  virtual ~Grid();
-
   /**
-   * Compute the next time step of the fields. This is a convenience
-   * function which calls the individual update functions. 
+   * This is true when the grid is in define mode. In define mode,
+   * the grid size can be changed, material definitions can be
+   * changed, boundary conditions can be set, etc. The update
+   * equations cannot be run in define mode. 
    */
-  virtual void update_fields();
+  bool define_;
+
 
   /**
    * Compute the update equatations for the Ex field component. 
@@ -129,26 +140,51 @@ class Grid {
    */
   virtual void update_hz();
 
+ public:
+  Grid();
+  virtual ~Grid();
+
   /**
-   * Apply the boundary conditions to the faces
+   * Turn define mode on or off. If you are turning off define mode,
+   * a number of sanity checks and stability checks are made to
+   * ensure that the settings make sense and can be solved. 
+   *
+   * @param d a boolean, false to turn off define mode, true to turn
+   * it on. 
+   */
+  void set_define_mode(bool d);
+
+  /**
+   * Compute the next time step of the fields. This is a convenience
+   * function which calls the individual update functions, and can
+   * only be called when the grid is not in define mode. 
+   */
+  void update_fields();
+
+  /**
+   * Apply the boundary conditions to the faces. This function only
+   * has an effect when the grid is not in define mode. 
    */
   virtual void apply_boundaries();
 
   /**
-   * Calculate the material constants from the given material library
+   * Calculate the material constants from the given material
+   * library. This function can only be used in define mode. 
    *
    * @param matlib the material library to load the materials from 
    */
   virtual void load_materials(MaterialLib &matlib);
 
   /**
-   * Deallocate the memory used to store material coeffcients and so on. 
+   * Deallocate the memory used to store material coeffcients and so
+   * on. This function can only be used in define mode. 
    */
   virtual void free_material();
 
   /**
    * Set up the, define the size of the global grid, and the size of
-   * the subdomain this grid actually represents. 
+   * the subdomain this grid actually represents. This function can
+   * only be used in define mode. 
    *
    * @param info the GridInfo object containing the global and local
    * grid sizes, cell sizes, time step size, etc. 
@@ -167,7 +203,8 @@ class Grid {
   }
 
   /** 
-   * Allocate memory for the grid. 
+   * Allocate memory for the grid. This function can only be used in
+   * define mode. 
    */ 
   virtual void alloc_grid();
 
@@ -191,11 +228,11 @@ class Grid {
    * local ones that can be used. 
    *
    * @param x_start The starting cell of the box in x
-   * @param x_end The ending cell of the box in x
+   * @param x_stop The ending cell of the box in x
    * @param y_start The starting cell of the box in y
-   * @param y_end The ending cell of the box in y
+   * @param y_stop The ending cell of the box in y
    * @param z_start The starting cell of the box in z
-   * @param z_end The ending cell of the box in z
+   * @param z_stop The ending cell of the box in z
    *
    * @return region in local coordinate. 
    */
@@ -207,14 +244,15 @@ class Grid {
    * Define geometry in the grid (i.e. assign material indicies to
    * grid points). All definitions are done in global coordinates. It
    * is the grid's job to calculate the region within the subdomain
-   * and assign the material indicies appropriatly. 
+   * and assign the material indicies appropriatly. This function can
+   * only be used in define mode. 
    *
    * @param x_start The starting cell of the box in x
-   * @param x_end The ending cell of the box in x
+   * @param x_stop The ending cell of the box in x
    * @param y_start The starting cell of the box in y
-   * @param y_end The ending cell of the box in y
+   * @param y_stop The ending cell of the box in y
    * @param z_start The starting cell of the box in z
-   * @param z_end The ending cell of the box in z
+   * @param z_stop The ending cell of the box in z
    *
    * @param mat_index The material index to use in this region. 0 is
    * perfect electric conductor, 1 and up are ordered as in the
@@ -225,9 +263,6 @@ class Grid {
                   unsigned int z_start, unsigned int z_stop, 
                   unsigned int mat_index);
 
-  // Accessors (these should be inline, but then I would have to
-  // rearrange definitions, and I'm too lazy right now. 
-  
   /**
    * Returns the global size of the x dimension.
    *
