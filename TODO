@@ -1,0 +1,17 @@
+TODO LIST FOR PHRED
+
+* Sanity
+Sanity checks required:
+
+** Ensure excitations apply to some cell in the grid
+
+** Ensure excitations do not overlap boundaries
+
+
+* Checkpoints
+
+* Save/load problem description in a text file 
+
+* Test cases!!
+Unit tests are looking more and more useful, as small changes break
+old things all over the place.
