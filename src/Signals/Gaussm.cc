@@ -28,7 +28,7 @@ Gaussm::Gaussm()
 Gaussm::~Gaussm()
 {}
 
-field_t Gaussm::signal_function(float time)
+field_t Gaussm::signal_function(float time) const
 {
   field_t temp = (time - 4. / (PI * deltaf_)) * deltaf_ * PI;
 
@@ -43,22 +43,22 @@ void Gaussm::set_parameters(field_t alpha, field_t deltaf, field_t f0)
   f0_ = f0;
 }
 
-field_t Gaussm::get_alpha()
+field_t Gaussm::get_alpha() const
 {
   return alpha_;
 }
 
-field_t Gaussm::get_deltaf()
+field_t Gaussm::get_deltaf() const
 {
   return deltaf_;
 }
 
-field_t Gaussm::get_f0()
+field_t Gaussm::get_f0() const
 {
   return f0_;
 }
 
-field_t Gaussm::length()
+field_t Gaussm::length() const
 {
   return 8.0 / (PI * deltaf_);
 }
@@ -67,5 +67,6 @@ ostream& Gaussm::to_string(ostream &os) const
 {
   return os << "Gaussm signal with an amplitude of " << alpha_
             << ", a centre frequency of " << f0_
-            << " Hz, and a width of " << deltaf_ << " Hz.";
+            << " Hz, and a width of " << deltaf_ << " Hz. Length: "
+            << length() << " seconds.";
 }

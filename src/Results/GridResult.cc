@@ -37,6 +37,15 @@ void GridResult::init(const Grid &grid)
   //variables_["delta_ys"] = &deltays_;
   //variables_["delta_zs"] = &deltazs_;
 
+#ifdef DEBUG
+  cout << "GridResult is returning a region that is "
+       << grid.get_ldx() << " by " << grid.get_ldy()
+       << " by " << grid.get_ldz() << ".\nEach element is " 
+       << sizeof(mat_idx_t) << " bytes. Total bytes: "
+       << sizeof(mat_idx_t) * grid.get_ldx() * grid.get_ldy() 
+    * grid.get_ldz() << endl;
+#endif
+
   if (MPI_SIZE == 1)
   {
     MPI_Type_contiguous(grid.get_ldx() * grid.get_ldy() * grid.get_ldz(), 

@@ -62,6 +62,9 @@ void Excitation::init(const Grid &grid)
          << (*region_).xmax() << ", " << (*region_).ymax() << ", " 
          << (*region_).zmax() << ")." << endl;
 #endif
+  } else {
+    throw RegionException("Excitations must be assigned a region "
+                          "over which they are to be applied!");
   }
 }
 
@@ -155,7 +158,7 @@ void Excitation::excite(Grid &grid, unsigned int time_step,
 ostream& Excitation::to_string(ostream &os) const
 {
   os << "In the local grid, this excitation is being applied to "
-     << region_.get() << ". The polarization vector is ("
+     << (*region_) << ". The polarization vector is ("
      << polarization_[0] << ", " << polarization_[1]
      << ", " << polarization_[2] << "). The excitation is ";
 
@@ -173,7 +176,7 @@ ostream& Excitation::to_string(ostream &os) const
   else 
     os << "electric and magnetic fields.";
 
-  os << "The signal function being applied is " << sf_.get();
+  os << "The signal function being applied is " << (*sf_);
 
   return os;
 }

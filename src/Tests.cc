@@ -159,14 +159,17 @@ void hole()
        << endl;
 
   string prefix = "hole_";
+
+  // Time steps is recalculated based on the length of the excitation.
   unsigned int time_steps = 3000;
-  float deltax = 5e-9f;
-  float deltay = 5e-9f;
-  float deltaz = 5e-9f;
+
+  float deltax = 5e-9;
+  float deltay = 5e-9;
+  float deltaz = 5e-9;
 
   float gridx = 800e-9;
   float gridy = 800e-9;
-  float gridz = 700e-9;
+  float gridz = 800e-9;
 
   float plate_thickness = 100e-9;
   float hole_radius = 100e-9;
@@ -209,6 +212,9 @@ void hole()
   // EXCITATION
   shared_ptr<Gaussm> gm = shared_ptr<Gaussm>(new Gaussm());
   gm->set_parameters(ex_ampl, ex_freq_size, ex_centre_f);
+
+  time_steps = static_cast<unsigned int>
+    (ceil(gm->length() / fdtd.get_time_delta()));
   
   shared_ptr<GaussWindExcitation> ex 
     = shared_ptr<GaussWindExcitation>(new GaussWindExcitation(gm));
@@ -216,9 +222,12 @@ void hole()
     = shared_ptr<CSGBox>(new CSGBox());
   exbox->set_size(gridx - 16 * deltax, gridy - 16 * deltay, deltaz);
   exbox->set_centre(0, 0, ex_offset);
+  ex->set_region(exbox);
   ex->set_soft(true);
   ex->set_type(E);
   ex->set_polarization(1,0,0);
+
+  fdtd.add_excitation("fluffy", ex);
 
   // DATA WRITERS
 //   shared_ptr<NetCDFDataWriter> ncdw 
@@ -237,20 +246,52 @@ void hole()
     = shared_ptr<GridResult>(new GridResult);
 
   // GRID RESULT: Should be disabled for the full problem
-  //fdtd.add_result("grid", gridr);
-  //fdtd.map_result_to_datawriter("grid", "ncdw");
+//   fdtd.add_result("grid", gridr);
+//   fdtd.map_result_to_datawriter("grid", "ncdw");
 
   // INFORMATION ABOUT EXCIATION
   shared_ptr<SignalTimeResult> st
     = shared_ptr<SignalTimeResult>(new SignalTimeResult(*gm));
   fdtd.add_result("src", st);
+  fdtd.map_result_to_datawriter("src", "mdw");
 
   shared_ptr<SignalDFTResult> sdft
     = shared_ptr<SignalDFTResult>(new SignalDFTResult(*gm, dft_low, 
                                                       dft_high, 
                                                       dft_num));
   fdtd.add_result("srcdft", sdft);
+  fdtd.map_result_to_datawriter("srcdft", "mdw");
+
+  // Incident side point
+  shared_ptr<PointResult> pr1
+    = shared_ptr<PointResult>(new PointResult());
+  pr1->set_point(point(0, 0, -plate_thickness));
+  fdtd.add_result("p1", pr1);
+
+  shared_ptr<PointDFTResult> pr1dft 
+    =  shared_ptr<PointDFTResult>(new PointDFTResult());
+  pr1dft->set_point(point(0, 0, -plate_thickness));
+  pr1dft->set_freq(dft_low, dft_high, dft_num);
+  fdtd.add_result("p1dft", pr1dft);
+
+  fdtd.map_result_to_datawriter("p1", "mdw");
+  fdtd.map_result_to_datawriter("p1dft", "mdw");
+
+  // Transmission side point
+  shared_ptr<PointResult> pr2
+    = shared_ptr<PointResult>(new PointResult());
+  pr2->set_point(point(0, 0, plate_thickness));
+  fdtd.add_result("p2", pr2);
+
+  shared_ptr<PointDFTResult> pr2dft 
+    =  shared_ptr<PointDFTResult>(new PointDFTResult());
+  pr2dft->set_point(point(0, 0, plate_thickness));
+  pr2dft->set_freq(dft_low, dft_high, dft_num);
+  fdtd.add_result("p2dft", pr2dft);
   
+  fdtd.map_result_to_datawriter("p2", "mdw");
+  fdtd.map_result_to_datawriter("p2dft", "mdw");
+
   // Farfield measurements
   shared_ptr<CSGBox> ffbox
     = shared_ptr<CSGBox>(new CSGBox());
@@ -309,6 +350,14 @@ void hole()
   fdtd.run();
 }
 
+void grooves_top()
+{}
+
+void grooves_bottom()
+{}
+
+void grooves_both()
+{}
 
 // Test runs
 // void point_test(int rank, int size)

@@ -58,21 +58,21 @@ public:
    *
    * @return alpha
    */
-  field_t get_alpha();
+  field_t get_alpha() const;
 
   /**
    * Get the current frequency range
    *
    * @return frequency range
    */
-  field_t get_deltaf();
+  field_t get_deltaf() const;
 
   /**
    * Get the current centre frequency
    *
    * @return centre frequency
    */
-  field_t get_f0();
+  field_t get_f0() const;
 
   /**
    * Produces a modulated gauss function. 
@@ -81,13 +81,13 @@ public:
    *
    * @return the value of the excitation
    */
-  field_t signal_function(float time);
+  field_t signal_function(float time) const;
 
   /**
    * Returns the amount of time it will take for the Gaussian to rise
    * and fall.
    */ 
-  field_t length();
+  field_t length() const;
 
   /**
    * Print a string representation to an ostream.

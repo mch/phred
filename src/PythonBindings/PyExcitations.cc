@@ -116,7 +116,7 @@ public:
     : self_(self)
   {}
 
-  field_t signal_function(float time)
+  field_t signal_function(float time) const
   { return call_method<field_t>(self_, "signal_function", 
                                 time); }
 };

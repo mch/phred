@@ -38,7 +38,7 @@ public:
    *
    * @return the value of the excitation
    */
-  field_t signal_function(float time);
+  field_t signal_function(float time) const;
 
   ExpSine();
   ExpSine(float frequency);
@@ -64,7 +64,7 @@ public:
   /**
    * Returns the frequency of the excitation in Hz. 
    */
-  inline float get_frequency()
+  inline float get_frequency() const
   {
     return 1/period_;
   }
@@ -72,7 +72,7 @@ public:
   /**
    * Returns the amplitude of the signal
    */
-  inline float get_amplitude()
+  inline float get_amplitude() const
   {
     return ampl_;
   }

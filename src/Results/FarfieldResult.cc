@@ -373,7 +373,7 @@ void FarfieldResult::init(const Grid &grid)
   }
 
   // TESTING ONLY!!!
-  idx_tests();
+  //idx_tests();
 
 }
   
@@ -445,7 +445,38 @@ void FarfieldResult::deinit()
 
 ostream& FarfieldResult::to_string(ostream &os) const
 {
-  return os << "Near to Far field transformation using Luebbers' method.";
+  os << "Near to Far field transformation using Luebbers' method. "
+    "Near field data is being collected from a ";
+
+  if (box_.get())
+  {
+    os << (*box_);
+  }
+  else
+  {
+    os << "an undefined box.";
+  }
+
+  os << " The corresponding grid cells are ";
+
+  if (region_.get())
+  {
+    os << (*region_);
+  }
+  else
+  {
+    os << "undefined. ";
+  }
+
+  os << "The faces of the box being used are [";
+
+  for (int i = 0; i < 6; i++)
+    if (use_face_[i])
+      os << face_string(static_cast<Face>(i)) << " ";
+
+  os << "\b].";
+  
+  return os;
 }
 
 /**

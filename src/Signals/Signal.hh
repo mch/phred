@@ -49,7 +49,7 @@ public:
    * @param time the time at which to apply the excitation. Usually
    * just grid.deltat() * time_step.
    */
-  virtual field_t signal_function(float time) = 0;
+  virtual field_t signal_function(float time) const = 0;
 
   /**
    * Print a string representation to an ostream.

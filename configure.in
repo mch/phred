@@ -136,7 +136,7 @@ AC_LANG(C++)
 
 dnl OpenMP support?
 INTEL_OMP="-openmp"
-SGI_OMP="-MP:open_mp=ON -mp"
+SGI_OMP="-mp -MP:open_mp=ON"
 AIX_OMP="-qSMP=omp:noauto"
 OMP_FLAGS=""
 if [[ "x$target_vendor" = "xpc" ]]; then
@@ -198,13 +198,21 @@ dnl Turn on inlining, template registry, RTTI, 2 GB memory access
 fi
 
 dnl SGI IRIX  and MIPSPro C++ stuff
-if test "$build_vendor" = "sgi"; then
+if test "x$build_vendor" = "xsgi"; then
   CXXFLAGS="$CXXFLAGS -LANG:std -ptused -prelink"
-  LIBS="$LIBS -lm -n32 -lmpi++ -lmpi"
 
-  if test "$WANT_64BIT" = "1"; then
+  if test "x$HAVE_OPENMP" = "x1"; then
+    LIBS="$LIBS -lm -lmp -lmpi++ -lmpi";
+  else
+    LIBS="$LIBS -lm -lmpi++ -lmpi";
+  fi
+
+  if test "x$WANT_64BIT" = "x1"; then
     CXXFLAGS="$CXXFLAGS -64"
     CFLAGS="$CFLAGS -64"
+  else
+    CXXFLAGS="$CXXFLAGS -n32"
+    CFLAGS="$CFLAGS -n32"
   fi
 fi
 
@@ -332,7 +340,8 @@ fi
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(unistd.h sys/param.h sys/time.h time.h sys/mkdev.h sys/sysmacros.h string.h memory.h fcntl.h dirent.h sys/ndir.h ndir.h alloca.h locale.h )
+dnl AC_CHECK_HEADERS(unistd.h sys/param.h sys/time.h time.h sys/mkdev.h sys/sysmacros.h string.h memory.h fcntl.h dirent.h sys/ndir.h ndir.h alloca.h locale.h )
+AC_CHECK_HEADERS(string map vector ctime ostream iostream cmath cstring fstream cassert)
 
 AC_CHECK_HEADER([boost/shared_ptr.hpp], [], [AC_MSG_ERROR([*** Can't find boost/shared_ptr.hpp!])])
 

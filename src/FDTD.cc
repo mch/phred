@@ -343,12 +343,21 @@ void FDTD::run()
     ++h_eiter;
   }
 
+  if (e_eiter_b == e_eiter_e && h_eiter_b == h_eiter_e)
+  {
+    cout << "WARNING: NO EXCITATIONS DEFINED!\n";
+  }
+
+
   map<string, shared_ptr<Result> >::iterator riter_b = results_.begin();
   map<string, shared_ptr<Result> >::iterator riter = riter_b;
   map<string, shared_ptr<Result> >::iterator riter_e = results_.end();
   
   if (!quiet)
     cout << "\nResult generators: \n";
+
+  if (riter == riter_e)
+    cout << "WARNING: NO RESULTS DEFINED!\n";
 
   while (riter != riter_e) 
   {

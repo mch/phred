@@ -37,3 +37,6 @@ void hole();
 void mn_benchmark();
 void var_benchmark(unsigned int x_cells, unsigned int y_cells, 
                    unsigned int z_cells);
+void grooves_top();
+void grooves_bottom();
+void grooves_both();

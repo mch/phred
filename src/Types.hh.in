@@ -162,7 +162,7 @@ typedef signed int loop_idx_t;
  * number of materials to 256 (probably not a problem). 
  */ 
 typedef unsigned char mat_idx_t;
-#define MAT_IDX_MPI_TYPE MPI_BYTE
+#define MAT_IDX_MPI_TYPE MPI_UNSIGNED_CHAR
 
 /**
  * The type used for material coefficients

@@ -73,6 +73,9 @@ public:
   inline bool is_global() const
   { return is_global_; }
 
+  inline unsigned int volume() const
+  { return (xmax_ - xmin_) * (ymax_ - ymin_) * (zmax_ - zmin_); }
+
 private:
 
   Block() // Only Grid can make me!

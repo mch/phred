@@ -508,6 +508,7 @@ void Grid::alloc_grid()
 #ifdef DEBUG
     cout << "Sucessfully allocated " 
 	 << sz * sizeof(field_t) * 6 + sz * sizeof(unsigned int) 
+      + sz * sizeof(mat_idx_t)
 	 << " bytes of memory for use by the grid." << endl;
 #endif
   }
