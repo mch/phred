@@ -124,7 +124,7 @@ void GridInfo::apply_boundaries(Grid &grid, FieldType type)
   {
     Face f = bc_order_[i];
     
-    face_bc_[i].get()->apply(f, grid, type);
+    face_bc_[f].get()->apply(f, grid, type);
   }
   
 //   for (unsigned int i = 0; i < 6; i++)
