@@ -53,7 +53,7 @@ void UPmlCommon::free_sigmas()
 
 void UPmlCommon::init_coeffs(Grid &grid)
 {
-  GridInfo &gi = grid.get_grid_info();
+  const GridInfo &gi = grid.get_grid_info();
 
   // Thickesses? 
   for (int i = 0; i < 6; i++)

@@ -1055,10 +1055,10 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in,
 
   if ((*in).xmax_ >= info_.start_x_) {
     if ((*in).xmax_ >= info_.start_x_ + info_.dimx_) {
-      r.xmax_ = info_.dimy_;
+      r.xmax_ = info_.dimx_;
       r.faces_[FRONT] = false;
     } else {
-      r.xmax_ = (*in).xmax_ - info_.start_x_ + 1;
+      r.xmax_ = (*in).xmax_ - info_.start_x_;
       r.faces_[FRONT] = true;
     }
   } else {
@@ -1071,7 +1071,7 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in,
       r.ymax_ = info_.dimy_;
       r.faces_[RIGHT] = false;
     } else {
-      r.ymax_ = (*in).ymax_ - info_.start_y_ + 1;
+      r.ymax_ = (*in).ymax_ - info_.start_y_;
       r.faces_[RIGHT] = true;
     }
   } else {
@@ -1084,7 +1084,7 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in,
       r.zmax_ = info_.dimz_;
       r.faces_[RIGHT] = false;
     } else {
-      r.zmax_ = (*in).zmax_ - info_.start_z_ + 1;
+      r.zmax_ = (*in).zmax_ - info_.start_z_;
       r.faces_[RIGHT] = true;
     }
   } else {

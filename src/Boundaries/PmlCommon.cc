@@ -199,7 +199,7 @@ void PmlCommon::init_coeffs(Grid &grid)
 {
   alloc_coeffs(grid);
 
-  GridInfo &gi = grid.get_grid_info();
+  const GridInfo &gi = grid.get_grid_info();
 
   for (int i = 0; i < 6; i++)
   {

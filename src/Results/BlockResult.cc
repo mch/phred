@@ -21,6 +21,8 @@
 
 #include "BlockResult.hh"
 #include "../Globals.hh"
+#include "../Contiguous.hh"
+
 #include <math.h>
 
 BlockResult::BlockResult()
@@ -95,16 +97,57 @@ void BlockResult::deinit()
 
 void BlockResult::init(const Grid &grid)
 {
-  if (MPI_SIZE != 1)
-    throw DataWriterException("BlockResult is only available when running on a single node for now.");
+//   if (MPI_SIZE != 1)
+//     throw DataWriterException("BlockResult is only available when running on a single node for now.");
   
-  MPI_Type_contiguous(grid.get_ldx() * grid.get_ldy() * grid.get_ldz(), 
-                      GRID_MPI_TYPE, &datatype_);
-  MPI_Type_commit(&datatype_);
-  
-  var_.add_dimension("x", grid.get_ldx(), grid.get_gdx(), grid.get_lsx_ol());
-  var_.add_dimension("y", grid.get_ldy(), grid.get_gdy(), grid.get_lsy_ol());
-  var_.add_dimension("z", grid.get_ldz(), grid.get_gdz(), grid.get_lsz_ol());
+  if (MPI_SIZE == 1)
+  {
+    MPI_Type_contiguous(grid.get_ldx() * grid.get_ldy() * grid.get_ldz(), 
+                        GRID_MPI_TYPE, &datatype_);
+    MPI_Type_commit(&datatype_);
+  } 
+  else
+  {
+    unsigned int *dsize = new unsigned int[3];
+    unsigned int *coord = new unsigned int[3];
+    unsigned int *lens = new unsigned int[3];
+    unsigned int ndisps = 0;
+    int *displacements = 0;
+    const GridInfo &info = grid.get_grid_info();
+
+    dsize[0] = info.dimx_;
+    dsize[1] = info.dimy_;
+    dsize[2] = info.dimz_;
+
+    coord[0] = info.start_x_no_sd_ - info.start_x_;
+    coord[1] = info.start_y_no_sd_ - info.start_y_;
+    coord[2] = info.start_z_no_sd_ - info.start_z_;
+
+    lens[0] = info.dimx_no_sd_;
+    lens[1] = info.dimy_no_sd_;
+    lens[2] = info.dimz_no_sd_;
+
+    Contiguous::compute_displacements(3, dsize, coord, lens, &ndisps, 
+                                      &displacements);
+
+    if (ndisps > 0)
+    {
+      int *contig_lens = new int[ndisps];
+
+      for (int i = 0; i < ndisps; i++)
+        contig_lens[i] = static_cast<int>(info.dimz_no_sd_);
+
+      MPI_Type_indexed(ndisps, contig_lens, displacements, 
+                       GRID_MPI_TYPE, &datatype_);
+      MPI_Type_commit(&datatype_);
+    } else {
+      cerr << "BlockResult error: number of displacements is zero. ";
+    }
+  }
+
+  var_.add_dimension("x", grid.get_ldx(), grid.get_gdx(), grid.get_lsx());
+  var_.add_dimension("y", grid.get_ldy(), grid.get_gdy(), grid.get_lsy());
+  var_.add_dimension("z", grid.get_ldz(), grid.get_gdz(), grid.get_lsz());
   
   var_.set_name(base_name_);
   var_.set_datatype(datatype_);
@@ -118,8 +161,8 @@ void BlockResult::init(const Grid &grid)
   } 
   else
   {
-    var_.set_ptr(const_cast<field_t *>(grid.get_pointer(grid_point(0,0,0), 
-                                                        field_comp_)));
+    var_.set_ptr(const_cast<field_t *>
+                 (grid.get_pointer(grid_point(0,0,0), field_comp_)));
   }
 
   init_ = true;

@@ -85,7 +85,7 @@ void GridInfo::set_boundary(Face face, shared_ptr<BoundaryCond> bc)
     face_bc_[face] = bc;
 }
 
-unsigned int GridInfo::get_face_thickness(Face face)
+unsigned int GridInfo::get_face_thickness(Face face) const
 {
   unsigned int ret = 0;
 

@@ -184,7 +184,7 @@ public:
    *
    * @return BoundaryCondition from Types.hh
    */
-  inline const BoundaryCondition get_bc_type(Face face)
+  inline const BoundaryCondition get_bc_type(Face face) const
   {
     return face_bc_[face].get()->get_type();
   }
@@ -204,7 +204,7 @@ public:
    *
    * @return an unsigned int, the thickness of the boundary condition.
    */
-  unsigned int get_face_thickness(Face face);
+  unsigned int get_face_thickness(Face face) const;
 
   /**
    * Apply the boundary conditions to the grid. Hold the Subdomain

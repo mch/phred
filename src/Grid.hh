@@ -391,7 +391,7 @@ class Grid {
    *
    * @return a reference to the GridInfo object 
    */
-  inline GridInfo& get_grid_info() 
+  inline const GridInfo& get_grid_info() 
   {
     return info_;
   }
