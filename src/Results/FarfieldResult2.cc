@@ -878,7 +878,7 @@ void FarfieldResult2::calc_currents(const Grid &grid,
     {
       for (unsigned int j = cells.ymin; j < cells.ymax; j++)
       {
-        for (unsigned int k = cells.zmin; k < cells.zmax; k++, idx++)
+        for (unsigned int k = cells.zmin; k < cells.zmax; k++)
         {
           e_t1 = p.get_avg_e_t1(i, j, k);
           e_t2 = p.get_avg_e_t2(i, j, k);
@@ -902,6 +902,8 @@ void FarfieldResult2::calc_currents(const Grid &grid,
           // Above eqns verified, 2004-11-25 23:17 mch
 
           h_t2++; h_t1++; e_t1++; e_t2++;
+
+          idx++;
         }
       }
     }
