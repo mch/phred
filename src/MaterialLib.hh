@@ -72,6 +72,14 @@ using namespace std;
  * plasma_freq 2.4e-12
  * collision_freq 2.4e-12
  *
+ * silver 1 1 0 0
+ * plasma_freq 2e15
+ * collision_freq 5.7e13
+ *
+ *
+ *
+ * The above collision frequency and plasma frequencies must be set in
+ * rad/sec.
  */
 
 class MaterialLib {

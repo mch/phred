@@ -60,6 +60,7 @@ using namespace std;
  */ 
 void mn_benchmark()
 {
+
   FDTD fdtd;
   fdtd.set_grid_deltas(1e-2, 1e-2, 1e-2);
   fdtd.set_grid_size(1,1,1);
@@ -67,11 +68,10 @@ void mn_benchmark()
   fdtd.set_time_steps(100);
 
 #ifdef USE_OPENMP
-   // Test the OpenMP
+  int max_threads = omp_get_max_threads();
+
    time_t start, now;
    clock_t cpu_start, cpu_now;
-   int max_threads = omp_get_max_threads();
-
    for (int numthreads = 1; numthreads <= max_threads; numthreads++)
      {
        omp_set_num_threads(numthreads);
@@ -366,9 +366,14 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
   // Time steps is recalculated based on the length of the excitation.
   unsigned int time_steps = 3000;
 
-  float deltax = 5e-9;
-  float deltay = 5e-9;
-  float deltaz = 5e-9;
+//   float deltax = 5e-9;
+//   float deltay = 5e-9;
+//   float deltaz = 5e-9;
+
+  // For testing on tapir
+  float deltax = 20e-9;
+  float deltay = 20e-9;
+  float deltaz = 20e-9;
 
   float gridx = 1000e-9;
   float gridy = 1000e-9;
@@ -405,6 +410,8 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
     (ceil((4 * gm->length() + 2 * gridz / 3e8) / fdtd.get_time_delta()));
   time_steps = time_steps * 2;
 
+  fdtd.set_time_steps(time_steps);
+
   shared_ptr<GaussWindExcitation> ex 
     = shared_ptr<GaussWindExcitation>(new GaussWindExcitation(gm));
 //  shared_ptr<Excitation> ex 
@@ -423,12 +430,19 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
   fdtd.add_excitation("fluffy", ex);
 
   // DATA WRITERS
-  shared_ptr<NetCDFDataWriter> ncdw 
-    = shared_ptr<NetCDFDataWriter>(new NetCDFDataWriter());
+  bool have_netcdf = false;
+  try {
+    shared_ptr<NetCDFDataWriter> ncdw 
+      = shared_ptr<NetCDFDataWriter>(new NetCDFDataWriter());
 
-  (*ncdw).set_filename(prefix + "planes.nc");
-  fdtd.add_datawriter("ncdw", ncdw);
-  
+    (*ncdw).set_filename(prefix + "planes.nc");
+    fdtd.add_datawriter("ncdw", ncdw);
+    have_netcdf = true;
+  } 
+  catch (NoNetCDFException &e)
+  {
+    cout << "NetCDF data writer is missing. Disabiling Plane and Grid output.\n";
+  }
   shared_ptr<MatlabDataWriter> mdw 
     = shared_ptr<MatlabDataWriter>(new MatlabDataWriter());
 
@@ -436,21 +450,24 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
   fdtd.add_datawriter("mdw", mdw);
 
   // GRID RESULT: Should be disabled for the full problem
-  shared_ptr<GridResult> gridr
-    = shared_ptr<GridResult>(new GridResult);
+  if (have_netcdf)
+  {
+    shared_ptr<GridResult> gridr
+      = shared_ptr<GridResult>(new GridResult);
 
-  fdtd.add_result("grid", gridr);
-  fdtd.map_result_to_datawriter("grid", "ncdw");
+    fdtd.add_result("grid", gridr);
+    fdtd.map_result_to_datawriter("grid", "ncdw");
 
-  shared_ptr<PlaneResult> plnr1
-    = shared_ptr<PlaneResult>(new PlaneResult);
-  plnr1->set_time_param(0, time_steps, 10);
-  plnr1->set_plane(grid_point(fdtd.get_num_x_cells() / 2, \
-                            fdtd.get_num_y_cells() / 2, \
-                            fdtd.get_num_z_cells() / 2), LEFT);
-  plnr1->set_field(FC_EX);
-  fdtd.add_result("xz_ex", plnr1);
-  fdtd.map_result_to_datawriter("xz_ex", "ncdw");
+    shared_ptr<PlaneResult> plnr1
+      = shared_ptr<PlaneResult>(new PlaneResult);
+    plnr1->set_time_param(0, time_steps, 10);
+    plnr1->set_plane(grid_point(fdtd.get_num_x_cells() / 2, \
+                                fdtd.get_num_y_cells() / 2, \
+                                fdtd.get_num_z_cells() / 2), LEFT);
+    plnr1->set_field(FC_EX);
+    fdtd.add_result("xz_ex", plnr1);
+    fdtd.map_result_to_datawriter("xz_ex", "ncdw");
+  }
 
   // INFORMATION ABOUT EXCIATION
   shared_ptr<SignalTimeResult> st
@@ -544,12 +561,14 @@ void square_hole(int ysize)
 
   string prefix = "sqhole_";
 
-  // Time steps is recalculated based on the length of the excitation.
-  unsigned int time_steps = 3000;
+//   float deltax = 5e-9;
+//   float deltay = 5e-9;
+//   float deltaz = 5e-9;
 
-  float deltax = 5e-9;
-  float deltay = 5e-9;
-  float deltaz = 5e-9;
+  // For testing on tapir
+  float deltax = 20e-9;
+  float deltay = 20e-9;
+  float deltaz = 20e-9;
 
   float gridx = 1000e-9;
   float gridy = 1000e-9;
@@ -594,23 +613,24 @@ void square_hole(int ysize)
   
   fdtd.add_object("PEC", plate);
 
-  fdtd.set_time_steps(time_steps);
   fdtd.run();
 }
 
 void square_hole_Ag(int ysize)
 {
-  cout << "Simulating a square hole in a plate of gooooold..." 
+  cout << "Simulating a square hole in a plate of silver..." 
        << endl;
 
   string prefix = "sqhole_";
 
-  // Time steps is recalculated based on the length of the excitation.
-  unsigned int time_steps = 3000;
+//   float deltax = 5e-9;
+//   float deltay = 5e-9;
+//   float deltaz = 5e-9;
 
-  float deltax = 5e-9;
-  float deltay = 5e-9;
-  float deltaz = 5e-9;
+  // For testing on tapir
+  float deltax = 20e-9;
+  float deltay = 20e-9;
+  float deltaz = 20e-9;
 
   float gridx = 1000e-9;
   float gridy = 1000e-9;
@@ -636,8 +656,8 @@ void square_hole_Ag(int ysize)
     = shared_ptr<MaterialLib>(new MaterialLib());
 
   Material mat;
-  mat.set_collision_freq(213);
-  mat.set_plasma_freq(12.32);
+  mat.set_collision_freq(5.7e13 * 2 * M_PI);
+  mat.set_plasma_freq(2e15 * 2 * M_PI);
   (*mlib).add_material("AgPlasma", mat);
 
   fdtd.load_materials(mlib);
@@ -656,7 +676,6 @@ void square_hole_Ag(int ysize)
   
   fdtd.add_object("AgPlasma", plate);
 
-  fdtd.set_time_steps(time_steps);
   fdtd.run();
 }
 

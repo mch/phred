@@ -147,7 +147,7 @@ void FreqGrid::load_materials(shared_ptr<MaterialLib> matlib)
 {
   Grid::load_materials(matlib);
 
-  int num_mat = (*matlib).num_materials() + 1;  
+  int num_mat = (*matlib).num_materials();  
   vcdt_ = new mat_coef_t[num_mat];
   omegapsq_ = new mat_coef_t[num_mat];
 
@@ -164,9 +164,9 @@ void FreqGrid::load_materials(shared_ptr<MaterialLib> matlib)
   map<string, Material>::const_iterator iter = (*matlib).get_material_iter_begin();
   map<string, Material>::const_iterator iter_e = (*matlib).get_material_iter_end();
 
-  vcdt_[0] = 0;
-  omegapsq_[0] = 0;
-  ++index;
+//   vcdt_[0] = 0;
+//   omegapsq_[0] = 0;
+//   ++index;
 
   while(iter != iter_e)
   {

@@ -31,10 +31,12 @@ void export_grids()
   class_<Grid, boost::noncopyable>("Grid", no_init)
     .def("get_define_mode", &Grid::get_define_mode)
     .def("set_define_mode", &Grid::set_define_mode)
+
     .def("get_deltax", &Grid::get_deltax)
     .def("get_deltay", &Grid::get_deltay)
     .def("get_deltaz", &Grid::get_deltaz)
     .def("get_deltat", &Grid::get_deltat)
+
     .def("set_ex", &Grid::set_ex)
     .def("set_ey", &Grid::set_ey)
     .def("set_ez", &Grid::set_ez)
@@ -51,6 +53,10 @@ void export_grids()
     
     .def("set_material", &Grid::set_material)
     .def("get_material", &Grid::get_material)
+
+    .def("setup_gird", &Grid::setup_grid)
+    .def("load_materials", &Grid::load_materials)
+    .def("load_geometry", &Grid::load_geometry)
     ;
   class_<FreqGrid, bases<Grid>, boost::noncopyable >("FreqGrid", no_init);
 }

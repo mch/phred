@@ -126,6 +126,8 @@ void export_fdtd()
     .def("get_x_cells", &FDTD::get_num_x_cells)
     .def("get_y_cells", &FDTD::get_num_y_cells)
     .def("get_z_cells", &FDTD::get_num_z_cells)
+
+    .def("get_grid", &FDTD::get_grid)
     ;
   
 }

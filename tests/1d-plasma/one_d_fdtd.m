@@ -4,9 +4,19 @@
 len = 149;
 
 c = 3e8;
-dz = 18.75e-9;
+
+centre_f = 500e12;
+df = 200e12;
+
+wl = c ./ centre_f;
+
+dz = wl ./ 20;
+dt = 0.8 .* 1 ./ (c * sqrt(1/(dz*dz)));
+
+disp(sprintf('dz = %g, dt = %g', dz, dt));
+%dz = 18.75e-9;
 %dt = dz / (2 * c);
-dt = 3.57482745e-17;
+%dt = 3.57482745e-17;
 
 ex = zeros(len,1);
 hy = zeros(len,1);
@@ -24,8 +34,13 @@ sigma = [0 0];
 sigmastar = [0 0];
 %plasma_f = [0 1.85e+15];
 %collision_f = [0 1.4e+14];
-plasma_f = [0 5.8e15];
-collision_f = [0 107.5e12];
+%plasma_f = [0 5.8e15];
+%collision_f = [0 107.5e12];
+plasma_f = [0 12.57e15];
+collision_f = [0 385.1e12];
+
+%mat.set_collision_freq(5.7e13 * 2 * M_PI);
+%mat.set_plasma_freq(2e15 * 2 * M_PI);
 
 Ca = (1 - (sigma * dt * 0.5) ./ eps) ./ ...
      (1 + (sigma * dt * 0.5) ./ eps);
@@ -37,12 +52,13 @@ Cbz = (dt ./ (eps .* dz)) ./ (1 + (sigma .* dt .* 0.5) ./ eps);
 Dbz = (dt ./ (mu .* dz)) ./ (1 + (sigmastar .* dt .* 0.5) ./ mu);
 
 A = exp(-1 .* collision_f .* dt);
-B = (plasma_f .* 2 .* pi) .^ 2 .* (dt ./ collision_f);
+B = [0 (plasma_f(2) .* 2 .* pi) .^ 2 .* (dt ./ collision_f(2))];
 
 ex40 = [];
 ex60 = [];
 
-DFTfreqs = [300e12:10e12:800e12];
+%DFTfreqs = [300e12:10e12:800e12];
+DFTfreqs = [centre_f - df:centre_f:centre_f + df];
 ex40DFT_r = zeros(length(DFTfreqs), 1);
 ex40DFT_i = zeros(length(DFTfreqs), 1);
 ex60DFT_r = zeros(length(DFTfreqs), 1);
@@ -51,6 +67,7 @@ ex60DFT_i = zeros(length(DFTfreqs), 1);
 ex2 = [0 0 0];
 ex98 = [0 0 0];
 
+figure
 for idx = [1:1000]
   hy = update_hy(len, material, hy, Da, Dbz, ex);
   
@@ -59,7 +76,7 @@ for idx = [1:1000]
   
   %temp = gaussm(idx, 500e12, 4000e12, dt);
   %temp = gaussm(idx, 200e12, 100e12, dt);
-  temp = gaussm(idx, 200e12, 500e12, dt);
+  temp = gaussm(idx, df, centre_f, dt);
   %temp = 100 * gauss(idx, 200e12, dt);
   ex(20) = ex(20) + temp;
 
@@ -77,8 +94,8 @@ for idx = [1:1000]
   ex(1) = ex2(3);
   ex(149) = ex98(3);
   
-  plot(ex(75:len)); %, [1:len], hy);
-  %pause(0.1);
+  plot(ex); %, [1:len], hy);
+  pause(0.1);
   %legend('Ex', 'Hy');
   %pause(0.25);
   

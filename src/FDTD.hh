@@ -180,6 +180,12 @@ public:
    */
   void run();
 
+  /**
+   * This is to allow for testing, so that indiviual components can be
+   * tested from Python seperatly.
+   */ 
+  inline shared_ptr<Grid> get_grid()
+  { return grid_; }
 
 protected:
   /**

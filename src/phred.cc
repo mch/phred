@@ -124,6 +124,7 @@ void no_memory()
 
 static void usage (int status);
 
+//#undef HAVE_LIBPOPT
 #ifdef HAVE_LIBPOPT
 
 /* popt plays way nicer with MPI than getopt. Trust me. */
@@ -272,10 +273,12 @@ Options:\n\
                              V   Variable number of nodes benchmark; \n\
                                  follow by the number of cells\n\
                                  in the X, Y, and Z axis.\n\
-                             S   Square hole, followed by the size of \n\
+                             S   Square hole in PEC, followed by the size of\n\
                                  the hole in the y dimension as\n\
                                  an integer number of nanometers.\n\
-                             through a single hole in a PEC plate.\n\
+                             P   Square hole in Ag, followed by the size of\n\
+                                 the hole in the y dimension as\n\
+                                 an integer number of nanometers.\n\
   -V, --version              output version information and exit\n\
 ");
 #else
@@ -286,8 +289,10 @@ Options:\n\
   M   Million node benchmark\n\
   V   Variable number of nodes benchmark; follow by the number of cells\n\
       in the X, Y, and Z axis.\n\
-  S   Square hole, followed by the size of the hole in the y dimension as\n\
-      an integer number of nanometers.\n\
+  S   Square hole in PEC, followed by the size of the hole in the y\n\
+      dimension as an integer number of nanometers.\n\
+  P   Square hole in Ag, followed by the size of the hole in the y\n\
+      dimension as an integer number of nanometers.\n\
 ");
 #endif
 
@@ -451,6 +456,23 @@ int main (int argc, char **argv)
               "be an integer number of nanometers.\nRunning the "
               "sim with y = 105 nm." << endl;
             square_hole(105);
+          }
+        }
+        else if (cmd.compare("P") == 0 && argi+2 < argc)
+        {
+          int ysize = 105;
+          try
+          {
+            ysize = lexical_cast<int>(argv[argc - 1]);
+
+            square_hole_Ag(ysize);
+          }
+          catch(bad_lexical_cast &)
+          {
+            cout << "The size of the hole in the y dimension must "
+              "be an integer number of nanometers.\nRunning the "
+              "sim with y = 105 nm." << endl;
+            square_hole_Ag(105);
           }
         } 
         else 
