@@ -653,37 +653,25 @@ void Grid::update_ex()
   int i, j, k;
   field_t *ex, *hz1, *hz2, *hy;
 
-#ifdef USE_OPENMP
-  int chunk_size, offset;
-
-  chunk_size = (update_ex_r_.zmax - update_ex_r_.zmin) 
-    / omp_get_max_threads();
-#endif
-
   // Inner part
-  for (i = update_ex_r_.xmin; i < update_ex_r_.xmax; i++) {
-    for (j = update_ex_r_.ymin; j < update_ex_r_.ymax; j++) {
-      
 #ifdef USE_OPENMP
-#pragma parallel  private(mid, k, idx, idx2, ex, hz1, hz2, hy)
+#pragma parallel  private(mid, i, j, k, idx, idx2, ex, hz1, hz2, hy)
 #endif
-      {
+  {
 #ifdef USE_OPENMP
-        offset = omp_get_thread_num() * chunk_size;
-        idx = pi(i, j, update_ex_r_.zmin + offset);
-        idx2 = pi(i, j-1, update_ex_r_.zmin + offset);
-#else
+#pragma omp for
+#endif
+    for (i = update_ex_r_.xmin; i < update_ex_r_.xmax; i++) {
+      for (j = update_ex_r_.ymin; j < update_ex_r_.ymax; j++) {
+        
         idx = pi(i, j, update_ex_r_.zmin);
         idx2 = pi(i, j-1, update_ex_r_.zmin);
-#endif
+
         ex = &(ex_[idx]);
         hz1 = &(hz_[idx]);
         hz2 = &(hz_[idx2]);
         hy = &(hy_[idx]);
         
-#ifdef USE_OPENMP
-#pragma omp for
-#endif
         for (k = update_ex_r_.zmin; k < update_ex_r_.zmax; k++) {
           mid = material_[idx];
           
@@ -710,36 +698,24 @@ void Grid::update_ey()
   int i, j, k;
   field_t *ey, *hx, *hz1, *hz2;
 
-#ifdef USE_OPENMP
-  int chunk_size, offset;
-
-  chunk_size = (update_ey_r_.zmax - update_ey_r_.zmin) 
-    / omp_get_max_threads();
-#endif
-
   // Inner part
-  for (i = update_ey_r_.xmin; i < update_ey_r_.xmax; i++) {
-    for (j = update_ey_r_.ymin; j < update_ey_r_.ymax; j++) {
+#ifdef USE_OPENMP
+#pragma parallel private(mid, i, j, k, idx, ey, hx, hz1, hz2)
+#endif
+  {
+#ifdef USE_OPENMP
+#pragma omp for
+#endif
+    for (i = update_ey_r_.xmin; i < update_ey_r_.xmax; i++) {
+      for (j = update_ey_r_.ymin; j < update_ey_r_.ymax; j++) {
+        
+        idx = pi(i, j, update_ey_r_.zmin);
+        hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
 
-#ifdef USE_OPENMP
-#pragma parallel private(mid, k, idx, ey, hx, hz1, hz2)
-#endif
-      {
-#ifdef USE_OPENMP
-        offset = omp_get_thread_num() * chunk_size;
-        idx = pi(i, j, update_ey_r_.zmin);
-        hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
-#else
-        idx = pi(i, j, update_ey_r_.zmin);
-        hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
-#endif
         hz2 = &(hz_[idx]);
         ey = &(ey_[idx]);
         hx = &(hx_[idx]);
 
-#ifdef USE_OPENMP
-#pragma omp for
-#endif
         for (k = update_ey_r_.zmin; k < update_ey_r_.zmax; k++) {
           mid = material_[idx];
           
@@ -765,38 +741,25 @@ void Grid::update_ez()
   int i, j, k;
   field_t *ez, *hy1, *hy2, *hx1, *hx2;
   
-#ifdef USE_OPENMP
-  int chunk_size, offset;
-
-  chunk_size = (update_ez_r_.zmax - update_ez_r_.zmin) 
-    / omp_get_max_threads();
-#endif
-
   // Inner part
-  for (i = update_ez_r_.xmin; i < update_ez_r_.xmax; i++) {
-    for (j = update_ez_r_.ymin; j < update_ez_r_.ymax; j++) {
-
 #ifdef USE_OPENMP
-#pragma parallel private(mid, k, idx, ez, hy1, hy2, hx1, hx2)
+#pragma parallel private(mid, i, j, k, idx, ez, hy1, hy2, hx1, hx2)
 #endif
-      {
+  {
 #ifdef USE_OPENMP
-        offset = omp_get_thread_num() * chunk_size;
-        idx = pi(i, j, update_ez_r_.zmin + offset);
-        hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin + offset)]);
-        hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin + offset)]);
-#else
+#pragma omp for
+#endif
+    for (i = update_ez_r_.xmin; i < update_ez_r_.xmax; i++) {
+      for (j = update_ez_r_.ymin; j < update_ez_r_.ymax; j++) {
+
         idx = pi(i, j, update_ez_r_.zmin);
         hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin)]);
         hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin)]);
-#endif
+
         hx2 = &(hx_[idx]);
         ez = &(ez_[idx]);
         hy1 = &(hy_[idx]);
 
-#ifdef USE_OPENMP
-#pragma omp for
-#endif
         for (k = update_ez_r_.zmin; k < update_ez_r_.zmax; k++) {
           mid = material_[idx];
           
@@ -821,34 +784,22 @@ void Grid::update_hx()
   field_t *hx, *ez1, *ez2, *ey;
 
 #ifdef USE_OPENMP
-  int chunk_size, offset;
-
-  chunk_size = (update_hx_r_.zmax - update_hx_r_.zmin) 
-    / omp_get_max_threads();
+#pragma parallel  private(mid, i, j, k, idx, hx, ez1, ez2, ey)
 #endif
-
-  for (i = update_hx_r_.xmin; i < update_hx_r_.xmax; i++) {
-    for (j = update_hx_r_.ymin; j < update_hx_r_.ymax; j++) {
-
+  {
 #ifdef USE_OPENMP
-#pragma parallel  private(mid, k, idx, hx, ez1, ez2, ey)
+#pragma omp for
 #endif
-      {
-#ifdef USE_OPENMP
-        offset = omp_get_thread_num() * chunk_size;
-        idx = pi(i, j, update_hx_r_.zmin + offset);
-        ez2 = &(ez_[pi(i, j+1, update_hx_r_.zmin + offset)]);
-#else
+    for (i = update_hx_r_.xmin; i < update_hx_r_.xmax; i++) {
+      for (j = update_hx_r_.ymin; j < update_hx_r_.ymax; j++) {
+        
         idx = pi(i, j, update_hx_r_.zmin);
         ez2 = &(ez_[pi(i, j+1, update_hx_r_.zmin)]);
-#endif
+
         ey = &(ey_[idx]);
         hx = &(hx_[idx]);
         ez1 = &(ez_[idx]);
 
-#ifdef USE_OPENMP
-#pragma omp for
-#endif
         for (k = update_hx_r_.zmin; k < update_hx_r_.zmax; k++) {
           mid = material_[idx];
           
@@ -872,35 +823,24 @@ void Grid::update_hy()
   int i, j, k;
   field_t *hy, *ex, *ez1, *ez2;
 
-#ifdef USE_OPENMP
-  int chunk_size, offset;
 
-  chunk_size = (update_hy_r_.zmax - update_hy_r_.zmin) 
-    / omp_get_max_threads();
+#ifdef USE_OPENMP
+#pragma parallel private(mid, i, j, k, idx, hy, ex, ez1, ez2)
 #endif
-
-  for (i = update_hy_r_.xmin; i < update_hy_r_.xmax; i++) {
-    for (j = update_hy_r_.ymin; j < update_hy_r_.ymax; j++) {
-
+  {
 #ifdef USE_OPENMP
-#pragma parallel private(mid, k, idx, hy, ex, ez1, ez2)
+#pragma omp for
 #endif
-      {
-#ifdef USE_OPENMP
-        offset = omp_get_thread_num() * chunk_size;
-        idx = pi(i, j, update_hy_r_.zmin + offset);
-        ez1 = &(ez_[pi(i+1, j, update_hy_r_.zmin + offset)]);
-#else
+    for (i = update_hy_r_.xmin; i < update_hy_r_.xmax; i++) {
+      for (j = update_hy_r_.ymin; j < update_hy_r_.ymax; j++) {
+
         idx = pi(i, j, update_hy_r_.zmin);
         ez1 = &(ez_[pi(i+1, j, update_hy_r_.zmin)]);
-#endif
+
         hy = &(hy_[idx]);
         ex = &(ex_[idx]);
         ez2 = &(ez_[idx]);
 
-#ifdef USE_OPENMP
-#pragma omp for
-#endif
         for (k = update_hy_r_.zmin; k < update_hy_r_.zmax; k++) {
           mid = material_[idx];
           
@@ -924,36 +864,23 @@ void Grid::update_hz()
   field_t *hz1, *ey1, *ey2, *ex1, *ex2;
 
 #ifdef USE_OPENMP
-  int chunk_size, offset;
-
-  chunk_size = (update_hz_r_.zmax - update_hz_r_.zmin) 
-    / omp_get_max_threads();
+#pragma parallel private(mid, i, j, k, idx, hz1, ey1, ey2, ex1, ex2)
 #endif
-
-  for (i = update_hz_r_.xmin; i < update_hz_r_.xmax; i++) {
-    for (j = update_hz_r_.ymin; j < update_hz_r_.ymax; j++) {
-
+  {
 #ifdef USE_OPENMP
-#pragma parallel private(mid, k, idx, hz1, ey1, ey2, ex1, ex2)
+#pragma omp for
 #endif
-      {
-#ifdef USE_OPENMP
-        offset = omp_get_thread_num() * chunk_size;
-        idx = pi(i, j, update_hz_r_.zmin + offset);
-        ey2 = &(ey_[pi(i+1, j, update_hz_r_.zmin + offset)]);
-        ex1 = &(ex_[pi(i, j+1, update_hz_r_.zmin + offset)]);
-#else
+    for (i = update_hz_r_.xmin; i < update_hz_r_.xmax; i++) {
+      for (j = update_hz_r_.ymin; j < update_hz_r_.ymax; j++) {
+        
         idx = pi(i, j, update_hz_r_.zmin);
         ey2 = &(ey_[pi(i+1, j, update_hz_r_.zmin)]);
         ex1 = &(ex_[pi(i, j+1, update_hz_r_.zmin)]);
-#endif
+
         ex2 = &(ex_[idx]);
         hz1 = &(hz_[idx]);
         ey1 = &(ey_[idx]);
 
-#ifdef USE_OPENMP
-#pragma omp for
-#endif
         for (k = update_hz_r_.zmin; k < update_hz_r_.zmax; k++) {
           mid = material_[idx];
           
