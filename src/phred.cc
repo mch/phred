@@ -497,7 +497,7 @@ static void pml_test(int rank, int size)
 
   // Results
   point_t p;
-  p.x = 20;
+  p.x = 35;
   p.y = 9;
   p.z = 9;
   PointResult res1(p);
@@ -518,7 +518,7 @@ static void pml_test(int rank, int size)
   fdtd.map_result_to_datawriter("res1", "adw1");
   fdtd.map_result_to_datawriter("pdft", "adw2");
 
-  point_t p3(21, 9, 9);
+  point_t p3(35, 10, 9);
   PointResult pres60(p3);
   PointDFTResult pdft60(5e12, 600e12, 120);  
 
