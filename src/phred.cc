@@ -188,7 +188,7 @@ main (int argc, char **argv)
   
   info_g.global_dimx_ = info_g.dimx_ = 100;
   info_g.global_dimy_ = info_g.dimy_ = 100;
-  info_g.global_dimz_ = info_g.dimz_ = 100;
+  info_g.global_dimz_ = info_g.dimz_ = 97;
   info_g.deltax_ = info_g.deltay_ = info_g.deltaz_ = 18.75e-9;
   info_g.deltat_ = 36e-18;
   info_g.start_x_ = info_g.start_y_ = info_g.start_z_ = 0;

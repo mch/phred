@@ -80,20 +80,29 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
   z = ((rank - x)/n - y) / m;
 
   // Assign sizes and starting points including overlap
-  result.dimx_ = floor(result.global_dimx_ / n);
-  result.dimy_ = floor(result.global_dimy_ / m);
-  result.dimz_ = floor(result.global_dimz_ / p);
+  result.dimx_ = static_cast<unsigned int>
+    (floor(static_cast<double>(result.global_dimx_) / n));
+  result.dimy_ = static_cast<unsigned int>
+    (floor(static_cast<double>(result.global_dimy_) / m));
+  result.dimz_ = static_cast<unsigned int>
+    (floor(static_cast<double>(result.global_dimz_) / p));
 
   if (x == n-1) { // in case the number of cells isn't evenly divisible
-    result.dimx_ = result.global_dimx_ - n * floor(result.global_dimx_ / n);
+    result.dimx_ = result.global_dimx_ - n 
+      * static_cast<unsigned int>
+      (floor(static_cast<double>(result.global_dimx_) / n));
   } 
   
   if (y == m-1) {
-    result.dimy_ = result.global_dimy_ - m * floor(result.global_dimy_ / m);
+    result.dimy_ = result.global_dimy_ - m 
+      * static_cast<unsigned int>
+      (floor(static_cast<double>(result.global_dimy_) / m));
   } 
 
   if (z == p-1) {
-    result.dimz_ = result.global_dimz_ - p * floor(result.global_dimz_ / p);
+    result.dimz_ = result.global_dimz_ - p 
+      * static_cast<unsigned int>
+      (floor(static_cast<double>(result.global_dimz_) / p));
   } 
 
   result.start_x_ = x * result.dimx_;
