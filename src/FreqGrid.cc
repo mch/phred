@@ -25,10 +25,10 @@
 #include <string.h> // for memset()
 #include <math.h>
 
-static print_error(char *fc_name, field_t fc, field_t d, 
-                   field_t s, field_t s1, 
-                   field_t s2, unsigned int i, unsigned int j,
-                   unsigned int k)
+static void print_error(char *fc_name, field_t fc, field_t d, 
+                        field_t s, field_t s1, 
+                        field_t s2, unsigned int i, unsigned int j,
+                        unsigned int k)
 {
 //   cout << "WARNING: new " << fc_name << " larger than old "
 //        << fc_name << "at " << i << ", " << j << ", " << k << "!" << endl;

@@ -31,6 +31,14 @@ class WindowedExcitation : public Excitation
 {
 private:
 protected:
+public:
+  WindowedExcitation(SourceFunction *sf) 
+    : Excitation(sf)
+  {}
+
+  virtual ~WindowedExcitation()
+  {}
+
   /**
    * Subclasses must override this to provide the window
    * function. This is a bit on the wasty side, because it
@@ -40,14 +48,6 @@ protected:
    */
   virtual field_t window(region_t r, unsigned int x, unsigned int y, 
                          unsigned int z) = 0;
-
-public:
-  WindowedExcitation(SourceFunction *sf) 
-    : Excitation(sf)
-  {}
-
-  virtual ~WindowedExcitation()
-  {}
 
   /**
    * This applied the windowed excitation to the grid.

@@ -61,8 +61,6 @@ using namespace std;
 class Result : public LifeCycle
 {
 private:
-  Result(const Result &rhs);
-  const Result &operator=(const Result &rhs);
 
 protected:
   string var_name_; /**< Variable name */

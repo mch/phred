@@ -44,11 +44,10 @@ class PyInterpreter
 {
 private:
 protected:
-  struct _inittab modules_[] = 
-    {
-      {"phred", &initphred},
-      {0, 0}
-    };
+  int rank_;
+  int size_;
+
+  char *PyInterpreter::rl();
   
 public:
   PyInterpreter();
@@ -59,7 +58,7 @@ public:
    * an exception if it is not. Other ranks run a slave process and
    * MPI is used to keep the slaves in sync with the master.
    */
-  void run();
+  void run(int rank, int size);
 
   /**
    * Runs on ranks greater than 0. Recieves commands via MPI from the

@@ -1,3 +1,4 @@
+%{
 /* 
    phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
@@ -21,7 +22,6 @@
 
 /* A grammer for loading Jan's FDTD input files */
 
-%{
 #include <iostream>
 using namespace std;
 

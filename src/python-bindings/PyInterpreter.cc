@@ -22,6 +22,20 @@
 #include "PyInterpreter.hh"
 #include "../Exceptions.hh"
 
+#include "PyResults.hh"
+#include "PyExcitations.hh"
+//#include "PyFDTD.hh"
+//#include "PyGrid.hh"
+
+static struct _inittab modules_[] = 
+  {
+    {"results", &initresults},
+    {"excitations", &initexcitations},
+    //{"FDTD", &initFDTD},
+    //{"Grid", &initGrid},
+    {0, 0}
+  };
+  
 #include <stdio.h>
 
 #ifdef HAVE_READLINE
@@ -67,8 +81,11 @@ void PyInterpreter::run_script(const char *filename)
 
 void PyInterpreter::run(int rank, int size)
 {
+  rank_ = rank;
+  size_ = size;
+
   if (rank == 0)
-    maser();
+    master();
   else
     slave();
 }
@@ -104,7 +121,7 @@ void PyInterpreter::slave()
     buffer[size] = 0;
 
     try {
-      handle<> res( PyRun_String(buffer.c_str(), Py_file_input, 
+      handle<> res( PyRun_String(buffer, Py_file_input, 
                                  main_namespace.get(),
                                  main_namespace.get()));
     }
@@ -131,7 +148,7 @@ void PyInterpreter::master()
   handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
   handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
   
-  if (size > 1) {
+  if (size_ > 1) {
 #ifdef HAVE_READLINE
     cout << "Phred interactive Python interpreter running. Type ctrl-d to quit." << endl;
     char *ln = 0; 
@@ -176,6 +193,7 @@ void PyInterpreter::master()
     cout << endl;
 #else
     throw PyInterpException("Only one process can be used in interactive mode.");
+#endif
   }  
   else
   {
@@ -189,7 +207,7 @@ void PyInterpreter::add_modules()
 
 }
 
-char *PyInterpreter::readline()
+char *PyInterpreter::rl()
 {
 #ifdef HAVE_READLINE
   char *line_read = readline (">> ");

@@ -177,7 +177,8 @@ main (int argc, char **argv)
   try {
 #ifdef USE_PY_BINDINGS
     if (interactive) {
-      PyInterpreter interp().run(rank, size);
+      PyInterpreter interp;
+      interp.run(rank, size);
     } 
 #endif
     if (!interactive) {
@@ -277,7 +278,7 @@ Options:\n\
   printf("  -i, --interactive          start an interactive Python interpreter on\n\
                              rank zero if that process is attached to a \n\
                              terminal. Commands will be mirrored to\n\
-                             interpreters running on the other ranks.");
+                             interpreters running on the other ranks.\n");
 #endif
   printf("  -h, --help                 display this help and exit\n\
   -V, --version              output version information and exit\n\

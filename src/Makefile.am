@@ -9,9 +9,9 @@ if PY_BINDINGS
 phred_cond += python-bindings/PyExcitations.hh \
 	python-bindings/PyResults.hh \
 	python-bindings/PyGrid.hh \
+	python-bindings/PyFDTD.hh \
 	python-bindings/PyInterpreter.hh \
 	python-bindings/PyInterpreter.cc
-#	python-bindings/PyGrid.cc \
 #	python-bindings/PyMaterial.cc
 
 phred_LDADD += ../thirdparty/boost.python/src/libboost_python.la
