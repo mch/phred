@@ -41,20 +41,22 @@ phred_SOURCES=phred.cc \
 	PlaneResult.hh \
 	PlaneResult.cc \
 	DataWriter.hh \
+	DataWriter.cc \
 	AsciiDataWriter.hh \
 	AsciiDataWriter.cc \
 	NetCDFDataWriter.hh \
 	NetCDFDataWriter.cc \
-	jan-grammer.yy \
-	jan-grammer-flex.ff \
-	lex.yy.cc
+	SourceTimeResult.hh \
+	SourceTimeResult.cc \
+	SourceDFTResult.hh \
+	SourceDFTResult.cc
+#	jan-grammer.yy \
+#	jan-grammer-flex.ff \
+#	lex.yy.cc
 
 #	SpaceExcitation.cc 
 
-phred_LDADD=-lfl
-
-BUILT_SOURCES = jan-grammer.h
+#BUILT_SOURCES = jan-grammer.h
 
 AM_YFLAGS = -d
 
-EXTRA_DIST=phred.spec.in

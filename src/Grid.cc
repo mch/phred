@@ -36,6 +36,8 @@ const Grid &Grid::operator=(const Grid &rhs)
   y_vector_ = rhs.y_vector_;
   z_vector_ = rhs.z_vector_;
   define_ = rhs.define_;
+
+  return *this;
 }
 
 Grid::~Grid()
@@ -546,13 +548,13 @@ void Grid::update_hy()
 void Grid::update_hz()
 {
   unsigned int mid, i, j, k, idx;
-  field_t *hz, *ey1, *ey2, *ex1, *ex2;
+  field_t *hz1, *ey1, *ey2, *ex1, *ex2;
 
   for (i = 0; i < get_ldx() - 1; i++) {
     for (j = 0; j < get_ldy() - 1; j++) {
 
       idx = pi(i, j, 0);
-      hz = &(hz_[idx]);
+      hz1 = &(hz_[idx]);
       ey1 = &(ey_[idx]);
       ey2 = &(ey_[pi(i+1, j, 0)]);
       ex1 = &(ex_[pi(i, j+1, 0)]);
@@ -561,11 +563,11 @@ void Grid::update_hz()
       for (k = 0; k < get_ldz(); k++) {
         mid = material_[idx];
 
-        *hz = Da_[mid] * *hz
+        *hz1 = Da_[mid] * *hz1
           + Dbx_[mid] * (*ey1 - *ey2)
           + Dby_[mid] * (*ex1 - *ex2);
 
-        hz++; idx++;
+        hz1++; idx++;
         ey1++; ey2++;
         ex1++; ex2++;
       }
@@ -659,22 +661,22 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp,
 
   switch(comp)
   {
-  case EX:
+  case FC_EX:
     ptr = &(ex_[idx]);
     break;
-  case EY:
+  case FC_EY:
     ptr = &(ey_[idx]);
     break;
-  case EZ:
+  case FC_EZ:
     ptr = &(ez_[idx]);
     break;
-  case HX:
+  case FC_HX:
     ptr = &(hx_[idx]);
     break;
-  case HY:
+  case FC_HY:
     ptr = &(hy_[idx]);
     break;
-  case HZ:
+  case FC_HZ:
     ptr = &(hz_[idx]);
     break;
   }
@@ -708,22 +710,22 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp,
 
   switch(comp)
   {
-  case EX:
+  case FC_EX:
     ptr = &(ex_[idx]);
     break;
-  case EY:
+  case FC_EY:
     ptr = &(ey_[idx]);
     break;
-  case EZ:
+  case FC_EZ:
     ptr = &(ez_[idx]);
     break;
-  case HX:
+  case FC_HX:
     ptr = &(hx_[idx]);
     break;
-  case HY:
+  case FC_HY:
     ptr = &(hy_[idx]);
     break;
-  case HZ:
+  case FC_HZ:
     ptr = &(hz_[idx]);
     break;
   }

@@ -49,12 +49,12 @@ enum Face {
  * Field components. Electric and magnetic
  */
 enum FieldComponent {
-  EX,
-  EY,
-  EZ,
-  HX, 
-  HY, 
-  HZ
+  FC_EX,
+  FC_EY,
+  FC_EZ,
+  FC_HX, 
+  FC_HY, 
+  FC_HZ
 };
 
 /**

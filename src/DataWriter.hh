@@ -31,15 +31,34 @@ private:
 
 protected:
   int rank_;  /**< MPI Rank of this process */
-  int size_; /**< Number of processes in MPI comm. */
+  int size_; /**< Number of processes in MPI comm. */  
+
+  /** 
+   * A helper function to gather data from all ranks onto rank 0 so
+   * that it can write it out. DataWriters that use MPI-IO should not
+   * use this function. If you do use this function by using the
+   * default implementation of handle_data(), then override
+   * write_data() and end_data() instead. 
+   */ 
+  void gather_data(Data &data);
+
+  /**
+   * Does recursive writing of packed data. Increments the pointer
+   * after writing each value, and returns it. This function will only
+   * be called on rank 0. This does nothing by default, but is defined
+   * because subclasses do not necessarially have to override it (if
+   * they override handle_data() instead). 
+   */
+  virtual void *write_data(Data &data, MPI_Datatype t, void *ptr, 
+                           unsigned int len) = 0;
 
 public:
   DataWriter(int rank, int size) 
-    : rank_(rank), size_(size) 
-  {}
+    : rank_(rank), size_(size)
+  { }
 
   virtual ~DataWriter()
-  {}
+  { }
 
   /**
    * Initialize this object
@@ -84,7 +103,7 @@ public:
    *
    * @param data a Data object containing the data to handle
    */
-  virtual void handle_data(unsigned int time_step, Data &data) = 0;
+  virtual void handle_data(unsigned int time_step, Data &data);
 
 };
 

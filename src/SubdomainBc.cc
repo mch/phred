@@ -10,19 +10,19 @@ void SubdomainBc::apply(Face face, Grid &grid)
   t = grid.get_plane_dt(face);
 
   // Send away!
-  send_recv(grid.get_face_start(face, EX, 1),
-            grid.get_face_start(face, EX, 0), t);
-  send_recv(grid.get_face_start(face, EY, 1),
-            grid.get_face_start(face, EY, 0), t);
-  send_recv(grid.get_face_start(face, EZ, 1),
-            grid.get_face_start(face, EZ, 0), t);
+  send_recv(grid.get_face_start(face, FC_EX, 1),
+            grid.get_face_start(face, FC_EX, 0), t);
+  send_recv(grid.get_face_start(face, FC_EY, 1),
+            grid.get_face_start(face, FC_EY, 0), t);
+  send_recv(grid.get_face_start(face, FC_EZ, 1),
+            grid.get_face_start(face, FC_EZ, 0), t);
 
-  send_recv(grid.get_face_start(face, HX, 1),
-            grid.get_face_start(face, HX, 0), t);
-  send_recv(grid.get_face_start(face, HY, 1),
-            grid.get_face_start(face, HY, 0), t);
-  send_recv(grid.get_face_start(face, HZ, 1),
-            grid.get_face_start(face, HZ, 0), t);
+  send_recv(grid.get_face_start(face, FC_HX, 1),
+            grid.get_face_start(face, FC_HX, 0), t);
+  send_recv(grid.get_face_start(face, FC_HY, 1),
+            grid.get_face_start(face, FC_HY, 0), t);
+  send_recv(grid.get_face_start(face, FC_HZ, 1),
+            grid.get_face_start(face, FC_HZ, 0), t);
 }
 
 void SubdomainBc::send_recv(void *tx_ptr, void *rx_ptr, MPI_Datatype &t)

@@ -22,13 +22,6 @@ protected:
   unsigned int dim_len_;
 
   /**
-   * Does recursive writing of packed data. Increments the pointer
-   * after writing each value, and returns it. 
-   */
-  void *write_data(MPI_Datatype t, void *ptr, 
-                   unsigned int len);
-
-  /**
    * Write an array of data
    * @param ptr location of start of array
    * @param len number of items in array
@@ -36,6 +29,23 @@ protected:
    */
   template<class T>
   void *write_array(void *ptr, unsigned int len);
+
+  /**
+   * Does recursive writing of packed data. Increments the pointer
+   * after writing each value, and returns it. This function will only
+   * be called on rank 0. 
+   */
+  virtual void *write_data(MPI_Datatype t, void *ptr, 
+                           unsigned int len);
+
+  void *write_data(Data &data, MPI_Datatype t, void *ptr, 
+                   unsigned int len);
+
+  /**
+   * Called by gather_data() to indicate that all of the data
+   * availble has been written. 
+   */
+  void end_data();
 
 public:
   AsciiDataWriter(int rank, int size);
@@ -79,13 +89,6 @@ public:
    * @param result describes the variable
    */
   void add_variable(Result &result);
-
-  /**
-   * Write the Data produced by the Result object to a file. 
-   *
-   * @param data a Data object containing the data to handle
-   */
-  void handle_data(unsigned int time_step, Data &data);
 
 };
 

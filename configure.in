@@ -21,7 +21,7 @@ WANT_DEBUG=
 AC_ARG_ENABLE(debug, [  --enable-debug          Enable debugging messages, turn on assertions
                           and array bounds checking ], WANT_DEBUG=1)
 
-AC_ARG_WITH(cxx, AC_HELP_STRING([--with-cxx=CXX], [c++ compiler to use]), 
+AC_ARG_WITH(cxx, AC_HELP_STRING([--with-cxx=CXX], [C++ compiler to use]), 
 		 [CXX="$withval"])
 
 WANT_PROFILE=
@@ -38,7 +38,7 @@ AC_ARG_ENABLE(openmp, AC_HELP_STRING([--enable-openmp], [Use OpenMP directives f
 
 # Stolen in part from the LAM MPI configure.in file
 if test "$with_cxx" = yes; then
-   AC_MSG_ERROR(--with-cxx requires the compiler name)
+   AC_MSG_ERROR(--with-cxx requires the C++ compiler name)
 fi
 
 dnl Checks for programs.
@@ -49,18 +49,11 @@ AC_PROG_CXXCPP
 AM_PROG_LEX
 AC_PROG_YACC
 
-AC_PKG_SWIG([c++])
-
 dnl Use SWIG to generate python scripting support?
 AC_ARG_WITH(python, AC_HELP_STRING([--with-python], [Generate Python scripting support]))
 AC_ARG_WITH(python_libs, AC_HELP_STRING([--with-python-libs], [Location of Python libraries]))
 AC_ARG_WITH(python_includes, AC_HELP_STRING([--with-python-includes], [Location of Python include files]))
 
-dnl Use SWIG to generate guile scripting support?
-dnl AC_ARG_WITH(guile, AC_HELP_STRING([--with-guile], [Generate Guile scripting support])
-
-dnl Use SWIG to generate ruby scripting support?
-dnl AC_ARG_WITH(ruby, AC_HELP_STRING([--with-ruby], [Generate Ruby scripting support])
 
 dnl DX_INIT_DOXYGEN([phred])
 
@@ -91,7 +84,9 @@ AC_ARG_WITH(hdf5-libs, AC_HELP_STRING([--with-hdf5-libs], [Location of HDF 5 lib
 
 AC_ARG_WITH(hdf5-includes, AC_HELP_STRING([--with-hdf5-includes], [Location of HDF 5 include files]))
 
-dnl Various MPI implementations we can use
+dnl Various MPI implementations we can use. We can usually assume that the 
+dnl compiler command script adds the right libraries and include paths, 
+dnl so there is no need to worry if no mpi library is specified. 
 AC_ARG_WITH(lammpi, 
             AC_HELP_STRING([--with-lammpi], [Use LAM/MPI for message passing]),
             [LAMMPI=1], [LAMMPI=0])
@@ -159,19 +154,12 @@ if [[ ! -z "$with_ibmpe" ]] || [[ ! -z "$with_ibmpe_libs" ]] || [[ ! -z "$with_i
         fi
 fi
 
-
-dnl But there must be an MPI library
-if [[ -z "$with_lammpi" ]] && [[ -z "$with_lammpi_libs" ]] && [[ -z "$with_lammpi_includes" ]] && [[ -z "$with_ibmpe" ]] && [[ -z "$with_ibmpe_libs" ]] && [[ -z "$with_ibmpe_includes" ]] && [[ -z "$with_mpich" ]] && [[ -z "$with_mpich_libs" ]] && [[ -z "$with_mpich_includes" ]]; then
-   AC_MSG_ERROR([An MPI library must be specified. Use one of --with-mpich, 
---with-lammpi, or --with-ibmpe.])
-fi
-
 dnl Debug?
 CFLAGS=
 CXXFLAGS=
 if test "x$WANT_DEBUG" = "x1"; then
         AC_DEFINE([DEBUG], [1], [Turn on debugging messages])
-        CXXFLAGS="-g"
+        CXXFLAGS="-g -Wall"
 else
         AC_DEFINE([NDEBUG], [1], [Turn off assertions])
         CXXFLAGS="-O2"
@@ -186,7 +174,9 @@ fi
 dnl Use OpenMP parallism? Does the compiler support it? Are the 
 dnl libraries available? 
 if test "x$WANT_OPENMP" = "x1"; then
-        AC_MSG_WARN([OpenMP support is not implemented yet. ])
+        AC_MSG_WARN([OpenMP support is not fully implemented yet. ])
+        AC_DEFINE([USE_OPENMP], [1], [Using OpenMP (-qSMP=omp on AIX)])
+        CXXFLAGS="$CXXFLAGS -qSMP-omp"
 fi
 
 dnl Checks for libraries.
@@ -250,9 +240,8 @@ fi
 if [[ ! "$with_popt" = no ]]; then
         AC_MSG_WARN([WARNING: the use of popt has been see to cause mysterious seg faults! RECOMMEND --without-popt!])
         AC_DEFINE([USE_POPT], [1], [Use the popt library])
-        AC_CHECK_LIB(popt, poptGetContext, [], [
-            AC_MSG_ERROR(*** Cannot find the popt library); exit])
-        AC_CHECK_HEADER([popt.h], [], [AC_MSG_WARN([*** popt headers required.])])
+        AC_CHECK_LIB(popt, poptGetContext, [], [])
+        AC_CHECK_HEADER([popt.h], [], [])
 fi
 
 AC_CHECK_LIB(netcdf, ncopen, [

@@ -1,16 +1,18 @@
 #include "NetCDFDataWriter.hh"
+#include <sstream>
+
+using namespace std;
+
+#ifdef USE_NETCDF
 
 NetCDFDataWriter::NetCDFDataWriter(int rank, int size)
   : DataWriter(rank, size), ncid_(0), omode_(NC_WRITE | NC_SHARE),
     fopen_(false)
-{
-  
-}
+{}
 
 NetCDFDataWriter::~NetCDFDataWriter()
 {
   deinit();
-    
 }
 
 void NetCDFDataWriter::init()
@@ -63,16 +65,18 @@ void NetCDFDataWriter::add_variable(Result &result)
   if (!fopen_)
     throw exception(); // File must be open
 
-  unsigned int num_dims = result.get_num_dims();
+  const vector<int> &dim_lens = result.get_dim_lengths();
+  const vector<string> &dim_names = result.get_dim_names();
+
   string var_name = result.get_name();
 
-  if (num_dims == 0)
+  if (dim_lens.size() == 0)
     throw std::exception(); //"Result must have at least one dimension.");
 
   if (var_name.length() > 0)
   {
-    map<string, vector<int>>::iterator iter = dim_ids_.find(var_name);
-    if (dim_ids_.end() == iter)
+    map<string, vector<int> >::iterator iter = dim_ids_.find(var_name);
+    if (dim_ids_.end() != iter)
       throw std::exception(); // Duplicates not allowed
   }
 
@@ -80,12 +84,14 @@ void NetCDFDataWriter::add_variable(Result &result)
   if (status != NC_NOERR)
     handle_error(status);
 
-  unsigned int *lens = result.get_dim_lengths();
-  vector<int> dids;
+  // Add variable
+  
 
-  for (int i = 0; i < num_dims; i++)
+  // Add dimension id's
+  vector<int> dids;
+  for (int i = 0; i < dim_lens.size(); i++)
   {
-    dimid = get_dim(i, lens[i]);
+    dimid = get_dim(i, dim_lens[i], dim_names[i]);
     dids.push_back(dimid);
   }
 
@@ -96,30 +102,130 @@ void NetCDFDataWriter::add_variable(Result &result)
     handle_error(status);
 }
 
-void NetCDFDataWriter::handle_data(unsigned int time_step, Data &data)
+void *NetCDFDataWriter::write_data(Data &data, MPI_Datatype t, 
+                                   void *ptr, unsigned int len)
 {
+  if (!fopen_)
+    throw exception(); // File must be opened and dimensions defined. 
 
+  vector<int> &dids = dim_ids_[data.get_var_name()];
+  int status = NC_NOERR;
+  int var_id = var_ids_[data.get_var_name()];
+  size_t *start, *count;
+  
+  start = new size_t[dids.size()];
+  count = new size_t[dids.size()];
+
+  for (int i = 0; i < dids.size(); i++)
+  {
+    start[i] = 0;
+    count[i] = dids[i]; // This should write the entire region at
+                        // once; it's a bit naieve, but it should
+                        // work for now...
+  }
 }
 
-int NetCDFDataWriter::get_dim(int i, int size)
+void *NetCDFDataWriter::write_data(int var_id, size_t *start, 
+                                   size_t *count, MPI_Datatype t, 
+                                   void *ptr, unsigned int len)
 {
-  string basename, name;
+  int status = NC_NOERR;
+
+  if (t == MPI_CHAR) 
+    status = nc_put_vara_schar(ncid_, var_id, start, count, 
+                               static_cast<signed char *>(ptr));
+  else if (t == MPI_SHORT)
+    status = nc_put_vara_short(ncid_, var_id, start, count, 
+                               static_cast<short *>(ptr));
+  else if (t == MPI_INT)
+    status = nc_put_vara_int(ncid_, var_id, start, count, 
+                               static_cast<int *>(ptr));
+  else if (t == MPI_LONG)
+    status = nc_put_vara_long(ncid_, var_id, start, count, 
+                               static_cast<long *>(ptr));
+  else if (t == MPI_UNSIGNED_CHAR)
+    status = nc_put_vara_uchar(ncid_, var_id, start, count, 
+                               static_cast<unsigned char *>(ptr));
+  else if (t == MPI_UNSIGNED_SHORT) // Not quite right
+    status = nc_put_vara_short(ncid_, var_id, start, count, 
+                                static_cast<short *>(ptr));
+  else if (t == MPI_UNSIGNED) // Not quite right
+    status = nc_put_vara_int(ncid_, var_id, start, count, 
+                             static_cast<int *>(ptr));
+  else if (t == MPI_UNSIGNED_LONG) // Not quite right
+    status = nc_put_vara_long(ncid_, var_id, start, count, 
+                               static_cast<long *>(ptr));
+  else if (t == MPI_FLOAT)
+    status = nc_put_vara_float(ncid_, var_id, start, count, 
+                               static_cast<float *>(ptr));
+  else if (t == MPI_DOUBLE)
+    status = nc_put_vara_double(ncid_, var_id, start, count, 
+                               static_cast<double *>(ptr));
+  else if (t == MPI_LONG_DOUBLE) // Not quite right
+    status = nc_put_vara_double(ncid_, var_id, start, count, 
+                               static_cast<double *>(ptr));
+  //else if (t == MPI_PACKED)
+    
+  else 
+  {
+    int num_ints, num_addrs, num_dts, combiner; 
+
+    MPI_Type_get_envelope(t, &num_ints, &num_addrs, &num_dts, 
+                          &combiner);
+
+    int *ints;
+    MPI_Aint *aints;
+    MPI_Datatype *dts;
+
+    ints = new int[num_ints];
+    aints = new MPI_Aint[num_addrs];
+    dts = new MPI_Datatype[num_dts];
+
+    MPI_Type_get_contents(t, num_ints, num_addrs, num_dts, 
+                          ints, aints, dts);
+
+    int i = 0;
+    while (i < num_dts && dts[i] > 0)
+    {
+      ptr = write_data(var_id, start, count, 
+                       dts[i], ptr, ints[i]);
+      i++;
+    }
+
+    delete[] ints;
+    delete[] aints;
+    delete[] dts;
+  }
+  
+  if (status != NC_NOERR)
+    handle_error(status);
+
+  return ptr;
+}
+
+
+int NetCDFDataWriter::get_dim(int i, int size, string basename)
+{
   int status, dimid, idx;
   size_t len;
+  ostringstream name;
 
-  switch (i) 
+  if (basename.length() == 0)
   {
-  case 0:
-    basename = "x";
-    break;
-  case 1:
-    basename = "y";
-    break;
-  case 2:
-    basename = "z";
-    break;
-  default:
-    basename = "A";
+    switch (i) 
+    {
+    case 0:
+      basename = "x";
+      break;
+    case 1:
+      basename = "y";
+      break;
+    case 2:
+      basename = "z";
+      break;
+    default:
+      basename = "A";
+    }
   }
 
   status = nc_inq_dimid(ncid_, basename.c_str(), &dimid);
@@ -135,8 +241,9 @@ int NetCDFDataWriter::get_dim(int i, int size)
     else {
       idx = 0;
       while (idx < 100) {
-        name = basename + idx;
-        status = nc_inq_dimid(ncid_, name.c_str(), &dimid);
+        name.str(basename);
+        name <<  idx;
+        status = nc_inq_dimid(ncid_, name.str().c_str(), &dimid);
 
         if (status == NC_NOERR) {
           status = nc_inq_dimlen(ncid_, dimid, &len);
@@ -148,7 +255,7 @@ int NetCDFDataWriter::get_dim(int i, int size)
             return dimid;        
         } else {
           // Create the dimension
-          status = nc_def_dim(ncid_, name.c_str(), size, &dimid);
+          status = nc_def_dim(ncid_, name.str().c_str(), size, &dimid);
           if (status != NC_NOERR)
             handle_error(status);
 
@@ -156,11 +263,18 @@ int NetCDFDataWriter::get_dim(int i, int size)
         }
       }
     }
+  } else {
+    // Create the dimension
+    status = nc_def_dim(ncid_, basename.c_str(), size, &dimid);
+    if (status != NC_NOERR)
+      handle_error(status);
   }
-  // Create the dimension
-  status = nc_def_dim(ncid_, name.c_str(), size, &dimid);
-  if (status != NC_NOERR)
-    handle_error(status);
-
   return dimid;
 }
+
+void NetCDFDataWriter::handle_error(int status)
+{
+  throw exception();
+}
+
+#endif // USE_NETCDF

@@ -17,7 +17,7 @@ void MaterialLib::add_material(Material &mat)
 
 int MaterialLib::num_materials()
 {
-  materials_.size();
+  return materials_.size();
 }
 
 vector<Material>::iterator MaterialLib::get_material_iter_begin()

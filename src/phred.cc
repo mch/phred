@@ -100,8 +100,6 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "AsciiDataWriter.hh"
 #include "PlaneResult.hh"
 
-#define EXIT_FAILURE 1
-
 static void usage (int status);
 
 #ifdef HAVE_LIBPOPT

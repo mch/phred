@@ -2,6 +2,8 @@
 #define RESULT_H
 
 #include <string>
+#include <vector>
+
 #include "Types.hh"
 #include "Grid.hh"
 #include "Data.hh"
@@ -36,8 +38,8 @@ protected:
   string var_name_; /**< Variable name */
   Data data_;
 
-  unsigned int num_dims_; /**< Number of dimensions */
-  unsigned int *dim_lens_; /**< Dimension lengths */
+  vector<int> dim_lens_; /**< Dimension lengths */
+  vector<string> dim_names_; /**< Dimension names */
 
   unsigned int time_start_; /**< Time step to start returning results at */
   unsigned int time_stop_; /**< Time step to stop returning results at */
@@ -60,7 +62,7 @@ protected:
 
 public:
   Result() 
-    : num_dims_(0), dim_lens_(0), time_start_(0), time_stop_(~0),
+    : time_start_(0), time_stop_(~0),
       time_space_(0) //, dw_(0)
   {}
 
@@ -134,23 +136,22 @@ public:
   virtual void init()
   {}
 
-  /** 
-   * Returns the number of dimensions
-   * @return unsigned int, num dims
+  /**
+   * Returns the lengths of the dimensions
+   * @return a reference to a vector of lengths of the dimensions
    */
-  inline unsigned int get_num_dims()
+  inline const vector<int> &get_dim_lengths()
   {
-    return num_dims_;
+    return dim_lens_;
   }
 
   /**
-   * Returns the lengths of the dimensions
-   * @return a pointer to the lengths of the dimensions, with the 
-   * length returned by get_num_dims()
+   * Returns the names of the dimensions
+   * @return a reference to the names of the dimensions
    */
-  inline unsigned int *get_dim_lengths()
+  inline const vector<string> &get_dim_names()
   {
-    return dim_lens_;
+    return dim_names_;
   }
 };
 
