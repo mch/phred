@@ -21,6 +21,8 @@ libresults_a_SOURCES = 	Result.hh \
 	PowerResult.cc \
 	FakeResult.hh \
 	FakeResult.cc \
+	SurfaceCurrentResult.hh \
+	SurfaceCurrentResult.cc \
 	GridResult.hh \
 	GridResult.cc
 
