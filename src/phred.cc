@@ -125,6 +125,7 @@ static struct poptOption options[] =
     {"memory", 'm', POPT_ARG_NONE, 0, 'm'},
     {"mnps", 'b', POPT_ARG_NONE, 0, 'b'}, 
     {"quiet", 'q', POPT_ARG_NONE, 0, 'q'}, 
+    {"test", 't', POPT_ARG_NONE, 0, 't'},
     {0, 0, 0, 0, 0}
   };
 #endif
@@ -136,7 +137,7 @@ static string get_extension(string filename);
 // Ugly globals
 string inputfile;
 const char *program_name;
-bool interactive, estimate_memory, mnps, quiet;
+bool interactive, estimate_memory, mnps, quiet, test_run;
 int MPI_RANK, MPI_SIZE;
 
 /* Set all the option flags according to the switches specified.
@@ -196,6 +197,10 @@ decode_switches (int argc, char **argv)
       quiet = true;
       break;
 
+    case 't':
+      test_run = true;
+      break;
+
     default:
       cout << "WARNING: got unknown option number: " << c << endl;
     }
@@ -233,6 +238,8 @@ Options:\n\
                              processed per second (this does NOT include\n\
                              time spent in IO or other activities; only\n\
                              node update times are counted.\n\
+  -t, --test                 Run a hard coded test problem: transmission\n\
+                             through a single hole in a PEC plate.\n\
   -V, --version              output version information and exit\n\
 ");
 #else
@@ -321,7 +328,10 @@ int main (int argc, char **argv)
     } 
 #endif
 
-    if (!interactive) {
+    if (test_run) {
+      hole();
+
+    } else if (!interactive) {
 
       if (argc > 1)
       {

@@ -65,11 +65,11 @@ phred_SOURCES=\
 	SimpleSDAlg.cc \
 	SimpleSDAlg.hh \
 	Contiguous.hh \
+	Tests.hh \
+	Tests.cc \
 	phred.cc $(phred_cond)
 
 #	SpaceExcitation.cc 
-#	Tests.hh \
-#	Tests.cc 
 #	fdtd_complex.hh \
 #	fdtd_complex.cc \
 #	counted_ptr.hh

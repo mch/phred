@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -19,18 +19,25 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
+#ifndef GRID_UPDATE_H
+#define GRID_UPDATE_H
+
 /**
- * \file Tests.hh
- * Compiled in tests for various situations. Will probably be
- * eliminated once Jan's script loader is complete. 
- */
+ * This class contains templatable loops for updating a region of the
+ * grid. The idea to to pull as much of the looping constructs and set
+ * up code as possible back into this module, so that modules which
+ * implement the actual updates and dispersions are boiled down to
+ * their most simple essences.
+ */ 
+template<class T> // Use the Boost Preprocessor libs to make this
+                  // class accept multiple args...
+class GridUpdate
+{
+public:
 
-// void point_test(int rank, int size);
-// void pml_test(int rank, int size);
-// void takakura_test(int rank, int size);
-// void laser_test(int rank, int size);
-// void coupler_test(int rank, int size);
 
+private:
 
+};
 
-void hole();
+#endif // GRID_UPDATE_H

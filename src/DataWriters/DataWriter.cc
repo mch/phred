@@ -89,7 +89,6 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 //            << var.get_name() << endl;
 //     }
   } 
-
   else 
   {
     unsigned int rcv_size = 0;

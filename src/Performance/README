@@ -1,0 +1,4 @@
+This directory contains all high performance code. This is code that
+can potentially be vectorized. All grid updates and dispersions go
+here. 
+
