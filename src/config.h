@@ -32,8 +32,17 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 /* #undef HAVE_INTTYPES_H */
 
+/* Define to 1 if you have the `hdf' library (-lhdf). */
+/* #undef HAVE_LIBHDF */
+
+/* Define to 1 if you have the `hdf5' library (-lhdf5). */
+/* #undef HAVE_LIBHDF5 */
+
 /* Define to 1 if you have the `mpi' library (-lmpi). */
 #define HAVE_LIBMPI 1
+
+/* Define to 1 if you have the `netcdf' library (-lnetcdf). */
+/* #undef HAVE_LIBNETCDF */
 
 /* Define to 1 if you have the `popt' library (-lpopt). */
 /* #undef HAVE_LIBPOPT */
@@ -87,7 +96,7 @@
 /* #undef HAVE_SYS_STAT_H */
 
 /* Define to 1 if you have the <sys/sysmacros.h> header file. */
-#define HAVE_SYS_SYSMACROS_H 1
+/* #undef HAVE_SYS_SYSMACROS_H */
 
 /* Define to 1 if you have the <sys/time.h> header file. */
 #define HAVE_SYS_TIME_H 1
@@ -131,14 +140,14 @@
 #define PACKAGE_VERSION "0.1.0"
 
 /* Using profiling (-pg) */
-/* #undef PROFILE */
+#define PROFILE 1
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
 /* #undef STACK_DIRECTION */
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -146,6 +155,15 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 /* #undef TM_IN_SYS_TIME */
+
+/* Use HDF4 as a DataWriter */
+/* #undef USE_HDF4 */
+
+/* Use HDF5 as a DataWriter */
+#define USE_HDF5 1
+
+/* Use netCDF as a DataWriter */
+#define USE_NETCDF 1
 
 /* Use the popt library */
 /* #undef USE_POPT */
