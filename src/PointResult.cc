@@ -47,51 +47,54 @@ PointResult::~PointResult()
 
 Data &PointResult::get_result(const Grid &grid, unsigned int time_step)
 {
-  point_t l;
   bool ours = true;
 
-  if (result_time(time_step))
+  if (ours_ && result_time(time_step)) 
   {
-    if (point_.x < grid.get_lsx() 
-        || point_.x >= grid.get_lsx() + grid.get_ldx())
-      ours = false;
-    else 
-      l.x = point_.x - grid.get_lsx();
-
-    if (point_.y < grid.get_lsy() 
-        || point_.y >= grid.get_lsy() + grid.get_ldy())
-      ours = false;
-    else 
-      l.y = point_.y - grid.get_lsy();
-
-    if (point_.z < grid.get_lsz() 
-        || point_.z >= grid.get_lsz() + grid.get_ldz())
-      ours = false;
-    else 
-      l.z = point_.z - grid.get_lsz();
-
-    if (ours) 
-    {
-      field_data_[0] = grid.get_deltat() * time_step;
-      field_data_[1] = grid.get_ex(l.x, l.y, l.z);
-      field_data_[2] = grid.get_ey(l.x, l.y, l.z);
-      field_data_[3] = grid.get_ez(l.x, l.y, l.z);
+    field_data_[0] = grid.get_deltat() * time_step;
+    field_data_[1] = grid.get_ex(l_.x, l_.y, l_.z);
+    field_data_[2] = grid.get_ey(l_.x, l_.y, l_.z);
+    field_data_[3] = grid.get_ez(l_.x, l_.y, l_.z);
     
-      field_data_[4] = grid.get_hx(l.x, l.y, l.z);
-      field_data_[5] = grid.get_hy(l.x, l.y, l.z);
-      field_data_[6] = grid.get_hz(l.x, l.y, l.z);
+    field_data_[4] = grid.get_hx(l_.x, l_.y, l_.z);
+    field_data_[5] = grid.get_hy(l_.x, l_.y, l_.z);
+    field_data_[6] = grid.get_hz(l_.x, l_.y, l_.z);
     
-      data_.set_ptr(field_data_);
-      data_.set_num(1);
-    } 
-    else
-    {
-      data_.set_ptr(0);
-      data_.set_num(0);
-    }
-  } else {
+    data_.set_ptr(field_data_);
+    data_.set_num(1);
+  } 
+  else
+  {
+    data_.set_ptr(0);
     data_.set_num(0);
   }
-
+  
   return data_;
 }
+
+void PointResult::init(const Grid &grid)
+{
+  ours_ = true; 
+
+  if (point_.x < grid.get_lsx() 
+      || point_.x >= grid.get_lsx() + grid.get_ldx())
+    ours_ = false;
+  else 
+    l_.x = point_.x - grid.get_lsx();
+
+  if (point_.y < grid.get_lsy() 
+      || point_.y >= grid.get_lsy() + grid.get_ldy())
+    ours_ = false;
+  else 
+    l_.y = point_.y - grid.get_lsy();
+
+  if (point_.z < grid.get_lsz() 
+      || point_.z >= grid.get_lsz() + grid.get_ldz())
+    ours_ = false;
+  else 
+    l_.z = point_.z - grid.get_lsz();
+
+}
+
+void PointResult::deinit(const Grid &grid)
+{}

@@ -44,6 +44,26 @@ PointDFTResult::~PointDFTResult()
 
 void PointDFTResult::init(const Grid &grid)
 {
+  ours_ = true; 
+
+  if (point_.x < grid.get_lsx() 
+      || point_.x >= grid.get_lsx() + grid.get_ldx())
+    ours_ = false;
+  else 
+    l_.x = point_.x - grid.get_lsx();
+
+  if (point_.y < grid.get_lsy() 
+      || point_.y >= grid.get_lsy() + grid.get_ldy())
+    ours_ = false;
+  else 
+    l_.y = point_.y - grid.get_lsy();
+
+  if (point_.z < grid.get_lsz() 
+      || point_.z >= grid.get_lsz() + grid.get_ldz())
+    ours_ = false;
+  else 
+    l_.z = point_.z - grid.get_lsz();
+
   if (freq_stop_ < freq_start_)
   {
     field_t temp = freq_stop_;
@@ -73,10 +93,16 @@ void PointDFTResult::init(const Grid &grid)
   MPI_Datatype temp;
   MPI_Type_contiguous(13, GRID_MPI_TYPE, &temp);
   MPI_Type_commit(&temp);
-
-  data_.set_num(num_freqs_);
-  data_.set_ptr(result_);
   data_.set_datatype(temp);
+
+  if (ours_)
+  {
+    data_.set_num(num_freqs_);
+    data_.set_ptr(result_);
+  } else {
+    data_.set_num(0);
+    data_.set_ptr(0);  
+  }
 }
 
 void PointDFTResult::deinit(const Grid &grid)
@@ -93,44 +119,47 @@ Data &PointDFTResult::get_result(const Grid &grid, unsigned int time_step)
   delta_t dt = grid.get_deltat();
   delta_t time = dt * time_step;
 
-  for (unsigned int i = 0; i <= num_freqs_; i++)
+  if (ours_)
   {
-    result_[i*13 + 1] += grid.get_ex(point_.x, point_.y, point_.z)
-      * cos(2 * PI * result_[i*13] * time);
+    for (unsigned int i = 0; i <= num_freqs_; i++)
+    {
+      result_[i*13 + 1] += grid.get_ex(l_.x, l_.y, l_.z)
+        * cos(2 * PI * result_[i*13] * time);
     
-    result_[i*13 + 2] += (-1) * grid.get_ex(point_.x, point_.y, point_.z) 
-      * sin(2 * PI * result_[i*13] * time);
+      result_[i*13 + 2] += (-1) * grid.get_ex(l_.x, l_.y, l_.z) 
+        * sin(2 * PI * result_[i*13] * time);
 
-    result_[i*13 + 3] += grid.get_ey(point_.x, point_.y, point_.z)
-      * cos(2 * PI * result_[i*13] * time);
+      result_[i*13 + 3] += grid.get_ey(l_.x, l_.y, l_.z)
+        * cos(2 * PI * result_[i*13] * time);
     
-    result_[i*13 + 4] += (-1) * grid.get_ey(point_.x, point_.y, point_.z) 
-      * sin(2 * PI * result_[i*13] * time);
+      result_[i*13 + 4] += (-1) * grid.get_ey(l_.x, l_.y, l_.z) 
+        * sin(2 * PI * result_[i*13] * time);
 
-    result_[i*13 + 5] += grid.get_ez(point_.x, point_.y, point_.z)
-      * cos(2 * PI * result_[i*13] * time);
+      result_[i*13 + 5] += grid.get_ez(l_.x, l_.y, l_.z)
+        * cos(2 * PI * result_[i*13] * time);
     
-    result_[i*13 + 6] += (-1) * grid.get_ez(point_.x, point_.y, point_.z) 
-      * sin(2 * PI * result_[i*13] * time);
+      result_[i*13 + 6] += (-1) * grid.get_ez(l_.x, l_.y, l_.z) 
+        * sin(2 * PI * result_[i*13] * time);
 
-    // H components
-    result_[i*13 + 7] += grid.get_hx(point_.x, point_.y, point_.z)
-      * cos(2 * PI * result_[i*13] * time);
+      // H components
+      result_[i*13 + 7] += grid.get_hx(l_.x, l_.y, l_.z)
+        * cos(2 * PI * result_[i*13] * time);
     
-    result_[i*13 + 8] += (-1) * grid.get_hx(point_.x, point_.y, point_.z) 
-      * sin(2 * PI * result_[i*13] * time);
+      result_[i*13 + 8] += (-1) * grid.get_hx(l_.x, l_.y, l_.z) 
+        * sin(2 * PI * result_[i*13] * time);
 
-    result_[i*13 + 9] += grid.get_hy(point_.x, point_.y, point_.z)
-      * cos(2 * PI * result_[i*13] * time);
+      result_[i*13 + 9] += grid.get_hy(l_.x, l_.y, l_.z)
+        * cos(2 * PI * result_[i*13] * time);
     
-    result_[i*13 + 10] += (-1) * grid.get_hy(point_.x, point_.y, point_.z) 
-      * sin(2 * PI * result_[i*13] * time);
+      result_[i*13 + 10] += (-1) * grid.get_hy(l_.x, l_.y, l_.z) 
+        * sin(2 * PI * result_[i*13] * time);
 
-    result_[i*13 + 11] += grid.get_hz(point_.x, point_.y, point_.z)
-      * cos(2 * PI * result_[i*13] * time);
+      result_[i*13 + 11] += grid.get_hz(l_.x, l_.y, l_.z)
+        * cos(2 * PI * result_[i*13] * time);
     
-    result_[i*13 + 12] += (-1) * grid.get_hz(point_.x, point_.y, point_.z) 
-      * sin(2 * PI * result_[i*13] * time);
+      result_[i*13 + 12] += (-1) * grid.get_hz(l_.x, l_.y, l_.z) 
+        * sin(2 * PI * result_[i*13] * time);
+    }
   }
 
   return data_;

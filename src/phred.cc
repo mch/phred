@@ -193,8 +193,8 @@ main (int argc, char **argv)
 
       // TESTS, TEMPORARY
       //point_test(rank, size);
-      //pml_test(rank, size);
-      takakura_test(rank, size);
+      pml_test(rank, size);
+      //takakura_test(rank, size);
     }
   } catch (const std::exception &e) {
     cout << "Caught exception: " << e.what() << endl;
@@ -476,7 +476,7 @@ static void pml_test(int rank, int size)
 
   Excitation ex(&gm);
   //BartlettExcitation ex(gm);
-  ex.set_soft(true);
+  ex.set_soft(false);
   //ex.set_region(20, 20, 10, 10, 10, 10);
   ex.set_region(20, 20, 6, 13, 6, 13);
   ex.set_polarization(0.0, 1.0, 0.0);
@@ -608,7 +608,7 @@ static void pml_test(int rank, int size)
 
    fdtd.map_result_to_datawriter("srctr", "adw8");
 
-   fdtd.run(rank, size, 1000);
+   fdtd.run(rank, size, 100);
 }
 
 static void takakura_test(int rank, int size)

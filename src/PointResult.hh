@@ -41,8 +41,13 @@ protected:
    */
   field_t field_data_[7];
 
-  // Point in global space. Have to translate it to the local grid. 
-  point_t point_;
+  point_t point_; /**< Point in global space. Have to translate it to
+                     the local grid. */
+
+  point_t l_; /**< Point in local space. */
+
+  // True if the point is in our part of the grid
+  bool ours_;
 
 public:
 
@@ -79,7 +84,9 @@ public:
   {
     return point_;
   }
-
+  
+  virtual void init(const Grid &grid);
+  virtual void deinit(const Grid &grid);
 };
 
 #endif // POINT_RESULT_H

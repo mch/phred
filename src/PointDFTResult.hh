@@ -39,7 +39,10 @@ protected:
   field_t *result_; /**< Storage for the result. Interlevaved data;
                        freq, Real DFT value, Imag DFT value, etc */
 
-  point_t point_; /**< The point to aquire the data at. */
+  point_t point_; /**< The point to aquire the data at (global) */
+  point_t l_; /**< The point to aquire the data at (local) */
+
+  bool ours_; /**< True if the point is in our part of the grid. */
 
 public:
   PointDFTResult();

@@ -20,6 +20,8 @@
 */
 
 #include "AsciiDataWriter.hh"
+#include "Exceptions.hh"
+
 #include <string.h>
 #include <mpi.h>
 
@@ -60,7 +62,7 @@ void AsciiDataWriter::add_variable(Result &result)
   const vector<int> &dim_lens = result.get_dim_lengths();
 
   if (dim_lens.size() == 0)
-    throw std::exception(); //"Result must have at least one dimension.");
+    throw DataWriterException("Result must have at least one dimension.");
   
   dim_len_ = 0;
   for (unsigned int i = 0; i < dim_lens.size(); i++)
@@ -78,7 +80,7 @@ unsigned int AsciiDataWriter::write_data(unsigned int time_step,
     init();
     
     if (!file_.is_open()) 
-      throw std::exception(); // "Unable to open output file!");
+      throw DataWriterException("Unable to open output file!");
   }
 
   // If this result doesn't have a time dimension, then move to the

@@ -51,9 +51,6 @@ enum PmlVariation_t {
  *
  * This is based on Jan's implementation. I just reorganized the
  * code, factored out some common stuff, etc. 
- *
- * \bug FIX THE RX_TX method so that the subdomain BC actually has
- * something to pass around.
  */
 class Pml : public BoundaryCond
 {
@@ -131,12 +128,12 @@ protected:
   /**
    * Allocate memory for the field data. Thickness must be non zero. 
    */
-  void alloc_pml_fields(Face face, Grid &grid);
+  virtual void alloc_pml_fields(Face face, Grid &grid);
 
   /**
    * Free the memory used to hold the PML field data.
    */
-  void free_pml_fields();
+  virtual void free_pml_fields();
 
   /**
    * Implements the PML update equations on the face.
@@ -181,7 +178,7 @@ public:
    * @param face the face this PML is on
    * @param grid the grid this PML is on
    */
-  void setup(Face face, Grid &grid);
+  virtual void setup(Face face, Grid &grid);
 
   /**
    * Applys a PML boundary condition to a face of the grid. 
@@ -190,7 +187,7 @@ public:
    * @param grid the grid to apply the boundary condition to. 
    * @param the field components to affect. 
    */
-  void apply(Face face, Grid &grid, FieldType type);  
+  virtual void apply(Face face, Grid &grid, FieldType type);  
 
   /**
    * Set the thickness of the PML. I.e. the number of cells devoted to
@@ -241,7 +238,7 @@ public:
    * @param pmlface the face the PML is on
    * @param sdface the face the subdmoain is on
    */
-  void add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface);
+  virtual void add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface);
 
   /**
    * Returns a BoundayCondition type so the grid knows this is a pml.
