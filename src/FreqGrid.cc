@@ -13,19 +13,19 @@ void FreqGrid::alloc_grid()
 {
   Grid::alloc_grid();
 
-  ex_sum_ = new field_t **[dimx_];
-  ey_sum_ = new field_t **[dimx_];
-  ez_sum_ = new field_t **[dimx_];
+  ex_sum_ = new field_t **[get_ldx()];
+  ey_sum_ = new field_t **[get_ldx()];
+  ez_sum_ = new field_t **[get_ldx()];
 
-  for (unsigned int i = 0; i < dimx_; i++) {
-    ex_sum_[i] = new field_t *[dimy_];
-    ey_sum_[i] = new field_t *[dimy_];
-    ez_sum_[i] = new field_t *[dimy_];
+  for (unsigned int i = 0; i < get_ldx(); i++) {
+    ex_sum_[i] = new field_t *[get_ldy()];
+    ey_sum_[i] = new field_t *[get_ldy()];
+    ez_sum_[i] = new field_t *[get_ldy()];
 
-    for (unsigned int j = 0; j < dimy_; j++) {  
-      ex_sum_[i][j] = new field_t[dimz_];
-      ey_sum_[i][j] = new field_t[dimz_];
-      ez_sum_[i][j] = new field_t[dimz_];
+    for (unsigned int j = 0; j < get_ldy(); j++) {  
+      ex_sum_[i][j] = new field_t[get_ldz()];
+      ey_sum_[i][j] = new field_t[get_ldz()];
+      ez_sum_[i][j] = new field_t[get_ldz()];
 
     }
   }
@@ -36,8 +36,8 @@ void FreqGrid::free_grid()
   Grid::free_grid();
 
   if (ex_sum_ || ey_sum_ || ez_sum_) {
-    for (unsigned int i = 0; i < dimx_; i++) {
-      for (unsigned int j = 0; j < dimy_; j++) {  
+    for (unsigned int i = 0; i < get_ldx(); i++) {
+      for (unsigned int j = 0; j < get_ldy(); j++) {  
 	delete[] ex_sum_[i][j];
 	delete[] ey_sum_[i][j];
 	delete[] ez_sum_[i][j];

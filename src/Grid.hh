@@ -11,6 +11,17 @@
  * part of domain. This Grid class is owned by the processor, and we
  * assume that there is only one grid per processor. If that's not the
  * case, well, something is probably broken.
+ *
+ * \bug A copy constructor, assignment operator, and the other thing
+ * are needed so that pointers aren't inadvertantly copies around by
+ * accident. 
+ *
+ * \bug Sanity checks on stability are required.
+ *
+ * \bug Assertions when in debug mode should be used for set/get
+ * functions. 
+ *
+ * \bug Set/get functions should be inline. 
  */
 
 #ifndef GRID_H
@@ -22,15 +33,11 @@
 
 #include "Types.hh"
 #include "MaterialLib.hh"
+#include "GridInfo.hh"
 
 class Grid {
  private:
  protected:
-
-  /** 
-   * Allocate memory for the grid. Called by setup_grid(). 
-   */ 
-  virtual void alloc_grid();
 
   /**
    * Free the memory allocated for the grid. 
@@ -43,33 +50,8 @@ class Grid {
    */
   void init_datatypes();
 
-  // Global grid size (i.e. all domains)
-  unsigned int global_dimx_;
-  unsigned int global_dimy_;
-  unsigned int global_dimz_;
-
-  // Local grid starting point
-  unsigned int start_x_;
-  unsigned int start_y_;
-  unsigned int start_z_;
-
-  // Local grid size (this sub domain only)
-  // If a face must be communicated to a processor, then the
-  // dimention will increase by one. If both the top and bottom must
-  // be sent to other processors, dimz_ = actual subdomain size +
-  // 2. This is overlap which allows us to calculate the interior of
-  // the subdomain without having to stop and ask the other
-  // processors for data. 
-  unsigned int dimx_;
-  unsigned int dimy_;
-  unsigned int dimz_;
-
-  // Time and space steppings; the distance between each point in the
-  // grid.
-  delta_t deltax_;
-  delta_t deltay_;
-  delta_t deltaz_;
-  delta_t deltat_;
+  // Grid size information
+  GridInfo info_;
 
   // Number of materials we know about (0 is PEC)
   unsigned int num_materials_;
@@ -98,22 +80,6 @@ class Grid {
   // the material arrays, Ca, Cbx, etc. 
   unsigned int ***material_;
 
-  // A grid is a cube with six faces. Those faces either need to have
-  // boundary conditions, or they are subdomain boundaries and they
-  // need to be shared with other processors. These arrays tell what
-  // to do with each face. 
-  //
-  // 0 - Front (x = 0, YZ plane)
-  // 1 - Back (x = dimx, YZ plane)
-  // 2 - Left (y = 0, XZ plane)
-  // 3 - Right (y = dimy, XZ plane)
-  // 4 - Bottom (z = 0, XY plane)
-  // 5 - Top (z = dimz, XY plane)
-  //
-  BoundaryCondition face_bc_[6]; // Boundary condition to apply
-  int face_rank_[6]; // Rank of processor to talk to about this
-		     // interface. 
-
   // Derived MPI data types for sending data around. 
   MPI_Datatype xy_plane_;
   MPI_Datatype yz_plane_;
@@ -130,10 +96,40 @@ class Grid {
   virtual ~Grid();
 
   /**
-   * Compute the next time step of the fields. The update equations
-   * used here are straight out of Taflove. 
+   * Compute the next time step of the fields. This is a convenience
+   * function which calls the individual update functions. 
    */
   virtual void update_fields();
+
+  /**
+   * Compute the update equatations for the Ex field component. 
+   */
+  virtual void update_ex();
+
+  /**
+   * Compute the update equatations for the Ey field component. 
+   */
+  virtual void update_ey();
+
+  /**
+   * Compute the update equatations for the Ez field component. 
+   */
+  virtual void update_ez();
+
+  /**
+   * Compute the update equatations for the Hx field component. 
+   */
+  virtual void update_hx();
+
+  /**
+   * Compute the update equatations for the Hy field component. 
+   */
+  virtual void update_hy();
+
+  /**
+   * Compute the update equatations for the Hz field component. 
+   */
+  virtual void update_hz();
 
   /**
    * Apply the boundary conditions to the faces
@@ -156,30 +152,27 @@ class Grid {
    * Set up the, define the size of the global grid, and the size of
    * the subdomain this grid actually represents. 
    *
-   * @param global_x number of cells in the global grid along the x dimension
-   * @param global_y number of cells in the global grid along the y dimension
-   * @param global_z number of cells in the global grid along the z dimension
-   *
-   * @param start_x the starting cell of the subdomain along x
-   * @param start_y the starting cell of the subdomain along y
-   * @param start_z the starting cell of the subdomain along z
-   *
-   * @param x the size of the subdomain in the x dimension
-   * @param y the size of the subdomain in the y dimension
-   * @param z the size of the subdomain in the z dimension
-   *
-   * @param deltax the spacing between nodes along x
-   * @param deltay the spacing between nodes along y
-   * @param deltaz the spacing between nodes along z
-   * @param deltat the time between time steps
+   * @param info the GridInfo object containing the global and local
+   * grid sizes, cell sizes, time step size, etc. 
    */ 
-  virtual void setup_grid(unsigned int global_x, unsigned int global_y, 
-                          unsigned int global_z, 
-                          unsigned int start_x, unsigned int start_y, 
-                          unsigned int start_z, 
-                          unsigned int x, unsigned int y, unsigned int z, 
-                          delta_t deltax, delta_t deltay, delta_t deltaz,
-                          delta_t deltat);
+  virtual void setup_grid(const GridInfo &info);
+
+  /**
+   * Retrieve information about the grid's size, space and time step
+   * size, and boundary conditions. 
+   *
+   * @return a copy of the GridInfo object 
+   */
+  inline GridInfo get_grid_info() 
+  {
+    return info_;
+  }
+
+  /** 
+   * Allocate memory for the grid. 
+   */ 
+  virtual void alloc_grid();
+
 
   /**
    * Define geometry in the grid (i.e. assign material indicies to
@@ -203,29 +196,6 @@ class Grid {
                   unsigned int z_start, unsigned int z_stop, 
                   unsigned int mat_index);
 
-  /**
-   * Set the boundary condition on one of the faces of this grid. 
-   *
-   * @param face the face to assign the boundary to. One of FRONT, BACK,
-   * LEFT, RIGHT, BOTTOM, TOP as defined in Types.hh
-   *
-   * @param bc the boundary condition to apply, one of SUBDOMAIN
-   * (meaning that information is exchanged with another node at this
-   * face), EWALL, HWALL, ESYM, HSYM, IMPEDANCE, or PML, as defined in
-   * Types.hh
-   */ 
-  void set_boundary(unsigned int face, BoundaryCondition bc);
-
-  /**
-   * Set the rank of the processor this face needs to be shared with. 
-   *
-   * @param face the face to assign the node rank to. One of FRONT, BACK,
-   * LEFT, RIGHT, BOTTOM, TOP as defined in Types.hh
-   *
-   * @param rank the rank of the node to share this face with. 
-   */ 
-  void set_face_rank(unsigned int face, int rank);
-
   // Accessors (these should be inline, but then I would have to
   // rearrange definitions, and I'm too lazy right now. 
   
@@ -234,38 +204,61 @@ class Grid {
    *
    * @return global grid x size
    */
-  unsigned int get_gdx();
+  inline unsigned int get_gdx()
+  {
+    return info_.global_dimx_;
+  }
+
   /**
    * Returns the global size of the y dimension.
    *
    * @return global grid y size
    */
-  unsigned int get_gdy();
+  inline unsigned int get_gdy()
+  {
+    return info_.global_dimy_;
+  }
+
   /**
    * Returns the global size of the z dimension.
    *
    * @return global grid z size
    */
-  unsigned int get_gdz();
+  inline unsigned int get_gdz()
+  {
+    return info_.global_dimz_;
+  }
 
   /**
    * Returns the local start of the x dimension.
    *
    * @return local grid x start
    */
-  unsigned int get_lsx();
+  inline unsigned int get_lsx()
+  {
+    return info_.start_x_;
+  }
+
   /**
    * Returns the local start of the y dimension.
    *
    * @return local grid y start
    */
-  unsigned int get_lsy();
+  inline unsigned int get_lsy()
+  {
+    return info_.start_y_;
+  }
+
   /**
    * Returns the local start of the z dimension.
    *
    * @return local grid z start
    */
-  unsigned int get_lsz();
+  inline unsigned int get_lsz()
+  {
+    return info_.start_z_;
+  }
+
 
 
   /**
@@ -273,19 +266,30 @@ class Grid {
    *
    * @return local grid x size
    */
-  unsigned int get_ldx();
+  inline unsigned int get_ldx()
+  {
+    return info_.dimx_;
+  }
+
   /**
    * Returns the local size of the y dimension.
    *
    * @return local grid y size
    */
-  unsigned int get_ldy();
+  inline unsigned int get_ldy()
+  {
+    return info_.dimy_;
+  }
+
   /**
    * Returns the local size of the z dimension.
    *
    * @return local grid z size
    */
-  unsigned int get_ldz();
+  inline unsigned int get_ldz()
+  {
+    return info_.dimz_;
+  }
 
 
   /**
@@ -293,25 +297,40 @@ class Grid {
    *
    * @return the x spacing in mm
    */
-  delta_t get_deltax();
+  inline delta_t get_deltax()
+  {
+    return info_.deltax_;
+  }
+
   /**
    * Returns the spacing in the y direction (mm)
    *
    * @return the y spacing in mm
    */
-  delta_t get_deltay();
+  inline delta_t get_deltay()
+  {
+    return info_.deltay_;
+  }
+
   /**
    * Returns the spacing in the z direction (mm)
    *
    * @return the z spacing in mm
    */
-  delta_t get_deltaz();
+  inline delta_t get_deltaz()
+  {
+    return info_.deltaz_;
+  }
+
   /**
    * Returns the spacing in time (s)
    *
    * @return the time spacing in seconds
    */
-  delta_t get_deltat();
+  inline delta_t get_deltat()
+  {
+    return info_.deltat_;
+  }
 
   // Assign and get values of field components
 
@@ -322,8 +341,11 @@ class Grid {
    * @param z the z coordinate
    * @param val the value to set ex to
    */
-  void set_ex(unsigned int x, unsigned int y, 
-                     unsigned int z, field_t val);
+  inline void set_ex(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val)
+  {
+    ex_[x][y][z] = val;
+  }
 
   /**
    * Assign a value to Ey at some point in space.
@@ -332,8 +354,12 @@ class Grid {
    * @param z the z coordinate
    * @param val the value to set ey to
    */
-  void set_ey(unsigned int x, unsigned int y, 
-                     unsigned int z, field_t val);
+  inline void set_ey(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val)
+  {
+    ey_[x][y][z] = val;
+  }
+
 
   /**
    * Assign a value to Ez at some point in space.
@@ -342,8 +368,12 @@ class Grid {
    * @param z the z coordinate
    * @param val the value to set ez to
    */
-  void set_ez(unsigned int x, unsigned int y, 
-                     unsigned int z, field_t val);
+  inline void set_ez(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val)
+  {
+    ez_[x][y][z] = val;
+  }
+
 
   /**
    * Assign a value to Hx at some point in space.
@@ -352,8 +382,11 @@ class Grid {
    * @param z the z coordinate
    * @param val the value to set hx to
    */
-  void set_hx(unsigned int x, unsigned int y, 
-                     unsigned int z, field_t val);
+  inline void set_hx(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val)
+  {
+    hx_[x][y][z] = val;
+  }
 
   /**
    * Assign a value to Hy at some point in space.
@@ -362,8 +395,11 @@ class Grid {
    * @param z the z coordinate
    * @param val the value to set hy to
    */
-  void set_hy(unsigned int x, unsigned int y, 
-                     unsigned int z, field_t val);
+  inline void set_hy(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val)
+  {
+    hy_[x][y][z] = val;
+  }
 
   /**
    * Assign a value to Hz at some point in space.
@@ -372,8 +408,12 @@ class Grid {
    * @param z the z coordinate
    * @param val the value to set hz to
    */
-  void set_hz(unsigned int x, unsigned int y, 
-                     unsigned int z, field_t val);
+  inline void set_hz(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val)
+  {
+    hz_[x][y][z] = val;
+  }
+
 };
 
 #endif // GRID_H

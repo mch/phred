@@ -3,6 +3,7 @@ phred_SOURCES=phred.cc \
 	system.h \
 	Grid.cc \
 	Grid.hh \
+	GridInfo.hh \
 	FreqGrid.hh \
 	FreqGrid.cc \
 	Material.cc \

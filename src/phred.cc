@@ -185,9 +185,17 @@ main (int argc, char **argv)
 
   // THIS STUFF HERE IS TEMPORARY
   Grid grid; 
-
-  grid.setup_grid(100, 100, 100, 0, 0, 0, 100, 100, 100, 
-                  18.75e-9, 18.75e-9, 18.75e-9, 36e-18);
+  GridInfo info;
+  
+  info.global_dimx_ = info.dimx_ = 100;
+  info.global_dimy_ = info.dimy_ = 100;
+  info.global_dimz_ = info.dimz_ = 100;
+  info.deltax_ = info.deltay_ = info.deltaz_ = 18.75e-9;
+  info.deltat_ = 36e-18;
+  info.start_x_ = info.start_y_ = info.start_z_ = 0;
+  
+  grid.setup_grid(info);
+  grid.alloc_grid();
 
   MaterialLib mats; 
   Material mat; // defaults to free space
