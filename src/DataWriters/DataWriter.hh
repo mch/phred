@@ -98,30 +98,6 @@ protected:
    */ 
   vector<unsigned int> get_recieve_sizes(const Data &data);
 
-  /**
-   * Compute displacements for an indexed data type that pulls out a
-   * chunk of a larger N dimensional matrix. This is for creating MPI
-   * Indexed data types. 
-   */ 
-  void compute_displacements(int N, int *dsize, 
-                             int *coord, int *lens,
-                             int *num_displacements,
-                             int **displacements);
-
-  /**
-   * Recursion helper for the above. 
-   */ 
-  int displ_helper(int N, int *dsize, int *lens,
-                   int curr_dim, int disp_idx, 
-                   int *disps, int *offset,
-                   int *negoffset, bool first);
-
-  /**
-   * Computes the index of a coordinate in a chuck of contiguous
-   * memory that represents an N dimensional array with size.
-   */ 
-  int idx(int N, int *size, int *coord);
-
 public:
   DataWriter();
 

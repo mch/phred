@@ -64,11 +64,12 @@ phred_SOURCES=\
 	SubdomainAlg.hh \
 	SimpleSDAlg.cc \
 	SimpleSDAlg.hh \
-	fdtd_complex.hh \
-	fdtd_complex.cc \
-	counted_ptr.hh \
+	Contiguous.hh \
 	phred.cc $(phred_cond)
 
 #	SpaceExcitation.cc 
 #	Tests.hh \
 #	Tests.cc 
+#	fdtd_complex.hh \
+#	fdtd_complex.cc \
+#	counted_ptr.hh

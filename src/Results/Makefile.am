@@ -7,8 +7,6 @@ libresults_a_SOURCES = 	Result.hh \
 	PointResult.cc \
 	PlaneResult.hh \
 	PlaneResult.cc \
-	FarfieldResult.cc \
-	FarfieldResult.hh \
 	DFTResult.hh \
 	DFTResult.cc \
 	PointDFTResult.hh \
@@ -26,3 +24,6 @@ libresults_a_SOURCES = 	Result.hh \
 	GridResult.hh \
 	GridResult.cc
 
+# Jan's Farfield: 
+#	FarfieldResult.cc \
+#	FarfieldResult.hh

@@ -28,7 +28,7 @@
 #include "../Results/SourceDFTResult.hh"
 #include "../Results/SourceTimeResult.hh"
 #include "../Results/BlockResult.hh"
-#include "../Results/FarfieldResult.hh"
+//#include "../Results/FarfieldResult.hh"
 #include "../Results/PowerResult.hh"
 #include "../Results/FakeResult.hh"
 #include "../Results/GridResult.hh"
@@ -126,11 +126,11 @@ void export_results()
     .def("get_field", &BlockResult::get_field)
     ;
 
-  class_<FarfieldResult, bases<Result> >("FarfieldResult")
-    .def("set_huygens", &FarfieldResult::set_huygens)
-    .def("set_output_type", &FarfieldResult::set_output_type)
-    .def("set_frequencies", &FarfieldResult::set_frequencies)
-    .def("set_angles", &FarfieldResult::set_angles)
-    .def("set_axis", &FarfieldResult::set_axis)
-    ;
+//   class_<FarfieldResult, bases<Result> >("FarfieldResult")
+//     .def("set_huygens", &FarfieldResult::set_huygens)
+//     .def("set_output_type", &FarfieldResult::set_output_type)
+//     .def("set_frequencies", &FarfieldResult::set_frequencies)
+//     .def("set_angles", &FarfieldResult::set_angles)
+//     .def("set_axis", &FarfieldResult::set_axis)
+//     ;
 }
