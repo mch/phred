@@ -51,9 +51,14 @@ field_t GaussWindExcitation::window(float x, float y, float z)
 //     wx = exp((-(i*i)) / sdev_x_);
 //     wy = exp((-(j*j)) / sdev_y_);
 //     wz = exp((-(k*k)) / sdev_z_);
-    wx = exp(-1 * PI * (i*i)/(sdev_x_*sdev_x_) * (50/8));
-    wy = exp(-1 * PI * (j*j)/(sdev_y_*sdev_y_) * (50/8));
-    wz = exp(-1 * PI * (k*k)/(sdev_z_*sdev_z_) * (50/8));
+    if (polarization_[0] == 0.0 && sdev_x_ > 0.0)
+      wx = exp(-1 * PI * (i*i)/(sdev_x_*sdev_x_) * (50/8));
+
+    if (polarization_[1] == 0.0 && sdev_y_ > 0.0)
+      wy = exp(-1 * PI * (j*j)/(sdev_y_*sdev_y_) * (50/8));
+
+    if (polarization_[2] == 0.0 && sdev_z_ > 0.0)
+      wz = exp(-1 * PI * (k*k)/(sdev_z_*sdev_z_) * (50/8));
     //  }
 
   return wx * wy * wz;
@@ -67,14 +72,14 @@ void GaussWindExcitation::init(const Grid &grid)
   sdev_y_ = (ymax_ - ymin_) * 0.5;
   sdev_z_ = (zmax_ - zmin_) * 0.5;
 
-  if (sdev_x_ == 0.0)
-    sdev_x_ = 1.0;
+//   if (sdev_x_ == 0.0)
+//     sdev_x_ = 1.0;
 
-  if (sdev_y_ == 0.0)
-    sdev_y_ = 1.0;
+//   if (sdev_y_ == 0.0)
+//     sdev_y_ = 1.0;
 
-  if (sdev_z_ == 0.0)
-    sdev_z_ = 1.0;
+//   if (sdev_z_ == 0.0)
+//     sdev_z_ = 1.0;
 }
 
 ostream& GaussWindExcitation::to_string(ostream &os) const
