@@ -591,13 +591,13 @@ void Grid::load_materials(MaterialLib &matlib)
                     (1 + (sigs * get_deltat() * 0.5)/mu);
     }
 
-    cerr << "index: " << index << "\n\tCa_ = " << Ca_[index]
-         << ", Da_ = " << Da_[index] 
-         << "\n\tCbx_ = " << Cbx_[index] << ", Cby_" << Cby_[index]
-         << ", Cbz_ = " << Cbz_[index]
-         << "\n\tDbx_ = " << Dbx_[index] << ", Dby_" << Dby_[index]
-         << ", Dbz_ = " << Dbz_[index]
-         << endl;
+//     cerr << "index: " << index << "\n\tCa_ = " << Ca_[index]
+//          << ", Da_ = " << Da_[index] 
+//          << "\n\tCbx_ = " << Cbx_[index] << ", Cby_" << Cby_[index]
+//          << ", Cbz_ = " << Cbz_[index]
+//          << "\n\tDbx_ = " << Dbx_[index] << ", Dby_" << Dby_[index]
+//          << ", Dbz_ = " << Dbz_[index]
+//          << endl;
 
     ++iter;
     ++index;

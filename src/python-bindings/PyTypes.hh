@@ -83,6 +83,7 @@ BOOST_PYTHON_MODULE(Types)
     ;
 
   class_<point_t>("point")
+    .def(init<unsigned int, unsigned int, unsigned int>())
     .def_readwrite("x", &point_t::x)
     .def_readwrite("y", &point_t::y)
     .def_readwrite("z", &point_t::z)

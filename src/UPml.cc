@@ -371,11 +371,11 @@ void UPml::init(const Grid &grid, Face face)
       D1_[idx][index] = (1 + (sig * grid.get_deltat() * 0.5)/mu);
       D2_[idx][index] = (1 - (sig * grid.get_deltat() * 0.5)/mu);
 
-      cerr << "idx: " << idx << ", index: " << index 
-           << ", C1 = " << C1_[idx][index]
-           << ", C2 = " << C2_[idx][index]
-           << ", D1 = " << D1_[idx][index]
-           << ", D2 = " << D2_[idx][index] << endl;
+//       cerr << "idx: " << idx << ", index: " << index 
+//            << ", C1 = " << C1_[idx][index]
+//            << ", C2 = " << C2_[idx][index]
+//            << ", D1 = " << D1_[idx][index]
+//            << ", D2 = " << D2_[idx][index] << endl;
     }
 
     ++iter;

@@ -23,27 +23,99 @@
 
 #include "../DataWriter.hh"
 #include "../AsciiDataWriter.hh"
-#include "../Hdf5DataWriter.hh"
-#include "../HdfDataWriter.hh"
+#include "../MatlabDataWriter.hh"
+//#include "../Hdf5DataWriter.hh"
+//#include "../HdfDataWriter.hh"
 #include "../NetCDFDataWriter.hh"
-#include "../VtkDataWriter.hh"
+//#include "../VtkDataWriter.hh"
+//#include "../PyDataWriter.hh"
 
 using namespace boost::python;
 
-
-
-BOOST_PYTHON_MODULE(datawriters)
+/**
+ * Wrapper class for data writers
+ */
+class DataWriterWrap : public DataWriter
 {
-  class_<NetCDFDataWriter, bases<DataWriter>, boost::noncopyable>("NetCDFDataWriter", "Writes result data to NetCDF files", init<int, int, const char *, bool>())
+private:
+  PyObject *self_;
+
+public:
+  DataWriterWrap(PyObject *self, int rank, int size)
+    : self_(self), DataWriter(rank, size)
+  {}
+
+  unsigned int write_data(unsigned int time_step, 
+                          Variable &var, MPI_Datatype t, 
+                          void *ptr, unsigned int len)
+  {}
+
+  void add_variable(Result &result)
+  {}
+
+};
+
+BOOST_PYTHON_MODULE(DataWriters)
+{
+  class_<DataWriter, DataWriterWrap, boost::noncopyable>("DataWriter", 
+                                                         "Data writer base class",
+                                                         init<int, int>())
+    .def("set_filename", &DataWriter::set_filename)
+    ;
+
+  class_<NetCDFDataWriter, bases<DataWriter>, boost::noncopyable>("NetCDFDataWriter", 
+                           "Writes result data to NetCDF files", 
+                           init<int, int, const char *, bool>())
     .def(init<int, int, const char *>())
     .def(init<int, int>())
     .def("set_filename", &NetCDFDataWriter::set_filename)
     .def("add_variable", &NetCDFDataWriter::add_variable)
     ;
 
-  class_<AsciiDataWriter, bases<DataWriter>, boost::noncopyable>("AsciiDataWriter", "Writes result data to ASCII files", init<int, int, const char *, Result &>())
+  class_<AsciiDataWriter, bases<DataWriter>, boost::noncopyable>("AsciiDataWriter", 
+                          "Writes result data to ASCII files", 
+                          init<int, int, const char *, Result &>())
     .def(init<int, int>())
     .def("set_filename", &AsciiDataWriter::set_filename)
     .def("add_variable", &AsciiDataWriter::add_variable)
     ;
+
+  class_<MatlabDataWriter, bases<DataWriter>, boost::noncopyable>("MatlabDataWriter", 
+                           "Writes data to Matlab 5 format files.",
+                           init<int, int, const char *, Result &>())
+    .def(init<int, int>())
+    .def("add_variable", &MatlabDataWriter::add_variable)
+    .def("test", &MatlabDataWriter::test)
+    .def("set_filename", &MatlabDataWriter::set_filename)
+    ;
+
+//   class_<Hdf5DataWriter>("Hdf5DataWriter", 
+//                          "Writes result data to HDF 5 files", 
+//                           init<int, int, const char *, Result &>())
+//     .def(init<int, int>())
+//     .def("set_filename", &Hdf5DataWriter::set_filename)
+//     .def("add_variable", &Hdf5DataWriter::add_variable)
+//     ;
+
+//   class_<HdfDataWriter>("HdfDataWriter", 
+//                          "Writes result data to HDF files", 
+//                           init<int, int, const char *, Result &>())
+//     .def(init<int, int>())
+//     .def("set_filename", &HdfDataWriter::set_filename)
+//     .def("add_variable", &HdfDataWriter::add_variable)
+//     ;
+
+//   class_<VtkDataWriter>("VtkDataWriter", 
+//                          "Writes result data to VTK files", 
+//                           init<int, int, const char *, Result &>())
+//     .def(init<int, int>())
+//     .def("set_filename", &VtkDataWriter::set_filename)
+//     .def("add_variable", &VtkDataWriter::add_variable)
+//     ;
+
+//   class_<PyDataWriter>("PyDataWriter", 
+//                        "Exports data into Python so user scripts can work with it. "
+//                        init<int, int>())
+//     .def("add_variable", &PyDataWriter::add_variable)
+//     ;
 }

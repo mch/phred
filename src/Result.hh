@@ -121,7 +121,7 @@ public:
    * Returns true if this result has a time dimension, that it,
    * returns data at more than one time step. 
    */
-  inline bool has_time_dimension() const
+  bool has_time_dimension() const
   {
     return time_dim_;
   }
@@ -129,7 +129,7 @@ public:
   /**
    * Used to set wether or not a variable has a dimension that is time. 
    */
-  inline void has_time_dimension(bool t)
+  void has_time_dimension(bool t)
   {
     time_dim_ = t;
   }  

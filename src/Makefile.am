@@ -13,6 +13,7 @@ phred_cond += python-bindings/PyExcitations.hh \
 	python-bindings/PyGrid.hh \
 	python-bindings/PyFDTD.hh \
 	python-bindings/PyTypes.hh \
+	python-bindings/PyDatawriters.hh \
 	python-bindings/PyBoundaries.hh \
 	python-bindings/PyInterpreter.hh \
 	python-bindings/PyInterpreter.cc

@@ -54,24 +54,31 @@ public:
     : self_(self) {}
 
   map<string, Variable *> &get_result(const Grid &grid, unsigned int time_step)
-  { return call_method<map<string, Variable *> &>(self_, "get_result"); }
+  { return call_method<map<string, Variable *> &, Result&, const Grid &, unsigned int>(self_, "get_result", grid, time_step); }
 
 };
 
 BOOST_PYTHON_MODULE(Results)
 {
-   class_<Result, ResultWrap, boost::noncopyable>("Result", "Result data derieved from the Grid")
-//     .def("has_time_dimension", &Result::has_time_dimension)
-//     .def("set_time_param", &Result::set_time_param)
-//     .def("set_dw_name", &Result::set_dw_name)
-//     .def("get_dw_name", &Result::get_dw_name)
-//     .def("set_name", &Result::set_name)
-//     .def("get_name", &Result::get_name)
-//     .def("get_dim_lengths", &Result::get_dim_lengths)
-//     .def("get_dim_names", &Result::get_dim_names)
-     ;
+  def("call_get_result", call_get_result);
 
-//   def("call_get_result", call_get_result);
+  class_<Result, ResultWrap, boost::noncopyable>("Result", "Result data derieved from the Grid")
+    .add_property("has_time_dimension", 
+                  (bool(Result::*)(void))&Result::has_time_dimension, 
+                  (void(Result::*)(bool))&Result::has_time_dimension)
+    .def("set_time_param", &Result::set_time_param)
+    .def("set_dw_name", &Result::set_dw_name)
+    .def("get_dw_name", &Result::get_dw_name)
+    .add_property("dw_name", &Result::get_dw_name,
+                  &Result::set_dw_name)
+    .def("set_name", &Result::set_name)
+    .def("get_name", &Result::get_name)
+    .add_property("name", &Result::get_name, &Result::set_name)     
+    //.def("get_dim_lengths", &Result::get_dim_lengths)
+    //.def("get_dim_names", &Result::get_dim_names)
+    ;
+
+  //   def("call_get_result", call_get_result);
 
   class_<PlaneResult, bases<Result> >("PlaneResult")
     .def("set_plane", &PlaneResult::set_plane)
@@ -83,6 +90,7 @@ BOOST_PYTHON_MODULE(Results)
   class_<PointResult, bases<Result> >("PointResult")
     .def("set_point", &PointResult::set_point)
     .def("get_point", &PointResult::get_point)
+    .add_property("point", &PointResult::get_point, &PointResult::set_point)
     ;
 
   class_<PointDFTResult, bases<Result> >("PointDFTResult")
@@ -94,6 +102,14 @@ BOOST_PYTHON_MODULE(Results)
     .def("get_freq_stop", &PointDFTResult::get_freq_stop)
     .def("set_num_freq", &PointDFTResult::set_num_freq)
     .def("get_num_freq", &PointDFTResult::get_num_freq)
+    .add_property("freq_start", &PointDFTResult::get_freq_start,
+                  &PointDFTResult::set_freq_start)
+    .add_property("freq_stop", &PointDFTResult::get_freq_stop,
+                  &PointDFTResult::set_freq_stop)
+    .add_property("num_freqs", &PointDFTResult::get_num_freq,
+                  &PointDFTResult::set_num_freq)
+    .add_property("point", &PointDFTResult::get_point, 
+                  &PointDFTResult::set_point)
     ;
 
   class_<SourceDFTResult, bases<Result> >("SourceDFTResult", init<SourceFunction &>())
@@ -104,6 +120,12 @@ BOOST_PYTHON_MODULE(Results)
     .def("get_freq_stop", &SourceDFTResult::get_freq_stop)
     .def("set_num_freq", &SourceDFTResult::set_num_freq)
     .def("get_num_freq", &SourceDFTResult::get_num_freq)
+    .add_property("freq_start", &SourceDFTResult::get_freq_start,
+                  &SourceDFTResult::set_freq_start)
+    .add_property("freq_stop", &SourceDFTResult::get_freq_stop,
+                  &SourceDFTResult::set_freq_stop)
+    .add_property("num_freqs", &SourceDFTResult::get_num_freq,
+                  &SourceDFTResult::set_num_freq)
     ;
 
   class_<SourceTimeResult, bases<Result> >("SourceTimeResult", init<SourceFunction &>())

@@ -36,9 +36,11 @@ BOOST_PYTHON_MODULE(FDTD)
     .def("add_e_excitation", &FDTD::add_e_excitation)
     .def("add_h_excitation", &FDTD::add_h_excitation)
     .def("add_result", &FDTD::add_result)
+    .def("add_geometry", &FDTD::add_geometry)
     .def("add_datawriter", &FDTD::add_datawriter)
     .def("map_result_to_dw", &FDTD::map_result_to_datawriter)
     .def("run", &FDTD::run)
+    .def("set_time_steps", &FDTD::set_time_steps)
     ;
 
   

@@ -54,7 +54,7 @@ public:
 
   void excite(Grid &grid, unsigned int time_step,
               FieldType type) 
-  { call_method<void>(self_, "excite"); }
+  { call_method<void, Grid&, unsigned int, FieldType>(self_, "excite", grid, time_step, type); }
 
   void default_excite(Grid &grid, unsigned int time_step,
                       FieldType type) 
@@ -117,16 +117,20 @@ public:
 
 BOOST_PYTHON_MODULE(Excitations)
 {
+  def("call_excite", call_excite);
+  def("call_source_function", call_source_function);
+    
   class_<Excitation, ExcitationWrap, boost::noncopyable>("Excitation", "Excitations applied to the FDTD grid", init<SourceFunction *>())
-    .def("excite", &Excitation::excite, &ExcitationWrap::default_excite)
+    //.def("excite", &Excitation::excite, &ExcitationWrap::default_excite)
+    .def("excite", &Excitation::excite)
     .def("set_polarization", &Excitation::set_polarization)
     .def("set_type", &Excitation::set_type)
     .def("set_soft", &Excitation::set_soft)
     .def("get_soft", &Excitation::get_soft)
     //.def("set_region", &Excitation::set_region(region_t))
-    //.def("set_region", &Excitation::set_region(unsigned int, unsigned int, 
-    //                                           unsigned int, unsigned int,
-    //                                           unsigned int, unsigned int))
+    .def("set_region", (void(Excitation::*)(unsigned int, unsigned int, 
+                                            unsigned int, unsigned int,
+                                            unsigned int, unsigned int))&Excitation::set_region)
     ;
 
   class_<WindowedExcitation, WindowedExcitationWrap, bases<Excitation>, boost::noncopyable>("WindowedExcitation", "Excitations that apply a windowing function to the excitation in the FDTD grid", init<SourceFunction *>())

@@ -40,6 +40,7 @@ static struct _inittab modules_[] =
     {"Boundaries", &initBoundaries},
     {"Materials", &initMaterials},
     {"Types", &initTypes},
+    {"DataWriters", &initDataWriters},
     {"Geometry", &initGeometry},
     //{"Grid", &initGrid},
     {0, 0}
@@ -253,6 +254,10 @@ void PyInterpreter::add_modules()
   handle<> gname ( PyString_FromString("Geometry") );
   handle<> geom( PyImport_Import(gname.get()) );
   PyDict_SetItemString(main_namespace.get(), "Geometry", geom.get());
+
+  handle<> dwname ( PyString_FromString("DataWriters") );
+  handle<> dws( PyImport_Import(dwname.get()) );
+  PyDict_SetItemString(main_namespace.get(), "DataWriters", dws.get());
 
   // MPI Data
   PyDict_SetItemString(main_namespace.get(), "MPI_RANK", 

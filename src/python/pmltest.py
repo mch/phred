@@ -4,9 +4,18 @@ if (MPI_SIZE > 1):
     
 print "Testing the performance of Berengers PML on %s %s..." % (MPI_SIZE,  temp)
 
+# Extent of region
 xlen = 100
 ylen = 50
 zlen = 50
+
+# Centre of sphere:
+centre = Types.point()
+centre.x = 40
+centre.y = ylen / 2
+centre.z = zlen / 2
+
+num_time_steps = 500
 
 fdtd = FDTD.FDTD()
 fdtd.set_grid_size(xlen, ylen, zlen)
@@ -34,7 +43,7 @@ fdtd.set_boundary(Types.RIGHT, right)
 fdtd.set_boundary(Types.TOP, top)
 fdtd.set_boundary(Types.BOTTOM, bottom)
 
-# Fill interior
+# Materials
 mlib = Materials.MaterialLib()
 mat = Materials.Material()
 mlib.add_material(mat)
@@ -51,5 +60,49 @@ mlib.add_material(mat)
 
 fdtd.load_materials(mlib)
 
-# Excitation
+# Regions
+interior = Geometry.Box()
+interior.set_region(0, xlen, 0, ylen, 0, zlen)
+interior.material_id = 1
 
+sphere = Geometry.Sphere(centre, 5)
+sphere.material_id = 3
+
+fdtd.add_geometry(interior)
+fdtd.add_geometry(sphere)
+
+# Excitation
+gm = Excitations.Gaussm()
+gm.set_parameters(10, 200e12, 100e12)
+
+ex = Excitations.Excitation(gm)
+ex.set_soft(0)
+ex.set_region(20, 20, ylen/2, ylen/2, zlen/2, zlen/2);
+ex.set_polarization(0.0, 1.0, 0.0)
+
+fdtd.add_e_excitation("modgauss", ex)
+
+# Data Writers!
+mdw = DataWriters.MatlabDataWriter(MPI_RANK, MPI_SIZE);
+mdw.set_filename("test.mat")
+
+fdtd.add_datawriter("mdw", mdw)
+
+ncdw = DataWriters.NetCDFDataWriter(MPI_RANK, MPI_SIZE)
+ncdw.set_filename("yz_plane.nc")
+fdtd.add_datawriter("ncdw", ncdw)
+
+# Results!
+p = Types.point();
+p.x = xlen / 2
+p.y = ylen / 2
+p.z = zlen / 2
+
+pr2 = Results.PlaneResult()
+#pr2.set_name("ey-xzplane")
+pr2.set_plane(p, Types.LEFT)
+pr2.set_field(Types.EY)
+
+# Execute
+fdtd.set_time_steps(num_time_steps)
+fdtd.run(MPI_RANK, MPI_SIZE)
