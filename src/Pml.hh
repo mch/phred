@@ -3,10 +3,6 @@
 
 #include "BoundaryCondition.hh"
 
-// THIS IS A MESS RIGHT NOW. WORK STOPPED UNTIL I CAN GET A BETTER
-// GRASP OF EXACTLY WHAT IS GOING ON WITH JAN's PML CODE
-
-// 
 /**
  * PML Variation types. Not that I know what they mean or anything. 
  */
@@ -15,71 +11,6 @@ enum PmlVariation_t {
   L,
   P,
   G
-};
-
-// forward decl
-class Pml;
-
-/**
- * Data common to a set of PML's. This holds coefficients and stuff
- * that are used by all PML's. 
- */
-class PmlCommon {
-  friend class Pml;
-
-private:
-  float *ratio_x_;
-  float *ratio_star_x_;
-  
-  float *ratio_y_;
-  float *ratio_star_y_;
-  
-  float *ratio_z_;
-  float *ratio_star_z_;
-  
-  float *e_x_coef1_;
-  float *e_x_coef2_;
-  
-  float *e_y_coef1_;
-  float *e_y_coef2_;
-  
-  float *e_z_coef1_;
-  float *e_z_coef2_;
-  
-  float *h_x_coef1_;
-  float *h_x_coef2_;
-  
-  float *h_y_coef1_;
-  float *h_y_coef2_;
-  
-  float *h_z_coef1_;
-  float *h_z_coef2_;
-
-  /**
-   * Setup the coefficients 
-   */
-  void alloc_coeffs(Grid &grid);
-
-  /**
-   * Free the coefficients.
-   */
-  void free_coeffs();
-
-public:
-  /**
-   * Constructor
-   */
-  PmlCommon();
-
-  /**
-   * Destructornator!
-   */
-  ~PmlCommon();
-  
-  /**
-   * Set the common PML parameters and calculate coeffs and stuff
-   */
-  void init_coeffs(Face face, Pml &pml, Grid &grid);
 };
 
 /**
@@ -97,25 +28,30 @@ class Pml : public BoundaryCond
 private:
 protected:
 
-  // Split field component data:
-  field_t ***exy_;
-  field_t ***exz_;
+  // Split field component data. The memory layout is the same as for
+  // the grid.
+
+  field_t *exy_;
+  field_t *exz_;
   
-  field_t ***eyx_;
-  field_t ***eyz_;
+  field_t *eyx_;
+  field_t *eyz_;
   
-  field_t ***ezx_;
-  field_t ***ezy_;
+  field_t *ezx_;
+  field_t *ezy_;
   
-  field_t ***hxy_;
-  field_t ***hxz_;
+  field_t *hxy_;
+  field_t *hxz_;
   
-  field_t ***hyx_;
-  field_t ***hyz_;
+  field_t *hyx_;
+  field_t *hyz_;
   
-  field_t ***hzx_;
-  field_t ***hzy_;
+  field_t *hzx_;
+  field_t *hzy_;
   
+  region_t region_; /**< Region in the Grid to apply the PML to in
+                       local coords */
+
   /**
    * Allocate memory for the field data
    *
@@ -159,6 +95,36 @@ public:
    * @param thickness yup
    */
   void set_thickness(unsigned int thickness);
+
+  /**
+   * Update the Ex field component inside the PML
+   */
+  void pml_update_ex();
+
+  /**
+   * Update the Ey field component inside the PML
+   */
+  void pml_update_ey();
+
+  /**
+   * Update the Ez field component inside the PML
+   */
+  void pml_update_ez();
+
+  /**
+   * Update the Hx field component inside the PML
+   */
+  void pml_update_hx();
+
+  /**
+   * Update the Hy field component inside the PML
+   */
+  void pml_update_hy();
+
+  /**
+   * Update the Hz field component inside the PML
+   */
+  void pml_update_hz();
 
 };
 

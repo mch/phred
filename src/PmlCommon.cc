@@ -1,35 +1,5 @@
-#include "PML.hh"
+#include "PmlCommon.hh"
 #include "Grid.hh"
-
-Pml::Pml()
-{}
-
-Pml::~Pml()
-{}
-
-void Pml::apply(Face face, Grid &grid)
-{
-  region_t r = find_face(face, grid);
-
-  switch (face)
-  {
-  case FRONT:
-  case BACK:
-    //condition<YZPlane>(r, grid);
-    break;
-
-  case LEFT:
-  case RIGHT:
-    //condition<XZPlane>(r, grid);
-    break;
-
-  case TOP:
-  case BOTTOM:
-    //condition<XYPlane>(r, grid);
-    break;
-  }
-}
-
 
 void PmlCommon::alloc_coeffs(Grid &grid)
 {
@@ -98,7 +68,16 @@ void PmlCommon::free_coeffs()
 }
 
 
-void PmlCommon::init_coeffs(Face face, Pml &pml, Grid &grid) 
+void PmlCommon::init_coeffs(Grid &grid) 
 {
-  
+  GridInfo &gi = grid.get_grid_info();
+
+  for (int i = 0; i < 6; i++)
+  {
+    if (gi.get_bc_type(static_cast<Face>(i)) == PML) {
+      BoundaryCond &bc = gi.get_boundary(static_cast<Face>(i));
+      
+      // initialize maximum ratios ...
+    }
+  }
 }
