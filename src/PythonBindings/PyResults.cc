@@ -32,6 +32,7 @@
 #include "../Results/PowerResult.hh"
 #include "../Results/FakeResult.hh"
 #include "../Results/GridResult.hh"
+#include "../Results/SurfaceCurrentResult.hh"
 
 using namespace boost::python;
 
@@ -126,6 +127,12 @@ void export_results()
     .def("get_region", &BlockResult::get_region)
     .def("set_field", &BlockResult::set_field)
     .def("get_field", &BlockResult::get_field)
+    ;
+
+  class_<SurfaceCurrentResult, bases<Result> >("SurfaceCurrentResult", "Generates data about the currents excited on the surface of an equivalent surface.")
+    .def("set_region", &SurfaceCurrentResult::set_region, 
+         "Set the CSGBox which defines the surface over which \
+currents should be calculated.")
     ;
 
 //   class_<FarfieldResult, bases<Result> >("FarfieldResult")

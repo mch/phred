@@ -47,3 +47,17 @@ BartlettExcitation::BartlettExcitation(shared_ptr<SourceFunction> sf)
 
 BartlettExcitation::~BartlettExcitation()
 {}
+
+ostream& BartlettExcitation::to_string(ostream &os) const
+{
+  os << "BartlettExcitation being applied to a region starting at ("
+     << xmin_ << ", " << ymin_ << ", " << zmin_ 
+     << ") and extending to (" << xmax_ << ymax_
+     << zmax_ << ". On this rank, the excitation starts at ("
+     << lxmin_ << ", " << lymin_ << ", " << lzmin_ 
+     << "). ";
+
+  Excitation::to_string(os);
+
+  return os;    
+}

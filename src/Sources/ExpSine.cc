@@ -41,4 +41,9 @@ field_t ExpSine::source_function(float time)
   return ret;
 }
 
- 
+ostream& ExpSine::to_string(ostream &os) const
+{
+  return os << "ExpSine signal with an amplitude of " << ampl_
+            << ", a sine frequency of " << omega_ / (2 * PI) 
+            << "Hz, and a period of " << period_ << " seconds.";
+}

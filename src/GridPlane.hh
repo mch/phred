@@ -74,7 +74,7 @@ public:
    * @param z
    */ 
   virtual const field_t *get_e_n_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z) = 0;
+                                     unsigned int z) const = 0;
 
   /**
    * Returns a pointer the normal H component. This is intended to be
@@ -85,7 +85,7 @@ public:
    * @param z
    */ 
   virtual const field_t *get_h_n_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z) = 0;
+                                     unsigned int z) const = 0;
 
   /**
    * Returns a pointer the first tangential E component. This is
@@ -97,7 +97,7 @@ public:
    * @param z
    */ 
   virtual const field_t *get_e_t1_ptr(unsigned int x, unsigned int y, 
-                                      unsigned int z) = 0;
+                                      unsigned int z) const = 0;
 
   /**
    * Returns a pointer the first tangential H component. This is
@@ -109,7 +109,7 @@ public:
    * @param z
    */ 
   virtual const field_t *get_h_t1_ptr(unsigned int x, unsigned int y, 
-                                      unsigned int z) = 0;
+                                      unsigned int z) const = 0;
 
   /**
    * Returns a pointer the second tangential E component. This is
@@ -121,7 +121,7 @@ public:
    * @param z
    */ 
   virtual const field_t *get_e_t2_ptr(unsigned int x, unsigned int y, 
-                                      unsigned int z) = 0;
+                                      unsigned int z) const = 0;
 
   /**
    * Returns a pointer the second tangential H component. This is
@@ -133,7 +133,7 @@ public:
    * @param z
    */ 
   virtual const field_t *get_h_t2_ptr(unsigned int x, unsigned int y, 
-                                      unsigned int z) = 0;
+                                      unsigned int z) const = 0;
 
   /** 
    * Set the normal E field component
@@ -211,7 +211,7 @@ public:
    * @return field component value
    */
   virtual field_t get_e_n(unsigned int x, unsigned int y, 
-                          unsigned int z) = 0;
+                          unsigned int z) const = 0;
 
   /** 
    * Get the normal H field component
@@ -222,7 +222,7 @@ public:
    * @return field component value
    */
   virtual field_t get_h_n(unsigned int x, unsigned int y, 
-                          unsigned int z) = 0;
+                          unsigned int z) const = 0;
 
   /**
    * Get the first tangential E field component, E_1. 
@@ -233,7 +233,7 @@ public:
    * @return field component value
    */
   virtual field_t get_e_t1(unsigned int x, unsigned int y, 
-                           unsigned int z) = 0;
+                           unsigned int z) const = 0;
 
   /**
    * Get the second tangential E field component, E_2. 
@@ -244,7 +244,7 @@ public:
    * @return field component value
    */
   virtual field_t get_e_t2(unsigned int x, unsigned int y, 
-                           unsigned int z) = 0;
+                           unsigned int z) const = 0;
 
   /**
    * Get the first tangential H field component, H_1. 
@@ -255,7 +255,7 @@ public:
    * @return field component value
    */
   virtual field_t get_h_t1(unsigned int x, unsigned int y, 
-                           unsigned int z) = 0;
+                           unsigned int z) const = 0;
 
   /**
    * Get the second tangential H field component, H_2. 
@@ -266,7 +266,7 @@ public:
    * @return field component value
    */
   virtual field_t get_h_t2(unsigned int x, unsigned int y, 
-                           unsigned int z) = 0;
+                           unsigned int z) const = 0;
 
 };
 
@@ -294,7 +294,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_e_n_ptr(unsigned int x, unsigned int y, 
-                                    unsigned int z)
+                                    unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_EX);
   }
@@ -308,7 +308,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_h_n_ptr(unsigned int x, unsigned int y, 
-                                    unsigned int z)
+                                    unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_HX);
   }
@@ -323,7 +323,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_e_t1_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_EY);
   }
@@ -338,7 +338,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_h_t1_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_HY);
   }
@@ -353,7 +353,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_e_t2_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_EZ);
   }
@@ -368,7 +368,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_h_t2_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_HZ);
   }
@@ -438,7 +438,7 @@ public:
    * @param value new field component value
    */
   inline void set_h_t1(unsigned int x, unsigned int y, 
-                        unsigned int z, field_t value) 
+                        unsigned int z, field_t value)
   {
     grid_.set_hy(x, y, z, value);
   }
@@ -466,7 +466,7 @@ public:
    * @return field component value
    */
   inline field_t get_e_n(unsigned int x, unsigned int y, 
-                          unsigned int z)
+                          unsigned int z) const
   {
     return grid_.get_ex(x, y, z);
   }
@@ -480,7 +480,7 @@ public:
    * @return field component value
    */
   inline field_t get_h_n(unsigned int x, unsigned int y, 
-                          unsigned int z)
+                          unsigned int z) const
   {
     return grid_.get_hx(x, y, z);
   }
@@ -494,7 +494,7 @@ public:
    * @return field component value
    */
   inline field_t get_e_t1(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_ey(x, y, z);
   }
@@ -508,7 +508,7 @@ public:
    * @return field component value
    */
   inline field_t get_e_t2(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_ez(x, y, z);
   }
@@ -522,7 +522,7 @@ public:
    * @return field component value
    */
   inline field_t get_h_t1(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_hy(x, y, z);
   }
@@ -536,7 +536,7 @@ public:
    * @return field component value
    */
   inline field_t get_h_t2(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_hz(x, y, z);
   }
@@ -567,7 +567,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_e_n_ptr(unsigned int x, unsigned int y, 
-                                    unsigned int z)
+                                    unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_EY);
   }
@@ -581,7 +581,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_h_n_ptr(unsigned int x, unsigned int y, 
-                                    unsigned int z)
+                                    unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_HY);
   }
@@ -596,7 +596,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_e_t1_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_EZ);
   }
@@ -611,7 +611,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_h_t1_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_HZ);
   }
@@ -626,7 +626,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_e_t2_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_EX);
   }
@@ -641,7 +641,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_h_t2_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_HX);
   }
@@ -683,7 +683,7 @@ public:
    * @param value new field component value
    */
   inline void set_e_t1(unsigned int x, unsigned int y, 
-                        unsigned int z, field_t value)
+                        unsigned int z, field_t value) 
   {
     grid_.set_ez(x, y, z, value);
   }
@@ -739,7 +739,7 @@ public:
    * @return field component value
    */
   inline field_t get_e_n(unsigned int x, unsigned int y, 
-                          unsigned int z)
+                          unsigned int z) const
   {
     return grid_.get_ey(x, y, z);
   }
@@ -753,7 +753,7 @@ public:
    * @return field component value
    */
   inline field_t get_h_n(unsigned int x, unsigned int y, 
-                          unsigned int z)
+                          unsigned int z) const
   {
     return grid_.get_hy(x, y, z);
   }
@@ -767,7 +767,7 @@ public:
    * @return field component value
    */
   inline field_t get_e_t1(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_ez(x, y, z);
   }
@@ -781,7 +781,7 @@ public:
    * @return field component value
    */
   inline field_t get_e_t2(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_ex(x, y, z);
   }
@@ -795,7 +795,7 @@ public:
    * @return field component value
    */
   inline field_t get_h_t1(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_hz(x, y, z);
   }
@@ -809,7 +809,7 @@ public:
    * @return field component value
    */
   inline field_t get_h_t2(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_hx(x, y, z);
   }
@@ -839,7 +839,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_e_n_ptr(unsigned int x, unsigned int y, 
-                                    unsigned int z)
+                                    unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_EZ);
   }
@@ -853,7 +853,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_h_n_ptr(unsigned int x, unsigned int y, 
-                                    unsigned int z)
+                                    unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_HZ);
   }
@@ -868,7 +868,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_e_t1_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_EX);
   }
@@ -883,7 +883,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_h_t1_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_HX);
   }
@@ -898,7 +898,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_e_t2_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_EY);
   }
@@ -913,7 +913,7 @@ public:
    * @param z
    */ 
   inline const field_t *get_h_t2_ptr(unsigned int x, unsigned int y, 
-                                     unsigned int z)
+                                     unsigned int z) const
   {
     return grid_.get_pointer(grid_point(x, y, z), FC_HY);
   }
@@ -983,7 +983,7 @@ public:
    * @param value new field component value
    */
   inline void set_h_t1(unsigned int x, unsigned int y, 
-                        unsigned int z, field_t value) 
+                        unsigned int z, field_t value)
   {
     grid_.set_hx(x, y, z, value);
   }
@@ -1011,7 +1011,7 @@ public:
    * @return field component value
    */
   inline field_t get_e_n(unsigned int x, unsigned int y, 
-                          unsigned int z)
+                          unsigned int z) const
   {
     return grid_.get_ez(x, y, z);
   }
@@ -1025,7 +1025,7 @@ public:
    * @return field component value
    */
   inline field_t get_h_n(unsigned int x, unsigned int y, 
-                          unsigned int z)
+                          unsigned int z) const
   {
     return grid_.get_hz(x, y, z);
   }
@@ -1039,7 +1039,7 @@ public:
    * @return field component value
    */
   inline field_t get_e_t1(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_ex(x, y, z);
   }
@@ -1053,7 +1053,7 @@ public:
    * @return field component value
    */
   inline field_t get_e_t2(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_ey(x, y, z);
   }
@@ -1067,7 +1067,7 @@ public:
    * @return field component value
    */
   inline field_t get_h_t1(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_hx(x, y, z);
   }
@@ -1081,7 +1081,7 @@ public:
    * @return field component value
    */
   inline field_t get_h_t2(unsigned int x, unsigned int y, 
-                           unsigned int z)
+                           unsigned int z) const
   {
     return grid_.get_hy(x, y, z);
   }

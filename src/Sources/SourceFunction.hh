@@ -51,6 +51,18 @@ public:
    */
   virtual field_t source_function(float time) = 0;
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const
+  { return os << "SourceFunction of indeterminate type."; }
+
+  friend ostream& operator<< (ostream& os, const SourceFunction &sf);
 };
+
+inline ostream& operator<< (ostream& os, const SourceFunction &sf)
+{
+  return sf.to_string(os);
+}
 
 #endif // SOURCE_FUNCTION_H

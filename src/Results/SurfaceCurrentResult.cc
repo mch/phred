@@ -20,6 +20,8 @@
 */
 
 #include "SurfaceCurrentResult.hh"
+#include "../GridPlane.hh"
+
 #include <math.h>
 
 SurfaceCurrentResult::SurfaceCurrentResult()
@@ -77,6 +79,8 @@ void SurfaceCurrentResult::init(const Grid &grid)
     throw ResultException("SurfaceCurrentResult has no surface defined!");
   }
   
+  shared_ptr<Block> gregion = grid.get_global_region(*(box_.get()));
+
   if (do_dft_ && num_freqs_ > 2 && freq_stop_ > freq_start_)
   {
     freq_space_ = (freq_stop_ - freq_start_) / (num_freqs_ - 1);
@@ -106,6 +110,26 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Mt1_[i].set_name(base_name_ + "_front_My");
       Mt2_[i].set_name(base_name_ + "_front_Mz");
       face_size = (*region_).xmax() - (*region_).xmin();
+
+      Jt1_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+      Jt1_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+
+      Jt2_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+      Jt2_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+
+      Mt1_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+      Mt1_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+
+      Mt2_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+      Mt2_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
       break;
 
     case BACK:
@@ -114,6 +138,26 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Mt1_[i].set_name(base_name_ + "_back_My");
       Mt2_[i].set_name(base_name_ + "_back_Mz");
       face_size = (*region_).xmax() - (*region_).xmin();
+
+      Jt1_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+      Jt1_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+
+      Jt2_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+      Jt2_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+
+      Mt1_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+      Mt1_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+
+      Mt2_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+      Mt2_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
       break;
 
     case LEFT:
@@ -122,6 +166,26 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Mt1_[i].set_name(base_name_ + "_left_Mx");
       Mt2_[i].set_name(base_name_ + "_left_Mz");
       face_size = (*region_).ymax() - (*region_).ymin();
+
+      Jt1_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+      Jt1_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+
+      Jt2_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+      Jt2_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+
+      Mt1_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+      Mt1_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+
+      Mt2_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+      Mt2_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
       break;
 
     case RIGHT: 
@@ -130,6 +194,26 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Mt1_[i].set_name(base_name_ + "_right_Mx");
       Mt2_[i].set_name(base_name_ + "_right_Mz");
       face_size = (*region_).ymax() - (*region_).ymin();
+
+      Jt1_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+      Jt1_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+
+      Jt2_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+      Jt2_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+
+      Mt1_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+      Mt1_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+
+      Mt2_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
+                            (*region_).zstart());
+      Mt2_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
       break;
 
     case TOP:
@@ -138,6 +222,26 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Mt1_[i].set_name(base_name_ + "_top_Mx");
       Mt2_[i].set_name(base_name_ + "_top_My");
       face_size = (*region_).zmax() - (*region_).zmin();
+
+      Jt1_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+      Jt1_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+
+      Jt2_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+      Jt2_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+
+      Mt1_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+      Mt1_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+
+      Mt2_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+      Mt2_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
       break;
 
     case BOTTOM:
@@ -146,6 +250,26 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Mt1_[i].set_name(base_name_ + "_bottom_Mx");
       Mt2_[i].set_name(base_name_ + "_bottom_My");
       face_size = (*region_).zmax() - (*region_).zmin();
+
+      Jt1_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+      Jt1_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+
+      Jt2_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+      Jt2_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+
+      Mt1_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+      Mt1_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
+
+      Mt2_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
+                            (*region_).xstart());
+      Mt2_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
+                            (*region_).ystart());
       break;
 
     }
@@ -237,41 +361,91 @@ SurfaceCurrentResult::get_result(const Grid &grid,
     {
     case FRONT:
       xmin = xmax - 1;
+      calc_currents<YZPlane>(xmin, xmax, ymin, ymax, zmin, zmax, 
+                             face_idx, grid);
       break;
 
     case BACK:
       xmax = xmin + 1;
+      calc_currents<YZPlane>(xmin, xmax, ymin, ymax, zmin, zmax, 
+                             face_idx, grid);
       break;
 
     case LEFT:
       ymax = ymin + 1;
+      calc_currents<XZPlane>(xmin, xmax, ymin, ymax, zmin, zmax, 
+                             face_idx, grid);
       break;
 
     case RIGHT:
       ymin = ymax - 1;
+      calc_currents<XZPlane>(xmin, xmax, ymin, ymax, zmin, zmax, 
+                             face_idx, grid);
       break;
 
     case TOP:
       zmin = zmax - 1;
+      calc_currents<XYPlane>(xmin, xmax, ymin, ymax, zmin, zmax, 
+                             face_idx, grid);
       break;
 
     case BOTTOM:
       zmax = zmin + 1;
+      calc_currents<XYPlane>(xmin, xmax, ymin, ymax, zmin, zmax, 
+                             face_idx, grid);
       break;
-    }
-
-    for (unsigned int i = xmin; i < xmax; i++)
-    {
-      for (unsigned int j = ymin; j < ymax; j++)
-      {
-        for (unsigned int k = zmin; k < zmax; k++)
-        {
-          
-        }
-      }
     }
 
   } // end for (int i = 0; i < 6; i++)
 
   return variables_;
+}
+
+template<class T>
+void SurfaceCurrentResult::calc_currents(unsigned int xmin, 
+                                         unsigned int xmax, 
+                                         unsigned int ymin, 
+                                         unsigned int ymax, 
+                                         unsigned int zmin, 
+                                         unsigned int zmax, 
+                                         int face_idx, 
+                                         const Grid &grid)
+{
+  const field_t *e_t1;
+  const field_t *e_t2, *h_t1, *h_t2;
+
+  T p(const_cast<Grid &>(grid)); // EVIL
+
+  field_t *Jt1 = Jt1_data_[face_idx];
+  field_t *Jt2 = Jt2_data_[face_idx];
+
+  field_t *Mt1 = Mt1_data_[face_idx];
+  field_t *Mt2 = Mt2_data_[face_idx];
+
+  for (unsigned int i = xmin; i < xmax; i++)
+  {
+    for (unsigned int j = ymin; j < ymax; j++)
+    {
+      e_t1 = p.get_e_t1_ptr(i, j, zmin);
+      e_t2 = p.get_e_t2_ptr(i, j, zmin);
+      h_t1 = p.get_h_t1_ptr(i, j, zmin);
+      h_t2 = p.get_h_t2_ptr(i, j, zmin);
+
+      unsigned int idx = 0;
+      for (unsigned int k = zmin; k < zmax; k++, idx++)
+      {
+        Jt1[idx] = - *h_t2;
+        Jt2[idx] = *h_t1;
+        Mt1[idx] = *e_t2;
+        Mt2[idx] = - *e_t1;
+
+        h_t2++; h_t1++; e_t1++; e_t2++;
+      }
+    }
+  }
+}
+
+ostream& SurfaceCurrentResult::to_string(ostream &os) const
+{
+  return os << "SurfaceCurrentResult...";
 }

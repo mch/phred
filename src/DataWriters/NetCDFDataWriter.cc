@@ -129,11 +129,17 @@ void NetCDFDataWriter::add_variable(Result &result)
     var.var_name_ = r_var->get_name();
 
     if (var.var_name_.size() == 0)
-      throw DataWriterException("Result variable must have a valid NetCDF variable name.");
+      throw DataWriterException("Result variable must have a valid "
+                                "NetCDF variable name.");
     
     if (var.dim_lens_.size() == 0)
-      throw DataWriterException("Result must have at least one dimension.");
-    
+    {
+      cerr << "NetCDFDataWriter requires result " << result.get_name()
+           << ", variable " << var.var_name_ 
+           << " to have at least one dimension.\n";
+      throw DataWriterException("Variable must have at least one dimension.");
+    }
+
     if (var.var_name_.length() > 0)
     {
       map<string, ncdfvar>::iterator iter = vars_.find(var.var_name_);
@@ -193,8 +199,14 @@ void NetCDFDataWriter::add_variable(Result &result)
         handle_error(status);
       
       if (static_cast<unsigned int>(ndims) != dids.size())
-        throw DataWriterException("NetCDF variable name found, but wrong number of dimensions.");
-      
+      {
+        cerr << "NetCDFDataWriter found a variable named " 
+             << var.var_name_ << " in the file " << filename_
+             << ", but it has the wrong number of dimensions. \n";
+        throw DataWriterException("NetCDF variable name found, "
+                                  "but wrong number of dimensions.");
+      }
+
       status = nc_inq_vardimid(ncid_, var.var_id_, dimids);
       if (status != NC_NOERR)
         handle_error(status);
@@ -215,7 +227,15 @@ void NetCDFDataWriter::add_variable(Result &result)
           handle_error(status);
         
         if (static_cast<int>(len) != var.dim_lens_[i])
-          throw DataWriterException("Found a variable with the right name, but one of it's dimensions is the wrong length.");
+        {
+        cerr << "NetCDFDataWriter found a variable named " 
+             << var.var_name_ << " in the file " << filename_
+             << ", but it has the wrong length for at least one of its "
+          "dimensionsions.\n";
+          throw DataWriterException("Found a variable with the right "
+                                    "name, but one of it's dimensions "
+                                    "is the wrong length.");
+        }
       }
     } 
     else 

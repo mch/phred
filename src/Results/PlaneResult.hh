@@ -33,24 +33,6 @@
  */ 
 class PlaneResult : public Result
 {
-private:
-protected:
-  // Position of the plane in global space. Have to translate it to
-  // the local grid.
-  grid_point plane_;
-
-  // The face the plane is parallel to
-  Face face_;
-
-  // The field component we are interested in. 
-  FieldComponent field_;
-
-  Variable var_; /**< Our variable */
-
-  MPI_Datatype datatype_; 
-
-  bool have_data_; /**< True if the node has data to contribute. */ 
-
 public:
 
   PlaneResult();
@@ -128,6 +110,27 @@ public:
    */
   virtual ostream& to_string(ostream &os) const;
 
-};
+private:
+protected:
+  // Position of the plane in global space. Have to translate it to
+  // the local grid.
+  grid_point plane_;
+
+  // The face the plane is parallel to
+  Face face_;
+
+  // The field component we are interested in. 
+  FieldComponent field_;
+
+  Variable var_; /**< Our variable */
+
+  MPI_Datatype datatype_; 
+
+  bool have_data_; /**< True if the node has data to contribute. */ 
+
+  //shared_ptr<CSGBox> box_; /**< The box with the face on which data
+  //                            should be collected. */ 
+
+ };
 
 #endif // PLANE_RESULT_H

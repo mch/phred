@@ -43,7 +43,11 @@ protected:
 public:
   BartlettExcitation(shared_ptr<SourceFunction> sf);
   ~BartlettExcitation();
-  
+
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;  
 };
 
 #endif // BARTLETT_EXCITATION_H

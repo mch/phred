@@ -89,6 +89,11 @@ public:
    */ 
   field_t length();
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 };
 
 #endif // EXCITE_GAUSSM_H

@@ -106,6 +106,16 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include <omp.h>
 #endif
 
+/* For handling low memory conditions, which happens quite often */
+#include <new>
+
+void no_memory()
+{
+  //throw MemoryException();
+  cerr << "Out of memory. Aborting program.";
+  MPI_Abort(MPI_COMM_WORLD, 1);
+}
+
 // TESTING ONLY! REMOVE AT SOME POINT
 #include "Tests.hh"
 
@@ -271,6 +281,9 @@ int main (int argc, char **argv)
   double time_total = 0.0;
   clock_t start_cpu, now_cpu;
   double time_total_cpu = 0.0;
+  
+  // Install a handler for low memory conditions. 
+  set_new_handler(no_memory);
 
   start=time(NULL);
   start_cpu = clock();

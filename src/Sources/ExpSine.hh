@@ -77,6 +77,11 @@ public:
     return ampl_;
   }
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 protected:
   float period_;
   float omega_;

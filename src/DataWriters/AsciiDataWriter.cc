@@ -66,15 +66,24 @@ void AsciiDataWriter::add_variable(Result &result)
   bool one = false;
   for (iter = vars.begin(); iter != iter_e; ++iter)
   {
-    if (one)
-      throw DataWriterException("AsciiDatawriter can only handle one output variable.");
+    if (one) 
+    {
+      cerr << "Result " << result.get_name() 
+           << " has more than one output variable.\n";
+      throw DataWriterException("AsciiDatawriter can only handle one "
+                                "output variable.");
+    }
 
     Variable *var = iter->second;
     const vector<Dimension> &dimensions = var->get_dimensions();
     
     if (dimensions.size() == 0)
-      throw DataWriterException("Result must have at least one dimension.");
-    
+    {
+      cerr << "Result " << result.get_name() << ", variable " 
+           << var->get_name() << " must have at least one dimension.\n";
+      throw DataWriterException("Variable must have at least one dimension.");
+    }
+
     dim_len_ = 0;
     for (unsigned int i = 0; i < dimensions.size(); i++)
       dim_len_ += dimensions[i].global_len_;
@@ -91,6 +100,8 @@ unsigned int AsciiDataWriter::write_data(unsigned int time_step,
   const Data &data = variable.get_data();
   if (!file_.is_open()) 
   {
+    cerr << "AsciiDataWriter is unable to open file '" << filename_ 
+         << "'.\n";
     throw DataWriterException("Unable to open output file!");
   }
 

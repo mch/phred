@@ -57,3 +57,17 @@ void GaussWindExcitation::init(const Grid &grid)
   sdev_y_ = (ymax_ - ymin_) * 0.1;
   sdev_z_ = (zmax_ - zmin_) * 0.1;
 }
+
+ostream& GaussWindExcitation::to_string(ostream &os) const
+{
+  os << "GaussWindExcitation being applied to a region starting at ("
+     << xmin_ << ", " << ymin_ << ", " << zmin_ 
+     << ") and extending to (" << xmax_ << ymax_
+     << zmax_ << ". On this rank, the excitation starts at ("
+     << lxmin_ << ", " << lymin_ << ", " << lzmin_ 
+     << "). ";
+
+  Excitation::to_string(os);
+
+  return os;    
+}

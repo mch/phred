@@ -180,3 +180,4 @@ void WindowedExcitation::excite(Grid &grid, unsigned int time_step,
   }
   //cout << "---------------------" << endl;
 }
+

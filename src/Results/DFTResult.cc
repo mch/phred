@@ -45,6 +45,7 @@ void DFTResult::set_freq(field_t freq_start, field_t freq_stop,
   freq_start_ = freq_start;
   freq_stop_ = freq_stop;
   num_freqs_ = num_freqs;
+  freq_space_ = (freq_stop_ - freq_start_) / (num_freqs_ - 1);
 }
 
 ostream& DFTResult::to_string(ostream &os) const

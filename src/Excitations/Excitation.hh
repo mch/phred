@@ -146,7 +146,18 @@ public:
    */
   virtual void init(const Grid &grid);
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
+  friend ostream& operator<< (ostream& os, const Excitation &ex);
 };
+
+inline ostream& operator<< (ostream& os, const Excitation &ex)
+{
+  return ex.to_string(os);
+}
 
 #endif // EXCITE_H
 

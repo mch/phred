@@ -326,7 +326,8 @@ void FDTD::run()
     if ((*riter).second->get_time_stop() == ~0)
       (*riter).second->set_time_stop(time_steps_);
 
-    cout << (*(*riter).second) << endl;
+    if (!quiet)
+      cout << (*(*riter).second) << endl;
 
     ++riter;
   }
@@ -340,6 +341,10 @@ void FDTD::run()
   while (dwiter != dwiter_e) 
   {
     (*dwiter).second->init(*grid_);
+
+    if (!quiet)
+      cout << (*(*dwiter).second) << endl;
+
     ++dwiter;
   }
 
@@ -365,8 +370,8 @@ void FDTD::run()
 //     dwiter = datawriters_.find((*iter).second);      
     
 //     if (riter != riter_e && dwiter != dwiter_e)
-//       (*dwiter).second->handle_data(ts, 
-//                                     (*riter).second->get_result(*grid_, ts));
+//       (*dwiter).second->handle_data(0, 
+//                                     (*riter).second->get_result(*grid_, 0));
     
     
 //     ++iter;

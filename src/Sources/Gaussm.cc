@@ -62,3 +62,10 @@ field_t Gaussm::length()
 {
   return 8.0 / (PI * deltaf_);
 }
+
+ostream& Gaussm::to_string(ostream &os) const
+{
+  return os << "Gaussm signal with an amplitude of " << alpha_
+            << ", a centre frequency of " << f0_
+            << " Hz, and a width of " << deltaf_ << " Hz.";
+}

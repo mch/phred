@@ -57,3 +57,18 @@ field_t WaveguideExcitation::window(float x, float y, float z)
   return ret;
 }
 
+ostream& WaveguideExcitation::to_string(ostream &os) const
+{
+  os << "WaveguideExcitation with modes " << mode_x_
+     << ", " << mode_y_ << ", and " << mode_z_ 
+     << " being applied to a region starting at ("
+     << xmin_ << ", " << ymin_ << ", " << zmin_ 
+     << ") and extending to (" << xmax_ << ymax_
+     << zmax_ << ". On this rank, the excitation starts at ("
+     << lxmin_ << ", " << lymin_ << ", " << lzmin_ 
+     << "). ";
+
+  Excitation::to_string(os);
+
+  return os;    
+}

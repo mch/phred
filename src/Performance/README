@@ -96,3 +96,21 @@ It may be helpful to do some sort of benchmarking test during
 configure to decide if making copies to enable vectorization is work
 the trouble. The GridUpdate object could use #ifdefs to check whether
 or not to attempt vectorization. 
+
+
+
+
+OR, Template metaprogramming:
+
+- Define a structure that can contain an arbitrary number of pointers
+  to field_t things...
+
+template<int N>
+struct blah {
+  field_t blah;
+  blah<N-1>;
+};
+
+stuct blah<0> {
+
+};

@@ -61,6 +61,14 @@ public:
                                       unsigned int time_step);
 
   /**
+   * Set the CSGBox to calculate the currents on
+   */
+  inline void set_region(shared_ptr<CSGBox> box)
+  {
+    box_ = box;
+  }
+
+  /**
    * Set the start frequency of the range
    */
   inline void set_freq_start(field_t fs)
@@ -138,7 +146,13 @@ private:
   field_t *Mt1_data_[6];
   field_t *Mt2_data_[6];
 
-  
+
+  // Templated function that can use adapter classes
+  template<class T>
+  inline void calc_currents(unsigned int xmin, unsigned int xmax, 
+                            unsigned int ymin, unsigned int ymax, 
+                            unsigned int zmin, unsigned int zmax, 
+                            int face_idx, const Grid &grid);  
 };
 
 #endif

@@ -56,20 +56,6 @@ public:
    */
   GridInfo decompose_domain(GridInfo &info);  
 
-  /**
-   * Subclasses must override this method and implement an algorithm
-   * for domain decomposition. The input is a Region object describing
-   * a set of voxels or Yee cells. The output is a new region which
-   * describes a set of voxels local only to the currently running
-   * process.
-   *
-   * @param region an object containing information about the
-   * global grid as determined by parsing the input file. 
-   *
-   * @return a new OverlapRegion object describing the voxels that
-   * belong only to this process, including any overlapping cells. 
-   */
-  //virtual OverlapRegion decompose_domain(Region &info) = 0;
 };
 
 #endif // SIMPLE_SD_ALG_H

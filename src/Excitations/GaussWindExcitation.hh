@@ -53,6 +53,10 @@ public:
    */ 
   virtual void init(const Grid &grid);
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
 };
 
 #endif // GAUSSWIND_EXCITATION_H

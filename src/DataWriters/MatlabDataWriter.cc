@@ -366,11 +366,13 @@ void MatlabElement::write_compress(ostream &stream)
         break;
       }
     } else {
-    throw DataWriterException("MatlabElement::write_compress: can't write this data type!");
+    throw DataWriterException("MatlabElement::write_compress: can't "
+                              "write this data type!");
     }
 
   } else
-    throw DataWriterException("MatlabElement::write_compress erroniously called!");
+    throw DataWriterException("MatlabElement::write_compress "
+                              "erroniously called!");
 }
 
 unsigned int MatlabElement::get_num_bytes()
@@ -413,7 +415,8 @@ void MatlabElement::overwrite_buffer(unsigned int num_bytes, const void *ptr)
   }
 
   if (num_bytes != buffer_size_)
-    throw DataWriterException("MatlabDataWriter: non-time variable buffer size should not change!");
+    throw DataWriterException("MatlabDataWriter: non-time variable "
+                              "buffer size should not change!");
 
   memmove(buffer_, ptr, buffer_size_);
 
@@ -708,7 +711,8 @@ void MatlabDataWriter::header_setup()
 {
   time_t t = time(0);
   memset(static_cast<void *>(&header_), ' ', 124);
-  snprintf(header_.text, 124, "MATLAB 5.0 MAT-file, Platform: %s, Created on: %s by phred %s", 
+  snprintf(header_.text, 124, "MATLAB 5.0 MAT-file, Platform: %s, "
+           "Created on: %s by Phred %s", 
            PLATFORM, ctime(&t), PACKAGE_VERSION);
   header_.version = 0x0100;
   //header_.version = 0x0001;
@@ -800,8 +804,10 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
   const Data &data = variable.get_data();
 
   if (!file_.is_open()) 
-    throw DataWriterException("MatlabDataWriter: File should already be open!");
-
+  {
+    throw DataWriterException("MatlabDataWriter: File should already "
+                              "be open!");
+  }
   try {
     if (len > 0)
     {

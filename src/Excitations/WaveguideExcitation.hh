@@ -53,6 +53,11 @@ public:
     mode_z_ = o;
   }
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 protected:
   unsigned int mode_x_;
   unsigned int mode_y_;

@@ -9,6 +9,12 @@ TODO LIST FOR PHRED
   map<string, Varient> where Varient stores type information and
   data. Boost has a variant.
 
+- Need to fix memory allocation checking... new throws an exception
+  when it can't allocate enough memory, older libraries used to have
+  new return 0. 
+
+
+
 * Sanity
 Sanity checks required:
 
@@ -17,15 +23,28 @@ Sanity checks required:
 - Ensure excitations do not overlap boundaries
 
 
+
+
 * Checkpoints
 
+
+
 * Save/load problem description in a text file 
+
+
 
 * Test cases!!
 Unit tests are looking more and more useful, as small changes break
 old things all over the place.
 
 - Roast? http://www.cs.uvic.ca/~dhoffman/roast1.2/docs/manual/index.html
+
+- DejaGnu? 
+
+- Boost Test?
+
+
+
 
 * Results
 
@@ -34,4 +53,33 @@ old things all over the place.
 
 - Fix GridResult and BlockResult so that a subset of the grid defined
   by a CSGBox can be returned, rather than the entire grid.
+
+- Near to farfield transformation
+
+- S Parameter extraction
+
+
+
+* Excitations
+
+- Total/Scattered
+
+- Periodic boundaries
+
+
+
+
+* Parallel stuff:
+- MPI fixups
+
+- OpenMP
+
+- AltiVec
+
+- SSE2
+
+- General vectorization; SSE2 and AlitVec are probably better handled
+  by compilers rather than being written by hand. 
+
+
 

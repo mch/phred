@@ -129,19 +129,12 @@ Boost, Boost licence, GPL compatible
 
 
 
-THINGS TO DO:
-There's a bunch of stuff that needs to be done, with respect to the
-code organization and with respect to the FDTD itself. 
-
-Parallel stuff:
-- MPI fixups
-- OpenMP
-- AltiVec
-- SSE2
-
-FDTD stuff:
-- Near to far field transformation
-- Total scattered field formulation
+DOCUMENTATION:
+Documentation can be generated using Doxygen. If you want to generate
+the latex docs, you need to have a very complete installation of
+latex. I use tetex and on Debain the tetex-extras package was
+required. The autoconf macros that check for Doxygen do not check for
+all of the required LaTeX packages. 
 
 
 
