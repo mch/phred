@@ -86,7 +86,8 @@ enum BoundaryCondition {
   EWALL, /**< Electric wall */
   HWALL, /**< Magnetic wall */
   PML, /**< Perfectly matched layers (Berenger's absorbing boundary) */
-  UPML /**< Gedney's uniaxial PML */ 
+  UPML, /**< Gedney's uniaxial PML */ 
+  PERIODIC /**< Periodic boundary */ 
   /* MUR */ /**< 2nd order absorbing boundary condition */
   /* IMPEDANCE, */ /**< Imedance boundary */
 };

@@ -29,7 +29,7 @@
 
 PowerResult::PowerResult()
   : power_real_(0), power_imag_(0), time_power_(0),
-    has_data_(false)
+    has_data_(false), et1_(0), et2_(0), ht1_(0), ht2_(0)
 {
   real_var_.has_time_dimension(false);
   imag_var_.has_time_dimension(false);
@@ -46,7 +46,7 @@ PowerResult::PowerResult(field_t freq_start, field_t freq_stop,
                          unsigned int num_freqs)
   : DFTResult(freq_start, freq_stop, num_freqs), 
     power_real_(0), power_imag_(0), time_power_(0),
-    has_data_(false) 
+    has_data_(false), et1_(0), et2_(0), ht1_(0), ht2_(0)
 {
   real_var_.has_time_dimension(false);
   imag_var_.has_time_dimension(false);

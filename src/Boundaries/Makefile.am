@@ -14,6 +14,8 @@ libboundaries_a_SOURCES = BoundaryCondition.hh \
 	UPmlCommon.cc \
 	SubdomainBc.hh \
 	SubdomainBc.cc \
+	Periodic.hh \
+	Periodic.cc \
 	Ewall.hh \
 	Ewall.cc
 

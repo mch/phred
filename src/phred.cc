@@ -144,6 +144,7 @@ static struct poptOption options[] =
     {"mnps", 'b', POPT_ARG_NONE, 0, 'b'}, 
     {"quiet", 'q', POPT_ARG_NONE, 0, 'q'}, 
     {"test", 't', POPT_ARG_STRING, 0, 't'},
+    {"setup", 's', POPT_ARG_STRING, 0, 's'},
     {0, 0, 0, 0, 0}
   };
 
@@ -161,7 +162,7 @@ static string get_extension(string filename);
 // Ugly globals
 string inputfile, test_case;
 const char *program_name;
-bool interactive, estimate_memory, mnps, quiet, test_run;
+bool interactive, estimate_memory, mnps, quiet, test_run, setup_only;
 int MPI_RANK, MPI_SIZE, argi_g;
 
 /* Set all the option flags according to the switches specified.
@@ -224,6 +225,10 @@ decode_switches (int argc, char **argv)
       quiet = true;
       break;
 
+    case 's':
+      setup_only = true;
+      break;
+
     case 't':
       arg = const_cast<char *>(poptGetOptArg(ctx));
 
@@ -249,7 +254,7 @@ decode_switches (int argc, char **argv)
 #ifdef HAVE_GETOPT
   opterr = 0;
 
-  while ((c = getopt (argc, argv, "+Vhif:mbqt")) != -1)
+  while ((c = getopt (argc, argv, "+Vhif:mbqts")) != -1)
     switch (c)
     {
     case 'V':
@@ -292,6 +297,10 @@ decode_switches (int argc, char **argv)
 
     case 't':
       test_run = true;
+      break;
+
+    case 's':
+      setup_only = true;
       break;
 
     default:
@@ -346,6 +355,9 @@ Options:\n");
                                  followed by the side of the hole in the \n\
                                  y dimension as an integer number of \n\
                                  nanometers.\n\
+  -s, --setup                Parse the input file and set up data structures,\n\
+                             but do not run simulation. Use this to test\n\
+                             script file. \n\
   -V, --version              output version information and exit\n\
 ");
 #else
@@ -384,6 +396,9 @@ Options:\n");
                   y dimension as an integer number of \n\
                   nanometers.\n\
               If -t is used, it must be the last option specified. \n\
+  -s          Parse the input file and set up data structures,\n\
+              but do not run simulation. Use this to test the\n\
+              script file. \n\
   -V          output version information and exit\n\
 ");
 

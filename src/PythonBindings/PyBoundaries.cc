@@ -26,6 +26,7 @@
 #include "../Boundaries/Hwall.hh"
 #include "../Boundaries/UPml.hh"
 #include "../Boundaries/Pml.hh"
+#include "../Boundaries/Periodic.hh"
 #include "../Types.hh"
 
 using namespace boost::python;
@@ -139,6 +140,12 @@ void export_boundaries()
                   &UPml::set_eps_opt)
     .add_property("sigma_ratio", &UPml::get_sigma_ratio, 
                   &UPml::set_sigma_ratio)
+    ;
+
+  class_<Periodic, bases<BoundaryCond>, boost::noncopyable>
+    ("Periodic", "Periodic boundary condition",
+     init<shared_ptr<PeriodicExcitation> >())
+    .def("apply", &Periodic::apply)
     ;
                                      
 }

@@ -203,6 +203,12 @@ void FDTD::run()
   // grid box and the maximum excitation frequency, unless overridden.
   //...
 
+  if (setup_only)
+  {
+    cout << "Set up only requested. Exiting. \n";
+    return;
+  }
+
   // Subdivide the grid using a domain decomosition algorithm.
   if (!quiet)
     cout << "Performing domain decomposition..." << endl;
@@ -406,9 +412,6 @@ void FDTD::run()
   // trouble with a data writer or something. 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  if (!quiet)
-    cout << "\nStarting FDTD time stepping." << endl;
-
   // Run
   unsigned int ts = 0;
 
@@ -429,6 +432,9 @@ void FDTD::run()
     ++iter;
   }
 
+  if (!quiet)
+    cout << "\nStarting FDTD time stepping." << endl;
+
   // For optionally tracking millions of nodes per second. 
   time_t start, now;
   clock_t start_cpu, now_cpu;
@@ -442,8 +448,8 @@ void FDTD::run()
   unsigned int rt_steps = 9;
   
   for (ts = 1; ts <= time_steps_; ts++) {
-//     if (!quiet)
-//       cout << "Phred time step " << ts << endl;
+    //     if (!quiet)
+    //       cout << "Phred time step " << ts << endl;
     
     if ((ts - 10) % 100 == 0)
     {
@@ -552,7 +558,7 @@ void FDTD::run()
 
 
       ++iter;
-   }
+    }
     
   } // End of main loop
 
@@ -565,9 +571,9 @@ void FDTD::run()
       / 1.0e6;
 
     cout << "Number of updated nodes: " << grid_->get_num_updated_nodes()
-	 << ", millions of updated nodes: " << num_mnodes << endl;
+         << ", millions of updated nodes: " << num_mnodes << endl;
     cout << "Average wall time: " << avg_time << ", avg cpu time: "
-	 << avg_cpu_time / static_cast<double>(CLOCKS_PER_SEC) << endl;
+         << avg_cpu_time / static_cast<double>(CLOCKS_PER_SEC) << endl;
     cout << "Average millions of nodes per second, w.r.t. wall clock time: " 
          << num_mnodes / avg_time << endl;
     cout << "Average millions of nodes per second, w.r.t. CPU time: " 
@@ -582,7 +588,7 @@ void FDTD::run()
   // Do data output for results that only produce data at the end
   iter = r_dw_map_.begin();
   iter_e = r_dw_map_.end();
-
+  
   while (iter != iter_e)
   {
     riter = results_.find((*iter).first);
@@ -595,7 +601,6 @@ void FDTD::run()
     
     ++iter;
   }
-
 
   // life cycle de init
   e_eiter = e_eiter_b;

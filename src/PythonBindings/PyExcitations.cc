@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "../Excitations/BartlettExcitation.hh"
 #include "../Excitations/WaveguideExcitation.hh"
 #include "../Excitations/GaussWindExcitation.hh"
+#include "../Excitations/PeriodicExcitation.hh"
 #include "../Signals/Gaussm.hh"
 #include "../Signals/GaussPulse.hh"
 #include "../Signals/DiffGaussPulse.hh"
@@ -201,5 +202,16 @@ void export_excitations()
 
   class_<GaussWindExcitation, bases<WindowedExcitation> >("GaussWindow", "Gaussian windowed excitation; approximates a plane wave.", init<shared_ptr<Signal> >())
     .def("excite", &GaussWindExcitation::excite)
+    ;
+
+  class_<PeriodicExcitation, bases<Excitation> >
+    ("PeriodicExcitation", 
+     "An excitation which can be used in conjunction with periodic boundary "
+     "conditions.", init<shared_ptr<Signal> >())
+    .def("excite", &PeriodicExcitation::excite)
+    .def("set_region", (void(PeriodicExcitation::*)(shared_ptr<CSGBox>, Face))&PeriodicExcitation::set_region)
+    .def("set_poynting", &PeriodicExcitation::set_poynting)
+    .def("get_poynting", &PeriodicExcitation::get_poynting)
+    .def("get_face", &PeriodicExcitation::get_face)
     ;
 }

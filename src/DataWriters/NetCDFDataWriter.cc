@@ -83,7 +83,8 @@ void NetCDFDataWriter::init()
   }
   else
   {
-    throw DataWriterException("A filename must be set before calling init().");
+    throw DataWriterException("NetCDFDataWriter: A filename must be "
+                              "set before calling init().");
   }
 }
 
@@ -109,7 +110,8 @@ void NetCDFDataWriter::add_variable(Result &result)
     return; 
 
   if (!fopen_)
-    throw DataWriterException("Must call init() before adding variables.");
+    throw DataWriterException("NetCDFDataWriter: Must call init() "
+                              "before adding variables.");
 
   const map<string, Variable *> vars = result.get_variables();
   map<string, Variable *>::const_iterator iter;
@@ -129,7 +131,8 @@ void NetCDFDataWriter::add_variable(Result &result)
     var.var_name_ = r_var->get_name();
 
     if (var.var_name_.size() == 0)
-      throw DataWriterException("Result variable must have a valid "
+      throw DataWriterException("NetCDFDataWriter: Result variable "
+                                "must have a valid "
                                 "NetCDF variable name.");
     
     if (var.dim_lens_.size() == 0)
@@ -137,14 +140,16 @@ void NetCDFDataWriter::add_variable(Result &result)
       cerr << "NetCDFDataWriter requires result " << result.get_name()
            << ", variable " << var.var_name_ 
            << " to have at least one dimension.\n";
-      throw DataWriterException("Variable must have at least one dimension.");
+      throw DataWriterException("NetCDFDataWriter: Variable must have "
+                                "at least one dimension.");
     }
 
     if (var.var_name_.length() > 0)
     {
       map<string, ncdfvar>::iterator iter = vars_.find(var.var_name_);
       if (vars_.end() != iter)
-        throw DataWriterException("Duplicates not allowed");
+        throw DataWriterException("NetCDFDataWriter: Duplicate variables "
+                                  "not allowed");
     }
     
     status = nc_redef(ncid_);
@@ -265,7 +270,8 @@ unsigned int NetCDFDataWriter::write_data(unsigned int time_step,
                                           void *ptr, unsigned int len)
 {
   if (!fopen_)
-    throw DataWriterException("File must be opened and dimensions defined.");
+    throw DataWriterException("NetCDFDataWriter: File must be opened "
+                              "and dimensions defined.");
 
   const Data &data = variable.get_data();
   string vname = variable.get_name();

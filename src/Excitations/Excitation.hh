@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ public:
    *
    * @param box the CSGBox to apply the excitation to. 
    */
-  void set_region(shared_ptr<CSGBox> box);
+  virtual void set_region(shared_ptr<CSGBox> box);
 
   /**
    * Set the polarization vector
