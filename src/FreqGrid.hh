@@ -28,12 +28,36 @@
 class FreqGrid : public Grid
 {
 protected:
-  // Running sums of field data, for dispersive or conductive material
-  // Most materials of interest are non-magnetic, so we won't bother
-  // with the H components for now.
-  field_t *ex_sum_;
-  field_t *ey_sum_;
-  field_t *ez_sum_;
+  /*
+   * Precalculated contants for plasma materials. 0 for non-plamsa
+   * materials, indexed in the same was as Ca_ etc.
+   */
+
+  mat_coef_t *vcdt_; /**< e ^ (Electron collision frequency times deltat_) */
+  mat_coef_t *omegapsq_; /**< Plamsa frequency in rad/sec squared
+                            times delta over vc */
+
+  /*
+   * Since only part of the region will be plasma, only store extra
+   * plamsa bits for those regions and use a seperate index to
+   * traverse them, which is ok since the loops always traverse the
+   * grid in the same way.
+   */
+
+  field_t *dx_; /**< old ex for next time step */
+  field_t *sx_; /**< Auxillary term */
+  field_t *sxm1_; /**< Previous sx_ */
+  field_t *sxm2_; /**< Previous sxm1_ */
+
+  field_t *dy_; /**< old ey for next time step */
+  field_t *sy_; /**< Auxillary term */
+  field_t *sym1_; /**< Previous sy_ */
+  field_t *sym2_; /**< Previous sym1_ */
+
+  field_t *dz_; /**< old ez for next time step */
+  field_t *sz_; /**< Auxillary term */
+  field_t *szm1_; /**< Previous sz_ */
+  field_t *szm2_; /**< Previous szm1_ */
 
   /**
    * Free the memory allocated for the grid. Calls Grid::free_grid(),
@@ -55,21 +79,6 @@ protected:
    * Compute the update equatations for the Ez field component. 
    */
   virtual void update_ez();
-
-  /**
-   * Compute the update equatations for the Hx field component. 
-   */
-  virtual void update_hx();
-
-  /**
-   * Compute the update equatations for the Hy field component. 
-   */
-  virtual void update_hy();
-
-  /**
-   * Compute the update equatations for the Hz field component. 
-   */
-  virtual void update_hz();
 
 public:
   FreqGrid();
@@ -108,7 +117,7 @@ public:
    * Grid::alloc_grid, but adds allocation for the running sums. 
    */ 
   virtual void alloc_grid();
- 
+
 };
 
 #endif // FREQ_GRID_H

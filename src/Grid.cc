@@ -9,6 +9,7 @@
 
 #include <mpi.h>
 #include <math.h>
+#include <string.h> // for memset
 
 Grid::Grid() 
   : num_materials_(0),
@@ -69,7 +70,8 @@ void Grid::set_define_mode(bool d)
     if (get_deltat() > 1/temp)
       throw StabilityException();
 
-    // Initialize the MPI Derived data types
+    alloc_grid();
+
     init_datatypes();
 
     // Calculate update region_t by considering the thickness of the PML's. 
@@ -300,6 +302,16 @@ void Grid::alloc_grid()
       free_grid();
       throw MemoryException(); // Insufficient memory
     }
+    
+//     memset(ex_, 0, sizeof(field_t) * sz);
+//     memset(ey_, 0, sizeof(field_t) * sz);
+//     memset(ez_, 0, sizeof(field_t) * sz);
+
+//     memset(hx_, 0, sizeof(field_t) * sz);
+//     memset(hy_, 0, sizeof(field_t) * sz);
+//     memset(hz_, 0, sizeof(field_t) * sz);
+
+//     memset(material_, 0, sizeof(unsigned int) * sz);
   }
 }
 

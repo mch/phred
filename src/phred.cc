@@ -105,6 +105,8 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "SourceTimeResult.hh"
 #include "Excitation.hh"
 #include "BartlettExcitation.hh"
+#include "FDTD.hh"
+#include "Box.hh"
 
 #ifdef USE_PY_BINDINGS
 #include <Python.h>
@@ -134,14 +136,6 @@ static int decode_switches (int argc, char **argv);
 string inputfile;
 const char *program_name;
 bool interactive;
-
-// Some test declarations
-static void test_yz_plane(field_t *ptr, MPI_Datatype t, int xpos, int rank);
-static void test2(field_t *ptr, MPI_Datatype t);
-static void test3_yz(Grid &grid, int i);
-static void test4_z_vec(field_t *ptr, MPI_Datatype t);
-static void test5_y_vec(field_t *ptr, MPI_Datatype t);
-static void test6_x_vec(field_t *ptr, MPI_Datatype t);
 
 // Test runs
 static void point_test(int rank, int size);
@@ -302,37 +296,19 @@ FILENAME is the file containing the description of the proble to simulate.\n\
 // Test runs
 static void point_test(int rank, int size)
 {
-  SimpleSDAlg dd; // Domain decomposition algorithm. Maybe it should
-                  // be static? 
+  FDTD fdtd;
   
+  fdtd.set_grid_size(100, 100, 100);
+  fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
 
-  // THIS STUFF HERE IS TEMPORARY
-  Grid grid; 
-  GridInfo info_g;
+  Ewall ewall;
+  fdtd.set_boundary(FRONT, &ewall);
+  fdtd.set_boundary(BACK, &ewall);
+  fdtd.set_boundary(BOTTOM, &ewall);
+  fdtd.set_boundary(TOP, &ewall);
+  fdtd.set_boundary(LEFT, &ewall);
+  fdtd.set_boundary(RIGHT, &ewall);
   
-  info_g.global_dimx_ = info_g.dimx_ = 100;
-  info_g.global_dimy_ = info_g.dimy_ = 100;
-  info_g.global_dimz_ = info_g.dimz_ = 100;
-  info_g.deltax_ = 18.75e-9; 
-  info_g.deltay_ = 18.75e-9; 
-  info_g.deltaz_ = 18.75e-9;
-  info_g.deltat_ = 36e-18;
-  info_g.start_x_ = info_g.start_y_ = info_g.start_z_ = 0;
-
-
-  info_g.set_boundary(FRONT, EWALL);
-  info_g.set_boundary(BACK, EWALL);
-  info_g.set_boundary(BOTTOM, EWALL);
-  info_g.set_boundary(TOP, EWALL);
-  info_g.set_boundary(LEFT, EWALL);
-  info_g.set_boundary(RIGHT, EWALL);
-
-  
-  GridInfo info = dd.decompose_domain(rank, size, info_g);
-
-  grid.setup_grid(info);
-  grid.alloc_grid();
-
   MaterialLib mats; 
   Material mat; // defaults to free space
   mats.add_material(mat);
@@ -342,173 +318,101 @@ static void point_test(int rank, int size)
   mat.set_name("Substrate");
   mats.add_material(mat);
 
-  grid.load_materials(mats);
+  fdtd.load_materials(mats);
 
   // Global coordinates. 
-  grid.define_box(0, 100, 0, 100, 0, 100, 1);
-  grid.define_box(40, 60, 40, 60, 40, 60, 2);
+  Box all;
+  all.set_region(0, 100, 0, 100, 0, 100);
+  all.set_material_id(1);
+
+  Box diel;
+  diel.set_region(40, 60, 40, 60, 40, 60);
+  diel.set_material_id(2);
+
+  fdtd.add_geometry(&all);
+  fdtd.add_geometry(&diel);
 
   // Excitation
   Gaussm gm;
   gm.set_parameters(1, 500e12, 300e12);
-  BartlettExcitation<Gaussm> ex(gm);
+
+  BartlettExcitation ex(&gm);
   ex.set_soft(false);
   ex.set_region(50, 50, 50, 50, 50, 50);
   ex.set_polarization(0.0, 1.0, 0.0);
+  
+  fdtd.add_excitation("modgauss", &ex);
 
   // Results
   point_t p;
   p.x = 50;
   p.y = 50;
   p.z = 50;
-  PointResult res1;
-  res1.set_point(p);
-
-  AsciiDataWriter adw1(rank, size);
-  adw1.set_filename("t_field_50.txt");
-  adw1.add_variable(res1);
-
+  PointResult res1(p);
   PointDFTResult pdft(100e12, 600e12, 50);
   pdft.set_point(p);
 
+  fdtd.add_result("res1", &res1);
+  fdtd.add_result("pdft", &pdft);
+
+  AsciiDataWriter adw1(rank, size);
+  adw1.set_filename("t_field_50.txt");
+
   AsciiDataWriter adw2(rank, size);
   adw2.set_filename("t_field_dft_50.txt");
-  adw2.add_variable(pdft);
-  
-  //AsciiDataWriter adw4(rank, size);
+
+  fdtd.add_datawriter("adw1", &adw1);
+  fdtd.add_datawriter("adw2", &adw2);
+  fdtd.map_result_to_datawriter("res1", "adw1");
+  fdtd.map_result_to_datawriter("pdft", "adw2");
+
   NetCDFDataWriter ncdw(rank, size);
   ncdw.set_filename("yz_plane.nc");
-  ncdw.init();
+
+  fdtd.add_datawriter("ncdw", &ncdw);
+
   PlaneResult pr1;
   pr1.set_name("yzplane");
   pr1.set_plane(p, BACK);
-  pr1.set_size(grid.get_ldy(), grid.get_ldz());
-  //adw4.set_filename("yz_plane.txt");
-  //adw4.add_variable(pr1);
-  ncdw.add_variable(pr1);
+
+  fdtd.add_result("pr1", &pr1);
+  fdtd.map_result_to_datawriter("pr1", "ncdw");
 
   SourceDFTResult sdftr(gm, 100e12, 600e12, 50);
   sdftr.set_time_param(0, 100, 0);
+  fdtd.add_result("sdftr", &sdftr);
 
   AsciiDataWriter adw5(rank, size);
   adw5.set_filename("src_dft.txt");
-  adw5.add_variable(sdftr);
-
-  grid.set_define_mode(false);
+  fdtd.add_datawriter("adw5", &adw5);
   
-  // Main loop
-  unsigned int num_time_steps = 101;
-  unsigned int ts = 0;
+  fdtd.map_result_to_datawriter("sdftr", "adw5");
 
-  //ex.excite(grid, ts, BOTH);
-  //grid.apply_boundaries();
-
-
-  cout << "main loop begins." << endl;  
-  for (ts = 1; ts < num_time_steps; ts++) {
-    cout << "phred, time step " << ts << ", excitation: " 
-         << gm.source_function(grid, ts) << endl;
-
-    // Fields update
-    grid.update_h_field();
-    grid.update_e_field();
-
-    // Total / Scattered excitation
-
-    // Excitations
-    ex.excite(grid, ts, E);
-    ex.excite(grid, ts, H);
-
-    //test6_x_vec(grid.get_face_start(BACK, EY, 0), grid.get_x_vector_dt());
-    //test5_y_vec(grid.get_face_start(BACK, EY, 0), grid.get_y_vector_dt());
-    //test4_z_vec(grid.get_face_start(BACK, EY, 0), grid.get_z_vector_dt());
-    //test(grid.get_face_start(FRONT, EY, p2), grid.get_plane_dt(FRONT));
-    //cout << "\nTest2: " << endl;
-    //test2(grid.get_face_start(BACK, EY, 2), grid.get_plane_dt(FRONT));
-    //test3_yz(grid, 2);
-    //cout << "\nTest trans: " << endl;
-    //test_trans(grid.get_face_start(BACK, EY), grid.get_plane_dt(BACK));
-    //if (rank == 0)
-    //  test3(grid, 25);
-    //else
-    //test3(grid, 0);
-
-    //if (rank == 0)
-    //test_yz_plane(grid.get_face_start(BACK, EY, 22), 
-    //                grid.get_plane_dt(BACK), 0, rank);
-    //else if (rank == 1)
-    //  test_yz_plane(grid.get_face_start(BACK, EY, 0), 
-    //                grid.get_plane_dt(BACK), 0, rank);
-
-    // Boundary condition application
-    grid.apply_boundaries(H);
-    grid.apply_boundaries(E);
-
-    // Total / Scattered field interface confditions
-
-    // Results
-
-    adw1.handle_data(ts, res1.get_result(grid, ts));
-    adw2.handle_data(ts, pdft.get_result(grid, ts));
-    //adw4.handle_data(ts, pr1.get_result(grid, ts));
-    adw5.handle_data(ts, sdftr.get_result(grid, ts));
-    ncdw.handle_data(ts, pr1.get_result(grid, ts));
-  }
+  fdtd.run(rank, size, 100);
 }
 
 static void pml_test(int rank, int size)
 {
-  SimpleSDAlg dd; // Domain decomposition algorithm. Maybe it should
-                  // be static? 
+  FDTD fdtd;
   
+  fdtd.set_grid_size(100, 50, 60);
+  fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
 
-  // THIS STUFF HERE IS TEMPORARY
-  Grid grid; 
-  GridInfo info_g;
+  Pml front(VP, 1.0), back(VP, 1.0), left(VP, 1.0), right(VP, 1.0),
+    top(VP, 1.0), bottom(VP, 1.0);
+  front.set_thickness(4);
+  back.set_thickness(4);
+  left.set_thickness(4);
+  right.set_thickness(4);
+  top.set_thickness(4);
+  bottom.set_thickness(4);
 
-  info_g.global_dimx_ = info_g.dimx_ = 100;
-  info_g.global_dimy_ = info_g.dimy_ = 50;
-  info_g.global_dimz_ = info_g.dimz_ = 60;
-  info_g.deltax_ = 18.75e-9; 
-  info_g.deltay_ = 18.75e-9; 
-  info_g.deltaz_ = 18.75e-9;
-  info_g.deltat_ = 36e-18;
-  info_g.start_x_ = info_g.start_y_ = info_g.start_z_ = 0;
-  
-  Pml *pml = dynamic_cast<Pml *>(info_g.set_boundary(FRONT, PML));
-  pml->set_thickness(4);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
-
-  pml = dynamic_cast<Pml *>(info_g.set_boundary(BACK, PML));
-  pml->set_thickness(4);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
-
-  pml = dynamic_cast<Pml *>(info_g.set_boundary(LEFT, PML));
-  pml->set_thickness(4);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
-
-  pml = dynamic_cast<Pml *>(info_g.set_boundary(RIGHT, PML));
-  pml->set_thickness(4);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
-
-  pml = dynamic_cast<Pml *>(info_g.set_boundary(BOTTOM, PML));
-  pml->set_thickness(4);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
-
-  pml = dynamic_cast<Pml *>(info_g.set_boundary(TOP, PML));
-  pml->set_thickness(4);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
-
-  GridInfo info = dd.decompose_domain(rank, size, info_g);
-
-  grid.setup_grid(info);
-  grid.alloc_grid();
+  fdtd.set_boundary(FRONT, &front);
+  fdtd.set_boundary(BACK, &back);
+  fdtd.set_boundary(BOTTOM, &bottom);
+  fdtd.set_boundary(TOP, &top);
+  fdtd.set_boundary(LEFT, &left);
+  fdtd.set_boundary(RIGHT, &right);
 
   MaterialLib mats; 
   Material mat; // defaults to free space
@@ -519,238 +423,121 @@ static void pml_test(int rank, int size)
   mat.set_name("Substrate");
   mats.add_material(mat);
 
-  grid.load_materials(mats);
+  fdtd.load_materials(mats);
 
   // Global coordinates. 
-  grid.define_box(0, 100, 0, 50, 0, 60, 1);
-  grid.define_box(45, 55, 5, 46, 0, 25, 0);
-  grid.define_box(45, 55, 5, 46, 35, 60, 0);
+  Box all;
+  all.set_region(0, 100, 0, 50, 0, 60);
+  all.set_material_id(1);
+
+  Box metal1;
+  metal1.set_region(45, 55, 5, 46, 0, 25);
+  metal1.set_material_id(0);
+
+  Box metal2;
+  metal2.set_region(45, 55, 5, 46, 35, 60);
+  metal2.set_material_id(0);
+
+  fdtd.add_geometry(&all);
+  fdtd.add_geometry(&metal1);
+  fdtd.add_geometry(&metal2);
 
   // Excitation
   Gaussm gm;
   gm.set_parameters(1, 500e12, 300e12);
 
-  Excitation<Gaussm> ex(gm);
-  //BartlettExcitation<Gaussm> ex(gm);
+  Excitation ex(&gm);
+  //BartlettExcitation ex(gm);
   ex.set_soft(true);
   ex.set_region(15, 15, 10, 40, 20, 40);
   ex.set_polarization(0.0, 1.0, 0.0);
+
+  fdtd.add_excitation("modgauss", &ex);
 
   // Results
   point_t p;
   p.x = 20;
   p.y = 25;
   p.z = 30;
-  PointResult res1;
-  res1.set_point(p);
-  
-  AsciiDataWriter adw1(rank, size);
-  adw1.set_filename("t_field_20.txt");
-  adw1.add_variable(res1);
-
+  PointResult res1(p);
   PointDFTResult pdft(100e12, 600e12, 50);
   pdft.set_point(p);
 
+  fdtd.add_result("res1", &res1);
+  fdtd.add_result("pdft", &pdft);
+  
+  AsciiDataWriter adw1(rank, size);
+  adw1.set_filename("t_field_20.txt");
+
   AsciiDataWriter adw2(rank, size);
   adw2.set_filename("t_field_dft_20.txt");
-  adw2.add_variable(pdft);
 
-  point_t p2;
-  p2.x = 5;
-  p2.y = 25;
-  p2.z = 30;
-  PointResult res2;
-  res2.set_point(p2);
+  fdtd.add_datawriter("adw1", &adw1);
+  fdtd.add_datawriter("adw2", &adw2);
+  fdtd.map_result_to_datawriter("res1", "adw1");
+  fdtd.map_result_to_datawriter("pdft", "adw2");
+
+  NetCDFDataWriter ncdw(rank, size);
+  ncdw.set_filename("yz_plane.nc");
+
+  fdtd.add_datawriter("ncdw", &ncdw);
+
+  PlaneResult pr1;
+  pr1.set_name("hx-xzplane");
+  pr1.set_plane(p, LEFT);
+  pr1.set_field(FC_HX);
   
-  AsciiDataWriter adw3(rank, size, "t_field_5.txt", res2);
-//   adw3.set_filename("t_field_5.txt");
-//   adw3.add_variable(res2);
-
-  p2.x = 10;
-  PointResult res3;
-  res3.set_point(p2);
-
-  AsciiDataWriter adw4(rank, size);
-  adw4.set_filename("t_field_10.txt");
-  adw4.add_variable(res3);
-
-  p2.x = 11;
-  PointResult res4;
-  res4.set_point(p2);
-  
-  AsciiDataWriter adw6(rank, size);
-  adw6.set_filename("t_field_11.txt");
-  adw6.add_variable(res4);
-
-  p2.x = 9;
-  PointResult res5;
-  res5.set_point(p2);
-  
-  AsciiDataWriter adw7(rank, size);
-  adw7.set_filename("t_field_9.txt");
-  adw7.add_variable(res5);
-
-  p2.x = 15;
-  PointResult res6;
-  res6.set_point(p2);
-  
-  AsciiDataWriter adw9(rank, size);
-  adw9.set_filename("t_field_15.txt");
-  adw9.add_variable(res6);
-
-//   //AsciiDataWriter adw4(rank, size);
-   NetCDFDataWriter ncdw(rank, size);
-   ncdw.set_filename("yz_plane.nc");
-   ncdw.init();
-   PlaneResult pr1;
-   pr1.set_name("hx-xzplane");
-   pr1.set_plane(p, LEFT);
-   pr1.set_field(FC_HX);
-   pr1.set_size(grid.get_ldx(), grid.get_ldz());
-
-   PlaneResult pr2;
-   pr2.set_name("ey-xzplane");
-   pr2.set_plane(p, LEFT);
-   pr2.set_field(FC_EY);
-   pr2.set_size(grid.get_ldx(), grid.get_ldz());
+  PlaneResult pr2;
+  pr2.set_name("ey-xzplane");
+  pr2.set_plane(p, LEFT);
+  pr2.set_field(FC_EY);
 
    PlaneResult pr3;
    pr3.set_name("hz-xzplane");
    pr3.set_plane(p, LEFT);
    pr3.set_field(FC_HZ);
-   pr3.set_size(grid.get_ldx(), grid.get_ldz());
 
    PlaneResult pr4;
    pr4.set_name("hx-yzplane4");
    pr4.set_plane(p, FRONT);
    pr4.set_field(FC_HX);
-   pr4.set_size(grid.get_ldy(), grid.get_ldz());
 
    PlaneResult pr5;
    pr5.set_name("ey-xyplane5");
    pr5.set_plane(p, BOTTOM);
    pr5.set_field(FC_EY);
-   pr5.set_size(grid.get_ldx(), grid.get_ldy());
 
-   //adw4.set_filename("yz_plane.txt");
-   //adw4.add_variable(pr1);
-   ncdw.add_variable(pr1);
-   ncdw.add_variable(pr2);
-   ncdw.add_variable(pr3);
-   ncdw.add_variable(pr4);
-   ncdw.add_variable(pr5);
+   fdtd.add_result("pr1", &pr1);
+   fdtd.add_result("pr2", &pr2);
+   fdtd.add_result("pr3", &pr3);
+   fdtd.add_result("pr4", &pr4);
+   fdtd.add_result("pr5", &pr5);
+
+   fdtd.map_result_to_datawriter("pr1", "ncdw");
+   fdtd.map_result_to_datawriter("pr2", "ncdw");
+   fdtd.map_result_to_datawriter("pr3", "ncdw");
+   fdtd.map_result_to_datawriter("pr4", "ncdw");
+   fdtd.map_result_to_datawriter("pr5", "ncdw");
 
    SourceDFTResult sdftr(gm, 100e12, 600e12, 50);
    sdftr.set_time_param(0, 500, 0);
+   fdtd.add_result("sdftr", &sdftr);
 
    AsciiDataWriter adw5(rank, size);
    adw5.set_filename("src_dft.txt");
-   adw5.add_variable(sdftr);
+   fdtd.add_datawriter("adw5", &adw5);
+
+   fdtd.map_result_to_datawriter("sdftr", "adw5");
 
    SourceTimeResult srctr(gm);
    AsciiDataWriter adw8(rank, size);
    adw8.set_filename("src.txt");
-   adw8.add_variable(srctr);
-   
 
-  grid.set_define_mode(false);
-  
-  // Main loop
-  unsigned int num_time_steps = 1000;
-  unsigned int ts = 0;
+   fdtd.add_result("srctr", &srctr);
+   fdtd.add_datawriter("adw8", &adw8);
 
-  //ex.excite(grid, ts, E);
-  //ex.excite(grid, ts, H);
-  //grid.apply_boundaries();
-    // Results
-  ts = 0;
-  adw1.handle_data(ts, res1.get_result(grid, ts));
-  adw3.handle_data(ts, res2.get_result(grid, ts));
-  adw4.handle_data(ts, res3.get_result(grid, ts));
-  adw6.handle_data(ts, res4.get_result(grid, ts));
-  adw7.handle_data(ts, res5.get_result(grid, ts));
-  adw9.handle_data(ts, res6.get_result(grid, ts));
-  adw8.handle_data(ts, srctr.get_result(grid, ts));
-  adw2.handle_data(ts, pdft.get_result(grid, ts));
-  //adw4.handle_data(ts, pr1.get_result(grid, ts));
-  adw5.handle_data(ts, sdftr.get_result(grid, ts));
-  ncdw.handle_data(ts, pr1.get_result(grid, ts));
-  ncdw.handle_data(ts, pr2.get_result(grid, ts));
-  ncdw.handle_data(ts, pr3.get_result(grid, ts));
-  ncdw.handle_data(ts, pr4.get_result(grid, ts));
-  ncdw.handle_data(ts, pr5.get_result(grid, ts));
-  
-  cout << "main loop begins." << endl;  
-  for (ts = 1; ts < num_time_steps; ts++) {
-    cout << "phred, time step " << ts << ", excitation: " 
-         << gm.source_function(grid, ts) << endl;
+   fdtd.map_result_to_datawriter("srctr", "adw8");
 
-    // Find out if the PML will have anything to work with in this time step. 
-
-
-    // Fields update
-    grid.update_h_field();
-
-//     cout << "after H update, before bc, at (4,25,30), \n\te: "
-//          << grid.get_ex(4,25,30) << " " << grid.get_ey(4,25,30) 
-//          << " " << grid.get_ez(4,25,30)
-//          << " \n\th: " << grid.get_hx(4,25,30) 
-//          << " " << grid.get_hy(4,25,30) << " " 
-//          << grid.get_hz(4,25,30) << endl;
-
-    // Boundary condition application
-    grid.apply_boundaries(H);
-
-//     cout << "after H and bc, at (4,25,30), \n\te: "
-//          << grid.get_ex(4,25,30) << " " << grid.get_ey(4,25,30) 
-//          << " " << grid.get_ez(4,25,30)
-//          << "  \n\th: " << grid.get_hx(4,25,30) 
-//          << " " << grid.get_hy(4,25,30) << " " 
-//          << grid.get_hz(4,25,30) << endl;
-
-    // Excitations
-    ex.excite(grid, ts, H);
-
-    // Fields update
-    grid.update_e_field();
-
-//     cout << "after E update, before bc, at (4,25,30), \n\te: "
-//          << grid.get_ex(4,25,30) << " " << grid.get_ey(4,25,30) 
-//          << " " << grid.get_ez(4,25,30)
-//          << "  \n\th: " << grid.get_hx(4,25,30) 
-//          << " " << grid.get_hy(4,25,30) << " " 
-//          << grid.get_hz(4,25,30) << endl;
-    
-    // Boundary condition application
-    grid.apply_boundaries(E);
-
-//     cout << "after E and bc, at (4,25,30), \n\te: "
-//          << grid.get_ex(4,25,30) << " " << grid.get_ey(4,25,30) 
-//          << " " << grid.get_ez(4,25,30)
-//          << "  \n\th: " << grid.get_hx(4,25,30) 
-//          << " " << grid.get_hy(4,25,30) << " " 
-//          << grid.get_hz(4,25,30) << endl;
-
-    // Excitations
-    ex.excite(grid, ts, E);
-
-    // Results
-     adw1.handle_data(ts, res1.get_result(grid, ts));
-     adw3.handle_data(ts, res2.get_result(grid, ts));
-     adw4.handle_data(ts, res3.get_result(grid, ts));
-     adw6.handle_data(ts, res4.get_result(grid, ts));
-     adw7.handle_data(ts, res5.get_result(grid, ts));
-     adw9.handle_data(ts, res6.get_result(grid, ts));
-     adw8.handle_data(ts, srctr.get_result(grid, ts));
-     adw2.handle_data(ts, pdft.get_result(grid, ts));
-     //adw4.handle_data(ts, pr1.get_result(grid, ts));
-     adw5.handle_data(ts, sdftr.get_result(grid, ts));
-     ncdw.handle_data(ts, pr1.get_result(grid, ts));
-     ncdw.handle_data(ts, pr2.get_result(grid, ts));
-     ncdw.handle_data(ts, pr3.get_result(grid, ts));
-     ncdw.handle_data(ts, pr4.get_result(grid, ts));
-     ncdw.handle_data(ts, pr5.get_result(grid, ts));
-
-  }
+   fdtd.run(rank, size, 100);
 }
 

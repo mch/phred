@@ -168,6 +168,22 @@ public:
   {
     return dim_names_;
   }
+
+  /**
+   * Subclasses can implement this to allocate memory or init
+   * constants or whatever. Called just before the simulation
+   * starts. The default implementation does nothing. 
+   */
+  //virtual void init(const Grid &grid)
+  //{}
+  
+  /**
+   * Subclasses can implement this to deallocate memory or
+   * whatever. Called just after the simulation ends. The default
+   * implementation does nothing. 
+   */
+  //virtual void deinit(const Grid &grid)
+  //{}
 };
 
 #endif // RESULT_H

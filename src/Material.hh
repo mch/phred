@@ -129,7 +129,7 @@ class Material
   void set_collision_freq(mat_prop_t vc);
 
   /**
-   * Set the plasma frequency
+   * Set the plasma frequency, in radians per second!
    */
   void set_plasma_freq(mat_prop_t fp);
   

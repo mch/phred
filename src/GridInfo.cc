@@ -2,13 +2,10 @@
 
 GridInfo::GridInfo() 
   : global_dimx_(0), global_dimy_(0), global_dimz_(0), 
+    start_x_(0), start_y_(0), start_z_(0),
     dimx_(0), dimy_(0), dimz_(0), 
     deltax_(0), deltay_(0), deltaz_(0), deltat_(0)
 {
-  for (int i = 0; i < 6; i++) {
-    face_bc_[i] = 0; 
-    //face_ptr_owner_[i] = false;
-  }
 }
 
 GridInfo::GridInfo(const GridInfo &info) {
@@ -17,13 +14,7 @@ GridInfo::GridInfo(const GridInfo &info) {
 
 GridInfo::~GridInfo()
 {
-  for (int i = 0; i < 6; i++)
-  {
-    //if (face_ptr_owner_[i]) {
-      delete face_bc_[i];
-      face_bc_[i] = 0;
-      //}
-  }
+
 }
 
 GridInfo& GridInfo::operator=(const GridInfo &info)
@@ -59,9 +50,9 @@ void GridInfo::set_boundary(Face face, BoundaryCond *bc, bool take_ownership)
 {
   if (take_ownership)
     //face_ptr_owner_[face] = true;
-    face_bc_[face] = new counted_ptr<BoundaryCond>(bc);
+    face_bc_[face] = counted_ptr<BoundaryCond>(bc);
   else
-    face_bc_[face] = new counted_ptr<BoundaryCond>(bc, 2);
+    face_bc_[face] = counted_ptr<BoundaryCond>(bc, 2);
 }
 
 // BoundaryCond *GridInfo::copy_bc(BoundaryCond *bc, BoundaryCondition bc_type)
@@ -97,8 +88,8 @@ unsigned int GridInfo::get_face_thickness(Face face)
 {
   unsigned int ret = 0;
 
-  if (face_bc_[face]) {
-    ret = face_bc_[face]->get()->get_thickness();
+  if (face_bc_[face].get()) {
+    ret = face_bc_[face].get()->get_thickness();
   }
 
   return ret;
@@ -108,8 +99,8 @@ void GridInfo::apply_boundaries(Grid &grid, FieldType type)
 {
   for (unsigned int i = 0; i < 6; i++)
   {
-    if (face_bc_[i]) {
-      face_bc_[i]->get()->apply(static_cast<Face>(i), grid, type);
+    if (face_bc_[i].get()) {
+      face_bc_[i].get()->apply(static_cast<Face>(i), grid, type);
     }
   }
 }

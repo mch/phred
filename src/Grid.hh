@@ -161,6 +161,12 @@ class Grid {
    */
   virtual void update_hz();
 
+  /** 
+   * Allocate memory for the grid. This function is called when
+   * set_define_mode() turns define mode off.  
+   */ 
+  virtual void alloc_grid();
+
  public:
   Grid();
   virtual ~Grid();
@@ -205,7 +211,7 @@ class Grid {
    * @param d a boolean, false to turn off define mode, true to turn
    * it on. 
    */
-  void set_define_mode(bool d);
+  virtual void set_define_mode(bool d);
 
   /**
    * Returns the PML common object used by the PML boundary conditions
@@ -280,12 +286,6 @@ class Grid {
     return info_.get_boundary(face);
   }
 
-  /** 
-   * Allocate memory for the grid. This function can only be used in
-   * define mode. 
-   */ 
-  virtual void alloc_grid();
-
   /**
    * Convert global coordinate to local grid coordinates. Generally
    * excitations and geometry specifications are given in terms of
@@ -336,10 +336,10 @@ class Grid {
    * perfect electric conductor, 1 and up are ordered as in the
    * material library.
    */
-  void define_box(unsigned int x_start, unsigned int x_stop, 
-                  unsigned int y_start, unsigned int y_stop, 
-                  unsigned int z_start, unsigned int z_stop, 
-                  unsigned int mat_index);
+  virtual void define_box(unsigned int x_start, unsigned int x_stop, 
+                          unsigned int y_start, unsigned int y_stop, 
+                          unsigned int z_start, unsigned int z_stop, 
+                          unsigned int mat_index);
 
   /**
    * Returns the global size of the x dimension.
@@ -726,6 +726,20 @@ class Grid {
    */
   const field_t *get_pointer(point_t point, 
                              FieldComponent field_comp) const;
+
+  /**
+   * Assign a material index a some point in space
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * @param z the z coordinate
+   * @param mid the material id to assign
+   */
+  inline void set_material(unsigned int x, unsigned int y, 
+                           unsigned int z, unsigned int mid)
+  {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
+    material_[pi(x, y, z)] = mid;
+  }
 
 };
 

@@ -1,6 +1,12 @@
 
 #include "FDTD.hh"
 
+FDTD::FDTD()
+{}
+
+FDTD::~FDTD()
+{}
+
 void FDTD::set_grid_size(unsigned int x, unsigned int y,
                          unsigned int z)
 {
@@ -28,7 +34,7 @@ void FDTD::set_boundary(Face face, BoundaryCond *bc)
 
 void FDTD::load_materials(MaterialLib &matlib)
 {
-  grid_.load_materials(matlib);
+  mlib_ = &matlib;
 }
 
 void FDTD::add_excitation(const char *name, Excitation *ex)
@@ -46,20 +52,58 @@ void FDTD::add_datawriter(const char *name, DataWriter *dw)
   datawriters_[string(name)] = dw;
 }
 
+void FDTD::add_geometry(Geometry *g)
+{
+  geometry_.push_back(g);
+}
+
 void FDTD::map_result_to_datawriter(const char *result, const char *dw)
 {
   map<string, Result *>::iterator riter = results_.find(result);
   map<string, DataWriter *>::iterator dwiter = datawriters_.find(dw);
 
   if (riter != results_.end() && dwiter != datawriters_.end())
+  {
     r_dw_map_.push_back(pair<string, string>(string(result), string(dw)));
+  }
   else
     throw FDTDException("Result and data writer must be present before mapping them together");
 }
 
-void FDTD::run(unsigned int steps)
+void FDTD::setup_datawriters()
+{
+  vector< pair<string, string> >::iterator iter = r_dw_map_.begin();  
+  vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();  
+
+  while (iter != iter_e)
+  {
+    map<string, Result *>::iterator riter 
+      = results_.find((*iter).first);
+
+    map<string, DataWriter *>::iterator dwiter
+      = datawriters_.find((*iter).second);
+    
+    if (riter != results_.end() && dwiter != datawriters_.end())
+    {
+      (*dwiter).second->add_variable(*(*riter).second);
+    }
+    
+    ++iter;
+  }
+}
+
+void FDTD::run(int rank, int size, unsigned int steps)
 {
   // Grid setup
+  SimpleSDAlg dd;
+
+  local_ginfo_ = dd.decompose_domain(rank, size, global_ginfo_);
+
+  grid_.setup_grid(local_ginfo_);
+
+  grid_.load_materials(*mlib_);
+
+  grid_.set_define_mode(false);
 
   // Life cycle init
   map<string, Excitation *>::iterator eiter_b = excitations_.begin();
@@ -91,6 +135,17 @@ void FDTD::run(unsigned int steps)
     (*dwiter).second->init(grid_);
     ++dwiter;
   }
+
+  vector<Geometry *>::iterator giter = geometry_.begin();
+  vector<Geometry *>::iterator giter_e = geometry_.end();
+  
+  while(giter != giter_e)
+  {
+    (*giter)->init(grid_);
+    ++giter;
+  }
+  
+  setup_datawriters();
 
   // Run
   unsigned int ts = 0;

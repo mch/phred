@@ -30,9 +30,28 @@ Data &PlaneResult::get_result(Grid &grid, unsigned int time_step)
   return data_;
 }
 
-void PlaneResult::set_size(unsigned int x, unsigned int y)
+void PlaneResult::init(const Grid &grid)
 {
   dim_lens_.clear();
-  dim_lens_.push_back(x);
-  dim_lens_.push_back(y);
+
+  switch (face_) 
+  {
+  case FRONT:
+  case BACK:
+    dim_lens_.push_back(grid.get_ldy());
+    dim_lens_.push_back(grid.get_ldz());
+    break;
+
+  case TOP:
+  case BOTTOM:
+    dim_lens_.push_back(grid.get_ldx());
+    dim_lens_.push_back(grid.get_ldy());
+    break;
+
+  case LEFT:
+  case RIGHT:
+    dim_lens_.push_back(grid.get_ldx());
+    dim_lens_.push_back(grid.get_ldz());
+    break;
+  }
 }

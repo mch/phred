@@ -15,8 +15,8 @@ void call_excite(Excitation& ex, Grid &grid,
 /**
  * Helper function for Python classes derived from SourceFunction
  */
-field_t call_sf(SourceFunction& sf, Grid &grid, 
-                    unsigned int time_step) 
+field_t call_source_functionf(SourceFunction& sf, Grid &grid, 
+                              unsigned int time_step) 
 { return sf.source_function(grid, time_step); }
 
 /**
@@ -27,13 +27,13 @@ field_t call_sf(SourceFunction& sf, Grid &grid,
  * that it can be used from Python. This wrapper also allows for
  * derived classes built in Python. 
  */
-class ExcitationWrap : public Excitation<SourceFunction>
+class ExcitationWrap : public Excitation
 {
   PyObject* self_;
 
 public:
-  ExcitationWrap(PyObject* self, SourceFunction &sf)
-    :  Excitation<SourceFunction>(sf), self_(self) {}
+  ExcitationWrap(PyObject* self, SourceFunction *sf)
+    :  Excitation(sf), self_(self) {}
 
   void excite(Grid &grid, unsigned int time_step,
               FieldType type) 
@@ -43,6 +43,29 @@ public:
                       FieldType type) 
   { Excitation::excite(grid, time_step,
                        type); }
+};
+
+/**
+ * This wrapper allows subclasses of WindowedExcitation written in Python
+ */
+class WindowedExcitationWrap : public WindowedExcitation
+{
+private:
+  PyObject *self_;
+
+public:
+  WindowedExcitationWrap(PyObject *self, SourceFunction *sf)
+    : WindowedExcitation(sf)
+  {}
+
+  void excite(Grid &grid, unsigned int time_step,
+              FieldType type) 
+  { return call_method<void>(self, "excite"); }
+
+  void default_excite(Grid &grid, unsigned int time_step,
+                      FieldType type) 
+  { WindowedExcitation::excite(grid, time_step,
+                               type); }  
 };
 
 /**
@@ -66,19 +89,30 @@ public:
 BOOST_PYTHON_MODULE(excitation)
 {
   class_<Excitation, ExcitationWrap, boost::noncopyable>("Excitation")
-    .def("call_excite", &Excitation::excite, 
+    .def("excite", &Excitation::excite, 
          &ExcitationWrap::default_excite)
+    .def("set_polarization", &Excitation::set_polatization)
+    .def("set_type", &Excitation::set_type)
+    .def("set_soft", &Excitation::set_soft)
+    .def("get_soft", &Excitation::get_soft)
+    .def("set_region", &Excitation::set_region)
     ;
 
-  class_<SourceFunction, SourceFunctionWrap, boost::noncopyable>("SourceFunction", no_init)
-    .def("call_sf", call_sf);
+  class_<WindowedExcitation, WindowedExcitationWrap, bases<Excitation>, boost:noncopyable>("WindowedExcitation")
+    .def("excite", &WindowedExcitation::excite, 
+         &WindowedExcitationWrap::default_excite)
+    ;
+
+  class_<SourceFunction, SourceFunctionWrap, boost::noncopyable>("SourceFunction")
+    .def("source_function", &SourceFunction::source_function)
+    ;
+  //    .def("call_sf", call_sf)
 
   class_<Gaussm, bases<SourceFunction> >("Gaussm")
     .def("set_parameters", &Gaussm::set_parameters)
     .def("get_alpha", &Gaussm::get_alpha)
     .def("get_deltaf", &Gaussm::get_deltaf)
     .def("get_f0", &Gaussm::get_f0)
-    .def("source_function", call_sf)
-    .def("excite", call_excite)
+    .def("source_function", &Gaussm::source_function)
     ;
 }

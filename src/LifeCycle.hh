@@ -1,7 +1,7 @@
 #ifndef LIFE_CYCLE_H
 #define LIFE_CYCLE_H
 
-#include "Grid.hh"
+class Grid;
 
 /**
  * An interface that defines life cycle functions used by a FDTD sim
@@ -23,7 +23,7 @@ public:
    * constants or whatever. Called just before the simulation
    * starts. The default implementation does nothing. 
    */
-  void init(const Grid &grid)
+  virtual void init(const Grid &grid)
   {}
   
   /**
@@ -31,7 +31,7 @@ public:
    * whatever. Called just after the simulation ends. The default
    * implementation does nothing. 
    */
-  void deinit(const Grid &grid)
+  virtual void deinit(const Grid &grid)
   {}
 };
 

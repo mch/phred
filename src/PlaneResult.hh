@@ -69,14 +69,6 @@ public:
     return face_;
   }
 
-  /**
-   * Set the size of the plane. Call this before adding this result to
-   * a DataWriter. 
-   * @param x size of first dimension
-   * @param y size of second dimension
-   */
-  void set_size(unsigned int x, unsigned int y);
-
   /** 
    * Set the field component to return. PlaneResult returns Ey by default. 
    */
@@ -85,6 +77,10 @@ public:
     field_ = field;
   }
 
+  /**
+   * Initalize the result. Set's the size of the plane from the grid.
+   */
+  virtual void init(const Grid &grid);
 };
 
 #endif // PLANE_RESULT_H

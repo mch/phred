@@ -72,7 +72,7 @@ public:
   //
 protected:
   // THIS MAY BE A PRIME SMART POINTER CANDIDATE, due to the copying complexity. 
-  counted_ptr<BoundaryCond> *face_bc_[6]; // Boundary condition to apply
+  counted_ptr<BoundaryCond> face_bc_[6]; // Boundary condition to apply
 
   /**
    * GridInfo will occasionally have to take responsibility for
@@ -133,7 +133,7 @@ public:
    */
   inline const BoundaryCondition get_bc_type(Face face)
   {
-    return face_bc_[face]->get()->get_type();
+    return face_bc_[face].get()->get_type();
   }
 
   /** 
@@ -143,7 +143,7 @@ public:
    */
   inline BoundaryCond& get_boundary(Face face)
   {
-    return *(face_bc_[face]->get());
+    return *(face_bc_[face].get());
   }
 
   /**

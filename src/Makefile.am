@@ -32,6 +32,8 @@ phred_SOURCES=\
 	FDTD.hh \
 	FDTD.cc \
 	Geometry.hh \
+	Box.hh \
+	Box.cc \
 	Grid.cc \
 	Grid.hh \
 	GridInfo.hh \

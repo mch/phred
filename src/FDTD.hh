@@ -15,6 +15,8 @@ using namespace std;
 #include "DataWriter.hh"
 #include "Constants.hh"
 #include "Exceptions.hh"
+#include "SimpleSDAlg.hh"
+#include "Geometry.hh"
 
 /**
  * This is a sort of convience wrapper object that runs the
@@ -65,6 +67,16 @@ protected:
    */
   vector< pair<string, string> > r_dw_map_;
 
+  /**
+   * Geometry objects
+   */
+  vector<Geometry *> geometry_;
+
+  /**
+   * Material library
+   */
+  MaterialLib *mlib_;
+
   /** 
    * Call LifeCycle::init() 
    */
@@ -76,6 +88,14 @@ protected:
    */
   //template<class T, class A>
   //void deinit_objs();  
+
+  /**
+   * Adds the results to the datawriters. This is called from run()
+   * after the datawriters and results have been initialized since
+   * some DataWriters need to be initialized before variables can be
+   * added to them. 
+   */
+  void setup_datawriters();
 
 public:
   FDTD();
@@ -123,6 +143,11 @@ public:
   void add_datawriter(const char *name, DataWriter *dw);
 
   /**
+   * Add a geometry object to the grid
+   */
+  void add_geometry(Geometry *geom);
+
+  /**
    * Map a results to a DataWriter. Some DataWriters cannot accept
    * more than one result, so this may throw and exception. Use this
    * function after the results and datawriters have been added. 
@@ -134,9 +159,12 @@ public:
 
   /**
    * Run the simulation for N time steps. 
+   *
+   * @param rank the process rank in MPI
+   * @param size the number of ranks in the MPI communicator
    * @param steps number of timesteps to run for. 
    */
-  void run(unsigned int steps);
+  void run(int rank, int size, unsigned int steps);
 
 };
 
