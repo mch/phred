@@ -6,14 +6,77 @@ Pml::Pml()
 Pml::~Pml()
 {}
 
-void Pml::alloc_pml_fields(region_t r)
+void Pml::alloc_pml_fields()
 {
+  if (thickness_ == 0)
+    throw exception();
+  
+  region_t r = find_face(face, grid);
 
+  unsigned int sz = (r.xmax - r.xmin) * (r.ymax - r.ymin) 
+    * (r.zmax - r.zmin);
+  
+  exy_ = new field_t[sz];
+  exz_ = new field_t[sz];
+
+  eyx_ = new field_t[sz];
+  eyz_ = new field_t[sz];
+
+  ezx_ = new field_t[sz];
+  ezy_ = new field_t[sz];
+
+  hxy_ = new field_t[sz];
+  hxz_ = new field_t[sz];
+
+  hyx_ = new field_t[sz];
+  hyz_ = new field_t[sz];
+
+  hzx_ = new field_t[sz];
+  hzy_ = new field_t[sz];
+}
+
+void Pml::set_thickness(unsigned int thickness)
+{
+  thickness_ = thickness;
 }
 
 void Pml::free_pml_fields()
 {
+  if (exy_) 
+    delete[] exy_;
 
+  if (exz_) 
+    delete[] exz_;
+
+  if (eyx_) 
+    delete[] eyx_;
+
+  if (eyz_) 
+    delete[] eyz_;
+
+  if (ezx_) 
+    delete[] ezx_;
+
+  if (ezy_) 
+    delete[] ezy_;
+
+  if (hxy_) 
+    delete[] hxy_;
+
+  if (hxz_) 
+    delete[] hxz_;
+
+  if (hyx_) 
+    delete[] hyx_;
+
+  if (hyz_) 
+    delete[] hyz_;
+
+  if (hzx_) 
+    delete[] hzx_;
+
+  if (hzy_) 
+    delete[] hzy_;
 }
 
 void Pml::apply(Face face, Grid &grid)

@@ -49,15 +49,10 @@ protected:
   field_t *hzx_;
   field_t *hzy_;
   
-  region_t region_; /**< Region in the Grid to apply the PML to in
-                       local coords */
-
   /**
-   * Allocate memory for the field data
-   *
-   * @param r a region_t describing the size of the PML. 
+   * Allocate memory for the field data. Thickness must be non zero. 
    */
-  void alloc_pml_fields(region_t r);
+  void alloc_pml_fields();
 
   /**
    * Free the memory used to hold the PML field data.
