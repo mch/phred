@@ -19,32 +19,15 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef BARTLETT_EXCITATION_H
-#define BARTLETT_EXCITATION_H
-
-#include "WindowedExcitation.hh"
-
 /**
- * An excitation that is windowed in 3 space by Bartlett windows (tent
- * functions). This should make a pseudo plane wave...
- * 
- * Check the Bartlett Window definition at:
- * http://www.cg.tuwien.ac.at/studentwork/CESCG/CESCG99/TTheussl/node6.html
+ * \file Tests.hh
+ * Compiled in tests for various situations. Will probably be
+ * eliminated once Jan's script loader is complete. 
  */
-class BartlettExcitation : public WindowedExcitation
-{
-private:
-protected:
-  /**
-   * Defines a bartlett window function. 
-   */
-  virtual field_t window(region_t r, unsigned int i, unsigned int j, 
-                         unsigned int k);
 
-public:
-  BartlettExcitation(SourceFunction *sf);
-  ~BartlettExcitation();
-  
-};
+void point_test(int rank, int size);
+void pml_test(int rank, int size);
+void takakura_test(int rank, int size);
+void laser_test(int rank, int size);
+void coupler_test(int rank, int size);
 
-#endif // BARTLETT_EXCITATION_H

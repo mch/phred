@@ -26,8 +26,8 @@
 #include "../Excitations/WindowedExcitation.hh"
 #include "../Excitations/BartlettExcitation.hh"
 #include "../Excitations/WaveguideExcitation.hh"
-#include "../Gaussm.hh"
-#include "../ExpSine.hh"
+#include "../Sources/Gaussm.hh"
+#include "../Sources/ExpSine.hh"
 
 using namespace boost::python;
 

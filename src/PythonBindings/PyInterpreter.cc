@@ -173,7 +173,7 @@ void PyInterpreter::master()
 
   handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
   handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
-  
+
   add_modules();
 
   //if (size_ > 1) {
@@ -240,53 +240,18 @@ void PyInterpreter::add_modules()
 {
   handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
   handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
-  
-//   handle<> rname ( PyString_FromString("Results") );
-//   handle<> res( PyImport_Import(rname.get()) );
-//   PyDict_SetItemString(main_namespace.get(), "Results", res.get());
-
-//   handle<> ename ( PyString_FromString("Excitations") );
-//   handle<> ex( PyImport_Import(ename.get()) );
-//   PyDict_SetItemString(main_namespace.get(), "Excitations", ex.get());
-
-//   handle<> fname ( PyString_FromString("FDTD") );
-//   handle<> fdtd( PyImport_Import(fname.get()) );
-//   PyDict_SetItemString(main_namespace.get(), "FDTD", fdtd.get());
-
-//   handle<> mname ( PyString_FromString("Materials") );
-//   handle<> mats( PyImport_Import(mname.get()) );
-//   PyDict_SetItemString(main_namespace.get(), "Materials", mats.get());
-
-//   handle<> tname ( PyString_FromString("Types") );
-//   handle<> types( PyImport_Import(tname.get()) );
-//   PyDict_SetItemString(main_namespace.get(), "Types", types.get());
-
-//   handle<> bname ( PyString_FromString("Boundaries") );
-//   handle<> bnds( PyImport_Import(bname.get()) );
-//   PyDict_SetItemString(main_namespace.get(), "Boundaries", bnds.get());
-
-//   handle<> gname ( PyString_FromString("Geometry") );
-//   handle<> geom( PyImport_Import(gname.get()) );
-//   PyDict_SetItemString(main_namespace.get(), "Geometry", geom.get());
-
-//   handle<> dwname ( PyString_FromString("DataWriters") );
-//   handle<> dws( PyImport_Import(dwname.get()) );
-//   PyDict_SetItemString(main_namespace.get(), "DataWriters", dws.get());
-
-//   handle<> gridname ( PyString_FromString("Grids") );
-//   handle<> grds( PyImport_Import(gridname.get()) );
-//   PyDict_SetItemString(main_namespace.get(), "Grids", grds.get());
-
-  //handle<> phredname(PyString_FromString("Phred"));
-  //handle<> p(PyImport_Import(phredname.get()));
-  //PyDict_SetItemString(main_namespace.get(), "Phred", p.get());
-  //PyDict_Merge(main_namespace.get(), p.get(), 0);
 
   // MPI Data
   PyDict_SetItemString(main_namespace.get(), "MPI_RANK", 
                        PyInt_FromLong(rank_));
   PyDict_SetItemString(main_namespace.get(), "MPI_SIZE", 
                        PyInt_FromLong(size_));
+
+  // Import the contents of the Phred module
+  handle<> res( PyRun_String("from Phred import *", Py_single_input, 
+                             main_namespace.get(),
+                             main_namespace.get()));
+
 }
 
 char *PyInterpreter::rl()

@@ -23,7 +23,7 @@
 #define SOURCE_DFT_RESULT_H
 
 #include "Result.hh"
-#include "SourceFunction.hh"
+#include "../Sources/SourceFunction.hh"
 
 /**
  * Outputs the DFT of a source function. Only really applies to

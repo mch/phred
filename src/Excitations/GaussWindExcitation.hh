@@ -19,32 +19,37 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef BARTLETT_EXCITATION_H
-#define BARTLETT_EXCITATION_H
+#ifndef GAUSSWIND_EXCITATION_H
+#define GAUSSWIND_EXCITATION_H
 
 #include "WindowedExcitation.hh"
 
 /**
- * An excitation that is windowed in 3 space by Bartlett windows (tent
- * functions). This should make a pseudo plane wave...
- * 
- * Check the Bartlett Window definition at:
- * http://www.cg.tuwien.ac.at/studentwork/CESCG/CESCG99/TTheussl/node6.html
+ * An excitation that is windowed in 3 space by a Gaussian
+ * window. This should make a pseudo plane wave...
+ *
+ * http://www.cg.tuwien.ac.at/studentwork/CESCG/CESCG99/TTheussl/node12.html
  */
-class BartlettExcitation : public WindowedExcitation
+class GaussWindExcitation : public WindowedExcitation
 {
 private:
+  float std_dev_; /**< Standard deviation of Gaussian window */ 
+
 protected:
   /**
-   * Defines a bartlett window function. 
+   * Defines a Gaussian window function. 
    */
   virtual field_t window(region_t r, unsigned int i, unsigned int j, 
                          unsigned int k);
 
 public:
-  BartlettExcitation(SourceFunction *sf);
-  ~BartlettExcitation();
+  GaussWindExcitation(SourceFunction *sf); 
+
+  ~GaussWindExcitation();
   
+  void set_std_dev(float stddev);
+  float get_std_dev();
+
 };
 
-#endif // BARTLETT_EXCITATION_H
+#endif // GAUSSWIND_EXCITATION_H

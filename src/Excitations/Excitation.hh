@@ -35,7 +35,7 @@
 
 #include "Types.hh"
 #include "Grid.hh"
-#include "SourceFunction.hh"
+#include "../Sources/SourceFunction.hh"
 #include "LifeCycle.hh"
 
 class Excitation : public LifeCycle

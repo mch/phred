@@ -112,7 +112,7 @@ dnl CFLAGS=
 dnl CXXFLAGS=
 if test "x$WANT_DEBUG" = "x1"; then
         AC_DEFINE([DEBUG], [1], [Turn on debugging messages])
-        AC_LANG_WERROR
+dnl        AC_LANG_WERROR
         CXXFLAGS="-g"
         CFLAGS="-g"
 else
@@ -297,7 +297,7 @@ AC_SUBST(CXXFLAGS, $CXXFLAGS)
 AC_SUBST(LIBS, $LIBS)
 AC_SUBST(PYTHON_LDFLAGS, $PYTHON_LDFLAGS)
 
-AC_OUTPUT(Makefile src/Makefile src/python-bindings/Makefile doc/Makefile tests/Makefile tests/high_speed_c/Makefile src/Types.hh doc/Doxyfile doc/phred.lsm phred.spec src/Results/Makefile src/Excitations/Makefile src/DataWriters/Makefile src/Boundaries/Makefile)
+AC_OUTPUT(Makefile src/Makefile src/PythonBindings/Makefile doc/Makefile tests/Makefile tests/high_speed_c/Makefile src/Types.hh doc/Doxyfile doc/phred.lsm phred.spec src/Results/Makefile src/Excitations/Makefile src/DataWriters/Makefile src/Boundaries/Makefile src/Sources/Makefile)
 
 
 dnl Display a summary of results

@@ -23,7 +23,7 @@
 #define SOURCE_TIME_RESULT_H
 
 #include "Result.hh"
-#include "SourceFunction.hh"
+#include "../Sources/SourceFunction.hh"
 
 /**
  * Outputs a source function at the timestep.
