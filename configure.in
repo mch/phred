@@ -30,12 +30,16 @@ if test "$with_cxx" = yes; then
 fi
 
 dnl Checks for programs.
-AC_PROG_INSTALL
+dnl AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_CXXCPP
-AM_PROG_LEX
+AC_PROG_LEX
 AC_PROG_YACC
+
+dnl Is dot from graphviz available? For doxygen class diagrams
+AC_CHECK_PROG([DOT], [dot], [YES], [NO])
+AC_ARG_VAR([DOT], [Set to YES if dot from the graphviz package is available for doxygen to use])
 
 AC_LANG(C++)
 
@@ -193,4 +197,4 @@ AC_SUBST(CFLAGS, $CFLAGS)
 AC_SUBST(CXXFLAGS, $CXXFLAGS)
 AC_SUBST(LIBS, $LIBS)
 
-AC_OUTPUT(Makefile src/Makefile doc/Makefile doc/phred.lsm phred.spec)
+AC_OUTPUT(Makefile src/Makefile doc/Makefile doc/Doxyfile doc/phred.lsm phred.spec)

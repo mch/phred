@@ -19,9 +19,9 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#include <stdio.h>
+/*#include <stdio.h>
 #include <sys/types.h>
-#include "system.h"
+#include "system.h"*/
 
 /* MPI (rocks your socks right off) */
 #include <mpi.h>
@@ -249,12 +249,12 @@ decode_switches (int argc, char **argv)
 static void
 usage (int status)
 {
-  printf (_("%s - \
-Phred is a parallel finite difference time domain electromagnetics simulator.\n"), program_name);
+  printf ("%s - \
+Phred is a parallel finite difference time domain electromagnetics simulator.\n", program_name);
 
 #ifdef HAVE_LIBPOPT
-  printf (_("Usage: %s [OPTION]... [FILE]...\n"), program_name);
-  printf (_("\
+  printf ("Usage: %s [OPTION]... [FILE]...\n", program_name);
+  printf ("\
 Options:\n\
   -f, --filename             filename to read problem description from\n\
   -v, --verbose              print more information\n\
@@ -262,10 +262,10 @@ Options:\n\
   -V, --version              output version information and exit\n\
 "));
 #else
-  printf (_("Usage: %s FILENAME\n"), program_name);
-  printf(_("\
+  printf ("Usage: %s FILENAME\n", program_name);
+  printf("\
 FILENAME is the file containing the description of the proble to simulate.\n\
-"));
+");
 #endif
 
   exit (status);

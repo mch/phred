@@ -8,7 +8,6 @@ Grid::Grid()
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
     Da_(0), Dbx_(0), Dby_(0), Dbz_(0),
     ex_(0), ey_(0), ez_(0), hx_(0), hy_(0), hz_(0), 
-    ex_sum_(0), ey_sum_(0), ez_sum_(0),
     material_(0)
 {
   for (int i = 0; i < 6; i++) {
@@ -55,23 +54,6 @@ void Grid::free_grid()
     delete[] hx_;
     delete[] hy_;
     delete[] hz_;
-  }
-
-  // The sums are done seperatly because they aren't always needed. 
-  if (ex_sum_ || ey_sum_ || ez_sum_) {
-    for (unsigned int i = 0; i < dimx_; i++) {
-      for (unsigned int j = 0; j < dimy_; j++) {  
-	delete[] ex_sum_[i][j];
-	delete[] ey_sum_[i][j];
-	delete[] ez_sum_[i][j];
-      }
-      delete[] ex_sum_[i];
-      delete[] ey_sum_[i];
-      delete[] ez_sum_[i];
-    }
-    delete[] ex_sum_;
-    delete[] ey_sum_;
-    delete[] ez_sum_;
   }
 }
 
@@ -337,16 +319,51 @@ void Grid::set_face_rank(unsigned int face, int rank)
 }
 
 
-void Grid::update_e()
+// Straight out of Taflove.
+void Grid::update_fields()
+{
+  unsigned int mid;
+  for (unsigned int i = 1; i < dimx_ - 1; i++) {
+    for (unsigned int j = 1; j < dimy_ - 1; j++) {
+      for (unsigned int k = 1; k < dimz_ - 1; k++) {
+        mid = material_[i][j][k];
+
+        // Electric
+        ex_[i][j][k] = Ca_[mid] * ex_[i][j][k]
+          + Cby_[mid] * (hz_[i][j][k] - hz_[i][j-1][k])
+          + Cbz_[mid] * (hy_[i][j][k-1] - hy_[i][j][k]);
+
+        ey_[i][j][k] = Ca_[mid] * ey_[i][j][k]
+          + Cbz_[mid] * (hx_[i][j][k] - hx_[i][j][k-1])
+          + Cbx_[mid] * (hz_[i-1][j][k] - hz_[i][j][k]);
+
+        ez_[i][j][k] = Ca_[mid] * ez_[i][j][k]
+          + Cbx_[mid] * (hy_[i][j][k] - hy_[i-1][j][k])
+          + Cby_[mid] * (hx_[i][j-1][k] - hx_[i][j][k]);          
+
+        // Magnetic
+        hx_[i][j][k] = Da_[mid] * hx_[i][j][k]
+          + Dby_[mid] * (ez_[i][j][k] - ez_[i][j+1][k])
+          + Dbz_[mid] * (ey_[i][j][k+1] - ey_[i][j][k]);
+
+        hy_[i][j][k] = Da_[mid] * hy_[i][j][k]
+          + Dbz_[mid] * (ex_[i][j][k] - ex_[i][j][k+1])
+          + Dbx_[mid] * (ez_[i+1][j][k] - ez_[i][j][k]);
+
+        hz_[i][j][k] = Da_[mid] * hz_[i][j][k]
+          + Dbx_[mid] * (ey_[i][j][k] - ey_[i+1][j][k])
+          + Dby_[mid] * (ex_[i][j+1][k] - ex_[i][j][k]);
+      }
+    }
+  }
+}
+
+void Grid::apply_boundaries()
 {
 
 }
 
-void Grid::update_h()
-{
-
-}
-
+// Most of this should be inline, in the header file!
 
 unsigned int Grid::get_gdx()
 {

@@ -4,11 +4,7 @@ Version:	@VERSION@
 Entered-date:	@ISODATE@
 Description:	Phred is a parallel finite difference time domain electromagnetics simulator.
 		@configure_input@
-		Please edit phred.lsm.in to fix the Keywords and
-		Primary-site entries, add several more lines of
-		description here if appropriate, and to delete these
-		instructions.
-Keywords:	[substitute your keywords here]
+Keywords:	MPI Parallel FDTD NetCDF HDF
 Author: 	mhughe@uvic.ca (Matt Hughes)
 Maintained-by:	mhughe@uvic.ca (Matt Hughes)
 Primary-site:	metlab.unc.edu pub/Linux/apps/some/directory

@@ -5,18 +5,24 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-// Boundary conditions
+/**
+ * Boundary conditions. These can be appled to faces of the grid or to
+ * the surfaces of materials. But normally just to the faces of the
+ * grid.
+ */
 enum BoundaryCondition {
-  SUBDOMAIN, // Share me
-  EWALL, 
-  HWALL, 
-  ESYM,
-  HSYM,
-  IMPEDANCE,
-  PML
+  SUBDOMAIN, /**< Means that the face is shared with another node */
+  EWALL, /**< Electric wall */
+  HWALL /**< Magnetic wall */
+  //ABC /**< 2nd order absorbing boundary condition */
+  //IMPEDANCE, /**< Imedance boundary */
+  //  PML /**< Perfectly matched layers (Berenger's absorbing boundary) */
 };
 
-// Material types
+/** 
+ * Material types. Not currently used, but may be used to indicate the
+ * type of grid that should be used.
+ */
 enum MaterialType {
   PERF_COND, 
   NON_PERMEABLE, 
@@ -26,7 +32,9 @@ enum MaterialType {
   DRUDE
 };
 
-// Faces
+/**
+ * Faces on the grid cube.
+ */
 enum Face {
   FRONT = 0, 
   BACK = 1, 
@@ -36,7 +44,9 @@ enum Face {
   TOP = 5
 };
 
-// Field components
+/**
+ * Field components. Electric and magnetic
+ */
 enum FieldComponent {
   EX,
   EY,
@@ -46,17 +56,25 @@ enum FieldComponent {
   HZ
 };
 
-// Material coefficients
+/**
+ * The type used for material coefficients
+ */
 typedef float mat_coef_t; 
 
-// Material properties
+/**
+ * The type used for material properties
+ */
 typedef double mat_prop_t;
 
-// Grid field components, THE MPI DATATYPE MUST MATCH!
+/**
+ * The type used for grid field components, THE MPI DATATYPE MUST MATCH!
+ */
 typedef double field_t;
 #define GRID_MPI_TYPE MPI_DOUBLE
 
-// Grid spacings
+/**
+ * The type used for grid spacings
+ */
 typedef double delta_t;
 
 

@@ -1,4 +1,8 @@
-// A modulated gaussian excitation
+/** \class Gaussm
+ * \brief A modulated gaussian excitation
+ *
+ * A Gaussian function modulated by a sine wave. 
+ */
 
 #ifndef EXCITE_GAUSSM_H
 #define EXCITE_GAUSSM_H
@@ -30,16 +34,22 @@ public:
 
   /**
    * Get the current alpha value
+   *
+   * @return alpha
    */
   field_t get_alpha();
 
   /**
    * Get the current frequency range
+   *
+   * @return frequency range
    */
   field_t get_deltaf();
 
   /**
    * Get the current centre frequency
+   *
+   * @return centre frequency
    */
   field_t get_f0();
 
@@ -54,7 +64,14 @@ public:
    * things such as delta_t, the result of this function is applied in
    * the excite() function (in order to factor out the loop). 
    *
-   * @param the time at which to apply the excitation
+   * @param grid the grid to which the function will be applied. The
+   * result is not actually applied by source_function; the grid
+   * reference is only used to retrieve data such as the time and
+   * space step sizes. 
+   *
+   * @param time_step the time at which to apply the excitation
+   *
+   * @return the value of the excitation
    */
   field_t source_function(Grid &grid, unsigned int time_step);
 
