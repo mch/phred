@@ -69,9 +69,14 @@ protected:
   GridInfo local_ginfo_;
 
   /**
-   * Our excitations
+   * Our E excitations 
    */
-  map<string, Excitation *> excitations_;
+  map<string, Excitation *> e_excitations_;
+
+  /**
+   * Our H excitations 
+   */
+  map<string, Excitation *> h_excitations_;
 
   /**
    * Our results
@@ -156,10 +161,18 @@ public:
   void load_materials(MaterialLib &matlib);
 
   /**
-   * Let us know about an excitation, or replace one of the same name.
-   * You are passing in a pointer; don't dispose of the object!
+   * Let us know about a electric excitation, or replace one of the
+   * same name.  You are passing in a pointer; don't dispose of the
+   * object!
    */
-  void add_excitation(const char *name, Excitation *ex);
+  void add_e_excitation(const char *name, Excitation *ex);
+
+  /**
+   * Let us know about a magnetic excitation, or replace one of the
+   * same name.  You are passing in a pointer; don't dispose of the
+   * object!
+   */
+  void add_h_excitation(const char *name, Excitation *ex);
 
   /**
    * Add a result object, or replace one of the same name. 

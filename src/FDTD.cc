@@ -64,9 +64,14 @@ void FDTD::load_materials(MaterialLib &matlib)
   mlib_ = &matlib;
 }
 
-void FDTD::add_excitation(const char *name, Excitation *ex)
+void FDTD::add_e_excitation(const char *name, Excitation *ex)
 {
-  excitations_[string(name)] = ex;
+  e_excitations_[string(name)] = ex;
+}
+
+void FDTD::add_h_excitation(const char *name, Excitation *ex)
+{
+  h_excitations_[string(name)] = ex;
 }
 
 void FDTD::add_result(const char *name, Result *r)
@@ -161,14 +166,24 @@ void FDTD::run(int rank, int size, unsigned int steps)
   grid_->set_define_mode(false);
 
   // Life cycle init
-  map<string, Excitation *>::iterator eiter_b = excitations_.begin();
-  map<string, Excitation *>::iterator eiter = eiter_b;
-  map<string, Excitation *>::iterator eiter_e = excitations_.end();
+  map<string, Excitation *>::iterator e_eiter_b = e_excitations_.begin();
+  map<string, Excitation *>::iterator e_eiter = e_eiter_b;
+  map<string, Excitation *>::iterator e_eiter_e = e_excitations_.end();
   
-  while (eiter != eiter_e) 
+  while (e_eiter != e_eiter_e) 
   {
-    (*eiter).second->init(*grid_);
-    ++eiter;
+    (*e_eiter).second->init(*grid_);
+    ++e_eiter;
+  }
+
+  map<string, Excitation *>::iterator h_eiter_b = h_excitations_.begin();
+  map<string, Excitation *>::iterator h_eiter = h_eiter_b;
+  map<string, Excitation *>::iterator h_eiter_e = h_excitations_.end();
+  
+  while (h_eiter != h_eiter_e) 
+  {
+    (*h_eiter).second->init(*grid_);
+    ++h_eiter;
   }
 
   map<string, Result *>::iterator riter_b = results_.begin();
@@ -213,11 +228,11 @@ void FDTD::run(int rank, int size, unsigned int steps)
     grid_->update_h_field();
 
     // Excitations
-    eiter = eiter_b;
-    while (eiter != eiter_e)
+    h_eiter = h_eiter_b;
+    while (h_eiter != h_eiter_e)
     {
-      (*eiter).second->excite(*grid_, ts, H);
-      ++eiter;
+      (*h_eiter).second->excite(*grid_, ts, H);
+      ++h_eiter;
     }
 
     // Boundary condition application
@@ -227,11 +242,11 @@ void FDTD::run(int rank, int size, unsigned int steps)
     grid_->update_e_field();
     
     // Excitations
-    eiter = eiter_b;
-    while (eiter != eiter_e)
+    e_eiter = e_eiter_b;
+    while (e_eiter != e_eiter_e)
     {
-      (*eiter).second->excite(*grid_, ts, E);
-      ++eiter;
+      (*e_eiter).second->excite(*grid_, ts, E);
+      ++e_eiter;
     }
     
     // Boundary condition application
@@ -255,11 +270,18 @@ void FDTD::run(int rank, int size, unsigned int steps)
   }
 
   // life cycle de init
-  eiter = eiter_b;
-  while (eiter != eiter_e) 
+  e_eiter = e_eiter_b;
+  while (e_eiter != e_eiter_e) 
   {
-    (*eiter).second->deinit(*grid_);
-    ++eiter;
+    (*e_eiter).second->deinit(*grid_);
+    ++e_eiter;
+  }
+
+  h_eiter = h_eiter_b;
+  while (h_eiter != h_eiter_e) 
+  {
+    (*h_eiter).second->deinit(*grid_);
+    ++h_eiter;
   }
 
   riter = riter_b;

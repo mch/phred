@@ -41,8 +41,8 @@ public:
 
 class MemoryException : public std::exception {
 public:
-  const char *what() const throw() { return "Out of memory. 
-We wish to hold the whole sky, 
+  const char *what() const throw() { return "Out of memory. \
+We wish to hold the whole sky, \
 But we never will."; }
 };
 

@@ -359,7 +359,7 @@ static void point_test(int rank, int size)
   ex.set_region(50, 50, 50, 50, 50, 50);
   ex.set_polarization(0.0, 1.0, 0.0);
   
-  fdtd.add_excitation("modgauss", &ex);
+  fdtd.add_e_excitation("modgauss", &ex);
 
   // Results
   point_t p;
@@ -428,18 +428,18 @@ static void pml_test(int rank, int size)
 
   Ewall ewall;
   Hwall hwall;
-  //fdtd.set_boundary(FRONT, &front);
+  fdtd.set_boundary(FRONT, &front);
   fdtd.set_boundary(BACK, &back);
-  fdtd.set_boundary(FRONT, &ewall);
+  //fdtd.set_boundary(FRONT, &ewall);
   //fdtd.set_boundary(BACK, &ewall);
-  //fdtd.set_boundary(BOTTOM, &bottom);
-  //fdtd.set_boundary(TOP, &top);
-  fdtd.set_boundary(BOTTOM, &ewall);
-  fdtd.set_boundary(TOP, &ewall);
-  //fdtd.set_boundary(LEFT, &left);
-  //fdtd.set_boundary(RIGHT, &right);
-  fdtd.set_boundary(LEFT, &ewall);
-  fdtd.set_boundary(RIGHT, &ewall);
+  fdtd.set_boundary(BOTTOM, &bottom);
+  fdtd.set_boundary(TOP, &top);
+  //fdtd.set_boundary(BOTTOM, &ewall);
+  //fdtd.set_boundary(TOP, &ewall);
+  fdtd.set_boundary(LEFT, &left);
+  fdtd.set_boundary(RIGHT, &right);
+  //fdtd.set_boundary(LEFT, &ewall);
+  //fdtd.set_boundary(RIGHT, &ewall);
 
   MaterialLib mats; 
   Material mat; // defaults to free space
@@ -493,7 +493,7 @@ static void pml_test(int rank, int size)
   //ex.set_region(20, 20, 6, 13, 6, 13);
   ex.set_polarization(0.0, 1.0, 0.0);
 
-  fdtd.add_excitation("modgauss", &ex);
+  fdtd.add_e_excitation("modgauss", &ex);
 
   // Results
   point_t p;
@@ -655,7 +655,7 @@ static void pml_test(int rank, int size)
      cout << "j[" << i << "] = " << j[i] << endl;
 #endif
 
-   fdtd.run(rank, size, 200);
+   fdtd.run(rank, size, 75);
 }
 
 static void takakura_test(int rank, int size)
@@ -728,7 +728,7 @@ static void takakura_test(int rank, int size)
   ex.set_region(6, 43, 6, 313, 15, 15);
   ex.set_polarization(0.0, 1.0, 0.0);
 
-  fdtd.add_excitation("modgauss", &ex);
+  fdtd.add_e_excitation("modgauss", &ex);
 
   // Results
   point_t p;

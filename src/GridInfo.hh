@@ -178,7 +178,9 @@ public:
   unsigned int get_face_thickness(Face face);
 
   /**
-   * Apply the boundary conditions to the grid. 
+   * Apply the boundary conditions to the grid. Hold the Subdomain
+   * boundaries until after all the other boundaries have been
+   * computed.
    *
    * @param the grid to apply to 
    */

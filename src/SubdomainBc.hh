@@ -110,7 +110,7 @@ public:
   void add_tx_rx_data(const RxTxData &x);
 
   /**
-   * Returns a BoundayCondition type so the grid knows this is a pml.
+   * Returns a BoundayCondition type so the grid knows this is a subdomain.
    */
   virtual BoundaryCondition get_type();
 

@@ -80,6 +80,10 @@ phred_SOURCES=\
 	PointResult.cc \
 	PlaneResult.hh \
 	PlaneResult.cc \
+	FarfieldResult.cc \
+	FarfieldResult.hh \
+	fdtd_complex.hh \
+	fdtd_complex.cc \
 	DataWriter.hh \
 	DataWriter.cc \
 	AsciiDataWriter.hh \

@@ -29,6 +29,9 @@
  * collect data from other ranks using MPI communication. This might
  * be refactored later...
  *
+ * Almost all of this code (except for the MPI stuff) is borrowed from
+ * Jan's implementation.
+ *
  * \bug Support for more than one rank (parallel communication) is
  * not yet implemented
  */
@@ -68,6 +71,27 @@ protected:
   
   int rank_; /**< The rank of this process */
   int size_; /**< Number of ranks in the MPI communicator */
+
+  /**
+   * Helper function to calculate the result. 
+   */
+  void ffpu_calculate(const Grid &grid, unsigned int time_step);
+
+  /**
+   * Calculate the updated moments. 
+   */
+  void ffpu_moment_update(const Grid &grid);
+
+  /**
+   * I don't know what this one does!
+   */
+  void ffpu_ntff(float theta, float phi, float *ms, float *js,
+                 float *e_theta, float *e_phi);
+
+  /**
+   * I don't know what this one does!
+   */
+  void ffpu_moment_cycle();
 
 public:
   FarfieldResult();

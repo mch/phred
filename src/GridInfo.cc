@@ -129,7 +129,14 @@ void GridInfo::apply_boundaries(Grid &grid, FieldType type)
 {
   for (unsigned int i = 0; i < 6; i++)
   {
-    if (face_bc_[i].get()) {
+    if (face_bc_[i].get() && face_bc_[i].get()->get_type() != SUBDOMAIN) {
+      face_bc_[i].get()->apply(static_cast<Face>(i), grid, type);
+    }
+  }
+
+  for (unsigned int i = 0; i < 6; i++)
+  {
+    if (face_bc_[i].get() && face_bc_[i].get()->get_type() == SUBDOMAIN) {
       face_bc_[i].get()->apply(static_cast<Face>(i), grid, type);
     }
   }
