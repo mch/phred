@@ -24,7 +24,7 @@
 #include "Globals.hh"
 
 FDTD::FDTD()
-  : time_steps_(0), ddalg_(DDA_SIMPLE)
+  : time_steps_(0), ddalg_(DDA_UNDEFINED)
 {
   mlib_ = shared_ptr<MaterialLib>(new MaterialLib()); // Empty default. 
 }
@@ -214,11 +214,26 @@ void FDTD::run()
     cout << "Performing domain decomposition..." << endl;
 
   SubdomainAlg *alg = 0;
-  if (MPI_SIZE == 1 || MPI_SIZE == 2 || MPI_SIZE == 4 || MPI_SIZE == 8)
-    alg = new SimpleSDAlg();
-  else
+  if (ddalg_ == DDA_UNDEFINED) 
   {
-    //  alg = new StripSDAlg();
+    if (MPI_SIZE == 1 || MPI_SIZE == 2 || MPI_SIZE == 4 || MPI_SIZE == 8)
+      alg = new SimpleSDAlg();
+    else
+    {
+      //  alg = new StripSDAlg();
+      cerr << "Striping sub-domaining algorithm is not implemented yet!"
+           << endl;
+      return;
+    }
+  } 
+  else if (ddalg_ == DDA_SIMPLE)
+    alg = new SimpleSDAlg();
+
+  else if (ddalg_ == DDA_MPICART)
+    alg = new MPISubdomainAlg();
+
+  else if (ddalg_ == DDA_STRIPING)
+  {
     cerr << "Striping sub-domaining algorithm is not implemented yet!"
          << endl;
     return;

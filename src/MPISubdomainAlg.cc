@@ -114,25 +114,35 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
     (floor(static_cast<double>(result.global_dimz_) / p));
 
   // In case the number of cells isn't evenly divisible
-  int x = result.global_dimx_ % n;
-  int y = result.global_dimy_ % m;
-  int z = result.global_dimz_ % p;
-
-  if (coords[0] == 0 && x != 0) {
-    result.dimx_ += x;
-  }
-
-  if (coords[1] == 0 && y != 0) {
-    result.dimy_ += y;
-  }
-
-  if (coords[2] == 0 && z != 0) {
-    result.dimz_ += z;
-  }
+  int x = result.global_dimx_ - n * result.dimx_;
+  int y = result.global_dimy_ - m * result.dimy_;
+  int z = result.global_dimz_ - p * result.dimz_;
 
   result.start_x_no_sd_ = result.start_x_ = x + coords[0] * result.dimx_;
   result.start_y_no_sd_ = result.start_y_ = y + coords[1] * result.dimy_;
-  result.start_z_no_sd_ = result.start_z_ = z * coords[2] * result.dimz_;
+  result.start_z_no_sd_ = result.start_z_ = z + coords[2] * result.dimz_;
+
+  if (coords[0] < x) {
+    result.dimx_ += 1;
+    
+    result.start_x_no_sd_ = result.start_x_ 
+      = result.start_x_ - (x - coords[0]);
+  }
+
+  if (coords[1] < y) {
+    result.dimy_ += 1;
+
+    result.start_y_no_sd_ = result.start_y_ 
+      = result.start_y_ - (y - coords[1]);
+  }
+
+  if (coords[2] < z) {
+    result.dimz_ += 1;
+
+    result.start_z_no_sd_ = result.start_z_ 
+      = result.start_z_ - (z - coords[2]);
+  }
+
   result.dimx_no_sd_ = result.dimx_;
   result.dimy_no_sd_ = result.dimy_;
   result.dimz_no_sd_ = result.dimz_;
@@ -156,6 +166,11 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
 
     result.dimx_++;
     result.start_x_--;
+
+#ifdef DEBUG
+    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
+         << n_rank << " at it's back face. " << endl;
+#endif
   }
 
   if (coords[0] != dims[0] - 1) { // front
@@ -171,6 +186,11 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
     result.set_boundary(FRONT, sdbc);
 
     result.dimx_++;
+
+#ifdef DEBUG
+    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
+         << n_rank << " at it's front face. " << endl;
+#endif
   }
 
   if (coords[1] != 0) { // LEFT
@@ -187,6 +207,11 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
 
     result.dimy_++;
     result.start_y_--;
+
+#ifdef DEBUG
+    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
+         << n_rank << " at it's left face. " << endl;
+#endif
   }
 
   if (coords[1] != dims[1] - 1) { // RIGHT
@@ -202,6 +227,11 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
     result.set_boundary(RIGHT, sdbc);
 
     result.dimy_++;
+
+#ifdef DEBUG
+    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
+         << n_rank << " at it's right face. " << endl;
+#endif
   }
 
   if (coords[2] != 0) { // BOTTOM
@@ -218,6 +248,11 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
 
     result.dimz_++;
     result.start_z_--;
+
+#ifdef DEBUG
+    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
+         << n_rank << " at it's bottom face. " << endl;
+#endif
   }
 
   if (coords[2] != dims[2] - 1) { // TOP
@@ -233,6 +268,11 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
     result.set_boundary(TOP, sdbc);
 
     result.dimz_++;
+
+#ifdef DEBUG
+    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
+         << n_rank << " at it's top face. " << endl;
+#endif
   }
 
   return result;

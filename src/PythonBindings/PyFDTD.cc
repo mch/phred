@@ -52,6 +52,10 @@ void export_fdtd()
     .def("get_z_cells", &FDTD::get_num_z_cells)
 
     .def("get_grid", &FDTD::get_grid)
+    .def("set_decomp_alg", &FDTD::set_decomp_alg)
+    .def("get_decomp_alg", &FDTD::get_decomp_alg)
+    .add_property("decomp_alg", &FDTD::get_decomp_alg, 
+                  &FDTD::set_decomp_alg)
     ;
   
   enum_<MetaType>("MetaType")

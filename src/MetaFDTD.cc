@@ -294,44 +294,7 @@ void MetaFDTD::run()
   // Set up the GridUpdate stuff
   GridUpdateData gud(*grid_);
 
-  // The update region that can be visited by all field component
-  // update equations.
-  e_update_r_ = grid_->update_ex_r_;
-  e_update_r_.xmin = grid_->update_ey_r_.xmin;
-
-  h_update_r_ = grid_->update_hx_r_;
-  h_update_r_.ymin = grid_->update_hy_r_.ymin;
-  h_update_r_.zmin = grid_->update_hz_r_.zmin;
-
-#ifdef DEBUG
-  cout << "E 3 update region: " << e_update_r_;
-  cout << "H 3 update region: " << h_update_r_;
-
-  region_t temp_update;
-  temp_update = grid_->update_ex_r_;
-  temp_update.xmax = temp_update.xmin + 1;
-  cout << "Ex 3 correction: " << temp_update;
-  
-  temp_update = grid_->update_ey_r_;
-  temp_update.ymax = temp_update.ymin + 1;
-  cout << "Ey 3 correction: " << temp_update;
-  
-  temp_update = grid_->update_ez_r_;
-  temp_update.zmax = temp_update.zmin + 1;
-  cout << "Ez 3 correction: " << temp_update;
-
-  temp_update = grid_->update_hx_r_;
-  temp_update.xmin = temp_update.xmax - 1;
-  cout << "Hx 3 correction: " << temp_update;
-
-  temp_update = grid_->update_hy_r_;
-  temp_update.ymin = temp_update.ymax - 1;
-  cout << "Hy 3 correction: " << temp_update;
-
-  temp_update = grid_->update_hz_r_;
-  temp_update.zmin = temp_update.zmax - 1;
-  cout << "Hz 3 correction: " << temp_update;
-#endif
+  compute_update_regions();
 
   cout << "\nStarting FDTD time stepping, running for " 
        << time_steps_ << " time steps..." << endl;
@@ -658,5 +621,69 @@ void MetaFDTD::update_h(GridUpdateData &gud)
     cerr << "SGI Origin specific meta update not implemented!" << endl;
     break;
   }
+
+}
+
+
+void MetaFDTD::compute_update_regions()
+{
+  // The update region that can be visited by all field component
+  // update equations.
+  e_update_r_ = grid_->update_ex_r_;
+  h_update_r_ = grid_->update_hx_r_;
+
+  if (grid_->update_ey_r_.xmin > e_update_r_.xmin)
+    e_update_r_.xmin = grid_->update_ey_r_.xmin;
+
+  if (grid_->update_ez_r_.xmin > e_update_r_.xmin)
+    e_update_r_.xmin = grid_->update_ez_r_.xmin;
+
+  if (grid_->update_ey_r_.xmax < e_update_r_.xmax)
+    e_update_r_.xmax = grid_->update_ey_r_.xmax;
+
+  if (grid_->update_ey_r_.zmax < e_update_r_.zmax)
+    e_update_r_.zmax = grid_->update_ey_r_.zmax;
+
+  if (grid_->update_hy_r_.xmin > h_update_r_.xmin)
+    h_update_r_.xmin = grid_->update_hy_r_.xmin;
+
+  if (grid_->update_hz_r_.xmin > h_update_r_.xmin)
+    h_update_r_.xmin = grid_->update_hz_r_.xmin;
+
+  if (grid_->update_hy_r_.xmax < h_update_r_.xmax)
+    h_update_r_.xmax = grid_->update_hy_r_.xmax;
+
+  if (grid_->update_hy_r_.zmax < h_update_r_.zmax)
+    h_update_r_.zmax = grid_->update_hy_r_.zmax;
+
+#ifdef DEBUG
+  cout << "E 3 update region: " << e_update_r_;
+  cout << "H 3 update region: " << h_update_r_;
+
+  region_t temp_update;
+  temp_update = grid_->update_ex_r_;
+  temp_update.xmax = temp_update.xmin + 1;
+  cout << "Ex 3 correction: " << temp_update;
+  
+  temp_update = grid_->update_ey_r_;
+  temp_update.ymax = temp_update.ymin + 1;
+  cout << "Ey 3 correction: " << temp_update;
+  
+  temp_update = grid_->update_ez_r_;
+  temp_update.zmax = temp_update.zmin + 1;
+  cout << "Ez 3 correction: " << temp_update;
+
+  temp_update = grid_->update_hx_r_;
+  temp_update.xmin = temp_update.xmax - 1;
+  cout << "Hx 3 correction: " << temp_update;
+
+  temp_update = grid_->update_hy_r_;
+  temp_update.ymin = temp_update.ymax - 1;
+  cout << "Hy 3 correction: " << temp_update;
+
+  temp_update = grid_->update_hz_r_;
+  temp_update.zmin = temp_update.zmax - 1;
+  cout << "Hz 3 correction: " << temp_update;
+#endif
 
 }

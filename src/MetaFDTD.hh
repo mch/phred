@@ -78,6 +78,11 @@ private:
    */ 
   void update_h(GridUpdateData &gud);
 
+  /**
+   * Computes the E and H regions where all three field components can
+   * be computed at one time.
+   */ 
+  void compute_update_regions();
 };
 
 #endif // META_FDTD_H

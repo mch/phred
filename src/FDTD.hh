@@ -196,8 +196,7 @@ public:
 
   /**
    * Set the domain decomposition algorithm to use. Defaults to the
-   * origional simple algorithm which only works for 1, 2, 4, and 8
-   * processes.
+   * method which uses MPI to sort things out. 
    */ 
   inline void set_decomp_alg(DomainDecompAlg a)
   { ddalg_ = a; }
