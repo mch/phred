@@ -858,7 +858,7 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         }
 
         break;
-      }            
+      }
 
       // This corrects for the direction of the outward surface normal
       // of the Huygens box.
@@ -921,19 +921,19 @@ map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
         E_theta_[idx] = (-1 * ETA * W_t) - U_p;
         E_phi_[idx] = (-1 * ETA * W_p) + U_t;
 
-        if (fft_idx == ff_tsteps_ / 4)
-        {
-          cerr << "FFR PP: phi_idx=" << phi_idx << ", theta_idx="
-               << theta_idx << ", phi=" << phi << ", theta="
-               << theta << ", idx=" << idx << ", Wx_=" 
-               << Wx_[idx] << ", Wy_=" << Wy_[idx] << ", Wz_="
-               << Wz_[idx] << ", Ux_=" << Ux_[idx] << ", Uy_="
-               << Uy_[idx] << ", Uz_=" << Uz_[idx] << endl;
-          cerr << "      : W_t=" << W_t << ", W_p="
-               << W_p << ", U_t=" << U_t << ", U_p=" << U_p
-               << ", E_t=" << E_theta_[idx] << ", E_p=" 
-               << E_phi_[idx] << endl;
-        }
+//         if (fft_idx == ff_tsteps_ / 4)
+//         {
+//           cerr << "FFR PP: phi_idx=" << phi_idx << ", theta_idx="
+//                << theta_idx << ", phi=" << phi << ", theta="
+//                << theta << ", idx=" << idx << ", Wx_=" 
+//                << Wx_[idx] << ", Wy_=" << Wy_[idx] << ", Wz_="
+//                << Wz_[idx] << ", Ux_=" << Ux_[idx] << ", Uy_="
+//                << Uy_[idx] << ", Uz_=" << Uz_[idx] << endl;
+//           cerr << "      : W_t=" << W_t << ", W_p="
+//                << W_p << ", U_t=" << U_t << ", U_p=" << U_p
+//                << ", E_t=" << E_theta_[idx] << ", E_p=" 
+//                << E_phi_[idx] << endl;
+//         }
 
         int dft_idx = dft_index(phi_idx, theta_idx, 0);
         for (int f_idx = 0; f_idx < frequencies_.length(); f_idx++)
