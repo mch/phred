@@ -299,7 +299,7 @@ unsigned int NetCDFDataWriter::write_data(int var_id, size_t *start,
   else if (t == MPI_BYTE) 
   {
     status = nc_put_vara_uchar(ncid_, var_id, start, count, 
-                               static_cast<signed char *>(ptr));
+                               static_cast<unsigned char *>(ptr));
     bytes_written = 0;
   }
   else if (t == MPI_SHORT)
