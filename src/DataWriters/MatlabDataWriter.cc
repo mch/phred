@@ -288,6 +288,12 @@ void MatlabElement::append_buffer(unsigned int num_bytes, const void *ptr)
   memmove(buffer_ + buffer_pos_, ptr, num_bytes);
   buffer_pos_ += num_bytes;
   tag_.num_bytes += num_bytes;
+
+//   cerr << "Buffer now contains " << buffer_pos_ << " bytes. As floats: \n";
+//   for (int i = 0 ; i < buffer_pos_/sizeof(float); i++)
+//     cerr << "\t" << reinterpret_cast<float*>(buffer_)[i];
+//   cerr << endl;
+  
 }
 
 void MatlabElement::write_buffer(ostream &stream)
@@ -339,12 +345,12 @@ void MatlabElement::reshape_buffer(int N, int M, MPI_Datatype type)
   MPI_Datatype new_t, flat_t, new2_t;
   MPI_Status status;
 
-  char *new_buf = new char[buffer_size_];
+  char *new_buf = new char[buffer_pos_];
   
   if (!new_buf)
     throw MemoryException();
 
-  memset(new_buf, 0, sizeof(char) * buffer_size_);
+  memset(new_buf, 0, sizeof(char) * buffer_pos_);
 
   int type_size;
   MPI_Type_size(type, &type_size);
@@ -364,6 +370,13 @@ void MatlabElement::reshape_buffer(int N, int M, MPI_Datatype type)
 
   delete[] buffer_;
   buffer_ = new_buf;
+  buffer_size_ = buffer_pos_;
+
+//   cerr << "After reshape, buffer contains " << buffer_pos_ << " bytes. As floats: \n";
+//   for (int i = 0 ; i < buffer_pos_/sizeof(float); i++)
+//     cerr << "\t" << reinterpret_cast<float*>(buffer_)[i];
+//   cerr << endl;
+  
 
   MPI_Type_free(&new_t);
   MPI_Type_free(&new2_t);
@@ -432,10 +445,12 @@ MatlabArray::MatlabArray(const char *name,
   
   if (time_dim)
   {
-    i++;
-    dim_lengths_[0] = 0;
+//     i++;
+//     dim_lengths_[0] = 0;
+    dim_lengths_[num_dims_ - 1] = 0;
   }
 
+  i = 0;
   for(iter = dim_lens.begin(); iter != iter_e; ++iter, ++i)
   {
     sz += *iter;
@@ -502,14 +517,15 @@ void MatlabArray::write_buffer(ostream &stream)
   me_dim_lens_.write_buffer(stream);
   me_name_.write_buffer(stream);
 
-  if (time_dim_)
-  {
-    unsigned int cols = 0;
-    for (int i = 1; i < num_dims_; i++)
-      cols += dim_lengths_[i];
+  // This is busted yo
+//   if (time_dim_)
+//   {
+//     unsigned int cols = 0;
+//     for (int i = 1; i < num_dims_; i++)
+//       cols += dim_lengths_[i];
 
-    me_data_.reshape_buffer(dim_lengths_[0], cols, mpi_type_);
-  }
+//     me_data_.reshape_buffer(dim_lengths_[0], cols, mpi_type_);
+//   }
 
   me_data_.write_buffer(stream);
 }
@@ -546,15 +562,14 @@ MATLAB_array_type MatlabArray::get_array_class(MATLAB_data_type type)
  * MatlabDataWriter function implementations
  ************************************************************/
 
-MatlabDataWriter::MatlabDataWriter(int rank, int size)
-  : DataWriter(rank, size), buffered_(true)
+MatlabDataWriter::MatlabDataWriter()
+  : buffered_(true)
 {
   header_setup();
 }
 
-MatlabDataWriter::MatlabDataWriter(int rank, int size, 
-                                 const char *fn, Result &result)
-  : DataWriter(rank, size), buffered_(true)
+MatlabDataWriter::MatlabDataWriter(const char *fn, Result &result)
+  : buffered_(true)
 {
   header_setup();
   filename_ = fn;
@@ -585,7 +600,7 @@ void MatlabDataWriter::header_setup()
 
 void MatlabDataWriter::init(const Grid &grid)
 {
-  //test();
+  test();
 
   if (filename_.length() > 0 && rank_ == 0)
   {
@@ -633,7 +648,7 @@ void MatlabDataWriter::add_variable(Result &result)
       throw DataWriterException("Result must have at least one dimension.");
     
     vector<int> dim_lens;
-    for(unsigned int idx = 0; idx < dimensions.size(); idx++)
+    for(int idx = dimensions.size() - 1; idx >= 0; idx--)
       dim_lens.push_back(dimensions[idx].global_len_);
 
     vars_[var->get_name()] = 
@@ -641,6 +656,13 @@ void MatlabDataWriter::add_variable(Result &result)
                       dim_lens, var->has_time_dimension(), 
                       var->get_element_type(),
                       false);
+
+//     cerr << "MatlabDataWriter: Added a variable with " 
+//          << dimensions.size() << " dimensions: \n";
+//     for (int i = 0; i < dimensions.size(); i++)
+//       cerr << "\t" << dim_lens[i];
+        
+//     cerr << endl;
   }
 }
 
@@ -657,12 +679,12 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
     if (len > 0)
     {
 #ifdef DEBUG
-//       cerr << "Buffering data for matlab output from " << 
-//         variable.get_name() << ", " << len << " bytes. " << endl;
-//       cerr << "\tMatlabDataWriter, recieved data, floats are: " 
-//            << reinterpret_cast<float *>(ptr)[0] << " and " 
-//            << reinterpret_cast<float *>(ptr)[1] << endl;
-//       cerr << "\tPointer is " << ptr << endl;
+//        cerr << "Buffering data for matlab output from " << 
+//          variable.get_name() << ", " << len << " bytes. " << endl;
+//        cerr << "\tMatlabDataWriter, recieved data, floats are: " 
+//             << reinterpret_cast<float *>(ptr)[0] << " and " 
+//             << reinterpret_cast<float *>(ptr)[15] << endl;
+//        cerr << "\tPointer is " << ptr << endl;
 #endif
 
       vars_[variable.get_name()]->append_buffer(len, ptr);

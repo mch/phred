@@ -34,6 +34,8 @@ dnl options
 WANT_DEBUG=
 AC_ARG_ENABLE(debug, AC_HELP_STRING([--enable-debug], [Enable debugging messages, turn on assertions and array bounds checking]), WANT_DEBUG=1)
 
+AC_ARG_WITH(efence, AC_HELP_STRING([--with-efence], [Enable memory debugging using Electric Fence]))
+
 AC_ARG_WITH(cxx, AC_HELP_STRING([--with-cxx=CXX], [C++ compiler to use]), 
 		 [CXX="$withval"])
 
@@ -150,6 +152,11 @@ if test "x$WANT_PROFILE" = "x1"; then
         CXXFLAGS="$CXXFLAGS -pg"
         CFLAGS="$CFLAGS -pg"
 fi
+
+if [[ ! "$with_efence" = "no" ]]; then 
+        AC_CHECK_LIB(efence, malloc, [], [])
+fi
+
 
 dnl Set up compiler flags, so that libraries will be tested with these
 dnl (so that 64 bit tests will fail to work against 32 bit libs for

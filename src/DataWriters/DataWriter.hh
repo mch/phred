@@ -48,13 +48,24 @@ using namespace std;
 class DataWriter : public LifeCycle
 {
 private:
-  DataWriter()
-  {}
 
 protected:
-  int rank_;  /**< MPI Rank of this process */
-  int size_; /**< Number of processes in MPI comm. */  
+  int rank_;  /**< MPI Rank of the process that handles data writing
+                 (defaults to 0) */
+
   string filename_; /**< File to write data to */
+
+  vector<MPI_Datatype> node_types_; /**< A list of MPI derieved
+                                            data types that describe
+                                            how data recieved from
+                                            each node fits into the
+                                            output buffer. */ 
+
+  bool have_node_dtypes_; /**< True if we've collected
+                             node_data_types_ already. Used because
+                             some data writers may choose not to use
+                             the default handle_data function, and use
+                             MPI-IO instead (for example). */ 
 
   /** 
    * A helper function to gather data from all ranks onto rank 0 so
@@ -99,31 +110,43 @@ protected:
    */ 
   vector<unsigned int> get_recieve_sizes(const Data &data);
 
-public:
-  DataWriter(int rank, int size) 
-    : rank_(rank), size_(size)
-  { }
-
-  virtual ~DataWriter()
-  { }
+  /**
+   * Compute displacements for an indexed data type that pulls out a
+   * chunk of a larger N dimensional matrix. This is for creating MPI
+   * Indexed data types. 
+   */ 
+  void compute_displacements(int N, int *dsize, 
+                             int *coord, int *lens,
+                             int *num_displacements,
+                             int **displacements);
 
   /**
-   * Returns the rank
+   * Recursion helper for the above. 
+   */ 
+  int displ_helper(int N, int *dsize, int *lens,
+                   int curr_dim, int disp_idx, 
+                   int *disps, int *offset,
+                   int *negoffset, bool first);
+
+  /**
+   * Computes the index of a coordinate in a chuck of contiguous
+   * memory that represents an N dimensional array with size.
+   */ 
+  int idx(int N, int *size, int *coord);
+
+public:
+  DataWriter();
+
+  virtual ~DataWriter();
+
+  /**
+   * Returns the rank that data is to be written out on. 
    */
   inline int get_rank()
   {
     return rank_;
   }
 
-  /**
-   * Returns the size
-   *
-   * @return an int; number of MPI processes
-   */
-  inline int get_size()
-  {
-    return size_;
-  }
 
   /**
    * Set the filename to write to. The file is opened for writing. 

@@ -22,6 +22,14 @@
 #include "DataWriter.hh"
 #include "../Globals.hh"
 
+DataWriter::DataWriter() 
+  : rank_(0), have_node_dtypes_(false)
+{ }
+
+DataWriter::~DataWriter()
+{ }
+
+
 void DataWriter::set_filename(string filename)
 {
   filename_ = filename;
@@ -49,18 +57,33 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
   // How much data will we recieve? 
   vector<unsigned int> rcv_bytes = get_recieve_sizes(data);
 
-  // How is it arranged? 
-  vector<MPI_Datatype> node_types = gather_types(var);
+  //if (!have_node_dtypes_)
+  //{
+  node_types_ = gather_types(var);
+  //have_node_dtypes_ = true;
+  //}
 
-  if (rank_ != 0)
+  if (MPI_RANK != rank_)
   {
     if (data.get_num() > 0)
     {
       int sz;
       MPI_Type_size(data.get_datatype(), &sz);
+      
+//       cerr << "Rank " << MPI_RANK << " is sending " << sz << " bytes..."
+//            << endl;
+
       MPI_Send(data.get_ptr(), data.get_num(), data.get_datatype(), 
                0, 1, MPI_COMM_WORLD);
-    }
+
+//       cerr << "Rank " << MPI_RANK << " sent " << sz << " bytes..."
+//            << endl;      
+    } 
+//     else
+//     {
+//       cerr << "Rank " << MPI_RANK << " has no data for variable " 
+//            << var.get_name() << endl;
+//     }
   } 
 
   else 
@@ -72,8 +95,8 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
       rcv_size += *iter;
 
 #ifdef DEBUG
-    cerr << "Datawriter on rank 0 will recieve a total of " 
-         << rcv_size << " bytes. \n";
+//     cerr << "Datawriter on rank 0 will recieve a total of " 
+//          << rcv_size << " bytes. \n";
 #endif
 
     if (rcv_size > 0) 
@@ -91,6 +114,9 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
              iter != dimensions.end(); ++iter)
           buffer_size = buffer_size * iter->global_len_;
 
+//         cerr << "CONTIGUOUS BUFFER IS " << buffer_size
+//              << " elements long!" << endl;
+
         MPI_Type_contiguous(buffer_size, var.get_element_type(),
                             &global_type);
         MPI_Type_commit(&global_type);
@@ -105,45 +131,71 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
       
       ptr_head = ptr = new char[buffer_size];
       
-      // Copy rank 0 data into the buffer
-      // THIS IS BUGGY FOR MPI_SIZE > 1!!!! It does not take size and
-      // start of region into account. 
+//       cerr << "Rank " << rank_ << " reciever buffer size is " 
+//            << buffer_size << endl;
+
+      // Copy rank_ data into the buffer
       if (data.get_num() > 0) {
-//         MPI_Sendrecv(data.get_ptr(), data.get_num(), 
-//                      data.get_datatype(), 0, 1, 
-//                      static_cast<void *>(ptr), 
-//                      rcv_bytes[0], MPI_CHAR, 0, 1,
-//                      MPI_COMM_WORLD, &status);
-        MPI_Sendrecv(data.get_ptr(), data.get_num(), 
-                     data.get_datatype(), 0, 1, 
-                     static_cast<void *>(ptr), 
-                     1, node_types[0], 0, 1,
-                     MPI_COMM_WORLD, &status);
-        //ptr += rcv_bytes[0];
 
         int sz = 0;
-        MPI_Type_size(node_types[0], &sz);
-        cerr << "Buffered " << rcv_bytes[0] << " from rank 0. " 
-             << "Or is it " << sz << " bytes?" << endl;
+        MPI_Type_size(data.get_datatype(), &sz);
+//         cerr << "Rank " << rank_ << " is swizilling " 
+//              << data.get_num() << " items (" << sz 
+//              << " bytes) with itself. Buffer is " 
+//              << rcv_bytes[0] << " bytes. " << endl;
+
+        if (MPI_SIZE == 1)
+        {
+          MPI_Sendrecv(data.get_ptr(), data.get_num(), 
+                       data.get_datatype(), 0, 1, 
+                       static_cast<void *>(ptr), 
+                       rcv_bytes[0], MPI_CHAR, 0, 1,
+                       MPI_COMM_WORLD, &status);
+        } else {
+          int sz = 0;
+          MPI_Type_size(node_types_[0], &sz);
+
+//           cerr << "MPI type is " << sz << " bytes..." << endl;
+
+          MPI_Sendrecv(data.get_ptr(), data.get_num(), 
+                       data.get_datatype(), 0, 1, 
+                       static_cast<void *>(ptr), 
+                       1, node_types_[0], 0, 1,
+                       MPI_COMM_WORLD, &status);
+
+//           cerr << "Buffered " << rcv_bytes[0] << " from rank 0. " 
+//                << "Or is it " << sz << " bytes?" << endl;
+        }
       }
       
-      // Recieve data from ranks > 0 
-      // THIS IS ALSO BUGGY
-      for (int i = 1; i < size_; i++)
+      // Recieve data from ranks =! rank_
+      for (int i = 1; i < MPI_SIZE; i++)
       {
         if (rcv_bytes[i] > 0) {
           // Construct a derived data type that places the recieved
           // data in the correct location inside the buffer. 
+          int sz = 0;
+          MPI_Type_size(node_types_[i], &sz);
+//           cerr << "Rank 0 is recieving " << rcv_bytes[i] 
+//                << " (" << sz << "?) bytes from rank " << i << endl;
 
-          cerr << "Rank 0 is recieving " << rcv_bytes[i] 
-               << " bytes from rank " << i << endl;
-//           MPI_Recv(ptr, rcv_bytes[i], MPI_CHAR, 
-//                    i, 1, MPI_COMM_WORLD, &status);
-          MPI_Recv(ptr, 1, node_types[i], 
+          MPI_Recv(static_cast<void *>(ptr), 1, node_types_[i], 
                    i, 1, MPI_COMM_WORLD, &status);
-          //ptr += rcv_bytes[i];
+
+//           cerr << "Rank 0 recieved " << rcv_bytes[i] 
+//                << " (" << sz << "?) bytes from rank " << i << endl;
+
         }
       }
+
+//       cout << "TEST -------------------\n";
+//       for (int i=0; i < 2*MPI_SIZE; i++)
+//       {
+//         for (int j = 0; j < 8; j++)
+//           cout << "\t" << reinterpret_cast<float *>(ptr)[i + j*2];
+//         cout << endl;
+//       }
+//       cout << "-------------------\n";
       
       write_data(time_step, var, global_type, ptr_head, buffer_size);
 
@@ -153,6 +205,14 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
     }
   }
 
+  vector<MPI_Datatype>::iterator iter = node_types_.begin();
+  vector<MPI_Datatype>::iterator iter_e = node_types_.end();
+
+  for(; iter != iter_e; ++iter)
+  {
+    if (*iter != MPI_DATATYPE_NULL)
+      MPI_Type_free(&(*iter));
+  }
 }
 
 vector<unsigned int> DataWriter::get_recieve_sizes(const Data &data)
@@ -162,8 +222,8 @@ vector<unsigned int> DataWriter::get_recieve_sizes(const Data &data)
   vector<unsigned int> ret;
   int sz;
 
-  if (rank_ == 0)
-    nums_recv = new unsigned int[size_ * 2];
+  if (MPI_RANK == rank_)
+    nums_recv = new unsigned int[MPI_SIZE * 2];
 
   // Every process sends the number of items it has to contribute to
   // the result to rank 0. 
@@ -175,9 +235,9 @@ vector<unsigned int> DataWriter::get_recieve_sizes(const Data &data)
              static_cast<void *>(nums_recv), 2, MPI_UNSIGNED, 
              0, MPI_COMM_WORLD);
 
-  if (rank_ == 0)
+  if (MPI_RANK == rank_)
   {
-    for (int i = 0; i < size_; i++)
+    for (int i = 0; i < MPI_SIZE; i++)
       ret.push_back(nums_recv[i * 2] * nums_recv[(i*2)+1]);
     
     delete[] nums_recv;
@@ -201,28 +261,23 @@ vector<MPI_Datatype> DataWriter::gather_types(const Variable &var)
   vector<MPI_Datatype> ret;
   const Data &data = var.get_data();
 
-  cerr << "Rank " << MPI_RANK << " is writing the variable "
-       << var.get_name() << " with "
-       << num_dimensions << " dimensions. \n\tstart\tlength:\n";
+//   cerr << "Rank " << MPI_RANK << " is writing the variable "
+//        << var.get_name() << " with "
+//        << num_dimensions << " dimensions. \n\tstart\tlength:\n";
 
   for (; iter != iter_e; ++iter, ++dim_idx)
   {
-    if (data.get_num() > 0)
-    {
-      dim_lengths[dim_idx] = iter->local_len_;
-      dim_starts[dim_idx] = iter->start_;
-    } else {
-      dim_lengths[dim_idx] = 0;
-      dim_starts[dim_idx] = 0;
-    }
-    cerr << "\t" << dim_starts[dim_idx] << "\t" 
-         << dim_lengths[dim_idx] << "\n";
+    dim_lengths[dim_idx] = iter->local_len_;
+    dim_starts[dim_idx] = iter->start_;
+
+//     cerr << "\t" << dim_starts[dim_idx] << "\t" 
+//          << dim_lengths[dim_idx] << "\n";
   }
 
   unsigned int *recv_dim_starts = 0;
   unsigned int *recv_dim_lens = 0;
 
-  if (rank_ == 0)
+  if (MPI_RANK == rank_)
   {
     recv_dim_starts = new unsigned int[num_dimensions * MPI_SIZE];
     recv_dim_lens = new unsigned int[num_dimensions * MPI_SIZE];
@@ -237,86 +292,183 @@ vector<MPI_Datatype> DataWriter::gather_types(const Variable &var)
              num_dimensions, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
 
-  if (MPI_RANK == 0)
+  if (MPI_RANK == rank_)
   {
     // Construct data types for each node's incoming data. 
-    //int MPI_Type_create_subarray(int ndims, int array_of_sizes[], int array_of_subsizes[], int array_of_starts[], int order, MPI_Datatype oldtype, MPI_Datatype *newtype) 
-
     int *dim_sizes, *dim_sub_sizes, *starts, *displacements;
+    int num_displacements = 0;
+
     dim_sizes = new int[num_dimensions];
     dim_sub_sizes = new int[num_dimensions];
     starts = new int[num_dimensions];
-    displacements = new int[num_dimensions];
 
-    cerr << "Total N-dimensional array size:" << endl;
+//     cerr << "Total N-dimensional array size:" << endl;
     for (dim_idx = 0; dim_idx < num_dimensions; dim_idx++)
     {
       dim_sizes[dim_idx] = dimensions[dim_idx].global_len_;
-      cerr << "\t" << dim_sizes[dim_idx];
+//       cerr << "\t" << dim_sizes[dim_idx];
     }
-    cerr << endl << endl;
+//     cerr << endl << endl;
 
     for (unsigned int node_idx = 0; node_idx < MPI_SIZE; node_idx++)
     {
       MPI_Datatype arr_type;
 
-      cerr << "Setting up data type for data from node " << node_idx
-           << endl;
+//       cerr << "Setting up data type for data from node " << node_idx
+//            << endl;
 
       int sz = 1;
-      unsigned int disp = 1;
       for (unsigned int node_dim_idx = 0, dim_idx = node_idx * num_dimensions; 
            dim_idx < (node_idx + 1) * num_dimensions; 
            dim_idx++, node_dim_idx++)
       {
         dim_sub_sizes[node_dim_idx] = recv_dim_lens[dim_idx];
-        dim_starts[node_dim_idx] = recv_dim_starts[dim_idx];
+        starts[node_dim_idx] = recv_dim_starts[dim_idx];
 
         sz = sz * dim_sub_sizes[node_dim_idx];
 
-        displacements[node_dim_idx] = recv_dim_starts[dim_idx] +
-          node_dim_idx * disp;
-
-        disp = disp * dim_sizes[node_dim_idx];
-
-        cerr << "Dimension " << node_dim_idx << " starts at "
-             << dim_starts[node_dim_idx] << " and is " 
-             << dim_sub_sizes[node_dim_idx] << " long." << endl;
-        cerr << "It's starting displacement is " << displacements[node_dim_idx]
-             << endl;
+//         cerr << "Dimension " << node_dim_idx << " starts at "
+//              << starts[node_dim_idx] << " and is " 
+//              << dim_sub_sizes[node_dim_idx] << " long." << endl;
       }
 
+      compute_displacements(num_dimensions, dim_sizes, starts, 
+                            dim_sub_sizes, &num_displacements, 
+                            &displacements);
+
+//       cout << "Computed displacements, got " 
+//            << num_displacements << " back, each has a length of "
+//            << dim_sub_sizes[num_dimensions - 1] << ":\n";
+      
+//       for (int i = 0; i < num_displacements; i++)
+//         cout << "\t" << displacements[i];
+
+//       cout << endl << endl;
+      
       if (sz > 0)
       {
-        // This may be just for arrays, like a[2][6], not contiguous 
-        // chunks of memory...
-//         int res = MPI_Type_create_subarray(num_dimensions, dim_sizes, 
-//                                            dim_sub_sizes, starts, MPI_ORDER_C,
-//                                            var.get_element_type(), 
-//                                            &arr_type);
+        int *lengths = new int[num_displacements];
 
-        // int MPI_Type_indexed(int count, int *array_of_blocklengths, int *array_of_displacements, MPI_Datatype oldtype, MPI_Datatype *newtype)         
+        for (int i = 0; i < num_displacements; i++)
+          lengths[i] = dim_sub_sizes[num_dimensions - 1];
 
-        MPI_Type_indexed(num_dimensions, dim_sub_sizes, displacements, 
+        MPI_Type_indexed(num_displacements, lengths, displacements, 
                          var.get_element_type(), &arr_type);
 
         MPI_Type_commit(&arr_type);
+
+        delete[] lengths;
       }
       else
         arr_type = MPI_DATATYPE_NULL;
 
       ret.push_back(arr_type);
+
+      delete[] displacements;
+
     }
     
     delete[] dim_sizes;
     delete[] dim_sub_sizes;
     delete[] starts;
-    delete[] displacements;
+
+    delete[] recv_dim_starts;
+    delete[] recv_dim_lens;
   }
 
   // DO ANY REGIONS OVERLAP? Is the total number of items to be
   // recieved, as far as the lengths is concerned, deviate from
   // expected? Does it matter? 
 
+  delete[] dim_starts;
+  delete[] dim_lengths;
+
   return ret;
+}
+
+// Calculate the index of a point at coord in a contiguous array
+// representing an N dimensional matrix of size size. Assumes data is
+// contiguous along the last dimension.
+int DataWriter::idx(int N, int *size, int *coord)
+{
+  int idx = coord[0];
+
+  for (int i = 0; i < N - 1; i++)
+    idx = coord[i + 1] + idx * size[i + 1];
+
+  return idx;
+}
+
+// Displacement computation recursion helper
+int DataWriter::displ_helper(int N, int *dsize, 
+                             int *lens,
+                             int curr_dim, 
+                             int disp_idx, 
+                             int *disps, 
+                             int *offset,
+                             int *negoffset, bool first)
+{
+  // Base case
+  if (curr_dim == N)
+  {
+    return disp_idx;
+  }
+
+  int j = 0;
+
+  if (first) {
+    j = 1;
+
+    disp_idx = displ_helper(N, dsize, lens, curr_dim + 1, disp_idx, disps, 
+                            offset, negoffset, true);
+  }
+
+  for (; j < lens[curr_dim - 1]; j++)
+  {
+    if (curr_dim == N - 1)
+    {
+      disps[disp_idx] = disps[disp_idx - *negoffset] + *offset;
+      disp_idx++;
+    } else {
+      disp_idx = displ_helper(N, dsize, lens, curr_dim + 1, disp_idx, disps, 
+                              offset, negoffset, false);
+    }
+  }
+
+  if (first)
+  {
+    *negoffset = lens[curr_dim - 1];
+    *offset *= dsize[curr_dim - 1];
+  }
+
+  return disp_idx;
+}                          
+
+// Compute displacements for an indexed data type that pulls out a
+// chunk of a larger N dimensional matrix. This assumes that the data
+// varies fastest (is contiguous along) the last dimension specified.
+void DataWriter::compute_displacements(int N, int *dsize, 
+                                       int *coord, int *lens,
+                                       int *num_displacements,
+                                       int **displacements)
+{
+  int num_disps = 1;
+  int disp_idx = 1;
+  int offset = dsize[N - 1];
+  int negoffset = 1;
+
+  for (int i = 0; i < N - 1; i++)
+  {
+    num_disps *= lens[i];
+  }
+
+  int *disps = new int [num_disps];
+
+  disps[0] = idx(N, dsize, coord);
+
+  disp_idx = displ_helper(N, dsize, lens, 1, disp_idx, disps, &offset, 
+                          &negoffset, true);
+
+  *displacements = disps;
+  *num_displacements = num_disps;
 }

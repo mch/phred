@@ -73,8 +73,8 @@ protected:
   void end_data();
 
 public:
-  AsciiDataWriter(int rank, int size);
-  AsciiDataWriter(int rank, int size, const char *fn, Result &result);
+  AsciiDataWriter();
+  AsciiDataWriter(const char *fn, Result &result);
   ~AsciiDataWriter();
 
   /**
@@ -100,7 +100,7 @@ public:
   /**
    * Initialize this object; open the file
    */
-  void init();
+  void init(const Grid &grid);
 
   /**
    * Deinit; close the file.

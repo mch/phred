@@ -18,4 +18,6 @@ libresults_a_SOURCES = 	Result.hh \
 	SourceDFTResult.hh \
 	SourceDFTResult.cc \
 	PowerResult.hh \
-	PowerResult.cc
+	PowerResult.cc \
+	FakeResult.hh \
+	FakeResult.cc

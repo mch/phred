@@ -42,6 +42,9 @@ protected:
   bool init_; /**< Set to true after init() has been called. */
 
   Variable var_; /**< Our variable */
+
+  MPI_Datatype datatype_;
+
 public:
   BlockResult();
   BlockResult(region_t r, FieldComponent field_comp = FC_EY);
@@ -95,7 +98,7 @@ public:
    *
    * @param field_comp field component
    */
-  inline void set_field_component(FieldComponent field_comp)
+  inline void set_field(FieldComponent field_comp)
   {
     field_comp_ = field_comp;
   }
@@ -105,7 +108,7 @@ public:
    *
    * @return a field component name
    */
-  inline FieldComponent get_field_component()
+  inline FieldComponent get_field()
   {
     return field_comp_;
   }

@@ -30,6 +30,7 @@
 #include "../Results/BlockResult.hh"
 #include "../Results/FarfieldResult.hh"
 #include "../Results/PowerResult.hh"
+#include "../Results/FakeResult.hh"
 
 using namespace boost::python;
 
@@ -48,6 +49,9 @@ void export_results()
     .def("get_plane", &PlaneResult::get_plane)
     .def("get_face", &PlaneResult::get_face)
     .def("set_field", &PlaneResult::set_field)
+    ;
+
+  class_<FakeResult, bases<Result> >("FakeResult")
     ;
 
   class_<PointResult, bases<Result> >("PointResult")
@@ -114,8 +118,8 @@ void export_results()
   class_<BlockResult, bases<Result> >("BlockResult")
     .def("set_region", &BlockResult::set_region)
     .def("get_region", &BlockResult::get_region)
-    .def("set_field_component", &BlockResult::set_field_component)
-    .def("get_field_component", &BlockResult::get_field_component)
+    .def("set_field", &BlockResult::set_field)
+    .def("get_field", &BlockResult::get_field)
     ;
 
   class_<FarfieldResult, bases<Result> >("FarfieldResult")

@@ -51,8 +51,7 @@ protected:
 
 
 public:
-  Hdf5DataWriter(int rank, int size)
-    : DataWriter(rank, size)
+  Hdf5DataWriter()
   {
     throw NoHDF5Exception(); 
   }
@@ -97,8 +96,7 @@ public:
 
 class Hdf5DataWriter : public DataWriter {
 public:
-  Hdf5DataWriter(int rank, int size)
-    : DataWriter(rank, size)
+  Hdf5DataWriter()
   {
     throw NoHDF5Exception(); 
   }

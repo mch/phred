@@ -21,8 +21,7 @@
 
 #include "PyDataWriter.hh"
 
-PyDataWriter::PyDataWriter(int rank, int size)
-  : DataWriter(rank, size)
+PyDataWriter::PyDataWriter()
 {
 #ifdef USE_PY_BINDINGS
   // Ensure that this class is only used if the script being run is a

@@ -45,7 +45,12 @@ typedef struct {
 
 /**
  * Contains all the data about a variable, including global and local
- * dimension lengths.
+ * dimension lengths. Once a variable has been set up, information
+ * describing the dimensions and type of the variable is considered
+ * immutable. 
+ *
+ * A variable can choose to return no result however, by setting the
+ * number of items at a given time step to zero. 
  */
 class Variable 
 {
@@ -74,7 +79,8 @@ public:
   {}
 
   /**
-   * Add a dimension to this variable
+   * Add a dimension to this variable. Once set, dimensions are
+   * considered immutable.
    *
    * @param name the name of the dimension, or some identifying string
    * @param local_length the *local* size of the dimention 
@@ -181,43 +187,6 @@ public:
   {
     return dimensions_;
   }
-
-//   /**
-//    * Returns the local lengths of the dimensions
-//    *
-//    * @return a reference to a vector of lengths of the dimensions
-//    */
-//   inline const vector<int> &get_local_dim_lengths() const
-//   {
-//     return local_dim_lens_;
-//   }
-
-//   /**
-//    * Returns the global lengths of the dimensions
-//    *
-//    * @return a reference to a vector of lengths of the dimensions
-//    */
-//   inline const vector<int> &get_global_dim_lengths() const
-//   {
-//     return global_dim_lens_;
-//   }
-
-//   /**
-//    * Returns the names of the dimensions
-//    * @return a reference to the names of the dimensions
-//    */
-//   inline const vector<string> &get_dim_names() const
-//   {
-//     return dim_names_;
-//   }
-
-//   /**
-//    * Returns the starting points of the dimensions for this rank. 
-//    */
-//   inline const vector<unsigned int> &get_dim_starts() const
-//   {
-//     return dim_starts_;
-//   }
 
   // The following functions are just helpers that forward to the
   // Data_ member...
@@ -361,6 +330,7 @@ public:
 
   /**
    * Set the time related parameters
+   *
    * @param start time step to start returning results at
    * @param stop time step to stop returning results at
    * @param space number of time steps to skip between results
@@ -423,7 +393,7 @@ public:
   }
 
   /**
-   * Looks at the grid and produces output
+   * Looks at the grid and produces output. 
    *
    * @param grid a reference to a Grid object
    * @return a reference to a data object, which contains an MPI

@@ -28,15 +28,14 @@ using namespace std;
 
 #ifdef USE_NETCDF
 
-NetCDFDataWriter::NetCDFDataWriter(int rank, int size)
-  : DataWriter(rank, size), ncid_(0), omode_(NC_WRITE | NC_SHARE),
+NetCDFDataWriter::NetCDFDataWriter()
+  : ncid_(0), omode_(NC_WRITE | NC_SHARE),
     fopen_(false), clobber_(false)
 {}
 
-NetCDFDataWriter::NetCDFDataWriter(int rank, int size, 
-                                   const char *filename, 
+NetCDFDataWriter::NetCDFDataWriter(const char *filename, 
                                    bool clobber)
-  : DataWriter(rank, size), ncid_(0), omode_(NC_WRITE | NC_SHARE),
+  : ncid_(0), omode_(NC_WRITE | NC_SHARE),
     fopen_(false), clobber_(clobber)
 {
   set_filename(string(filename));
@@ -255,11 +254,15 @@ unsigned int NetCDFDataWriter::write_data(unsigned int time_step,
   start = new size_t[sz];
   count = new size_t[sz];
 
+//   cerr << "NETCDF writer, num dimensions: " << sz << endl;
+
   for (int i = 0; i < sz; i++)
   {
     start[i] = 0;
-    count[i] = var.dim_lens_[i]; // This should write the entire region at
-    // once; it's a bit naieve, but it should work for now...
+    count[i] = var.dim_lens_[i];
+
+//     cerr << "Dim " << i << ", start: " << start[i] << ", count: " 
+//          << count[i] << endl;
   }
   
   if (var.time_dim_)

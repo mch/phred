@@ -381,7 +381,7 @@ int main (int argc, char **argv)
   time_total += now - start;
   time_total_cpu += now_cpu - start_cpu;
 
-  cout << "Phred is phinished. Phred executed for " 
+  cout << "Phred is phinished. \nPhred executed for " 
        << static_cast<double>(time_total) << " real seconds, and for "
        << static_cast<double>(time_total_cpu) 
           / static_cast<double>(CLOCKS_PER_SEC) 

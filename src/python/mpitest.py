@@ -119,7 +119,7 @@ def mpitest(propagation_axis):
     fdtd.add_excitation("modgauss", ex)
     
     # Data Writers!
-    mdw = MatlabDataWriter(MPI_RANK, MPI_SIZE);
+    mdw = MatlabDataWriter();
     mdw.set_filename(output_prefix + "point_data.mat")
     
     fdtd.add_datawriter("mdw", mdw)
@@ -144,7 +144,7 @@ def mpitest(propagation_axis):
     print "Measurement point 1: %ix%ix%i, point 2: %ix%ix%i. " % (p1.x, p1.y, p1.z, p2.x, p2.y, p2.z)
     
     try:
-        ncdw = NetCDFDataWriter(MPI_RANK, MPI_SIZE)
+        ncdw = NetCDFDataWriter()
         ncdw.set_filename(output_prefix + "plane_data.nc")
         fdtd.add_datawriter("ncdw", ncdw)
         

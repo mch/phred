@@ -114,10 +114,10 @@ void point_test(int rank, int size)
   fdtd.add_result("res1", &res1);
   fdtd.add_result("pdft", &pdft);
 
-  AsciiDataWriter adw1(rank, size);
+  AsciiDataWriter adw1;
   adw1.set_filename("t_field_50.txt");
 
-  AsciiDataWriter adw2(rank, size);
+  AsciiDataWriter adw2;
   adw2.set_filename("t_field_dft_50.txt");
 
   fdtd.add_datawriter("adw1", &adw1);
@@ -125,7 +125,7 @@ void point_test(int rank, int size)
   fdtd.map_result_to_datawriter("res1", "adw1");
   fdtd.map_result_to_datawriter("pdft", "adw2");
 
-  NetCDFDataWriter ncdw(rank, size);
+  NetCDFDataWriter ncdw;
   ncdw.set_filename("yz_plane.nc");
 
   fdtd.add_datawriter("ncdw", &ncdw);
@@ -141,7 +141,7 @@ void point_test(int rank, int size)
   sdftr.set_time_param(0, 100, 0);
   fdtd.add_result("sdftr", &sdftr);
 
-  AsciiDataWriter adw5(rank, size);
+  AsciiDataWriter adw5;
   adw5.set_filename("src_dft.txt");
   fdtd.add_datawriter("adw5", &adw5);
   
@@ -502,10 +502,10 @@ void takakura_test(int rank, int size)
   fdtd.add_result("res1", &res1);
   fdtd.add_result("pdft", &pdft);
   
-  AsciiDataWriter adw1(rank, size);
+  AsciiDataWriter adw1;
   adw1.set_filename("t_field_75.txt");
 
-  AsciiDataWriter adw2(rank, size);
+  AsciiDataWriter adw2;
   adw2.set_filename("t_field_dft_75.txt");
 
   fdtd.add_datawriter("adw1", &adw1);
@@ -520,10 +520,10 @@ void takakura_test(int rank, int size)
   fdtd.add_result("pres60", &pres60);
   fdtd.add_result("pdft60", &pdft60);
 
-  AsciiDataWriter adwp60(rank, size);
+  AsciiDataWriter adwp60;
   adwp60.set_filename("t_field_200.txt");
 
-  AsciiDataWriter adwp60dft(rank, size);
+  AsciiDataWriter adwp60dft;
   adwp60dft.set_filename("t_field_dft_200.txt");
 
   fdtd.add_datawriter("adwp60", &adwp60);
@@ -531,7 +531,7 @@ void takakura_test(int rank, int size)
   fdtd.map_result_to_datawriter("pres60", "adwp60");
   fdtd.map_result_to_datawriter("pdft60", "adwp60dft");
 
-  NetCDFDataWriter ncdw(rank, size);
+  NetCDFDataWriter ncdw;
   ncdw.set_filename("takakura-test.nc");
 
   fdtd.add_datawriter("ncdw", &ncdw);
@@ -707,7 +707,7 @@ void coupler_test(int rank, int size)
   p.y = ylen / 2;
   p.z = zlen / 2;
   
-  MatlabDataWriter mdw(rank, size);
+  MatlabDataWriter mdw;
   mdw.set_filename("coupler.mat");
   fdtd.add_datawriter("mdw", &mdw);
 

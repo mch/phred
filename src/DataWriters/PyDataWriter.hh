@@ -58,7 +58,7 @@ protected:
 #endif
   
 public:
-  PyDataWriter(int rank, int size);
+  PyDataWriter();
   ~PyDataWriter();
 
 #ifdef USE_PY_BINDINGS

@@ -25,13 +25,12 @@
 #include <string.h>
 #include <mpi.h>
 
-AsciiDataWriter::AsciiDataWriter(int rank, int size)
-  : DataWriter(rank, size), time_dim_(true)
+AsciiDataWriter::AsciiDataWriter()
+  : time_dim_(true)
 {}
 
-AsciiDataWriter::AsciiDataWriter(int rank, int size, 
-                                 const char *fn, Result &result)
-  : DataWriter(rank, size), time_dim_(true)
+AsciiDataWriter::AsciiDataWriter(const char *fn, Result &result)
+  : time_dim_(true)
 {
   set_filename(fn);
   add_variable(result);
@@ -42,7 +41,7 @@ AsciiDataWriter::~AsciiDataWriter()
   deinit();
 }
 
-void AsciiDataWriter::init()
+void AsciiDataWriter::init(const Grid &grid)
 {
   if (filename_.length() > 0 && rank_ == 0)
   {
@@ -91,10 +90,7 @@ unsigned int AsciiDataWriter::write_data(unsigned int time_step,
   const Data &data = variable.get_data();
   if (!file_.is_open()) 
   {
-    init();
-    
-    if (!file_.is_open()) 
-      throw DataWriterException("Unable to open output file!");
+    throw DataWriterException("Unable to open output file!");
   }
 
   // If this result doesn't have a time dimension, then move to the

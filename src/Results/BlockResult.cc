@@ -39,49 +39,67 @@ BlockResult::~BlockResult()
 void BlockResult::deinit()
 {}
 
+// void BlockResult::init(const Grid &grid)
+// {
+//   MPI_Datatype temp;
+//   int sizes[3];
+//   int subsizes[3];
+//   int g_subsizes[3];
+//   int starts[3];
+  
+//   g_subsizes[0] = region_.xmax - region_.xmin;
+//   g_subsizes[1] = region_.ymax - region_.ymin;
+//   g_subsizes[2] = region_.zmax - region_.zmin;
+
+//   // Setup (convert to local)
+//   region_ = grid.global_to_local(region_);
+//   sizes[0] = grid.get_ldx();
+//   sizes[1] = grid.get_ldy();
+//   sizes[2] = grid.get_ldz();
+
+//   subsizes[0] = region_.xmax - region_.xmin;
+//   subsizes[1] = region_.ymax - region_.ymin;
+//   subsizes[2] = region_.zmax - region_.zmin;
+
+//   starts[0] = region_.xmin;
+//   starts[1] = region_.ymin;
+//   starts[2] = region_.zmin;
+
+//   // Create
+//   MPI_Type_create_subarray(3, sizes, subsizes, starts, 1, 
+//                            GRID_MPI_TYPE, &temp);
+//   MPI_Type_commit(&temp);
+
+//   var_.set_name(base_name_);
+//   var_.set_datatype(temp);
+//   var_.set_num(0);
+//   var_.set_ptr(const_cast<field_t *>(grid.get_pointer(point_t(region_.xmin, 
+//                                                               region_.ymin, 
+//                                                               region_.zmin), 
+//                                                       field_comp_)));
+//   var_.add_dimension("x", subsizes[0], g_subsizes[0], starts[0]);
+//   var_.add_dimension("y", subsizes[1], g_subsizes[1], starts[1]);
+//   var_.add_dimension("z", subsizes[2], g_subsizes[2], starts[2]);
+  
+//   init_ = true; 
+// }
+
 void BlockResult::init(const Grid &grid)
 {
-  MPI_Datatype temp;
-  int sizes[3];
-  int subsizes[3];
-  int g_subsizes[3];
-  int starts[3];
-  
-  g_subsizes[0] = region_.xmax - region_.xmin;
-  g_subsizes[1] = region_.ymax - region_.ymin;
-  g_subsizes[2] = region_.zmax - region_.zmin;
+  MPI_Type_contiguous(grid.get_ldx() * grid.get_ldy() * grid.get_ldz(), 
+                      GRID_MPI_TYPE, &datatype_);
+  MPI_Type_commit(&datatype_);
 
-  // Setup (convert to local)
-  region_ = grid.global_to_local(region_);
-  sizes[0] = grid.get_ldx();
-  sizes[1] = grid.get_ldy();
-  sizes[2] = grid.get_ldz();
-
-  subsizes[0] = region_.xmax - region_.xmin;
-  subsizes[1] = region_.ymax - region_.ymin;
-  subsizes[2] = region_.zmax - region_.zmin;
-
-  starts[0] = region_.xmin;
-  starts[1] = region_.ymin;
-  starts[2] = region_.zmin;
-
-  // Create
-  MPI_Type_create_subarray(3, sizes, subsizes, starts, 1, 
-                           GRID_MPI_TYPE, &temp);
-  MPI_Type_commit(&temp);
+  var_.add_dimension("x", grid.get_ldx(), grid.get_gdx(), grid.get_lsx_ol());
+  var_.add_dimension("y", grid.get_ldy(), grid.get_gdy(), grid.get_lsy_ol());
+  var_.add_dimension("z", grid.get_ldz(), grid.get_gdz(), grid.get_lsz_ol());
 
   var_.set_name(base_name_);
-  var_.set_datatype(temp);
-  var_.set_num(0);
-  var_.set_ptr(const_cast<field_t *>(grid.get_pointer(point_t(region_.xmin, 
-                                                              region_.ymin, 
-                                                              region_.zmin), 
+  var_.set_datatype(datatype_);
+  var_.set_ptr(const_cast<field_t *>(grid.get_pointer(point_t(0,0,0), 
                                                       field_comp_)));
-  var_.add_dimension("x", subsizes[0], g_subsizes[0], starts[0]);
-  var_.add_dimension("y", subsizes[1], g_subsizes[1], starts[1]);
-  var_.add_dimension("z", subsizes[2], g_subsizes[2], starts[2]);
-  
-  init_ = true; 
+
+  init_ = true;
 }
 
 map<string, Variable *> &BlockResult::get_result(const Grid &grid, 

@@ -41,8 +41,8 @@ private:
   PyObject *self_;
 
 public:
-  DataWriterWrap(PyObject *self, int rank, int size)
-    : self_(self), DataWriter(rank, size)
+  DataWriterWrap(PyObject *self)
+    : self_(self)
   {}
 
   unsigned int write_data(unsigned int time_step, 
@@ -58,32 +58,31 @@ public:
 void export_datawriters()
 {
   class_<DataWriter, DataWriterWrap, boost::noncopyable>("DataWriter", 
-                                                         "Data writer base class",
-                                                         init<int, int>())
+                                                         "Data writer base class")
     .def("set_filename", &DataWriter::set_filename)
     ;
 
   class_<NetCDFDataWriter, bases<DataWriter>, boost::noncopyable>("NetCDFDataWriter", 
                            "Writes result data to NetCDF files", 
-                           init<int, int, const char *, bool>())
-    .def(init<int, int, const char *>())
-    .def(init<int, int>())
+                           init<const char *, bool>())
+    .def(init<>())
+    .def(init<const char *>())
     .def("set_filename", &NetCDFDataWriter::set_filename)
     .def("add_variable", &NetCDFDataWriter::add_variable)
     ;
 
   class_<AsciiDataWriter, bases<DataWriter>, boost::noncopyable>("AsciiDataWriter", 
                           "Writes result data to ASCII files", 
-                          init<int, int, const char *, Result &>())
-    .def(init<int, int>())
+                          init<const char *, Result &>())
+    .def(init<>())
     .def("set_filename", &AsciiDataWriter::set_filename)
     .def("add_variable", &AsciiDataWriter::add_variable)
     ;
 
   class_<MatlabDataWriter, bases<DataWriter>, boost::noncopyable>("MatlabDataWriter", 
                            "Writes data to Matlab 5 format files.",
-                           init<int, int, const char *, Result &>())
-    .def(init<int, int>())
+                           init<const char *, Result &>())
+    .def(init<>())
     .def("add_variable", &MatlabDataWriter::add_variable)
     .def("test", &MatlabDataWriter::test)
     .def("set_filename", &MatlabDataWriter::set_filename)
@@ -103,14 +102,6 @@ void export_datawriters()
 //     .def(init<int, int>())
 //     .def("set_filename", &HdfDataWriter::set_filename)
 //     .def("add_variable", &HdfDataWriter::add_variable)
-//     ;
-
-//   class_<VtkDataWriter>("VtkDataWriter", 
-//                          "Writes result data to VTK files", 
-//                           init<int, int, const char *, Result &>())
-//     .def(init<int, int>())
-//     .def("set_filename", &VtkDataWriter::set_filename)
-//     .def("add_variable", &VtkDataWriter::add_variable)
 //     ;
 
 //   class_<PyDataWriter>("PyDataWriter", 

@@ -106,7 +106,7 @@ def pml_test(pml_thickness, xlen):
     fdtd.add_excitation("modgauss", ex)
     
     # Data Writers!
-    mdw = MatlabDataWriter(MPI_RANK, MPI_SIZE);
+    mdw = MatlabDataWriter();
     mdw.set_filename(output_prefix + "point_data.mat")
     
     fdtd.add_datawriter("mdw", mdw)
@@ -146,7 +146,7 @@ def pml_test(pml_thickness, xlen):
     print "Measurement point 1: %ix%ix%i, point 2: %ix%ix%i. " % (p1.x, p1.y, p1.z, p2.x, p2.y, p2.z)
     
     try:
-        ncdw = NetCDFDataWriter(MPI_RANK, MPI_SIZE)
+        ncdw = NetCDFDataWriter()
         ncdw.set_filename(output_prefix + "plane_data.nc")
         fdtd.add_datawriter("ncdw", ncdw)
         
@@ -176,8 +176,16 @@ def pml_test(pml_thickness, xlen):
         pr4.set_field(EZ)
         fdtd.add_result("ez_yzplane", pr4)
         fdtd.map_result_to_datawriter("ez_yzplane", "ncdw")    
-    except exception, e:
-        print "Script caught exception: " + e.what()
+
+        pr5 = PlaneResult()
+        pr5.set_plane(p1, LEFT)
+        pr5.set_field(EZ)
+        fdtd.add_result("ez_xzplane", pr5)
+        fdtd.map_result_to_datawriter("ez_xzplane", "ncdw")    
+
+    except Exception, e:
+        print "Script caught exception: "
+        print e
 
     p1r = PointResult()
     p1r.set_point(p1)

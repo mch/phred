@@ -34,7 +34,7 @@ int main(int argc, char **argv)
   int dim_ids[3];
   float data[X_LEN * Y_LEN];
   size_t start[] = {0, 0, 0};
-  size_t count[] = {X_LEN, Y_LEN, 1};
+  size_t count[] = {1, X_LEN, Y_LEN};
 
   for (int i = 0; i < X_LEN * Y_LEN; i++)
     data[i] = i * 0.5;
@@ -51,9 +51,9 @@ int main(int argc, char **argv)
   status = nc_def_dim(ncid, "y", Y_LEN, &ydim);
   check_status(status);
   
-  dim_ids[0] = xdim;
-  dim_ids[1] = ydim;
-  dim_ids[2] = tdim;
+  dim_ids[0] = tdim;
+  dim_ids[1] = xdim;
+  dim_ids[2] = ydim;
 
   status = nc_def_var(ncid, "test", NC_FLOAT, 3, dim_ids, &var_id);
   check_status(status);
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
     status = nc_put_vara_float(ncid, var_id, start, count, data);
     check_status(status);
 
-    start[2]++;
+    start[0]++;
   }
 
 

@@ -441,8 +441,8 @@ protected:
                  bool complex);
 
 public:
-  MatlabDataWriter(int rank, int size);
-  MatlabDataWriter(int rank, int size, const char *fn, Result &result);
+  MatlabDataWriter();
+  MatlabDataWriter(const char *fn, Result &result);
   virtual ~MatlabDataWriter();
 
   /**

@@ -46,8 +46,10 @@ using namespace std;
  * NetCDF data writer; collects all data to be written to one rank and
  * saves it to disk.
  *
- * \bug DANGEROUS! This should work for now, but it makes assumptions
- * that may not be all that valid for general MPI derived data types!
+ * NetCDF requires the time dimension to be the first dimension, and
+ * the data varies fastest (is contiguous) along the last
+ * dimension. This works out actually, because internally, grid data
+ * varies fastest along z.
  *
  * \bug Needs to check for empty variable names, and make up names if
  * need be. Or throw an exception or something, since they need to be
@@ -121,20 +123,16 @@ public:
    * Create a new NetCDFWriter using the given filename. The file is
    * opened for writing. 
    *
-   * @param rank the MPI rank of the current process
-   * @param size the total number of MPI processes
    * @param filename the filename to use
    * @param clobber Overwrite the file when opening it. Default is false. 
    */
-  NetCDFDataWriter(int rank, int size, const char *filename, 
+  NetCDFDataWriter(const char *filename, 
                    bool clobber = false);
 
   /**
    * Create a new NetCDFWriter
-   * @param rank the MPI rank of the current process
-   * @param size the total number of MPI processes
    */
-  NetCDFDataWriter(int rank, int size);
+  NetCDFDataWriter();
 
   ~NetCDFDataWriter();
 
@@ -175,15 +173,13 @@ class NetCDFDataWriter : public DataWriter {
 private:
 
 public:
-  NetCDFDataWriter(int rank, int size)
-    : DataWriter(rank, size)
+  NetCDFDataWriter()
   {
     throw NoNetCDFException(); //("NetCDF Support is not available.");
   }
 
-  NetCDFDataWriter(int rank, int size, const char *filename, 
+  NetCDFDataWriter(const char *filename, 
                    bool clobber = false)
-    : DataWriter(rank, size)
   {
     throw NoNetCDFException(); //("NetCDF Support is not available.");
   }
