@@ -56,7 +56,9 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 
   else 
   {
-    unsigned int rcv_size = get_recieve_size(data);
+    unsigned int rcv_size = 0;
+    vector<unsigned int> rcv_bytes = get_recieve_sizes(data);
+
 
     if (rcv_size > 0) 
     {
