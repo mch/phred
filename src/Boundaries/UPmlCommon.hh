@@ -161,108 +161,108 @@ public:
    */ 
   void deinit();
 
-  inline const float Ax(loop_idx_t i)
+  inline float Ax(loop_idx_t i) const
   {
     return Ax_[i];
   }
 
-  inline const float Ay(loop_idx_t i)
+  inline float Ay(loop_idx_t i) const
   {
     return Ay_[i];
   }
 
-  inline const float Az(loop_idx_t i)
+  inline float Az(loop_idx_t i) const
   {
     return Az_[i];
   }
 
-  inline const float Bx(loop_idx_t i)
+  inline float Bx(loop_idx_t i) const
   {
     return Bx_[i];
   }
 
-  inline const float By(loop_idx_t i)
+  inline float By(loop_idx_t i) const
   {
     return By_[i];
   }
 
-  inline const float Bz(loop_idx_t i)
+  inline float Bz(loop_idx_t i) const
   {
     return Bz_[i];
   }
 
-  inline const float Cx(loop_idx_t i)
+  inline float Cx(loop_idx_t i) const
   {
     return Cx_[i];
   }
 
-  inline const float Cy(loop_idx_t i)
+  inline float Cy(loop_idx_t i) const
   {
     return Cy_[i];
   }
 
-  inline const float Cz(loop_idx_t i)
+  inline float Cz(loop_idx_t i) const
   {
     return Cz_[i];
   }
 
-  inline const float Dx(loop_idx_t i)
+  inline float Dx(loop_idx_t i) const
   {
     return Dx_[i];
   }
 
-  inline const float Dy(loop_idx_t i)
+  inline float Dy(loop_idx_t i) const
   {
     return Dy_[i];
   }
 
-  inline const float Dz(loop_idx_t i)
+  inline float Dz(loop_idx_t i) const
   {
     return Dz_[i];
   }
 
-  inline const float er(mat_idx_t mid)
+  inline float er(mat_idx_t mid) const
   {
     return er_[mid];
   }
 
-  inline const float ur(mat_idx_t mid)
+  inline float ur(mat_idx_t mid) const
   {
     return ur_[mid];
   }
 
-  inline float lossy_A(mat_idx_t mid)
+  inline float lossy_A(mat_idx_t mid) const
   { return lossyA_[mid]; }
 
-  inline float lossy_B(mat_idx_t mid)
+  inline float lossy_B(mat_idx_t mid) const
   { return lossyB_[mid]; }
 
-  inline MaterialType mtype(mat_idx_t mid)
+  inline MaterialType mtype(mat_idx_t mid) const
   { return mtype_[mid]; }
 
   // ADE Drude model constants
 #ifdef ADE_DRUDE
-  inline float drude_c1(mat_idx_t mid)
+  inline float drude_c1(mat_idx_t mid) const
   { return drudeC1_[mid]; }
 
-  inline float drude_c2(mat_idx_t mid)
+  inline float drude_c2(mat_idx_t mid) const
   { return drudeC2_[mid]; }
 
-  inline float drude_c3(mat_idx_t mid)
+  inline float drude_c3(mat_idx_t mid) const
   { return drudeC3_[mid]; }
 
-  inline float drude_c4(mat_idx_t mid)
+  inline float drude_c4(mat_idx_t mid) const
   { return drudeC4_[mid]; }
 
-  inline float drude_c5(mat_idx_t mid)
+  inline float drude_c5(mat_idx_t mid) const
   { return drudeC5_[mid]; }
 
 #else
   // Z transform Drude model constants
-  inline float get_vcdt(mat_idx_t mid)
+  inline float get_vcdt(mat_idx_t mid) const
   { return vcdt_[mid]; }
 
-  inline float get_omegasq(mat_idx_t mid)
+  inline float get_omegasq(mat_idx_t mid) const
   { return omegasq_[mid]; }
 #endif
 

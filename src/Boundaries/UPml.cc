@@ -445,7 +445,7 @@ void UPml::update_ex(Grid &grid)
   unsigned int grid_idx, grid_idx2, pml_idx, mid; 
 
   loop_idx_t i,j,k; 	/* indices in PML-layer */
-  loop_idx_t it,jt,kt;/* indices in total computational domain (FDTD grid) */
+  loop_idx_t jt,kt;/* indices in total computational domain (FDTD grid) */
 
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_ex_r_); 
@@ -462,16 +462,19 @@ void UPml::update_ex(Grid &grid)
 
   // This is outside of the for() statement so that OpenMP can
   // parallelize the loop.
-  i = pml_r.xmin;
+  int offset = grid_ex_r_.xmin - pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, d_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, jt, kt, \
+                             d_temp, grid_idx2, ex, hz1, hz2, hy, dx)
   {
 #pragma omp for
 #endif
-    for(it = grid_ex_r_.xmin; 
+    for(loop_idx_t it = grid_ex_r_.xmin; 
         it < grid_ex_r_.xmax; it++)
     {
+      i = it - offset;
+
       for(j = pml_r.ymin, jt = grid_ex_r_.ymin; 
           jt < grid_ex_r_.ymax; j++, jt++)
       {
@@ -613,8 +616,8 @@ void UPml::update_ey(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
-  int i,j,k; 	/* indices in PML-layer */
-  int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+  loop_idx_t i,j,k; 	/* indices in PML-layer */
+  loop_idx_t jt,kt;/* indices in total computational domain (FDTD grid) */
 
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_ey_r_); 
@@ -628,16 +631,19 @@ void UPml::update_ey(Grid &grid)
   field_t idz = 1 / grid.get_deltaz();
   field_t idt = 1 / grid.get_deltat();
 
-  i = pml_r.xmin;
+  loop_idx_t offset = grid_ey_r_.xmin - pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, d_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, jt, kt, \
+                             d_temp, ey, hx, hz1, hz2, dy)
   {
 #pragma omp for
 #endif
-    for(it = grid_ey_r_.xmin; 
+    for(loop_idx_t it = grid_ey_r_.xmin; 
         it < grid_ey_r_.xmax; it++)
     {
+      i = it - offset;
+
       for(j = pml_r.ymin, jt = grid_ey_r_.ymin; 
           jt < grid_ey_r_.ymax; j++, jt++)
       {
@@ -778,8 +784,8 @@ void UPml::update_ez(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
-  int i,j,k; 	/* indices in PML-layer */
-  int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+  loop_idx_t i,j,k; 	/* indices in PML-layer */
+  loop_idx_t jt,kt;/* indices in total computational domain (FDTD grid) */
 
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_ez_r_); 
@@ -793,16 +799,19 @@ void UPml::update_ez(Grid &grid)
   field_t idy = 1 / grid.get_deltay();
   field_t idt = 1 / grid.get_deltat();
 
-  i = pml_r.xmin;
+  loop_idx_t offset = grid_ez_r_.xmin - pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, d_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, jt, kt, \
+                             d_temp, ez, hy1, hy2, hx1, hx2, dz)
   {
 #pragma omp for
 #endif
-    for(it = grid_ez_r_.xmin; 
+    for(loop_idx_t it = grid_ez_r_.xmin; 
         it < grid_ez_r_.xmax; it++)
     {
+      i = it - offset;
+
       for(j = pml_r.ymin, jt = grid_ez_r_.ymin; 
           jt < grid_ez_r_.ymax; j++, jt++)
       {
@@ -944,7 +953,7 @@ void UPml::update_hx(Grid &grid)
   unsigned int grid_idx, grid_idx2, pml_idx, mid; 
 
   loop_idx_t i,j,k;   /* indices in PML-layer */
-  loop_idx_t it,jt,kt;/* indices in total computational domain (FDTD grid) */
+  loop_idx_t jt,kt;/* indices in total computational domain (FDTD grid) */
 
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_hx_r_); 
@@ -956,16 +965,19 @@ void UPml::update_hx(Grid &grid)
   field_t idy = 1 / grid.get_deltay();
   field_t idz = 1 / grid.get_deltaz();
 
-  i = pml_r.xmin;
+  loop_idx_t offset = grid_hx_r_.xmin - pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, b_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, jt, kt, \
+                             b_temp, hx, ez1, ez2, ey, bx, grid_idx2)
   {
 #pragma omp for
 #endif
-    for(it = grid_hx_r_.xmin; 
+    for(loop_idx_t it = grid_hx_r_.xmin; 
         it < grid_hx_r_.xmax; it++)
     {
+      i = it - offset;
+
       for(j = pml_r.ymin, jt = grid_hx_r_.ymin; 
           jt < grid_hx_r_.ymax; j++, jt++)
       {
@@ -1015,8 +1027,8 @@ void UPml::update_hy(Grid &grid)
 {
   unsigned int grid_idx, grid_idx2, pml_idx, mid; 
 
-  int i,j,k; 	/* indices in PML-layer */
-  int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+  loop_idx_t i,j,k; 	/* indices in PML-layer */
+  loop_idx_t jt,kt;/* indices in total computational domain (FDTD grid) */
 
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_hy_r_); 
@@ -1028,16 +1040,19 @@ void UPml::update_hy(Grid &grid)
   field_t idx = 1 / grid.get_deltax();
   field_t idz = 1 / grid.get_deltaz();
 
-  i = pml_r.xmin;
+  loop_idx_t offset = grid_hy_r_.xmin - pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, b_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, jt, kt, \
+                             b_temp, grid_idx2, hy, ex, ez1, ez2, by)
   {
 #pragma omp for
 #endif
-    for(it = grid_hy_r_.xmin; 
+    for(loop_idx_t it = grid_hy_r_.xmin; 
         it < grid_hy_r_.xmax; it++)
     {
+      i = it - offset;
+
       for(j = pml_r.ymin, jt = grid_hy_r_.ymin; 
           jt < grid_hy_r_.ymax; j++, jt++)
       {
@@ -1087,8 +1102,8 @@ void UPml::update_hz(Grid &grid)
 {
   unsigned int grid_idx, grid_idx2, grid_idx3, pml_idx, mid; 
 
-  int i,j,k; 	/* indices in PML-layer */
-  int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+  loop_idx_t i,j,k; 	/* indices in PML-layer */
+  loop_idx_t jt,kt;/* indices in total computational domain (FDTD grid) */
 
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_hz_r_); 
@@ -1100,16 +1115,20 @@ void UPml::update_hz(Grid &grid)
   field_t idx = 1 / grid.get_deltax();
   field_t idy = 1 / grid.get_deltay();
 
-  i = pml_r.xmin;
+  loop_idx_t offset = grid_hz_r_.xmin - pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, h_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, jt, kt, \
+                             b_temp, grid_idx2, grid_idx3, hz, ey1, ey2, \
+                             ex1, ex2, bz)
   {
 #pragma omp for
 #endif
-    for(it = grid_hz_r_.xmin; 
+    for(loop_idx_t it = grid_hz_r_.xmin; 
         it < grid_hz_r_.xmax; it++)
     {
+      i = it - offset;
+
       for(j = pml_r.ymin, jt = grid_hz_r_.ymin; 
           jt < grid_hz_r_.ymax; j++, jt++)
       {
