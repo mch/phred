@@ -386,7 +386,7 @@ void square_hole(int ysize)
        << plate_thickness * 1e9 << " nm thick." << endl;
 
   // Excitation parameters
-  float ex_ampl = 1.0;
+  float ex_ampl = 10;
   float ex_freq_size = 200e12;
   float ex_centre_f = 500e12;
   float ex_offset = -250e-9;

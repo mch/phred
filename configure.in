@@ -136,7 +136,7 @@ AC_LANG(C++)
 
 dnl OpenMP support?
 INTEL_OMP="-openmp"
-SGI_OMP="-mp -MP:open_mp=ON"
+SGI_OMP="-mp" # -MP:open_mp=ON"
 AIX_OMP="-qSMP=omp:noauto"
 OMP_FLAGS=""
 if [[ "x$target_vendor" = "xpc" ]]; then

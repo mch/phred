@@ -352,9 +352,26 @@ int main (int argc, char **argv)
          << "For redistribution conditions type `print conditions'.\n";
   }
 
-  cout << "\nMPI information: \n\tThis process is rank number " << MPI_RANK
-       << ".\n\tThere are a total of " << MPI_SIZE
-       << " processes in this group. \n" << endl;
+  cout << "\nMPI information: \nThis process is rank number " << MPI_RANK
+       << ".\nThere are a total of " << MPI_SIZE
+       << " processes in this group." << endl;
+
+#ifdef USE_OPENMP
+  cout << "\nOpenMP information: \nNumber of threads in team: " 
+       << omp_get_num_threads()
+       << "\nMaximum number of threads in team: " << omp_get_max_threads()
+       << "\nNumber of processors: " << omp_get_num_procs()
+       << "\nCurrent thread number: " << omp_get_thread_num()
+       << "\nDynamic thread adjustment? " 
+       << (omp_get_dynamic() ? "yes" : "no")
+       << "\nIn parallel? "
+       << (omp_in_parallel() ? "yes" : "no")
+       << "\nNested parallism? "
+       << (omp_get_nested() ? "yes" : "no")
+       << "\n" << endl;
+#endif
+	
+
 
   // Parse the input script (each process will just load it's own file
   // for now. ) 
@@ -475,20 +492,6 @@ int main (int argc, char **argv)
 	}
 
       } else {
-
-#ifdef USE_OPENMP
-	printf("Number of threads in team: %i\n", omp_get_num_threads());
-	printf("Maximum number of threads in team: %i\n", omp_get_max_threads());
-	printf("Number of processors: %i\n", omp_get_num_procs());
-	printf("Current thread number: %i\n", omp_get_thread_num());
-	printf("Dynamic thread adjustment? %s\n",
-	       (omp_get_dynamic() ? "yes" : "no"));
-	printf("In parallel? %s\n",
-	       (omp_in_parallel() ? "yes" : "no"));
-	printf("Nested parallism? %s\n", 
-	       (omp_get_nested() ? "yes" : "no"));
-#endif
-	
 
         // TESTS, TEMPORARY
         //point_test(rank, size);
