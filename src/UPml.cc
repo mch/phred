@@ -127,23 +127,23 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     {
     case FRONT:
     case BACK:
-      update_ex(grid);   
-      grid.update_ey(grid_ey_r_);
-      grid.update_ez(grid_ez_r_);
+      update_ex(grid, true);   
+      update_ey(grid, false);
+      update_ez(grid, false);
       break;
 
     case LEFT:
     case RIGHT:
-      grid.update_ex(grid_ex_r_);   
-      update_ey(grid);
-      grid.update_ez(grid_ez_r_);
+      update_ex(grid, false);   
+      update_ey(grid, true);
+      update_ez(grid, false);
       break;
 
     case TOP:
     case BOTTOM:
-      grid.update_ex(grid_ex_r_);   
-      grid.update_ey(grid_ey_r_);
-      update_ez(grid);
+      update_ex(grid, false);   
+      update_ey(grid, false);
+      update_ez(grid, true);
       break;
     }
   }
@@ -153,23 +153,23 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     {
     case FRONT:
     case BACK:
-      update_hx(grid);   
-      grid.update_hy(grid_hy_r_);
-      grid.update_hz(grid_hz_r_);
+      update_hx(grid, true);   
+      update_hy(grid, false);
+      update_hz(grid, false);
       break;
 
     case LEFT:
     case RIGHT:
-      grid.update_hx(grid_hx_r_);   
-      update_hy(grid);
-      grid.update_hz(grid_hz_r_);
+      update_hx(grid, false);   
+      update_hy(grid, true);
+      update_hz(grid, false);
       break;
 
     case TOP:
     case BOTTOM:
-      grid.update_hx(grid_hx_r_);   
-      grid.update_hy(grid_hy_r_);
-      update_hz(grid);
+      update_hx(grid, false);   
+      update_hy(grid, false);
+      update_hz(grid, true);
       break;
     }
   } 
@@ -180,7 +180,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
   
 }
 
-void UPml::update_ex(Grid &grid) 
+void UPml::update_ex(Grid &grid, bool pml) 
 {
   unsigned int grid_idx, pml_idx, mid, sig_idx; 
 
@@ -201,6 +201,12 @@ void UPml::update_ex(Grid &grid)
     {
       for(j = pml_r.ymin, jt = grid_ex_r_.ymin; jt < grid_ex_r_.ymax; j++, jt++)
       {
+
+        ex = &(ex_[idx]);
+        hz1 = &(hz_[idx]);
+        hz2 = &(hz_[idx2]);
+        hy = &(hy_[idx]);
+
         for(k = pml_r.zmin, kt = grid_ex_r_.zmin; kt < grid_ex_r_.zmax; k++, kt++)
         {
           grid_idx = grid.pi(it, jt, kt);
@@ -208,17 +214,25 @@ void UPml::update_ex(Grid &grid)
           
           mid = grid.material_[grid_idx];
           
-          d_temp = d_[pml_idx] + grid.get_delta() 
-            * ((grid.hy_[grid.pi(it, jt, kt-1)] 
-                - grid.hy_[grid_idx]) / grid.get_delta() 
-               - (grid.hz_[grid_idx] 
-                  - grid.hz_[grid.pi(it, jt-1, kt)]) / grid.get_delta());
+          if (pml) 
+          {
+            d_temp = d_[pml_idx] + grid.get_delta() 
+              * ((grid.hy_[grid.pi(it, jt, kt-1)] 
+                  - grid.hy_[grid_idx]) / grid.get_delta() 
+                 - (grid.hz_[grid_idx] 
+                    - grid.hz_[grid.pi(it, jt-1, kt)]) / grid.get_delta());
 
-          grid.ex_[grid_idx] = grid.ex_[grid_idx] + 1/(EPS_0) 
-            * (d_temp * (1 + (sigmas_[sig_idx] * grid.get_delta())/(2 * EPS_0))
-               - d_[pml_idx] * (1 - (sigmas_[sig_idx] * grid.get_delta())/(2 * EPS_0)));
+            grid.ex_[grid_idx] = grid.ex_[grid_idx] + 1/(EPS_0) 
+              * (d_temp * (1 + (sigmas_[sig_idx] * grid.get_delta())/(2 * EPS_0))
+                 - d_[pml_idx] * (1 - (sigmas_[sig_idx] * grid.get_delta())/(2 * EPS_0)));
 
-          d_[pml_idx] = d_temp;
+            d_[pml_idx] = d_temp;
+
+          } else {
+            *ex = Ca_[mid] * *ex
+              + Cby_[mid] * (*hz1 - *hz2)
+              + Cbz_[mid] * (*(hy - 1) - *hy);
+          }
         }
       }
     }
@@ -227,7 +241,7 @@ void UPml::update_ex(Grid &grid)
 #endif
 }
 
-void UPml::update_ey(Grid &grid) 
+void UPml::update_ey(Grid &grid, bool pml) 
 {
   unsigned int mid, idx;
   int i, j, k;
@@ -254,10 +268,15 @@ void UPml::update_ey(Grid &grid)
         for (k = grid_ey_r_.zmin; k < grid_ey_r_.zmax; k++) {
           mid = grid.material_[idx];
           
-          *ey = grid.Ca_[mid] * *ey
-            + grid.Cbz_[mid] * (*hx - *(hx-1))
-            + grid.Cbx_[mid] * (*hz1 - *hz2);
-          
+          if (pml)
+          {
+
+          } else {
+            *ey = Ca_[mid] * *ey
+              + Cbz_[mid] * (*hx - *(hx-1))
+              + Cbx_[mid] * (*hz1 - *hz2);
+          }
+            
           ey++;
           hx++;
           hz1++;
@@ -269,7 +288,7 @@ void UPml::update_ey(Grid &grid)
   }
 }
 
-void UPml::update_ez(Grid &grid) 
+void UPml::update_ez(Grid &grid, bool pml) 
 {
   unsigned int mid, idx;
   int i, j, k;
@@ -297,9 +316,14 @@ void UPml::update_ez(Grid &grid)
         for (k = grid_ez_r_.zmin; k < grid_ez_r_.zmax; k++) {
           mid = grid.material_[idx];
           
-          *ez = grid.Ca_[mid] * *ez
-            + grid.Cbx_[mid] * (*hy1 - *hy2)
-            + grid.Cby_[mid] * (*hx1 - *hx2);
+          if (pml)
+          {
+
+          } else {
+            *ez = Ca_[mid] * *ez
+              + Cbx_[mid] * (*hy1 - *hy2)
+              + Cby_[mid] * (*hx1 - *hx2);
+          }
 
           ez++;
           hy1++; hy2++; hx1++; hx2++;
@@ -310,7 +334,7 @@ void UPml::update_ez(Grid &grid)
   }
 }
 
-void UPml::update_hx(Grid &grid)
+void UPml::update_hx(Grid &grid, bool pml)
 {
   unsigned int mid, idx;
   int i, j, k;
@@ -336,10 +360,15 @@ void UPml::update_hx(Grid &grid)
         for (k = grid_hx_r_.zmin; k < grid_hx_r_.zmax; k++) {
           mid = grid.material_[idx];
           
-          *hx = grid.Da_[mid] * *hx
-            + grid.Dby_[mid] * (*ez1 - *ez2)
-            + grid.Dbz_[mid] * (*(ey+1) - *ey);
-          
+          if (pml)
+          {
+
+          } else {
+            *hx = Da_[mid] * *hx
+              + Dby_[mid] * (*ez1 - *ez2)
+              + Dbz_[mid] * (*(ey+1) - *ey);
+          }
+
           hx++; idx++;
           ez1++; ez2++; ey++;
         }
@@ -349,7 +378,7 @@ void UPml::update_hx(Grid &grid)
 
 }
 
-void UPml::update_hy(Grid &grid)
+void UPml::update_hy(Grid &grid, bool pml)
 {
   unsigned int mid, idx;
   int i, j, k;
@@ -376,10 +405,15 @@ void UPml::update_hy(Grid &grid)
         for (k = grid_hy_r_.zmin; k < grid_hy_r_.zmax; k++) {
           mid = grid.material_[idx];
           
-          *hy = grid.Da_[mid] * *hy
-            + grid.Dbz_[mid] * (*ex - *(ex + 1))
-            + grid.Dbx_[mid] * (*ez1 - *ez2);        
-          
+          if (pml)
+          {
+
+          } else {
+            *hy = Da_[mid] * *hy
+              + Dbz_[mid] * (*ex - *(ex + 1))
+              + Dbx_[mid] * (*ez1 - *ez2);        
+          }
+
           hy++; idx++;
           ex++; ez1++; ez2++;
         }
@@ -388,7 +422,7 @@ void UPml::update_hy(Grid &grid)
   }
 }
 
-void UPml::update_hz(Grid &grid)
+void UPml::update_hz(Grid &grid, bool pml)
 {
   unsigned int mid, idx;
   int i, j, k;
@@ -415,10 +449,15 @@ void UPml::update_hz(Grid &grid)
         for (k = grid_hz_r_.zmin; k < grid_hz_r_.zmax; k++) {
           mid = grid.material_[idx];
           
-          *hz1 = grid.Da_[mid] * *hz1
-            + grid.Dbx_[mid] * (*ey1 - *ey2)
-            + grid.Dby_[mid] * (*ex1 - *ex2);
-          
+          if (pml)
+          {
+
+          } else {
+            *hz1 = Da_[mid] * *hz1
+              + Dbx_[mid] * (*ey1 - *ey2)
+              + Dby_[mid] * (*ex1 - *ex2);
+          }
+
           hz1++; idx++;
           ey1++; ey2++;
           ex1++; ex2++;

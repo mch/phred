@@ -66,13 +66,14 @@ protected:
 //   template<region_t region, field_t component, field_t curl1, field_t curl2>
 //   void upml_update(Grid &grid);
 
-  void update_ex(Grid &grid);
-  void update_ey(Grid &grid);
-  void update_ez(Grid &grid);
+  // Bools are ugly
+  void update_ex(Grid &grid, bool pml);
+  void update_ey(Grid &grid, bool pml);
+  void update_ez(Grid &grid, bool pml);
 
-  void update_hx(Grid &grid);
-  void update_hy(Grid &grid);
-  void update_hz(Grid &grid);
+  void update_hx(Grid &grid, bool pml);
+  void update_hy(Grid &grid, bool pml);
+  void update_hz(Grid &grid, bool pml);
 
 public:
   UPml();
