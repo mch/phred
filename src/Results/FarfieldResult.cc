@@ -20,12 +20,14 @@
 */
 
 #include "FarfieldResult.hh"
+#include "../config.h"
 #include "../Exceptions.hh"
 #include "../Constants.hh"
 #include "../Globals.hh"
+#include "../PlaneTiling.hh"
 #include <cmath>
 #include <cstring>
-#include "../PlaneTiling.hh"
+#include <cassert>
 
 FarfieldResult::FarfieldResult()
   : r_(100),
@@ -36,6 +38,18 @@ FarfieldResult::FarfieldResult()
 FarfieldResult::~FarfieldResult()
 {
   deinit();
+}
+
+void FarfieldResult::set_radius(field_t r)
+{
+  if (r > 0.0)
+  {
+    r_ = r;
+  } 
+  else 
+  {
+    throw ResultException("Farfield radius must be greater than zero.");
+  }
 }
 
 void FarfieldResult::set_theta_degrees(field_t theta_start, 
@@ -96,17 +110,19 @@ void FarfieldResult::init(const Grid &grid)
 
   // Number of farfield timesteps we have to keep track of
   point bsz = (*box_).get_size();
-  field_t maxlength = bsz.x;
 
-  if (bsz.y > maxlength)
-    maxlength = bsz.y;
+  // Maximum distance between any two points on the Huygen's surface.
+  field_t maxlength = sqrt(bsz.x * bsz.x + bsz.y * bsz.y + bsz.z * bsz.z);
 
-  if (bsz.z > maxlength)
-    maxlength = bsz.z;
+  t_cross_ = static_cast<unsigned int>
+    (ceil(maxlength / (C * grid.get_deltat())));
 
-  ff_tsteps_ = static_cast<unsigned int>(ceil((time_stop_ - time_start_) 
-                                              + 2 * (maxlength / C)));
+  ff_tsteps_ = (time_stop_ - time_start_) + 2 * t_cross_;
   
+#ifdef DEBUG
+  cerr << "Farfield, num ff_tsteps: " << ff_tsteps_ << endl;
+#endif
+
   // Allocate space for W and U
   unsigned int sz = ff_tsteps_ * theta_data_.length() * phi_data_.length();
 
@@ -323,8 +339,17 @@ public:
   // Cell size
   field_t cellsize;
 
+  // # timesteps to propagate between the two points which are
+  // # farthest from each other on the Huygen's surface.
+  unsigned int t_cross;
+
   // Debugging only
   unsigned int ff_tsteps_;
+
+  FFData()
+    : W_t1(0), W_t2(0), U_t1(0), U_t2(0), E_t1(0), E_t2(0), 
+      H_t1(0), H_t2(0)
+  {}
 };
 
 /**
@@ -344,21 +369,27 @@ public:
     // Distance to source point
     field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
 
-    field_t tau = (data.obs_radius - (xt * sin(data.phi) * cos(data.theta)
-      + yt * sin(data.phi) * sin(data.theta) + zt * cos(data.phi))) / C;
+    // Time is takes this source point to influence the farfield.
+//     field_t tau = (data.obs_radius - (xt * sin(data.phi) * cos(data.theta)
+//       + yt * sin(data.phi) * sin(data.theta) + zt * cos(data.phi))) / C;
+    field_t tau = ((xt * sin(data.phi) * cos(data.theta)
+      + yt * sin(data.phi) * sin(data.theta) + zt * cos(data.phi))) 
+      / (C * data.dt);
+
+    tau = tau + data.t_cross;
 
     // Farfield time step for this result. 
-    int U_n = static_cast<int>(floor(data.tstep + 0.5 + tau / data.dt));
-    int W_n = static_cast<int>(floor(data.tstep + tau / data.dt));
+    int U_n = static_cast<int>(floor(data.tstep + 0.5 + tau));
+    int W_n = static_cast<int>(floor(data.tstep + tau));
 
-    assert(U_n > 0 && (U_n + 1) < data.ff_tsteps_);
-    assert(W_n > 0 && (W_n + 1) < data.ff_tsteps_);
+    assert(U_n >= 0 && (U_n + 1) < data.ff_tsteps_);
+    assert(W_n >= 0 && (W_n + 1) < data.ff_tsteps_);
 
-    field_t U_a = (data.tstep + 0.5 + tau / data.dt) - U_n;
-    field_t W_a = (data.tstep + tau / data.dt) - W_n;
+    field_t U_a = (data.tstep + 0.5 + tau) - U_n;
+    field_t W_a = (data.tstep + tau) - W_n;
 
-    assert(U_a > 0.0 && U_a < 1.0);
-    assert(W_a > 0.0 && W_a < 1.0);
+    assert(U_a >= 0.0 && U_a <= 1.0);
+    assert(W_a >= 0.0 && W_a <= 1.0);
 
     // The 4 * PI * r * C has been factored out and must be applied
     // when the spherical components are calculated.
@@ -403,6 +434,7 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
     data.grid_centre = grid.get_global_cell(grid.get_centre());
     data.obs_radius = r_;
     data.ff_tsteps_ = ff_tsteps_;
+    data.t_cross = t_cross_;
 
     // Calculate W and U for each observation point of interest. 
     for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
@@ -422,10 +454,19 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
           case BACK:
             data.W_t1 = &Wy_[WU_index(phi_idx, theta_idx, 0)];
             data.W_t2 = &Wz_[WU_index(phi_idx, theta_idx, 0)];
+            data.U_t1 = &Uy_[WU_index(phi_idx, theta_idx, 0)];
+            data.U_t2 = &Uz_[WU_index(phi_idx, theta_idx, 0)];
+
             data.E_t1 = &E_temp_[temp_index(face_idx, 1, 0, 0, 
-                                          region_->ylen(), region_->zlen())];
+                                            region_->ylen(), region_->zlen())];
             data.E_t2 = &E_temp_[temp_index(face_idx, 2, 0, 0, 
                                             region_->ylen(), region_->zlen())];
+
+            data.H_t1 = &H_temp_[temp_index(face_idx, 1, 0, 0, 
+                                            region_->ylen(), region_->zlen())];
+            data.H_t2 = &H_temp_[temp_index(face_idx, 2, 0, 0, 
+                                            region_->ylen(), region_->zlen())];
+
             data.cellsize = grid.get_deltay() * grid.get_deltaz();
             break;
             
@@ -433,10 +474,18 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
           case RIGHT:
             data.W_t1 = &Wz_[WU_index(phi_idx, theta_idx, 0)];
             data.W_t2 = &Wx_[WU_index(phi_idx, theta_idx, 0)];
+            data.U_t1 = &Uz_[WU_index(phi_idx, theta_idx, 0)];
+            data.U_t2 = &Ux_[WU_index(phi_idx, theta_idx, 0)];
+
             data.E_t1 = &E_temp_[temp_index(face_idx, 2, 0, 0, 
                                           region_->ylen(), region_->zlen())];
             data.E_t2 = &E_temp_[temp_index(face_idx, 0, 0, 0, 
                                           region_->ylen(), region_->zlen())];
+            data.H_t1 = &H_temp_[temp_index(face_idx, 2, 0, 0, 
+                                            region_->ylen(), region_->zlen())];
+            data.H_t2 = &H_temp_[temp_index(face_idx, 0, 0, 0, 
+                                            region_->ylen(), region_->zlen())];
+
             data.cellsize = grid.get_deltax() * grid.get_deltaz();
             break;
 
@@ -444,10 +493,19 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
           case BOTTOM:
             data.W_t1 = &Wx_[WU_index(phi_idx, theta_idx, 0)];
             data.W_t2 = &Wy_[WU_index(phi_idx, theta_idx, 0)];
+            data.U_t1 = &Ux_[WU_index(phi_idx, theta_idx, 0)];
+            data.U_t2 = &Uy_[WU_index(phi_idx, theta_idx, 0)];
+
             data.E_t1 = &E_temp_[temp_index(face_idx, 0, 0, 0, 
                                           region_->ylen(), region_->zlen())];
             data.E_t2 = &E_temp_[temp_index(face_idx, 1, 0, 0, 
                                           region_->ylen(), region_->zlen())];
+
+            data.H_t1 = &H_temp_[temp_index(face_idx, 0, 0, 0, 
+                                            region_->ylen(), region_->zlen())];
+            data.H_t2 = &H_temp_[temp_index(face_idx, 1, 0, 0, 
+                                            region_->ylen(), region_->zlen())];
+
             data.cellsize = grid.get_deltax() * grid.get_deltay();
             break;
           }            

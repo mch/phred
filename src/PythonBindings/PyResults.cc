@@ -29,6 +29,7 @@
 #include "../Results/SignalTimeResult.hh"
 #include "../Results/BlockResult.hh"
 #include "../Results/FarfieldResult2.hh"
+#include "../Results/FarfieldResult.hh"
 #include "../Results/PowerResult.hh"
 #include "../Results/FakeResult.hh"
 #include "../Results/GridResult.hh"
@@ -127,6 +128,28 @@ void export_results()
     .def("get_radius", &FarfieldResult2::get_radius,
          "Get the radius of the sphere where observations are being done.")
     .def("set_region", &FarfieldResult2::set_region, 
+         "Set the CSGBox which defines the surface over which "
+         "currents should be calculated.")
+    ;
+
+  class_<FarfieldResult, bases<DFTResult> >("FarfieldResult", 
+                                            "Calculates the farfield "
+                                            "resulting from a scattering "
+                                            "object in the near field using "
+                                            "Luebbers' time domain method.")
+    .def("set_theta", &FarfieldResult::set_theta, 
+         "Set the angle range from the X axis in radians")
+    .def("set_phi", &FarfieldResult::set_phi,
+         "Set the angle range from the Z axis in radians")
+    .def("set_theta_degrees", &FarfieldResult::set_theta_degrees,
+         "Set the angle range from the X axis in degrees")
+    .def("set_phi_degrees", &FarfieldResult::set_phi_degrees,
+         "Set the angle range from the Z axis in degrees")
+    .def("set_radius", &FarfieldResult::set_radius, 
+         "Set the radius of the sphere where observations are being done.")
+    .def("get_radius", &FarfieldResult::get_radius,
+         "Get the radius of the sphere where observations are being done.")
+    .def("set_region", &FarfieldResult::set_region, 
          "Set the CSGBox which defines the surface over which "
          "currents should be calculated.")
     ;

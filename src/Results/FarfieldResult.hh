@@ -141,6 +141,17 @@ public:
   void deinit();
 
   /**
+   * Set the radius of the observation sphere
+   */ 
+  void set_radius(field_t r);
+
+  /**
+   * Returns the radius of the observation sphere
+   */ 
+  inline field_t get_radius()
+  { return r_; }
+
+  /**
    * Print a string representation to an ostream.
    */
   virtual ostream& to_string(ostream &os) const;
@@ -160,6 +171,11 @@ protected:
 
   // Number of farfield timesteps we need to save data for
   unsigned int ff_tsteps_;
+
+  // Number of time steps it takes for a wave to progagate through
+  // freespace between the two points which are farthest from each
+  // other on the Huygen's surface.
+  unsigned int t_cross_;
 
   // Field components of W and U. These are each 3 dimensional grids,
   // indexed by phi, theta, and farfield tstep. These are contiguous
