@@ -186,13 +186,6 @@ protected:
   field_t *Wx_, *Wy_, *Wz_;
   field_t *Ux_, *Uy_, *Uz_;
 
-  // When updating W and U, it is necessary to approximate the
-  // derivative of E and H w.r.t. time. For this, it is necessary to
-  // store the past values of E and H at each point on the surface. (I
-  // think... maybe theres something cleaver that can be done to avoid
-  // this....)
-  field_t *E_temp_, *H_temp_;
-
   // E_theta and E_phi values, calculated by get_post_result(). These
   // are 3d, indexed by phi, theta, and finally contigouos along
   // fftimestep.
@@ -220,24 +213,6 @@ protected:
   Variable e_pi_;
   Variable rcs_var_;
   
-  /**
-   * A helper for accessing data in the E and H temporary arrays. Data
-   * is treated as contiguous along x2.
-   * 
-   * @param face the face, 0-5
-   * @param component the field component, x=0, y=1, z=2
-   * @param x1 first coordinate on the face, beginning at zero
-   * @param x2 second coordinate on the face, beginning at zero
-   * @param size1 length of the first dimension of the face
-   * @param size2 length of the second dimension of the face
-   */
-  static inline int temp_index(int face, int component, 
-                               int x1, int x2,
-                               int size1, int size2)
-  {
-    return x2 + (x1 + (component + face * 3) * size1) * size2;
-  }
-
   void idx_tests();
   void dump_temps();
 

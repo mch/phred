@@ -56,22 +56,6 @@ void FarfieldResult::idx_tests()
   }
 
   wuf.close();
-
-  ofstream tf;
-  tf.open("tempidxtest.txt", ofstream::out);
-
-  tf << "faceidx comp temp_idx(0,0,10,10)\n";
-
-  for (int faceidx = 0; faceidx < 6; faceidx++)
-  {
-    for (int comp = 0; comp < 3; comp++)
-    {
-      tf << faceidx << "\t" << comp << "\t" 
-         << temp_index(faceidx, comp, 0,0, 10, 10) << "\n";
-    }
-  }
-
-  tf.close();
 }
 
 void FarfieldResult::dump_temps()
@@ -110,7 +94,7 @@ void FarfieldResult::dump_temps()
 FarfieldResult::FarfieldResult()
   : r_(100),
     Wx_(0), Wy_(0), Wz_(0), Ux_(0), Uy_(0), Uz_(0),
-    E_temp_(0), H_temp_(0), E_theta_(0), E_phi_(0)
+    E_theta_(0), E_phi_(0)
 {}
 
 FarfieldResult::~FarfieldResult()
@@ -243,15 +227,6 @@ void FarfieldResult::init(const Grid &grid)
     memset(e_phi_imag_, 0, sizeof(field_t)*dftsz);
     memset(rcs_, 0, sizeof(field_t)*dftsz);
   }
-
-  // Allocate space to store past values of E and H on the faces so
-  // that the time derivate can be properly approximated.
-  unsigned int tempsz = 2 * region_->xlen() * region_->ylen()
-    + 2 * region_->xlen() * region_->zlen()
-    + 2 * region_->ylen() * region_->zlen();
-  
-  E_temp_ = new field_t[tempsz * 6 * 3];
-  H_temp_ = new field_t[tempsz * 6 * 3];
 
   // Set up output variables
   freqs_.reset();
@@ -448,18 +423,6 @@ void FarfieldResult::deinit()
     E_phi_ = 0;
   }
 
-  if (E_temp_)
-  {
-    delete[] E_temp_;
-    E_temp_ = 0;
-  }
-
-  if (H_temp_)
-  {
-    delete[] H_temp_;
-    H_temp_ = 0;
-  }
-
   if (e_theta_real_)
   {
     delete[] e_theta_real_;
@@ -492,11 +455,6 @@ public:
   // Thus, de-reference the pointer using the ff time step. 
   field_t *W_t1, *W_t2;
   field_t *U_t1, *U_t2;
-
-  // E and H temp so that we can properly calculate the derivate of
-  // the components w.r.t. time. These must be dereferenced to the
-  // correct face and field components.
-  field_t *E_t1, *E_t2, *H_t1, *H_t2;
 
   // An index into the above variables. 
   int idx;
@@ -541,8 +499,8 @@ public:
   Interval<field_t> *phi_data;
 
   FFData()
-    : W_t1(0), W_t2(0), U_t1(0), U_t2(0), E_t1(0), E_t2(0), 
-      H_t1(0), H_t2(0), theta_data(0), phi_data(0)
+    : W_t1(0), W_t2(0), U_t1(0), U_t2(0),
+      theta_data(0), phi_data(0)
   {}
 };
 
@@ -626,12 +584,6 @@ public:
       }
     }
 
-    data.E_t1[data.idx] = f.et1_avg;
-    data.E_t2[data.idx] = f.et2_avg;
-
-    data.H_t1[data.idx] = f.ht1_avg;
-    data.H_t2[data.idx] = f.ht2_avg;
-
     data.idx++;
   }
 };
@@ -674,16 +626,6 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         data.U_t1 = Uy_;
         data.U_t2 = Uz_;
 
-        data.E_t1 = &E_temp_[temp_index(face_idx, 1, 0, 0, 
-                                        region_->ylen(), region_->zlen())];
-        data.E_t2 = &E_temp_[temp_index(face_idx, 2, 0, 0, 
-                                        region_->ylen(), region_->zlen())];
-        
-        data.H_t1 = &H_temp_[temp_index(face_idx, 1, 0, 0, 
-                                        region_->ylen(), region_->zlen())];
-        data.H_t2 = &H_temp_[temp_index(face_idx, 2, 0, 0, 
-                                        region_->ylen(), region_->zlen())];
-        
         data.cellsize = grid.get_deltay() * grid.get_deltaz();
         data.xshift = 0.0;
         break;
@@ -695,15 +637,6 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         data.U_t1 = Uz_;
         data.U_t2 = Ux_;
         
-        data.E_t1 = &E_temp_[temp_index(face_idx, 2, 0, 0, 
-                                        region_->xlen(), region_->zlen())];
-        data.E_t2 = &E_temp_[temp_index(face_idx, 0, 0, 0, 
-                                        region_->xlen(), region_->zlen())];
-        data.H_t1 = &H_temp_[temp_index(face_idx, 2, 0, 0, 
-                                        region_->xlen(), region_->zlen())];
-        data.H_t2 = &H_temp_[temp_index(face_idx, 0, 0, 0, 
-                                        region_->xlen(), region_->zlen())];
-        
         data.cellsize = grid.get_deltax() * grid.get_deltaz();
         data.yshift = 0.0;
         break;
@@ -714,16 +647,6 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         data.W_t2 = Wy_;
         data.U_t1 = Ux_;
         data.U_t2 = Uy_;
-        
-        data.E_t1 = &E_temp_[temp_index(face_idx, 0, 0, 0, 
-                                        region_->ylen(), region_->xlen())];
-        data.E_t2 = &E_temp_[temp_index(face_idx, 1, 0, 0, 
-                                        region_->ylen(), region_->xlen())];
-        
-        data.H_t1 = &H_temp_[temp_index(face_idx, 0, 0, 0, 
-                                        region_->ylen(), region_->xlen())];
-        data.H_t2 = &H_temp_[temp_index(face_idx, 1, 0, 0, 
-                                        region_->ylen(), region_->xlen())];
         
         data.cellsize = grid.get_deltax() * grid.get_deltay();
         data.zshift = 0.0;
@@ -779,7 +702,7 @@ map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
 
         U_t = temp * (Ux_[idx] * cos(theta) * cos(phi)
                       + Uy_[idx] * cos(theta) * sin(phi)
-                      - Uz_[idx] * sin(phi)); 
+                      - Uz_[idx] * sin(theta)); 
 
         U_p = temp * (- Ux_[idx] * sin(phi) + Uy_[idx] * cos(phi));
 
