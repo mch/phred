@@ -56,6 +56,10 @@
 #include "GridInfo.hh"
 #include "Geometry.hh"
 
+#include <map>
+
+using namespace std;
+
 class Grid {
   friend class UPml;
   friend class Pml; // So that PML update equations can access the
@@ -162,6 +166,33 @@ class Grid {
    */ 
   Geometry **geometries_;
   unsigned int num_geoms_;
+
+  /** 
+   * A sancturary for boundary condition common data. The valid int's
+   * that can be used as keys are enumerated in Types.hh.in.
+   */
+  map<int, void *> auxdata_; 
+
+  /**
+   * Store some auxiliary data. 
+   */
+  inline void add_auxdata(GridAuxData n, void *ptr)
+  {
+    auxdata_[n] = ptr;
+  }
+
+  /**
+   * Retrieves some auxiliry data. Returns null if the requested data
+   * is not available.
+   */
+  inline void *get_auxdata(GridAuxData n)
+  {
+    map<int, void *>::iterator iter = auxdata_.find(n);
+    if (iter == auxdata_.end())
+      return 0;
+    else
+      return *iter;
+  }
 
   /**
    * Compute the update equatations for the Ex field component. 

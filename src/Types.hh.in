@@ -44,6 +44,14 @@ enum Axis {
 };
 
 /**
+ * Things than can be stored in the grid's auxilary data map. 
+ */
+enum GridAuxData {
+  PML_COMMON,
+  UPML_COMMON
+};
+
+/**
  * Boundary conditions. These can be appled to faces of the grid or to
  * the surfaces of materials. But normally just to the faces of the
  * grid.
