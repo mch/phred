@@ -8,7 +8,8 @@
  * This boundary condition talks to another rank and exchanges
  * information about the overlapping region with it. 
  * 
- * \bug IMPLEMENT ME!
+ * \bug SET start_ptr from grid!
+ * \bug Load recieved data back into grid!
  */
 class SubdomainBc : public BoundaryCond
 {
