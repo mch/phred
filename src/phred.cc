@@ -196,8 +196,8 @@ main (int argc, char **argv)
       // and fn.out, per Jan's grammer, and load them instead. 
 
       // TESTS, TEMPORARY
-      //point_test(rank, size);
-      pml_test(rank, size);
+      point_test(rank, size);
+      //pml_test(rank, size);
       //takakura_test(rank, size);
     }
   } catch (const std::exception &e) {
@@ -356,7 +356,7 @@ static void point_test(int rank, int size)
   // Results
   point_t p;
   p.x = 50;
-  p.y = 50;
+  p.y = 25;
   p.z = 50;
   PointResult res1(p);
   PointDFTResult pdft(100e12, 600e12, 50);

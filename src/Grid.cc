@@ -387,24 +387,24 @@ void Grid::init_datatypes()
 {
   free_datatypes();
 
-  MPI_Type_contiguous(get_ldz(), GRID_MPI_TYPE, &z_vector_);
+  MPI_Type_contiguous(info_.dimz_, GRID_MPI_TYPE, &z_vector_);
   MPI_Type_commit(&z_vector_);
 
-  MPI_Type_vector(get_ldy(), 1, get_ldz(), GRID_MPI_TYPE, &y_vector_);
+  MPI_Type_vector(info_.dimy_, 1, info_.dimz_, GRID_MPI_TYPE, &y_vector_);
   MPI_Type_commit(&y_vector_);
   
-  MPI_Type_vector(get_ldx(), 1, get_ldy() * get_ldz(), 
+  MPI_Type_vector(info_.dimx_, 1, info_.dimy_ * info_.dimz_, 
                   GRID_MPI_TYPE, &x_vector_);
   MPI_Type_commit(&x_vector_);
 
-  MPI_Type_contiguous(get_ldz() * get_ldy(), GRID_MPI_TYPE, &yz_plane_);
+  MPI_Type_contiguous(info_.dimz_ * info_.dimy_, GRID_MPI_TYPE, &yz_plane_);
   MPI_Type_commit(&yz_plane_);
 
-  MPI_Type_vector(get_ldx(), get_ldz(), get_ldy() * get_ldz(), 
+  MPI_Type_vector(info_.dimx_, info_.dimz_, info_.dimy_ * info_.dimz_, 
                   GRID_MPI_TYPE, &xz_plane_);
   MPI_Type_commit(&xz_plane_);
 
-  MPI_Type_hvector(get_ldx(), 1, sizeof(field_t) * get_ldz() * get_ldy(), 
+  MPI_Type_hvector(info_.dimx_, 1, sizeof(field_t) * info_.dimz_ * info_.dimy_, 
                    y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
 
@@ -422,7 +422,7 @@ void Grid::alloc_grid()
 
   unsigned int sz = 0;
 
-  sz = get_ldx() * get_ldy() * get_ldz();
+  sz = info_.dimx_ * info_.dimy_ * info_.dimz_;
 
   if (sz > 0) 
   {
@@ -653,32 +653,50 @@ void Grid::update_ex()
   int i, j, k;
   field_t *ex, *hz1, *hz2, *hy;
 
+#ifdef USE_OPENMP
+  int chunk_size, offset;
+
+  chunk_size = (update_ex_r_.zmax - update_ex_r_.zmin) 
+    / omp_get_max_threads();
+#endif
+
   // Inner part
   for (i = update_ex_r_.xmin; i < update_ex_r_.xmax; i++) {
     for (j = update_ex_r_.ymin; j < update_ex_r_.ymax; j++) {
       
-      idx = pi(i, j, update_ex_r_.zmin);
-      idx2 = pi(i, j-1, update_ex_r_.zmin);
-      ex = &(ex_[idx]);
-      hz1 = &(hz_[idx]);
-      hz2 = &(hz_[idx2]);
-      hy = &(hy_[idx]);
-
-#ifdef USE_OPENMP_NOT
-#pragma omp parallel for private(mid, i, j, k, idx, idx2, ex, hz1, hz2, hy) 
+#ifdef USE_OPENMP
+#pragma parallel  private(mid, k, idx, idx2, ex, hz1, hz2, hy)
 #endif
-      for (k = update_ex_r_.zmin; k < update_ex_r_.zmax; k++) {
-        mid = material_[idx];
+      {
+#ifdef USE_OPENMP
+        offset = omp_get_thread_num() * chunk_size;
+        idx = pi(i, j, update_ex_r_.zmin + offset);
+        idx2 = pi(i, j-1, update_ex_r_.zmin + offset);
+#else
+        idx = pi(i, j, update_ex_r_.zmin);
+        idx2 = pi(i, j-1, update_ex_r_.zmin);
+#endif
+        ex = &(ex_[idx]);
+        hz1 = &(hz_[idx]);
+        hz2 = &(hz_[idx2]);
+        hy = &(hy_[idx]);
         
-        *ex = Ca_[mid] * *ex
-          + Cby_[mid] * (*hz1 - *hz2)
-          + Cbz_[mid] * (*(hy - 1) - *hy);
-
-        ex++;
-        hz1++;
-        hz2++;
-        hy++;
-        idx++;
+#ifdef USE_OPENMP
+#pragma omp for
+#endif
+        for (k = update_ex_r_.zmin; k < update_ex_r_.zmax; k++) {
+          mid = material_[idx];
+          
+          *ex = Ca_[mid] * *ex
+            + Cby_[mid] * (*hz1 - *hz2)
+            + Cbz_[mid] * (*(hy - 1) - *hy);
+          
+          ex++;
+          hz1++;
+          hz2++;
+          hy++;
+          idx++;
+        }
       }
     }
   }
@@ -692,31 +710,49 @@ void Grid::update_ey()
   int i, j, k;
   field_t *ey, *hx, *hz1, *hz2;
 
+#ifdef USE_OPENMP
+  int chunk_size, offset;
+
+  chunk_size = (update_ey_r_.zmax - update_ey_r_.zmin) 
+    / omp_get_max_threads();
+#endif
+
   // Inner part
   for (i = update_ey_r_.xmin; i < update_ey_r_.xmax; i++) {
     for (j = update_ey_r_.ymin; j < update_ey_r_.ymax; j++) {
 
-      idx = pi(i, j, update_ey_r_.zmin);
-      ey = &(ey_[idx]);
-      hx = &(hx_[idx]);
-      hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
-      hz2 = &(hz_[idx]);
-
-#ifdef USE_OPENMP_NOT
-#pragma omp parallel for private(mid, idx, i, j, k, ey, hx, hz1, hz2)
+#ifdef USE_OPENMP
+#pragma parallel private(mid, k, idx, ey, hx, hz1, hz2)
 #endif
-      for (k = update_ey_r_.zmin; k < update_ey_r_.zmax; k++) {
-        mid = material_[idx];
+      {
+#ifdef USE_OPENMP
+        offset = omp_get_thread_num() * chunk_size;
+        idx = pi(i, j, update_ey_r_.zmin);
+        hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
+#else
+        idx = pi(i, j, update_ey_r_.zmin);
+        hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
+#endif
+        hz2 = &(hz_[idx]);
+        ey = &(ey_[idx]);
+        hx = &(hx_[idx]);
 
-        *ey = Ca_[mid] * *ey
-          + Cbz_[mid] * (*hx - *(hx-1))
-          + Cbx_[mid] * (*hz1 - *hz2);
-
-        ey++;
-        hx++;
-        hz1++;
-        hz2++;
-        idx++;
+#ifdef USE_OPENMP
+#pragma omp for
+#endif
+        for (k = update_ey_r_.zmin; k < update_ey_r_.zmax; k++) {
+          mid = material_[idx];
+          
+          *ey = Ca_[mid] * *ey
+            + Cbz_[mid] * (*hx - *(hx-1))
+            + Cbx_[mid] * (*hz1 - *hz2);
+          
+          ey++;
+          hx++;
+          hz1++;
+          hz2++;
+          idx++;
+        }
       }
     }
   }
@@ -729,30 +765,49 @@ void Grid::update_ez()
   int i, j, k;
   field_t *ez, *hy1, *hy2, *hx1, *hx2;
   
+#ifdef USE_OPENMP
+  int chunk_size, offset;
+
+  chunk_size = (update_ez_r_.zmax - update_ez_r_.zmin) 
+    / omp_get_max_threads();
+#endif
+
   // Inner part
   for (i = update_ez_r_.xmin; i < update_ez_r_.xmax; i++) {
     for (j = update_ez_r_.ymin; j < update_ez_r_.ymax; j++) {
 
-      idx = pi(i, j, update_ez_r_.zmin);
-      ez = &(ez_[idx]);
-      hy1 = &(hy_[idx]);
-      hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin)]);
-      hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin)]);
-      hx2 = &(hx_[idx]);
-
-#ifdef USE_OPENMP_NOT
-#pragma omp parallel for private(mid, idx, i, j, k, ez, hy1, hy2, hx1, hx2)
+#ifdef USE_OPENMP
+#pragma parallel private(mid, k, idx, ez, hy1, hy2, hx1, hx2)
 #endif
-      for (k = update_ez_r_.zmin; k < update_ez_r_.zmax; k++) {
-        mid = material_[idx];
+      {
+#ifdef USE_OPENMP
+        offset = omp_get_thread_num() * chunk_size;
+        idx = pi(i, j, update_ez_r_.zmin + offset);
+        hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin + offset)]);
+        hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin + offset)]);
+#else
+        idx = pi(i, j, update_ez_r_.zmin);
+        hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin)]);
+        hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin)]);
+#endif
+        hx2 = &(hx_[idx]);
+        ez = &(ez_[idx]);
+        hy1 = &(hy_[idx]);
 
-        *ez = Ca_[mid] * *ez
-          + Cbx_[mid] * (*hy1 - *hy2)
-          + Cby_[mid] * (*hx1 - *hx2);
+#ifdef USE_OPENMP
+#pragma omp for
+#endif
+        for (k = update_ez_r_.zmin; k < update_ez_r_.zmax; k++) {
+          mid = material_[idx];
+          
+          *ez = Ca_[mid] * *ez
+            + Cbx_[mid] * (*hy1 - *hy2)
+            + Cby_[mid] * (*hx1 - *hx2);
 
-        ez++;
-        hy1++; hy2++; hx1++; hx2++;
-        idx++;
+          ez++;
+          hy1++; hy2++; hx1++; hx2++;
+          idx++;
+        }
       }
     }
   }
@@ -764,31 +819,46 @@ void Grid::update_hx()
   unsigned int mid, idx;
   int i, j, k;
   field_t *hx, *ez1, *ez2, *ey;
-  
+
 #ifdef USE_OPENMP
-#pragma omp parallel private(idx, mid, i, j, k, hx, ez1, ez2, ey)
-#endif  
+  int chunk_size, offset;
+
+  chunk_size = (update_hx_r_.zmax - update_hx_r_.zmin) 
+    / omp_get_max_threads();
+#endif
+
   for (i = update_hx_r_.xmin; i < update_hx_r_.xmax; i++) {
     for (j = update_hx_r_.ymin; j < update_hx_r_.ymax; j++) {
 
-      idx = pi(i, j, update_hx_r_.zmin);
-      hx = &(hx_[idx]);
-      ez1 = &(ez_[idx]);
-      ez2 = &(ez_[pi(i, j+1, update_hx_r_.zmin)]);
-      ey = &(ey_[idx]);
+#ifdef USE_OPENMP
+#pragma parallel  private(mid, k, idx, hx, ez1, ez2, ey)
+#endif
+      {
+#ifdef USE_OPENMP
+        offset = omp_get_thread_num() * chunk_size;
+        idx = pi(i, j, update_hx_r_.zmin + offset);
+        ez2 = &(ez_[pi(i, j+1, update_hx_r_.zmin + offset)]);
+#else
+        idx = pi(i, j, update_hx_r_.zmin);
+        ez2 = &(ez_[pi(i, j+1, update_hx_r_.zmin)]);
+#endif
+        ey = &(ey_[idx]);
+        hx = &(hx_[idx]);
+        ez1 = &(ez_[idx]);
 
-#ifdef USE_OPENMP_NOT
+#ifdef USE_OPENMP
 #pragma omp for
 #endif
-      for (k = update_hx_r_.zmin; k < update_hx_r_.zmax; k++) {
-        mid = material_[idx];
-
-        *hx = Da_[mid] * *hx
-          + Dby_[mid] * (*ez1 - *ez2)
-          + Dbz_[mid] * (*(ey+1) - *ey);
-
-        hx++; idx++;
-        ez1++; ez2++; ey++;
+        for (k = update_hx_r_.zmin; k < update_hx_r_.zmax; k++) {
+          mid = material_[idx];
+          
+          *hx = Da_[mid] * *hx
+            + Dby_[mid] * (*ez1 - *ez2)
+            + Dbz_[mid] * (*(ey+1) - *ey);
+          
+          hx++; idx++;
+          ez1++; ez2++; ey++;
+        }
       }
     }
   }
@@ -802,27 +872,45 @@ void Grid::update_hy()
   int i, j, k;
   field_t *hy, *ex, *ez1, *ez2;
 
+#ifdef USE_OPENMP
+  int chunk_size, offset;
+
+  chunk_size = (update_hy_r_.zmax - update_hy_r_.zmin) 
+    / omp_get_max_threads();
+#endif
+
   for (i = update_hy_r_.xmin; i < update_hy_r_.xmax; i++) {
     for (j = update_hy_r_.ymin; j < update_hy_r_.ymax; j++) {
 
-      idx = pi(i, j, update_hy_r_.zmin);
-      hy = &(hy_[idx]);
-      ex = &(ex_[idx]);
-      ez1 = &(ez_[pi(i+1, j, update_hy_r_.zmin)]);
-      ez2 = &(ez_[idx]);
-
-#ifdef USE_OPENMP_NOT
-#pragma omp parallel for private(mid, idx, i, j, k, hy, ex, ez1, ez2)
+#ifdef USE_OPENMP
+#pragma parallel private(mid, k, idx, hy, ex, ez1, ez2)
 #endif
-      for (k = update_hy_r_.zmin; k < update_hy_r_.zmax; k++) {
-        mid = material_[idx];
+      {
+#ifdef USE_OPENMP
+        offset = omp_get_thread_num() * chunk_size;
+        idx = pi(i, j, update_hy_r_.zmin + offset);
+        ez1 = &(ez_[pi(i+1, j, update_hy_r_.zmin + offset)]);
+#else
+        idx = pi(i, j, update_hy_r_.zmin);
+        ez1 = &(ez_[pi(i+1, j, update_hy_r_.zmin)]);
+#endif
+        hy = &(hy_[idx]);
+        ex = &(ex_[idx]);
+        ez2 = &(ez_[idx]);
 
-        *hy = Da_[mid] * *hy
-          + Dbz_[mid] * (*ex - *(ex + 1))
-          + Dbx_[mid] * (*ez1 - *ez2);        
-        
-        hy++; idx++;
-        ex++; ez1++; ez2++;
+#ifdef USE_OPENMP
+#pragma omp for
+#endif
+        for (k = update_hy_r_.zmin; k < update_hy_r_.zmax; k++) {
+          mid = material_[idx];
+          
+          *hy = Da_[mid] * *hy
+            + Dbz_[mid] * (*ex - *(ex + 1))
+            + Dbx_[mid] * (*ez1 - *ez2);        
+          
+          hy++; idx++;
+          ex++; ez1++; ez2++;
+        }
       }
     }
   }
@@ -835,29 +923,48 @@ void Grid::update_hz()
   int i, j, k;
   field_t *hz1, *ey1, *ey2, *ex1, *ex2;
 
+#ifdef USE_OPENMP
+  int chunk_size, offset;
+
+  chunk_size = (update_hz_r_.zmax - update_hz_r_.zmin) 
+    / omp_get_max_threads();
+#endif
+
   for (i = update_hz_r_.xmin; i < update_hz_r_.xmax; i++) {
     for (j = update_hz_r_.ymin; j < update_hz_r_.ymax; j++) {
 
-      idx = pi(i, j, update_hz_r_.zmin);
-      hz1 = &(hz_[idx]);
-      ey1 = &(ey_[idx]);
-      ey2 = &(ey_[pi(i+1, j, update_hz_r_.zmin)]);
-      ex1 = &(ex_[pi(i, j+1, update_hz_r_.zmin)]);
-      ex2 = &(ex_[idx]);
-
-#ifdef USE_OPENMP_NOT
-#pragma omp parallel for private(mid, idx, i, j, k, hz1, ey1, ey2, ex1, ex2)
+#ifdef USE_OPENMP
+#pragma parallel private(mid, k, idx, hz1, ey1, ey2, ex1, ex2)
 #endif
-      for (k = update_hz_r_.zmin; k < update_hz_r_.zmax; k++) {
-        mid = material_[idx];
+      {
+#ifdef USE_OPENMP
+        offset = omp_get_thread_num() * chunk_size;
+        idx = pi(i, j, update_hz_r_.zmin + offset);
+        ey2 = &(ey_[pi(i+1, j, update_hz_r_.zmin + offset)]);
+        ex1 = &(ex_[pi(i, j+1, update_hz_r_.zmin + offset)]);
+#else
+        idx = pi(i, j, update_hz_r_.zmin);
+        ey2 = &(ey_[pi(i+1, j, update_hz_r_.zmin)]);
+        ex1 = &(ex_[pi(i, j+1, update_hz_r_.zmin)]);
+#endif
+        ex2 = &(ex_[idx]);
+        hz1 = &(hz_[idx]);
+        ey1 = &(ey_[idx]);
 
-        *hz1 = Da_[mid] * *hz1
-          + Dbx_[mid] * (*ey1 - *ey2)
-          + Dby_[mid] * (*ex1 - *ex2);
-
-        hz1++; idx++;
-        ey1++; ey2++;
-        ex1++; ex2++;
+#ifdef USE_OPENMP
+#pragma omp for
+#endif
+        for (k = update_hz_r_.zmin; k < update_hz_r_.zmax; k++) {
+          mid = material_[idx];
+          
+          *hz1 = Da_[mid] * *hz1
+            + Dbx_[mid] * (*ey1 - *ey2)
+            + Dby_[mid] * (*ex1 - *ex2);
+          
+          hz1++; idx++;
+          ey1++; ey2++;
+          ex1++; ex2++;
+        }
       }
     }
   }
@@ -879,26 +986,26 @@ region_t Grid::global_to_local(region_t in) const
 {
   region_t r;
 
-  r.xmin = (get_lsx() > in.xmin) ? 0
-    : in.xmin - get_lsx();
-  r.ymin = (get_lsy() > in.ymin) ? 0
-    : in.ymin - get_lsy();
-  r.zmin = (get_lsz() > in.zmin) ? 0
-    : in.zmin - get_lsz();
+  r.xmin = (info_.start_x_ > in.xmin) ? 0
+    : in.xmin - info_.start_x_;
+  r.ymin = (info_.start_y_ > in.ymin) ? 0
+    : in.ymin - info_.start_y_;
+  r.zmin = (info_.start_z_ > in.zmin) ? 0
+    : in.zmin - info_.start_z_;
 
-  r.xmax = (in.xmax >= get_lsx()) ? 
-    ((in.xmax >= get_lsx() + get_ldx()) 
-     ? get_ldx() : in.xmax - get_lsx() + 1)
+  r.xmax = (in.xmax >= info_.start_x_) ? 
+    ((in.xmax >= info_.start_x_ + info_.dimx_) 
+     ? info_.dimx_ : in.xmax - info_.start_x_ + 1)
     : 0;
 
-  r.ymax = (in.ymax >= get_lsy()) ? 
-    ((in.ymax >= get_lsy() + get_ldy()) 
-     ? get_ldy() : in.ymax - get_lsy() + 1)
+  r.ymax = (in.ymax >= info_.start_y_) ? 
+    ((in.ymax >= info_.start_y_ + info_.dimy_) 
+     ? info_.dimy_ : in.ymax - info_.start_y_ + 1)
     : 0;
 
-  r.zmax = (in.zmax >= get_lsz()) ? 
-    ((in.zmax >= get_lsz() + get_ldz()) 
-     ? get_ldz() : in.zmax - get_lsz() + 1)
+  r.zmax = (in.zmax >= info_.start_z_) ? 
+    ((in.zmax >= info_.start_z_ + info_.dimz_) 
+     ? info_.dimz_ : in.zmax - info_.start_z_ + 1)
     : 0;
 
   return r;
@@ -929,13 +1036,13 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp,
   switch (face)
   {
   case FRONT: // x=dimx...
-    idx = pi(get_ldx() - 1 - offset, 0, 0);
+    idx = pi(info_.dimx_ - 1 - offset, 0, 0);
     break;
   case TOP: // z=dimz
-    idx = pi(0, 0, get_ldz() - 1 - offset);
+    idx = pi(0, 0, info_.dimz_ - 1 - offset);
     break;
   case RIGHT: // y=dimy
-    idx = pi(0, get_ldy() - 1 - offset, 0);
+    idx = pi(0, info_.dimy_ - 1 - offset, 0);
     break;
   case BACK: // x=0
     idx = pi(offset, 0, 0);

@@ -124,10 +124,13 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
       (floor(static_cast<double>(result.global_dimz_) / p));
   } 
 
-  result.start_x_ = x * result.dimx_;
-  result.start_y_ = y * result.dimx_;
-  result.start_z_ = z * result.dimx_;
-  
+  result.start_x_no_sd_ = result.start_x_ = x * result.dimx_;
+  result.start_y_no_sd_ = result.start_y_ = y * result.dimy_;
+  result.start_z_no_sd_ = result.start_z_ = z * result.dimz_;
+  result.dimx_no_sd_ = result.dimx_;
+  result.dimy_no_sd_ = result.dimy_;
+  result.dimz_no_sd_ = result.dimz_;
+
   // Assign boundary conditions the ranks to talk to 
   SubdomainBc *sdbc = 0;
 

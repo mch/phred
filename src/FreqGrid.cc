@@ -25,6 +25,10 @@
 #include <string.h> // for memset()
 #include <math.h>
 
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
 FreqGrid::FreqGrid()
   : vcdt_(0), omegapsq_(0), dx_(0), sx_(0), sxm1_(0), sxm2_(0),
     dy_(0), sy_(0), sym1_(0), sym2_(0),
@@ -42,7 +46,7 @@ void FreqGrid::alloc_grid()
 
   unsigned int sz = 0;
 
-  sz = get_ldx() * get_ldy() * get_ldz();
+  sz = info_.dimx_ * info_.dimy_ * info_.dimz_;
 
   // UGLY!
   unsigned int num_plasma = 0;
@@ -206,55 +210,73 @@ void FreqGrid::update_ex()
   int i, j, k;
   field_t *ex, *hz1, *hz2, *hy;
 
+#ifdef USE_OPENMP
+  int chunk_size, offset;
+
+  chunk_size = (update_ex_r_.zmax - update_ex_r_.zmin) 
+    / omp_get_max_threads();
+#endif
+
   // Inner part
   for (i = update_ex_r_.xmin; i < update_ex_r_.xmax; i++) {
     for (j = update_ex_r_.ymin; j < update_ex_r_.ymax; j++) {
       
-      idx = pi(i, j, update_ex_r_.zmin);
-      idx2 = pi(i, j-1, update_ex_r_.zmin);
-      ex = &(ex_[idx]);
-      hz1 = &(hz_[idx]);
-      hz2 = &(hz_[idx2]);
-      hy = &(hy_[idx]);
-
-#ifdef USE_OPENMP_NOT
-#pragma omp parallel for
+#ifdef USE_OPENMP
+#pragma parallel  private(mid, k, idx, idx2, ex, hz1, hz2, hy)
 #endif
-      for (k = update_ex_r_.zmin; k < update_ex_r_.zmax; k++) {
-        mid = material_[idx];
+      {
+#ifdef USE_OPENMP
+        offset = omp_get_thread_num() * chunk_size;
+        idx = pi(i, j, update_ex_r_.zmin + offset);
+        idx2 = pi(i, j-1, update_ex_r_.zmin + offset);
+#else
+        idx = pi(i, j, update_ex_r_.zmin);
+        idx2 = pi(i, j-1, update_ex_r_.zmin);
+#endif
+        ex = &(ex_[idx]);
+        hz1 = &(hz_[idx]);
+        hz2 = &(hz_[idx2]);
+        hy = &(hy_[idx]);
+        
+#ifdef USE_OPENMP
+#pragma omp for
+#endif
+        for (k = update_ex_r_.zmin; k < update_ex_r_.zmax; k++) {
+          mid = material_[idx];
 
-        // Is this a plasma?
-        if (vcdt_[mid] == 0.0) 
-        {        
-          *ex = Ca_[mid] * *ex
-            + Cby_[mid] * (*hz1 - *hz2)
-            + Cbz_[mid] * (*(hy - 1) - *hy);
-        }
-        else
-        {
-          *ex = Ca_[mid] * dx_[idx]
-            + Cby_[mid] * (*hz1 - *hz2)
-            + Cbz_[mid] * (*(hy - 1) - *hy);
+          // Is this a plasma?
+          if (vcdt_[mid] == 0.0) 
+          {        
+            *ex = Ca_[mid] * *ex
+              + Cby_[mid] * (*hz1 - *hz2)
+              + Cbz_[mid] * (*(hy - 1) - *hy);
+          }
+          else
+          {
+            *ex = Ca_[mid] * dx_[idx]
+              + Cby_[mid] * (*hz1 - *hz2)
+              + Cbz_[mid] * (*(hy - 1) - *hy);
+            
+            dx_[idx] = *ex;
+            
+            *ex = dx_[idx] - sx_[idx];
+            
+            sx_[idx] = (1 + vcdt_[mid]) * sxm1_[idx]
+              - (vcdt_[mid] * sxm2_[idx])
+              + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ex;
+            
+            sxm2_[idx] = sxm1_[idx];
+            sxm1_[idx] = sx_[idx];
 
-          dx_[idx] = *ex;
-
-          *ex = dx_[idx] - sx_[idx];
+            //++plasma_idx;
+          }
           
-          sx_[idx] = (1 + vcdt_[mid]) * sxm1_[idx]
-            - (vcdt_[mid] * sxm2_[idx])
-            + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ex;
-          
-          sxm2_[idx] = sxm1_[idx];
-          sxm1_[idx] = sx_[idx];
-
-          //++plasma_idx;
+          ex++;
+          hz1++;
+          hz2++;
+          hy++;
+          idx++;
         }
-
-        ex++;
-        hz1++;
-        hz2++;
-        hy++;
-        idx++;
       }
     }
   }
@@ -266,54 +288,73 @@ void FreqGrid::update_ey()
   int i, j, k;
   field_t *ey, *hx, *hz1, *hz2;
 
+#ifdef USE_OPENMP
+  int chunk_size, offset;
+
+  chunk_size = (update_ey_r_.zmax - update_ey_r_.zmin) 
+    / omp_get_max_threads();
+#endif
+
   // Inner part
   for (i = update_ey_r_.xmin; i < update_ey_r_.xmax; i++) {
     for (j = update_ey_r_.ymin; j < update_ey_r_.ymax; j++) {
 
-      idx = pi(i, j, update_ey_r_.zmin);
-      ey = &(ey_[idx]);
-      hx = &(hx_[idx]);
-      hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
-      hz2 = &(hz_[idx]);
-
-#ifdef USE_OPENMP_NOT
-#pragma omp parallel for
+#ifdef USE_OPENMP
+#pragma parallel private(mid, k, idx, ey, hx, hz1, hz2)
 #endif
-      for (k = update_ey_r_.zmin; k < update_ey_r_.zmax; k++) {
-        mid = material_[idx];
+      {
+#ifdef USE_OPENMP
+        offset = omp_get_thread_num() * chunk_size;
+        idx = pi(i, j, update_ey_r_.zmin);
+        hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
+#else
+        idx = pi(i, j, update_ey_r_.zmin);
+        hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
+#endif
 
-        // Is this a plasma?
-        if (vcdt_[mid] == 0.0) 
-        {
-          *ey = Ca_[mid] * *ey
-            + Cbz_[mid] * (*hx - *(hx-1))
-            + Cbx_[mid] * (*hz1 - *hz2);
-        }
-        else
-        {
-          *ey = Ca_[mid] * dy_[idx]
-            + Cbz_[mid] * (*hx - *(hx-1))
-            + Cbx_[mid] * (*hz1 - *hz2);
+        ey = &(ey_[idx]);
+        hx = &(hx_[idx]);
+        hz2 = &(hz_[idx]);
 
-          dy_[idx] = *ey;
-
-          *ey = dy_[idx] - sy_[idx];
+#ifdef USE_OPENMP
+#pragma omp for
+#endif
+        for (k = update_ey_r_.zmin; k < update_ey_r_.zmax; k++) {
+          mid = material_[idx];
           
-          sy_[idx] = (1 + vcdt_[mid]) * sym1_[idx]
-            - (vcdt_[mid] * sym2_[idx])
-            + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ey;
+          // Is this a plasma?
+          if (vcdt_[mid] == 0.0) 
+          {
+            *ey = Ca_[mid] * *ey
+              + Cbz_[mid] * (*hx - *(hx-1))
+              + Cbx_[mid] * (*hz1 - *hz2);
+          }
+          else
+          {
+            *ey = Ca_[mid] * dy_[idx]
+              + Cbz_[mid] * (*hx - *(hx-1))
+              + Cbx_[mid] * (*hz1 - *hz2);
+            
+            dy_[idx] = *ey;
+            
+            *ey = dy_[idx] - sy_[idx];
+            
+            sy_[idx] = (1 + vcdt_[mid]) * sym1_[idx]
+              - (vcdt_[mid] * sym2_[idx])
+              + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ey;
+            
+            sym2_[idx] = sym1_[idx];
+            sym1_[idx] = sy_[idx];
+            
+            //++plasma_idx;
+          }
           
-          sym2_[idx] = sym1_[idx];
-          sym1_[idx] = sy_[idx];
-
-          //++plasma_idx;
+          ey++;
+          hx++;
+          hz1++;
+          hz2++;
+          idx++;
         }
-
-        ey++;
-        hx++;
-        hz1++;
-        hz2++;
-        idx++;
       }
     }
   }
@@ -326,53 +367,72 @@ void FreqGrid::update_ez()
   int i, j, k;
   field_t *ez, *hy1, *hy2, *hx1, *hx2;
   
+#ifdef USE_OPENMP
+  int chunk_size, offset;
+
+  chunk_size = (update_ez_r_.zmax - update_ez_r_.zmin) 
+    / omp_get_max_threads();
+#endif
+
   // Inner part
   for (i = update_ez_r_.xmin; i < update_ez_r_.xmax; i++) {
     for (j = update_ez_r_.ymin; j < update_ez_r_.ymax; j++) {
-
-      idx = pi(i, j, update_ez_r_.zmin);
-      ez = &(ez_[idx]);
-      hy1 = &(hy_[idx]);
-      hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin)]);
-      hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin)]);
-      hx2 = &(hx_[idx]);
-
-#ifdef USE_OPENMP_NOT
-#pragma omp parallel for
+#ifdef USE_OPENMP
+#pragma parallel private(mid, k, idx, ez, hy1, hy2, hx1, hx2)
 #endif
-      for (k = update_ez_r_.zmin; k < update_ez_r_.zmax; k++) {
-        mid = material_[idx];
+      {
+#ifdef USE_OPENMP
+        offset = omp_get_thread_num() * chunk_size;
+        idx = pi(i, j, update_ez_r_.zmin + offset);
+        hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin + offset)]);
+        hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin + offset)]);
+#else
+        idx = pi(i, j, update_ez_r_.zmin);
+        hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin)]);
+        hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin)]);
+#endif
 
-        // Is this a plasma?
-        if (vcdt_[mid] == 0.0) 
-        {
-          *ez = Ca_[mid] * *ez
-            + Cbx_[mid] * (*hy1 - *hy2)
-            + Cby_[mid] * (*hx1 - *hx2);
+        ez = &(ez_[idx]);
+        hy1 = &(hy_[idx]);
+        hx2 = &(hx_[idx]);
+
+#ifdef USE_OPENMP
+#pragma omp for
+#endif
+        for (k = update_ez_r_.zmin; k < update_ez_r_.zmax; k++) {
+          mid = material_[idx];
+          
+          // Is this a plasma?
+          if (vcdt_[mid] == 0.0) 
+          {
+            *ez = Ca_[mid] * *ez
+              + Cbx_[mid] * (*hy1 - *hy2)
+              + Cby_[mid] * (*hx1 - *hx2);
+          }
+          else
+          {
+            *ez = Ca_[mid] * dz_[idx]
+              + Cbx_[mid] * (*hy1 - *hy2)
+              + Cby_[mid] * (*hx1 - *hx2);
+            
+            dz_[idx] = *ez;
+            
+            *ez = dz_[idx] - sz_[idx];
+            
+            sz_[idx] = (1 + vcdt_[mid]) * szm1_[idx]
+              - (vcdt_[mid] * szm2_[idx])
+              + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ez;
+          
+            szm2_[idx] = szm1_[idx];
+            szm1_[idx] = sz_[idx];
+            
+            //++plasma_idx;
+          }
+          
+          ez++;
+          hy1++; hy2++; hx1++; hx2++;
+          idx++;
         }
-        else
-        {
-          *ez = Ca_[mid] * dz_[idx]
-            + Cbx_[mid] * (*hy1 - *hy2)
-            + Cby_[mid] * (*hx1 - *hx2);
-          
-          dz_[idx] = *ez;
-
-          *ez = dz_[idx] - sz_[idx];
-          
-          sz_[idx] = (1 + vcdt_[mid]) * szm1_[idx]
-            - (vcdt_[mid] * szm2_[idx])
-            + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ez;
-          
-          szm2_[idx] = szm1_[idx];
-          szm1_[idx] = sz_[idx];
-
-          //++plasma_idx;
-        }
-
-        ez++;
-        hy1++; hy2++; hx1++; hx2++;
-        idx++;
       }
     }
   }
@@ -391,16 +451,16 @@ void FreqGrid::setup_subdomain_data(SubdomainBc *sd, Face face)
   switch (face)
   {
   case FRONT: // x=dimx...
-    idx_rx = pi(get_ldx() - 1, 0, 0);
-    idx_tx = pi(get_ldx() - 2, 0, 0);
+    idx_rx = pi(info_.dimx_ - 1, 0, 0);
+    idx_tx = pi(info_.dimx_ - 2, 0, 0);
     break;
   case TOP: // z=dimz
-    idx_rx = pi(0, 0, get_ldz() - 1);
-    idx_tx = pi(0, 0, get_ldz() - 2);
+    idx_rx = pi(0, 0, info_.dimz_ - 1);
+    idx_tx = pi(0, 0, info_.dimz_ - 2);
     break;
   case RIGHT: // y=dimy
-    idx_rx = pi(0, get_ldy() - 1, 0);
-    idx_tx = pi(0, get_ldy() - 2, 0);
+    idx_rx = pi(0, info_.dimy_ - 1, 0);
+    idx_tx = pi(0, info_.dimy_ - 2, 0);
     break;
   case BACK: // x=0
     idx_rx = pi(0, 0, 0);

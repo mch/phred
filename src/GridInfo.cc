@@ -25,9 +25,10 @@ GridInfo::GridInfo()
   : global_dimx_(0), global_dimy_(0), global_dimz_(0), 
     start_x_(0), start_y_(0), start_z_(0),
     dimx_(0), dimy_(0), dimz_(0), 
+    dimx_no_sd_(0), dimy_no_sd_(0), dimz_no_sd_(0), 
+    start_x_no_sd_(0), start_y_no_sd_(0), start_z_no_sd_(0),
     deltax_(0), deltay_(0), deltaz_(0), deltat_(0)
-{
-}
+{}
 
 GridInfo::GridInfo(const GridInfo &info) {
   *this = info;
@@ -53,6 +54,14 @@ GridInfo& GridInfo::operator=(const GridInfo &info)
   dimx_ = info.dimx_;
   dimy_ = info.dimy_;
   dimz_ = info.dimz_;
+
+  dimx_no_sd_ = info.dimx_no_sd_;
+  dimy_no_sd_ = info.dimy_no_sd_;
+  dimz_no_sd_ = info.dimz_no_sd_;
+
+  start_x_no_sd_ = info.start_x_no_sd_;
+  start_y_no_sd_ = info.start_y_no_sd_;
+  start_z_no_sd_ = info.start_z_no_sd_;
   
   deltax_ = info.deltax_;
   deltay_ = info.deltay_;

@@ -72,6 +72,19 @@ public:
   unsigned int dimy_;
   unsigned int dimz_;
 
+  // These dimensions are intended to be returned by the Grid to
+  // clients which need them, such as results. These sizes DO NOT
+  // include the subdomain overlap.
+  unsigned int dimx_no_sd_;
+  unsigned int dimy_no_sd_;
+  unsigned int dimz_no_sd_;
+
+  // Local grid starting point W.R.T global grid, NOT INCLUDING
+  // subdomain overlap.
+  unsigned int start_x_no_sd_;
+  unsigned int start_y_no_sd_;
+  unsigned int start_z_no_sd_;
+
   // Time and space steppings; the distance between each point in the
   // grid.
   delta_t deltax_;
@@ -92,17 +105,7 @@ public:
   // 5 - Top (z = dimz, XY plane)
   //
 protected:
-  // THIS MAY BE A PRIME SMART POINTER CANDIDATE, due to the copying complexity. 
   counted_ptr<BoundaryCond> face_bc_[6]; // Boundary condition to apply
-
-  /**
-   * GridInfo will occasionally have to take responsibility for
-   * deleting boundary conditions that get left with us, such as those
-   * created by the domain decomposition algorithm. This array tells
-   * us whats what (true is GridInfo owns the bc).
-   */
-  //bool face_ptr_owner_[6];
-  
   
 public:
   GridInfo();

@@ -417,7 +417,7 @@ class Grid {
    */
   inline unsigned int get_lsx() const
   {
-    return info_.start_x_;
+    return info_.start_x_; // no_sd_;
   }
 
   /**
@@ -427,7 +427,7 @@ class Grid {
    */
   inline unsigned int get_lsy() const
   {
-    return info_.start_y_;
+    return info_.start_y_; // no_sd_;
   }
 
   /**
@@ -437,7 +437,7 @@ class Grid {
    */
   inline unsigned int get_lsz() const
   {
-    return info_.start_z_;
+    return info_.start_z_; // no_sd_;
   }
 
 
@@ -449,7 +449,7 @@ class Grid {
    */
   inline unsigned int get_ldx() const 
   {
-    return info_.dimx_;
+    return info_.dimx_no_sd_;
   }
 
   /**
@@ -459,7 +459,7 @@ class Grid {
    */
   inline unsigned int get_ldy() const 
   {
-    return info_.dimy_;
+    return info_.dimy_no_sd_;
   }
 
   /**
@@ -469,7 +469,7 @@ class Grid {
    */
   inline unsigned int get_ldz() const
   {
-    return info_.dimz_;
+    return info_.dimz_no_sd_;
   }
 
 
