@@ -351,8 +351,8 @@ void FDTD::run()
     if ((ts - 10) % 100 == 0)
     {
       rt_now = time(NULL);
-      int secs = (static_cast<int>(rt_now - rt_start) / rt_steps) 
-        * (time_steps_ - ts);
+      int secs = static_cast<int>((static_cast<double>(rt_now - rt_start) 
+                                   / rt_steps) * (time_steps_ - ts));
       int mins = secs / 60;
       secs = secs % 60;
       int hours = mins / 60;
@@ -361,13 +361,19 @@ void FDTD::run()
       hours = hours % 24;
 
       cout << "Estimated time remaining at time step " << ts << ": \n\t";
-      if (days > 0)
+      if (days == 1)
+        cout << days << " day, "; 
+      else if (days > 1)
         cout << days << " days, "; 
-      
-      if (hours > 0)
+
+      if (hours == 1)
+        cout << hours << " hour, ";
+      else if (hours > 1)
         cout << hours << " hours, ";
 
-      if (mins > 0)
+      if (mins == 1)
+        cout << mins << " minute, ";
+      else if (mins > 1)
         cout << mins << " minutes, ";
       
       cout << secs << " seconds. " << endl;
