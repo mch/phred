@@ -274,42 +274,42 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
     
     // Modify the grid region so that the outer walls are not
     // computed; that they be electric walls.
-    if (grid_r.xmin == 0) 
+    if (e_grid_r.xmin == 0)
     {
       e_grid_r.xmin++;
       e_pml_r.xmin++;
     }
 
-    if (grid_r.ymin == 0)
+    if (e_grid_r.ymin == 0)
     {
       e_grid_r.ymin++;
       e_pml_r.ymin++;
     }
 
-    if (grid_r.zmin == 0)
+    if (e_grid_r.zmin == 0)
     {
       e_grid_r.zmin++;
       e_pml_r.zmin++;
     }
 
-    if (grid_r.xmax == grid.get_ldx())
+    if (e_grid_r.xmax == grid.get_ldx())
     {
       e_grid_r.xmax--;
       e_pml_r.xmax--;
     }
 
-    if (grid_r.ymax == grid.get_ldy())
+    if (e_grid_r.ymax == grid.get_ldy())
     {
       e_grid_r.ymax--;
       e_pml_r.ymax--;
     }
 
-    if (grid_r.zmax == grid.get_ldz())
+    if (e_grid_r.zmax == grid.get_ldz())
     {
       e_grid_r.zmax--;
       e_pml_r.zmax--;
     }
-
+    
     pml_update_ex(e_pml_r, e_grid_r, grid_r, grid);   
     pml_update_ey(e_pml_r, e_grid_r, grid_r, grid);
     pml_update_ez(e_pml_r, e_grid_r, grid_r, grid);
@@ -340,7 +340,7 @@ void Pml::pml_update_ex(const region_t &e_pml_r,
 
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = 0, it = grid_r.xmin; it < grid_r.xmax - 1; i++, it++)
+  for(i = pml_r_.xmin, it = grid_r.xmin; it < grid_r.xmax; i++, it++)
     for(j = e_pml_r.ymin, jt = e_grid_r.ymin; jt < e_grid_r.ymax; j++, jt++)
       for(k = e_pml_r.zmin, kt = e_grid_r.zmin; kt < e_grid_r.zmax; k++, kt++)
       {
@@ -378,7 +378,7 @@ void Pml::pml_update_ey(const region_t &e_pml_r,
   PmlCommon &com = grid.get_pml_common();
 
   for(i = e_pml_r.xmin, it = e_grid_r.xmin; it < e_grid_r.xmax; i++, it++)
-    for(j = 0, jt = grid_r.ymin; jt < grid_r.ymax - 1; j++, jt++)
+    for(j = pml_r_.ymin, jt = grid_r.ymin; jt < grid_r.ymax; j++, jt++)
       for(k = e_pml_r.zmin, kt = e_grid_r.zmin; kt < e_grid_r.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
@@ -416,7 +416,7 @@ void Pml::pml_update_ez(const region_t &e_pml_r,
 
   for(i = e_pml_r.xmin, it = e_grid_r.xmin; it < e_grid_r.xmax; i++, it++)
     for(j = e_pml_r.ymin, jt = e_grid_r.ymin; jt < e_grid_r.ymax; j++, jt++)
-      for(k = 0, kt = grid_r.zmin; kt < grid_r.zmax - 1; k++, kt++)
+      for(k = pml_r_.zmin, kt = grid_r.zmin; kt < grid_r.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);

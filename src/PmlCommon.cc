@@ -262,20 +262,20 @@ void PmlCommon::init_coeffs(Grid &grid)
                      / (ratio_star_z_[k] * dt));
   }
                   
-  cout << endl << "item\te_x_coef1\t\te_x_coef2\t\th_x_coef1\t\th_x_coef2 " << endl;
-  for (int j = 0; j < grid.get_ldx(); j++)
-    cout << j << "\t" << e_x_coef1_[j] << "\t\t" << e_x_coef2_[j]
-         << "\t\t" << h_x_coef1_[j] << "\t\t" << h_x_coef2_[j] << endl;
+//   cout << endl << "item\te_x_coef1\t\te_x_coef2\t\th_x_coef1\t\th_x_coef2 " << endl;
+//   for (int j = 0; j < grid.get_ldx(); j++)
+//     cout << j << "\t" << e_x_coef1_[j] << "\t\t" << e_x_coef2_[j]
+//          << "\t\t" << h_x_coef1_[j] << "\t\t" << h_x_coef2_[j] << endl;
 
-  cout << endl << "item\te_y_coef1\t\te_y_coef2\t\th_y_coef1\t\th_y_coef2 " << endl;
-  for (int j = 0; j < grid.get_ldy(); j++)
-    cout << j << "\t" << e_y_coef1_[j] << "\t\t" << e_y_coef2_[j]
-         << "\t\t" << h_y_coef1_[j] << "\t\t" << h_y_coef2_[j] << endl;
+//   cout << endl << "item\te_y_coef1\t\te_y_coef2\t\th_y_coef1\t\th_y_coef2 " << endl;
+//   for (int j = 0; j < grid.get_ldy(); j++)
+//     cout << j << "\t" << e_y_coef1_[j] << "\t\t" << e_y_coef2_[j]
+//          << "\t\t" << h_y_coef1_[j] << "\t\t" << h_y_coef2_[j] << endl;
 
-  cout << endl << "item\te_z_coef1\t\te_z_coef2\t\th_z_coef1\t\th_z_coef2 " << endl;
-  for (int j = 0; j < grid.get_ldz(); j++)
-    cout << j << "\t" << e_z_coef1_[j] << "\t\t" << e_z_coef2_[j]
-         << "\t\t" << h_z_coef1_[j] << "\t\t" << h_z_coef2_[j] << endl;
+//   cout << endl << "item\te_z_coef1\t\te_z_coef2\t\th_z_coef1\t\th_z_coef2 " << endl;
+//   for (int j = 0; j < grid.get_ldz(); j++)
+//     cout << j << "\t" << e_z_coef1_[j] << "\t\t" << e_z_coef2_[j]
+//          << "\t\t" << h_z_coef1_[j] << "\t\t" << h_z_coef2_[j] << endl;
   
 }
 

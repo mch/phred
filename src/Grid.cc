@@ -572,19 +572,19 @@ void Grid::update_ex()
     }
   }
 
-  j = update_r_.ymin;
-  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-      ex_[pi(i, j, k)] = ex_[pi(i, j + 1, k)];
-    }
-  }
+//   j = update_r_.ymin;
+//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+//       ex_[pi(i, j, k)] = ex_[pi(i, j + 1, k)];
+//     }
+//   }
 
-  k = update_r_.zmin;
-  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-      ex_[pi(i, j, k)] = ex_[pi(i, j, k+1)];
-    }
-  }
+//   k = update_r_.zmin;
+//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+//     for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+//       ex_[pi(i, j, k)] = ex_[pi(i, j, k+1)];
+//     }
+//   }
 }
 
 // Straight out of Taflove.
@@ -625,19 +625,19 @@ void Grid::update_ey()
 
   // Apply Neumann condition at the edges where the field can't be
   // calculated from curl.
-  i = update_r_.xmin;
-  for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-      ey_[pi(i, j, k)] = ey_[pi(i + 1, j, k)];
-    }
-  }
+//   i = update_r_.xmin;
+//   for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+//       ey_[pi(i, j, k)] = ey_[pi(i + 1, j, k)];
+//     }
+//   }
 
-  k = update_r_.zmin;
-  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-      ey_[pi(i, j, k)] = ey_[pi(i, j, k+1)];
-    }
-  }
+//   k = update_r_.zmin;
+//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+//     for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+//       ey_[pi(i, j, k)] = ey_[pi(i, j, k+1)];
+//     }
+//   }
 }
 
 // Straight out of Taflove.
@@ -677,19 +677,19 @@ void Grid::update_ez()
 
   // Apply Neumann condition at the edges where the field can't be
   // calculated from curl.
-  i = update_r_.xmin;
-  for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-      ez_[pi(i, j, k)] = ez_[pi(i + 1, j, k)];
-    }
-  }
+//   i = update_r_.xmin;
+//   for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+//       ez_[pi(i, j, k)] = ez_[pi(i + 1, j, k)];
+//     }
+//   }
 
-  j = update_r_.ymin;
-  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-      ez_[pi(i, j, k)] = ez_[pi(i, j + 1, k)];
-    }
-  }
+//   j = update_r_.ymin;
+//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+//       ez_[pi(i, j, k)] = ez_[pi(i, j + 1, k)];
+//     }
+//   }
 }
 
 // Straight out of Taflove.
@@ -724,19 +724,19 @@ void Grid::update_hx()
     }
   }
 
-  j = update_r_.ymax - 1;
-  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-      hx_[pi(i, j, k)] = hx_[pi(i, j - 1, k)];
-    }
-  }
+//   j = update_r_.ymax - 1;
+//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+//       hx_[pi(i, j, k)] = hx_[pi(i, j - 1, k)];
+//     }
+//   }
 
-  k = update_r_.zmax - 1;
-  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-      hx_[pi(i, j, k)] = hx_[pi(i, j, k-1)];
-    }
-  }
+//   k = update_r_.zmax - 1;
+//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+//     for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+//       hx_[pi(i, j, k)] = hx_[pi(i, j, k-1)];
+//     }
+//   }
 }
 
 // Straight out of Taflove.
@@ -771,19 +771,19 @@ void Grid::update_hy()
     }
   }
 
-  i = update_r_.xmax - 1;
-  for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-      hy_[pi(i, j, k)] = hy_[pi(i - 1, j, k)];
-    }
-  }
+//   i = update_r_.xmax - 1;
+//   for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+//       hy_[pi(i, j, k)] = hy_[pi(i - 1, j, k)];
+//     }
+//   }
 
-  k = update_r_.zmax - 1;
-  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-      hy_[pi(i, j, k)] = hy_[pi(i, j, k-1)];
-    }
-  }
+//   k = update_r_.zmax - 1;
+//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+//     for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+//       hy_[pi(i, j, k)] = hy_[pi(i, j, k-1)];
+//     }
+//   }
 }
 
 // Straight out of Taflove.
@@ -820,19 +820,19 @@ void Grid::update_hz()
     }
   }
 
-  i = update_r_.xmax - 1;
-  for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-      hz_[pi(i, j, k)] = hz_[pi(i - 1, j, k)];
-    }
-  }
+//   i = update_r_.xmax - 1;
+//   for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+//       hz_[pi(i, j, k)] = hz_[pi(i - 1, j, k)];
+//     }
+//   }
 
-  j = update_r_.ymax - 1;
-  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-      hz_[pi(i, j, k)] = hz_[pi(i, j - 1, k)];
-    }
-  }
+//   j = update_r_.ymax - 1;
+//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+//       hz_[pi(i, j, k)] = hz_[pi(i, j - 1, k)];
+//     }
+//   }
 }
 
 void Grid::apply_boundaries(FieldType type)
