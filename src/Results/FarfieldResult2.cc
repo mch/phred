@@ -550,9 +550,6 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
 
             if (isnan(sp_theta)) // can happen if zt == r_prime
             {
-              cout << "FB: sp_theta is NaN for xt = " << xt
-                   << ", yt " << yt << ", zt = " << zt << ", r_prime = "
-                   << r_prime << ", and sp_phi = " << sp_phi << endl;
               sp_theta = 0;
             }
 
@@ -619,9 +616,6 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
 
             if (isnan(sp_theta)) // can happen if zt == r_prime
             {
-              cout << "LR: sp_theta is NaN for xt = " << xt
-                   << ", yt " << yt << ", zt = " << zt << ", r_prime = "
-                   << r_prime << ", and sp_phi = " << sp_phi << endl;
               sp_theta = 0;
             }
 
@@ -636,6 +630,9 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
             field_t exp_phase = xt * sin(theta) * cos(phi) 
               + yt * sin(theta) * sin(phi)
               + zt * cos(theta);
+//             field_t exp_phase = xt * sin(phi) * cos(theta)
+//               + yt * sin(phi) * sin(theta) 
+//               + zt * cos(phi);
 
             complex<field_t> temp(0, k * exp_phase);
 
@@ -699,6 +696,9 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
             field_t exp_phase = xt * sin(theta) * cos(phi) 
               + yt * sin(theta) * sin(phi)
               + zt * cos(theta);
+//             field_t exp_phase = xt * sin(phi) * cos(theta)
+//               + yt * sin(phi) * sin(theta) 
+//               + zt * cos(phi);
 
             complex<field_t> temp(0, k * exp_phase);
 
@@ -986,6 +986,11 @@ public:
     field_t exp_phase = xt * sin(data.theta) * cos(data.phi) 
       + yt * sin(data.theta) * sin(data.phi)
       + zt * cos(data.theta);
+
+    // This is the correct version I believe.
+//             field_t exp_phase = xt * sin(phi) * cos(theta)
+//               + yt * sin(phi) * sin(theta) 
+//               + zt * cos(phi);
 
     complex<field_t> temp(0, data.k * exp_phase);
     temp = exp(temp) * data.cell_area;
