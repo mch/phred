@@ -1,1 +1,0 @@
-aix_init_module.lo aix_init_module.o: aix_init_module.cpp
