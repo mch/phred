@@ -102,6 +102,10 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "SourceDFTResult.hh"
 #include "SourceTimeResult.hh"
 
+#ifdef USE_PY_BINDINGS
+#include <Python.h>
+#endif
+
 static void usage (int status);
 
 #ifdef HAVE_LIBPOPT
@@ -337,6 +341,10 @@ main (int argc, char **argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+#ifdef USE_PY_BINDINGS
+  Py_Initialize();
+#endif 
+
   if (rank == 0)
   {
     prog_name = argv[0];
@@ -517,6 +525,10 @@ main (int argc, char **argv)
   }
 
   cout << "phred is phinished." << endl;
+
+#ifdef USE_PY_BINDINGS
+  Py_Finalize();
+#endif 
 
   // Thank you and goodnight
   MPI_Barrier(MPI_COMM_WORLD);

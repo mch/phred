@@ -30,6 +30,13 @@ AC_ARG_ENABLE(profile, AC_HELP_STRING([--enable-profile], [Compile with -pg flag
 WANT_OPENMP=
 AC_ARG_ENABLE(openmp, AC_HELP_STRING([--enable-openmp], [Use OpenMP directives for SMP shared memory parallism]), [WANT_OPENMP=1])
 
+WANT_ALTIVEC=0
+AC_ARG_ENABLE(altivec, AC_HELP_STRING([--enable-altivec], [Use AltiVec instructions on G4 and G5 processors]), [WANT_ALTIVEC=1], [WANT_ALTIVEC=0])
+
+WANT_TIMING_TESTS=0
+AC_ARG_ENABLE(ctests, AC_HELP_STRING([--enable-tests], [Build C timing tests]), [WANT_TIMING_TESTS=1], [WANT_TIMING_TESTS=0])
+AM_CONDITIONAL(WANT_TIMING_TESTS, test "x$WANT_TIMING_TESTS" = "x1")
+
 # Stolen in part from the LAM MPI configure.in file
 if test "$with_cxx" = yes; then
    AC_MSG_ERROR(--with-cxx requires the C++ compiler name)
@@ -43,11 +50,15 @@ AC_PROG_CXXCPP
 AM_PROG_LEX
 AC_PROG_YACC
 AC_PROG_MAKE_SET
+AC_PROG_LIBTOOL
 
 dnl Use SWIG to generate python scripting support?
 AC_ARG_WITH(python, AC_HELP_STRING([--with-python], [Generate Python scripting support]))
 AC_ARG_WITH(python_libs, AC_HELP_STRING([--with-python-libs], [Location of Python libraries]))
 AC_ARG_WITH(python_includes, AC_HELP_STRING([--with-python-includes], [Location of Python include files]))
+
+AC_ARG_WITH(boost_libs, AC_HELP_STRING([--with-boost-libs], [Location of boost libraries]))
+AC_ARG_WITH(boost_includes, AC_HELP_STRING([--with-boost-includes], [Location of boost include files]))
 
 
 dnl DX_INIT_DOXYGEN([phred])
@@ -172,66 +183,61 @@ for (i = 0; i < 100; i++)
         AC_MSG_ERROR([OpenMP is not supported by the compiler.])])
 fi
 
-dnl Checks for libraries.
+dnl Use AlitVec instructions on G4 and G5 processors? Compiler support? 
+dnl Libraries? 
+if test "x$WANT_ALTIVEC" = "x1"; then
+        AC_MSG_WARN([AltiVec support is not implemented yet.])
+        AC_MSG_CHECKING([for AltiVec support])
+        AC_COMPILE_IFELSE([
+void test()
+
+], [], [])
+        AC_MSG_RESULT[inconclusive]
+fi
+
+dnl Checks for a MPI library.
+mpi_LIBS=""
+mpi_INCLUDES=""
+
 if [[ ! -z "$with_ibmpe" ]] || [[ ! -z "$with_ibmpe_libs" ]] || [[ ! -z "$with_ibmpe_includes" ]]; then
-        ibmpe_LIBS=""
-        ibmpe_INCLUDES=""
         if [[ ! -z "$with_ibmpe_libs" ]]; then
-                ibmpe_LIBS="$with_ibmpe_libs"
+                mpi_LIBS="$with_ibmpe_libs"
         fi
         if [[ ! -z "$with_ibmpe_includes" ]]; then
-                ibmpe_INCLUDES="$with_ibmpe_includes"
+                mpi_INCLUDES="$with_ibmpe_includes"
         fi
-
-        AC_CHECK_LIB(mpi, MPI_Init, [], [
-            AC_MSG_ERROR(*** Can't find the IBM PE MPI libraries.)],
-            [-L$ibmpe_LIBS])
-
-        CPPFLAGS="$CPPFLAGS -I$ibmpe_INCLUDES"
-        AC_CHECK_HEADER(mpi.h, [], [AC_MSG_ERROR([*** Can't find the IBM PE MPI header files])])
-
 fi
 
 if [[ ! -z "$with_mpich" ]] || [[ ! -z "$with_mpich_libs" ]] || [[ ! -z "$with_mpich_includes" ]]; then
-        mpich_LIBS=""
-        mpich_INCLUDES=""
         if [[ ! -z "$with_mpich_libs" ]]; then
-                mpich_LIBS="$with_mpich_libs"
+                mpi_LIBS="$with_mpich_libs"
         fi
         if [[ ! -z "$with_mpich_includes" ]]; then
-                mpich_INCLUDES="$with_mpich_includes"
+                mpi_INCLUDES="$with_mpich_includes"
         fi
-
-        AC_CHECK_LIB(mpi, MPI_Init, [], [
-            AC_MSG_ERROR(*** Can't find the mpich libraries.)],
-            [-L$mpich_LIBS])
-
-        CPPFLAGS="$CPPFLAGS -I$mpich_INCLUDES"
-        AC_CHECK_HEADER(mpi.h, [], [AC_MSG_ERROR([*** Can't find the mpich header files])])
-
 fi
 
 if [[ ! -z "$with_lammpi" ]] || [[ ! -z "$with_lammpi_libs" ]] || [[ ! -z "$with_lammpi_includes" ]]; then
-        lammpi_LIBS=""
-        lammpi_INCLUDES=""
         if [[ ! -z "$with_lammpi_libs" ]]; then
-                lammpi_LIBS="$with_lammpi_libs"
+                mpi_LIBS="$with_lammpi_libs"
         fi
         if [[ ! -z "$with_lammpi_includes" ]]; then
-                lammpi_INCLUDES="$with_lammpi_includes"
+                mpi_INCLUDES="$with_lammpi_includes"
         fi
-
-        AC_CHECK_LIB(mpi, MPI_Init, [], [
-            AC_MSG_ERROR(*** Can't find the LAM/MPI libraries.)],
-            ["-L$lammpi_LIBS"])
-
-        CPPFLAGS="$CPPFLAGS -I$lammpi_INCLUDES"
-        AC_CHECK_HEADER(mpi.h, [], [AC_MSG_WARN([*** Can't find the LAM/MPI header files])])
-
 fi
 
+
+AC_CHECK_LIB(mpi, MPI_Init, [], [
+        AC_MSG_ERROR([*** Can't find an MPI library.  ])],
+        ["-L$mpi_LIBS"])
+
+CPPFLAGS="$CPPFLAGS -I$mpi_INCLUDES"
+AC_CHECK_HEADER(mpi.h, [], [
+        AC_MSG_ERROR([*** Can't find any MPI header files. ])])
+
+
 if [[ ! "$with_popt" = no ]]; then
-        AC_MSG_WARN([The use of popt has been see to cause mysterious seg faults! RECOMMEND --without-popt!])
+        AC_MSG_WARN([The use of popt has been seen to cause mysterious seg faults! RECOMMEND --without-popt!])
         AC_DEFINE([USE_POPT], [1], [Use the popt library])
         AC_CHECK_LIB(popt, poptGetContext, [], [])
         AC_CHECK_HEADER([popt.h], [], [])
@@ -257,6 +263,8 @@ AC_CHECK_LIB(hdf5, H5open, [
 
 dnl Setup scripting
 USE_PY_BINDINGS=0
+BUILD_LIBBOOSTPYTHON=0
+PYTHON_LDFLAGS=""
 if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
         AC_CHECK_LIB(python2.3, Py_Initialize, [], [
             AC_MSG_ERROR(*** Can't find the Python libraries.)],
@@ -267,14 +275,29 @@ if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with
         fi
         AC_CHECK_HEADER([Python.h], [], [AC_MSG_ERROR([*** Can't find the Python header files])])
 
-        if [[ ! -z "$with_boost_includes" ]]; then 
-          CPPFLAGS="$CPPFLAGS -I$with_boost_includes"
-        fi
-        AC_CHECK_HEADER([boost/python.hpp], [], [AC_MSG_ERROR([*** Can't find the Boost Python header files])])
+        if [[ ! -z "$with_boost_includes" ]] || [[ ! -z "$with_boost_libs" ]]; then 
 
+          if [[ ! -z "$with_boost_includes" ]]; then
+            CPPFLAGS="$CPPFLAGS -I$with_boost_includes"
+          fi
+
+          AC_CHECK_HEADER([boost/python.hpp], [], [AC_MSG_ERROR([*** Can't find the Boost Python header files])])
+
+          AC_CHECK_LIB(boost_python, PyBaseObject_Type, [], [
+            AC_MSG_ERROR(*** Can't find the Boost Python library.)], 
+            [-L$with_boost_libs])
+        else
+dnl THIS INCLUDE PATH NEEDS TO BE ABSOLUTE!!!          
+          CPPFLAGS="$CPPFLAGS -I`pwd`/thirdparty"
+          BUILD_LIBBOOSTPYTHON=1
+        fi
+
+        PYTHON_LDFLAGS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LINKFORSHARED')" | python -`
         USE_PY_BINDINGS=1
+        AC_DEFINE([USE_PY_BINDINGS], [1], [Use Python bindings])
 fi
 AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
+AM_CONDITIONAL(BUILD_LIBBOOSTPYTHON, test "x$BUILD_LIBBOOSTPYTHON" = "x1")
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -294,5 +317,6 @@ dnl Checks for library functions.
 AC_SUBST(CFLAGS, $CFLAGS)
 AC_SUBST(CXXFLAGS, $CXXFLAGS)
 AC_SUBST(LIBS, $LIBS)
+AC_SUBST(PYTHON_LDFLAGS, $PYTHON_LDFLAGS)
 
-AC_OUTPUT(Makefile src/Makefile doc/Makefile tests/Makefile tests/high_speed_c/Makefile doc/Doxyfile doc/phred.lsm phred.spec)
+AC_OUTPUT(Makefile src/Makefile doc/Makefile tests/Makefile tests/high_speed_c/Makefile thirdparty/Makefile thirdparty/boost.python/Makefile thirdparty/boost.python/src/Makefile doc/Doxyfile doc/phred.lsm phred.spec)

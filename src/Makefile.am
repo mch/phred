@@ -6,6 +6,8 @@ phred_cond = python-bindings/PyExcitations.cc
 #	python-bindings/PyGrid.cc \
 #	python-bindings/PyMaterial.cc
 
+phred_LDADD = ../thirdparty/boost.python/src/libboost_python.la
+phred_LDFLAGS = @PYTHON_LDFLAGS@
 endif
 
 phred_SOURCES=phred.cc \
@@ -35,8 +37,10 @@ phred_SOURCES=phred.cc \
 	Ewall.cc \
 	Hwall.hh \
 	Hwall.cc \
-	PML.hh \
-	PML.cc \
+	Pml.hh \
+	Pml.cc \
+	PmlCommon.hh \
+	PmlCommon.cc \
 	SubdomainBc.hh \
 	SubdomainBc.cc \
 	Types.hh \

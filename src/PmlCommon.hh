@@ -1,5 +1,5 @@
 #ifndef PML_COMMON_H
-#define PML_COMMON_Hb
+#define PML_COMMON_H
 
 /**
  * Data common to a set of PML's. This holds coefficients and stuff
@@ -8,7 +8,8 @@
  * methods. Clients other the a Grid or a Pml won't be able to do much
  * with this...
  */
-class PmlCommon {
+class PmlCommon 
+{
   friend class Pml;
   friend class Grid;
 

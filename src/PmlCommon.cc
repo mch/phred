@@ -1,6 +1,12 @@
 #include "PmlCommon.hh"
 #include "Grid.hh"
 
+PmlCommon::PmlCommon()
+{}
+
+PmlCommon::~PmlCommon()
+{}
+
 void PmlCommon::alloc_coeffs(Grid &grid)
 {
   free_coeffs();

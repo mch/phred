@@ -2,6 +2,7 @@
 #define PML_H
 
 #include "BoundaryCondition.hh"
+#include "PmlCommon.hh"
 
 /**
  * PML Variation types. Not that I know what they mean or anything. 
@@ -48,11 +49,17 @@ protected:
   
   field_t *hzx_;
   field_t *hzy_;
-  
+
+  bool alloced_; // True when we've allocated our memory, false
+                 // otherwise. Only intended to make calling
+                 // alloc_fields multiple times consqeunce free.
+
+  region_t pml_r_; // A region
+
   /**
    * Allocate memory for the field data. Thickness must be non zero. 
    */
-  void alloc_pml_fields();
+  void alloc_pml_fields(Face face, Grid &grid);
 
   /**
    * Free the memory used to hold the PML field data.
@@ -75,6 +82,24 @@ public:
   ~Pml();
 
   /**
+   * Point Index: Calculate the index in the arrays of a 3d
+   * coordinate. ALWAYS USE THIS FUNCTION, in case I change the way
+   * things are organized for some reason. It's inline, so it should
+   * compile out.
+   *
+   * @param x
+   * @param y
+   * @param z
+   * @param an index into the field component and material arrays. 
+   */
+  inline unsigned int pi(unsigned int x, unsigned int y, 
+                         unsigned int z)
+  {
+    return z + (y + x*(pml_r_.ymax - pml_r_.ymin) 
+                * (pml_r_.zmax - pml_r_.zmin));
+  }
+
+  /**
    * Applys a PML boundary condition to a face of the grid. 
    *
    * @param face the face to apply the boundary condition to. 
@@ -94,32 +119,32 @@ public:
   /**
    * Update the Ex field component inside the PML
    */
-  void pml_update_ex();
+  void pml_update_ex(const region_t &grid_r, Grid &grid);
 
   /**
    * Update the Ey field component inside the PML
    */
-  void pml_update_ey();
+  void pml_update_ey(const region_t &grid_r, Grid &grid);
 
   /**
    * Update the Ez field component inside the PML
    */
-  void pml_update_ez();
+  void pml_update_ez(const region_t &grid_r, Grid &grid);
 
   /**
    * Update the Hx field component inside the PML
    */
-  void pml_update_hx();
+  void pml_update_hx(const region_t &grid_r, Grid &grid);
 
   /**
    * Update the Hy field component inside the PML
    */
-  void pml_update_hy();
+  void pml_update_hy(const region_t &grid_r, Grid &grid);
 
   /**
    * Update the Hz field component inside the PML
    */
-  void pml_update_hz();
+  void pml_update_hz(const region_t &grid_r, Grid &grid);
 
 };
 

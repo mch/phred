@@ -39,8 +39,12 @@
 #include "Types.hh"
 #include "MaterialLib.hh"
 #include "GridInfo.hh"
+#include "PmlCommon.hh"
 
 class Grid {
+  friend class Pml; // So that PML update equations can access the
+                    // field pointers quickly; and also so that they
+                    // can make a giant mess of them. 
  private:
  protected:
 
@@ -116,21 +120,9 @@ class Grid {
   bool define_;
 
   /**
-   * Point Index: Calculate the index in the arrays of a 3d
-   * coordinate. ALWAYS USE THIS FUNCTION, in case I change the way
-   * things are organized for some reason. It's inline, so it should
-   * compile out.
-   *
-   * @param x
-   * @param y
-   * @param z
-   * @param an index into the field component and material arrays. 
+   * Contains common data used by all PML boundary conditions. 
    */
-  inline unsigned int pi(unsigned int x, unsigned int y, 
-                         unsigned int z)
-  {
-    return z + (y + x*info_.dimy_) * info_.dimz_;
-  }
+  PmlCommon pml_common_;
 
   /**
    * Compute the update equatations for the Ex field component. 
@@ -167,6 +159,23 @@ class Grid {
   virtual ~Grid();
 
   /**
+   * Point Index: Calculate the index in the arrays of a 3d
+   * coordinate. ALWAYS USE THIS FUNCTION, in case I change the way
+   * things are organized for some reason. It's inline, so it should
+   * compile out.
+   *
+   * @param x
+   * @param y
+   * @param z
+   * @param an index into the field component and material arrays. 
+   */
+  inline unsigned int pi(unsigned int x, unsigned int y, 
+                         unsigned int z)
+  {
+    return z + (y + x*info_.dimy_) * info_.dimz_;
+  }
+
+  /**
    * Copy constructor. Pretty much everything is copied, but the grid
    * is condidered uninitialized. No memory is allocated, grid data
    * pointers are set to zero. 
@@ -189,6 +198,14 @@ class Grid {
    * it on. 
    */
   void set_define_mode(bool d);
+
+  /**
+   * Returns the PML common object used by the PML boundary conditions
+   */
+  inline PmlCommon &get_pml_common()
+  {
+    return pml_common_;
+  }
 
   /**
    * Compute the next time step of the fields. This is a convenience

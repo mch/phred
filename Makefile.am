@@ -1,6 +1,6 @@
-SUBDIRS=src doc tests
+SUBDIRS=thirdparty src doc tests
 
-EXTRA_DIST=phred.spec.in 
+EXTRA_DIST=phred.spec.in thirdparty
 
 # Run doxygen if it is available
 doc:

@@ -1,17 +1,29 @@
 #include "Pml.hh"
+#include "Grid.hh"
+#include <exception>
+
+using namespace std;
 
 Pml::Pml()
+  : exy_(0), exz_(0), eyx_(0), eyz_(0), ezx_(0), ezy_(0),
+  hxy_(0), hxz_(0), hyx_(0), hyz_(0), hzx_(0), hzy_(0), alloced_(false)
 {}
 
 Pml::~Pml()
-{}
-
-void Pml::alloc_pml_fields()
 {
+  free_pml_fields();
+}
+
+void Pml::alloc_pml_fields(Face face, Grid &grid)
+{
+  if (alloced_)
+    return; 
+
   if (thickness_ == 0)
     throw exception();
   
   region_t r = find_face(face, grid);
+  pml_r_ = r;
 
   unsigned int sz = (r.xmax - r.xmin) * (r.ymax - r.ymin) 
     * (r.zmax - r.zmin);
@@ -33,6 +45,16 @@ void Pml::alloc_pml_fields()
 
   hzx_ = new field_t[sz];
   hzy_ = new field_t[sz];
+  
+  if (exy_ && exz_ && eyx_ && eyz_ && ezx_ && ezy_
+      && exy_ && exz_ && eyx_ && eyz_ && ezx_ && ezy_)
+  {
+    alloced_ = true;
+  } else {
+    free_pml_fields();
+    throw exception(); // Insufficent memory
+  }
+
 }
 
 void Pml::set_thickness(unsigned int thickness)
@@ -81,7 +103,7 @@ void Pml::free_pml_fields()
 
 void Pml::apply(Face face, Grid &grid)
 {
-  region_t r = find_face(face, grid);
+  region_t grid_r = find_face(face, grid);
 
   switch (face)
   {
@@ -102,58 +124,148 @@ void Pml::apply(Face face, Grid &grid)
   }
 }
 
-void Pml::pml_update_ex()
+void Pml::pml_update_ex(const region_t &grid_r, Grid &grid)
 {
+  unsigned int grid_idx, pml_idx, mid; 
 
-}
+  unsigned int i,j,k; 	/* indices in PML-layer */
+  unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+  region_t tmp_r;
 
-void Pml::pml_update_ey()
-{
+  // Need to exclude the external boundaries; make them ewalls effectivly...
+  tmp_r.xmin = (pml_r_.xmin == 0 ? 1 : pml_r_.xmin);
+  tmp_r.ymin = (pml_r_.ymin == 0 ? 1 : pml_r_.ymin);
+  tmp_r.zmin = (pml_r_.zmin == 0 ? 1 : pml_r_.zmin);
 
-}
+  //tmp_r.xmax = (pml_r_.xmax == grid_r.xmax
 
-void Pml::pml_update_ez()
-{
+  PmlCommon &com = grid.get_pml_common();
 
-}
-
-void Pml::pml_update_hx()
-{
-  // depends on h_z_coef1, h_z_coef2
-  unsigned int idx; 
-
-  for(i=0,it = bndyptr->i0;i<=bndyptr->dimx;i++,it++)
-    for(j=0,jt = bndyptr->j0;j<=bndyptr->dimy-1;j++,jt++)
-      for(k=0,kt = bndyptr->k0;k<=bndyptr->dimz-1;k++,kt++)
+  for(i = pml_r_.xmin, it = grid_r.xmin; it <= grid_r.xmax; i++, it++)
+    for(j = pml_r_.ymin, jt = grid_r.ymin; jt <= grid_r.ymax-1; j++, jt++)
+      for(k = pml_r_.zmin, kt = grid_r.zmin; kt <= grid_r.zmax-1; k++, kt++)
       {
-        idx = pi(i,j,k);
-        bndyptr->hxz[i][j][k]= 
-          dataptr->h_z_coef1[kt]*
-          gridptr->h_coef1[gridptr->index_h_x[it][jt][kt]]*
-          bndyptr->hxz[i][j][k]
-          +dataptr->h_z_coef2[kt]*
-          gridptr->h_z_coef2[gridptr->index_h_x[it][jt][kt]]*
-          (gridptr->e_y[it][jt][kt+1]-gridptr->e_y[it][jt][kt]);
+        grid_idx = grid.pi(it, jt, kt);
+        pml_idx = pi(i, j, k);
+
+        mid = grid.material_[grid_idx];
+
+        hxz_[pml_idx] = com.h_z_coef1_[kt] * grid.Da_[mid] *
+          hxz_[pml_idx] + com.h_z_coef2_[kt] *
+          grid.Dbz_[mid] * (grid.ey_[grid.pi(it, jt, kt+1)] 
+                           - grid.ey_[grid.pi(it, jt, kt)]);
         
-        bndyptr->hxy[i][j][k] =
-          dataptr->h_y_coef1[jt]*
-          gridptr->h_coef1[gridptr->index_h_x[it][jt][kt]]*
-          bndyptr->hxy[i][j][k]
-          -dataptr->h_y_coef2[jt]*
-          gridptr->h_y_coef2[gridptr->index_h_x[it][jt][kt]]*
-          (gridptr->e_z[it][jt+1][kt]-gridptr->e_z[it][jt][kt]);
+        hxy_[pml_idx] = com.h_y_coef1_[jt] * grid.Da_[mid] *
+          hxy_[pml_idx] - com.h_y_coef2_[jt] *
+          grid.Dby_[mid] * (grid.ez_[pi(it, jt+1, kt)] 
+                           - grid.ez_[pi(it, jt, kt)]);
         
-        gridptr->h_x[it][jt][kt] = 
-          (bndyptr->hxz[i][j][k]+bndyptr->hxy[i][j][k]);
+        grid.hx_[grid_idx] = hxz_[pml_idx] + hxy_[pml_idx];
       }
 }
 
-void Pml::pml_update_hy()
+void Pml::pml_update_ey(const region_t &grid_r, Grid &grid)
 {
 
 }
 
-void Pml::pml_update_hz()
+void Pml::pml_update_ez(const region_t &grid_r, Grid &grid)
 {
 
+}
+
+void Pml::pml_update_hx(const region_t &grid_r, Grid &grid)
+{
+  unsigned int grid_idx, pml_idx, mid; 
+
+  unsigned int i,j,k; 	/* indices in PML-layer */
+  unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+
+  PmlCommon &com = grid.get_pml_common();
+
+  for(i = pml_r_.xmin, it = grid_r.xmin; it <= grid_r.xmax; i++, it++)
+    for(j = pml_r_.ymin, jt = grid_r.ymin; jt <= grid_r.ymax-1; j++, jt++)
+      for(k = pml_r_.zmin, kt = grid_r.zmin; kt <= grid_r.zmax-1; k++, kt++)
+      {
+        grid_idx = grid.pi(it, jt, kt);
+        pml_idx = pi(i, j, k);
+
+        mid = grid.material_[grid_idx];
+
+        hxz_[pml_idx] = com.h_z_coef1_[kt] * grid.Da_[mid] *
+          hxz_[pml_idx] + com.h_z_coef2_[kt] *
+          grid.Dbz_[mid] * (grid.ey_[grid.pi(it, jt, kt+1)] 
+                           - grid.ey_[grid.pi(it, jt, kt)]);
+        
+        hxy_[pml_idx] = com.h_y_coef1_[jt] * grid.Da_[mid] *
+          hxy_[pml_idx] - com.h_y_coef2_[jt] *
+          grid.Dby_[mid] * (grid.ez_[pi(it, jt+1, kt)] 
+                           - grid.ez_[pi(it, jt, kt)]);
+        
+        grid.hx_[grid_idx] = hxz_[pml_idx] + hxy_[pml_idx];
+      }
+}
+
+void Pml::pml_update_hy(const region_t &grid_r, Grid &grid)
+{
+  unsigned int grid_idx, pml_idx, mid; 
+
+  unsigned int i,j,k; 	/* indices in PML-layer */
+  unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+
+  PmlCommon &com = grid.get_pml_common();
+
+  for(i = pml_r_.xmin, it = grid_r.xmin; it <= grid_r.xmax - 1; i++, it++)
+    for(j = pml_r_.ymin, jt = grid_r.ymin; jt <= grid_r.ymax; j++, jt++)
+      for(k = pml_r_.zmin, kt = grid_r.zmin; kt <= grid_r.zmax-1; k++, kt++)
+      {
+        grid_idx = grid.pi(it, jt, kt);
+        pml_idx = pi(i, j, k);
+
+        mid = grid.material_[grid_idx];
+
+        hyx_[pml_idx] = com.h_x_coef1_[it] * grid.Da_[mid] *
+          hyx_[pml_idx] + com.h_x_coef2_[it] *
+          grid.Dbx_[mid] * (grid.ez_[grid.pi(it+1, jt, kt)] 
+                           - grid.ez_[grid.pi(it, jt, kt)]);
+        
+        hyz_[pml_idx] = com.h_z_coef1_[kt] * grid.Da_[mid] *
+          hyz_[pml_idx] - com.h_z_coef2_[kt] *
+          grid.Dbz_[mid] * (grid.ex_[pi(it, jt, kt+1)] 
+                           - grid.ex_[pi(it, jt, kt)]);
+        
+        grid.hy_[grid_idx] = hyx_[pml_idx] + hyz_[pml_idx];
+      }
+}
+
+void Pml::pml_update_hz(const region_t &grid_r, Grid &grid)
+{
+  unsigned int grid_idx, pml_idx, mid; 
+
+  unsigned int i,j,k; 	/* indices in PML-layer */
+  unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+
+  PmlCommon &com = grid.get_pml_common();
+
+  for(i = pml_r_.xmin, it = grid_r.xmin; it <= grid_r.xmax-1; i++, it++)
+    for(j = pml_r_.ymin, jt = grid_r.ymin; jt <= grid_r.ymax-1; j++, jt++)
+      for(k = pml_r_.zmin, kt = grid_r.zmin; kt <= grid_r.zmax; k++, kt++)
+      {
+        grid_idx = grid.pi(it, jt, kt);
+        pml_idx = pi(i, j, k);
+
+        mid = grid.material_[grid_idx];
+
+        hzy_[pml_idx] = com.h_y_coef1_[jt] * grid.Da_[mid] *
+          hzy_[pml_idx] + com.h_y_coef2_[jt] *
+          grid.Dby_[mid] * (grid.ex_[grid.pi(it, jt+1, kt)] 
+                           - grid.ex_[grid.pi(it, jt, kt)]);
+        
+        hzx_[pml_idx] = com.h_x_coef1_[it] * grid.Da_[mid] *
+          hzx_[pml_idx] - com.h_x_coef2_[it] *
+          grid.Dbx_[mid] * (grid.ey_[pi(it+1, jt, kt)] 
+                           - grid.ey_[pi(it, jt, kt)]);
+        
+        grid.hz_[grid_idx] = hzx_[pml_idx] + hzy_[pml_idx];
+      }
 }

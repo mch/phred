@@ -25,11 +25,17 @@
    */
 #undef HAVE_DIRENT_H
 
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `boost_python' library (-lboost_python). */
+#undef HAVE_LIBBOOST_PYTHON
 
 /* Define to 1 if you have the `mpi' library (-lmpi). */
 #undef HAVE_LIBMPI
@@ -160,6 +166,9 @@
 
 /* Use the popt library */
 #undef USE_POPT
+
+/* Use Python bindings */
+#undef USE_PY_BINDINGS
 
 /* Version number of package */
 #undef VERSION

@@ -26,20 +26,26 @@
    */
 #define HAVE_DIRENT_H 1
 
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#define HAVE_DLFCN_H 1
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #define HAVE_FCNTL_H 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-/* #undef HAVE_INTTYPES_H */
+#define HAVE_INTTYPES_H 1
+
+/* Define to 1 if you have the `boost_python' library (-lboost_python). */
+/* #undef HAVE_LIBBOOST_PYTHON */
 
 /* Define to 1 if you have the `mpi' library (-lmpi). */
 #define HAVE_LIBMPI 1
 
 /* Define to 1 if you have the `popt' library (-lpopt). */
-/* #undef HAVE_LIBPOPT */
+#define HAVE_LIBPOPT 1
 
 /* Define to 1 if you have the `python2.3' library (-lpython2.3). */
-/* #undef HAVE_LIBPYTHON2_3 */
+#define HAVE_LIBPYTHON2_3 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
@@ -51,23 +57,23 @@
 /* #undef HAVE_NDIR_H */
 
 /* Define to 1 if you have the <stdint.h> header file. */
-/* #undef HAVE_STDINT_H */
+#define HAVE_STDINT_H 1
 
 /* Define to 1 if you have the <stdlib.h> header file. */
-/* #undef HAVE_STDLIB_H */
+#define HAVE_STDLIB_H 1
 
 /* Define to 1 if you have the <strings.h> header file. */
-/* #undef HAVE_STRINGS_H */
+#define HAVE_STRINGS_H 1
 
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
 
 /* Define to 1 if `st_blocks' is member of `struct stat'. */
-/* #undef HAVE_STRUCT_STAT_ST_BLOCKS */
+#define HAVE_STRUCT_STAT_ST_BLOCKS 1
 
 /* Define to 1 if your `struct stat' has `st_blocks'. Deprecated, use
    `HAVE_STRUCT_STAT_ST_BLOCKS' instead. */
-/* #undef HAVE_ST_BLOCKS */
+#define HAVE_ST_BLOCKS 1
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
@@ -84,7 +90,7 @@
 #define HAVE_SYS_PARAM_H 1
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
-/* #undef HAVE_SYS_STAT_H */
+#define HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/sysmacros.h> header file. */
 #define HAVE_SYS_SYSMACROS_H 1
@@ -93,7 +99,7 @@
 #define HAVE_SYS_TIME_H 1
 
 /* Define to 1 if you have the <sys/types.h> header file. */
-/* #undef HAVE_SYS_TYPES_H */
+#define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <time.h> header file. */
 #define HAVE_TIME_H 1
@@ -131,7 +137,7 @@
 #define PACKAGE_VERSION "0.1.0"
 
 /* Using profiling (-pg) */
-/* #undef PROFILE */
+#define PROFILE 1
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
@@ -142,7 +148,7 @@
 /* #undef STACK_DIRECTION */
 
 /* Define to 1 if you have the ANSI C header files. */
-/* #undef STDC_HEADERS */
+#define STDC_HEADERS 1
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 /* #undef TM_IN_SYS_TIME */
@@ -160,7 +166,10 @@
 /* #undef USE_OPENMP */
 
 /* Use the popt library */
-/* #undef USE_POPT */
+#define USE_POPT 1
+
+/* Use Python bindings */
+#define USE_PY_BINDINGS 1
 
 /* Version number of package */
 #define VERSION "0.1.0"

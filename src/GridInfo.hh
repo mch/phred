@@ -6,7 +6,7 @@
 #include "Ewall.hh"
 #include "Hwall.hh"
 #include "SubdomainBc.hh"
-#include "PML.hh"
+#include "Pml.hh"
 
 /**
  * This class is plain old data that is in class form "just in
