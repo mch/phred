@@ -24,51 +24,60 @@
 
 SurfaceCurrentResult::SurfaceCurrentResult()
   : freq_start_(0), freq_end_(0), num_freqs_(0), freq_space_(0), 
-    freqs_(0), sin_(0), cos_(0)
+    freqs_(0), do_dft_(false)
 {
   region_.xmin = region_.ymin = region_.zmin = 0;
   region_.xmax = region_.ymax = region_.zmax = 0;
 
-  variables_["back_Jy"] = &back_Jy_;
-  variables_["back_Jz"] = &back_Jz_;
-  variables_["back_My"] = &back_My_;
-  variables_["back_Mz"] = &back_Mz_;
-
-  variables_["front_Jy_"] = &front_Jy_;
-  variables_["front_Jz_"] = &front_Jz_;
-  variables_["front_My_"] = &front_My_;
-  variables_["front_Mz_"] = &front_Mz_;
-
-  variables_["left_Jx_"] = &left_Jx_;
-  variables_["left_Jz_"] = &left_Jz_;
-  variables_["left_Mx_"] = &left_Mx_;
-  variables_["left_Mz_"] = &left_Mz_;
-
-  variables_["right_Jx_"] = &right_Jx_;
-  variables_["right_Jz_"] = &right_Jz_;
-  variables_["right_Mx_"] = &right_Mx_;
-  variables_["right_Mz_"] = &right_Mz_;
-
-  variables_["bottom_Jx_"] = &bottom_Jx_;
-  variables_["bottom_Jy_"] = &bottom_Jy_;
-  variables_["bottom_Mx_"] = &bottom_Mx_;
-  variables_["bottom_My_"] = &bottom_My_;
-
-  variables_["top_Jx_"] = &top_Jx_;
-  variables_["top_Jy_"] = &top_Jy_;
-  variables_["top_Mx_"] = &top_Mx_;
-  variables_["top_My_"] = &top_My_;
-
+  for (int i = 0; i < 6; i++)
+  {
+    Jt1_data_[i] = 0;
+    Jt2_data_[i] = 0;
+    Mt1_data_[i] = 0;
+    Mt2_data_[i] = 0;
+  }
 }
 
 SurfaceCurrentResult::~SurfaceCurrentResult()
-{}
+{ deinit(); }
 
 void init(const Grid &grid)
 {
+  variables_["back_Jy"] = &Jt1_[BACK];
+  variables_["back_Jz"] = &Jt2_[BACK];
+  variables_["back_My"] = &Mt1_[BACK];
+  variables_["back_Mz"] = &Mt2_[BACK];
+
+  variables_["front_Jy"] = &Jt1_[FRONT];
+  variables_["front_Jz"] = &Jt2_[FRONT];
+  variables_["front_My"] = &Mt1_[FRONT];
+  variables_["front_Mz"] = &Mt2_[FRONT];
+
+  variables_["left_Jx"] = &Jt1_[LEFT];
+  variables_["left_Jz"] = &Jt2_[LEFT];
+  variables_["left_Mx"] = &Mt1_[LEFT];
+  variables_["left_Mz"] = &Mt2_[LEFT];
+
+  variables_["right_Jx"] = &Jt1_[RIGHT];
+  variables_["right_Jz"] = &Jt2_[RIGHT];
+  variables_["right_Mx"] = &Mt1_[RIGHT];
+  variables_["right_Mz"] = &Mt2_[RIGHT];
+
+  variables_["bottom_Jx"] = &Jt1_[BOTTOM];
+  variables_["bottom_Jy"] = &Jt2_[BOTTOM];
+  variables_["bottom_Mx"] = &Mt1_[BOTTOM];
+  variables_["bottom_My"] = &Mt2_[BOTTOM];
+
+  variables_["top_Jx"] = &Jt1_[TOP];
+  variables_["top_Jy"] = &Jt2_[TOP];
+  variables_["top_Mx"] = &Mt1_[TOP];
+  variables_["top_My"] = &Mt2_[TOP];
+
   if (box_.get())
   {
     region_ = grid.get_local_region(*(box_.get()));
+  } else {
+    throw ResultException("SurfaceCurrentResult has no surface defined!");
   }
   
   if (do_dft_ && num_freqs_ > 2 && freq_end > freq_start_)
@@ -88,46 +97,184 @@ void init(const Grid &grid)
   else 
     do_dft_ = false;
   
-  back_Jy_.set_name(base_name_ + "_back_Jy_");
-  back_Jz_.set_name(base_name_ + "_back_Jz_");
-  back_My_.set_name(base_name_ + "_back_My_");
-  back_Mz_.set_name(base_name_ + "_back_Mz_");
+  unsigned int face_size = 0;
 
-  front_Jy_.set_name(base_name_ + "_front_Jy_");
-  front_Jz_.set_name(base_name_ + "_front_Jz_");
-  front_My_.set_name(base_name_ + "_front_My_");
-  front_Mz_.set_name(base_name_ + "_front_Mz_");
+  for (int i = 0; i < 6; i++)
+  {
+    switch (i)
+    {
+    case FRONT:
+      Jt1_[i].set_name(base_name_ + "_front_Jy");
+      Jt2_[i].set_name(base_name_ + "_front_Jz");
+      Mt1_[i].set_name(base_name_ + "_front_My");
+      Mt2_[i].set_name(base_name_ + "_front_Mz");
+      face_size = region_.xmax() - region_.xmin();
+      break;
 
-  left_Jx_.set_name(base_name_ + "_left_Jx_");
-  left_Jz_.set_name(base_name_ + "_left_Jz_");
-  left_Mx_.set_name(base_name_ + "_left_Mx_");
-  left_Mz_.set_name(base_name_ + "_left_Mz_");
+    case BACK:
+      Jt1_[i].set_name(base_name_ + "_back_Jy");
+      Jt2_[i].set_name(base_name_ + "_back_Jz");
+      Mt1_[i].set_name(base_name_ + "_back_My");
+      Mt2_[i].set_name(base_name_ + "_back_Mz");
+      face_size = region_.xmax() - region_.xmin();
+      break;
 
-  right_Jx_.set_name(base_name_ + "_right_Jx_");
-  right_Jz_.set_name(base_name_ + "_right_Jz_");
-  right_Mx_.set_name(base_name_ + "_right_Mx_");
-  right_Mz_.set_name(base_name_ + "_right_Mz_");
+    case LEFT:
+      Jt1_[i].set_name(base_name_ + "_left_Jx");
+      Jt2_[i].set_name(base_name_ + "_left_Jz");
+      Mt1_[i].set_name(base_name_ + "_left_Mx");
+      Mt2_[i].set_name(base_name_ + "_left_Mz");
+      face_size = region_.ymax() - region_.ymin();
+      break;
 
-  bottom_Jx_.set_name(base_name_ + "_bottom_Jx_");
-  bottom_Jy_.set_name(base_name_ + "_bottom_Jy_");
-  bottom_Mx_.set_name(base_name_ + "_bottom_Mx_");
-  bottom_My_.set_name(base_name_ + "_bottom_My_");
+    case RIGHT: 
+      Jt1_[i].set_name(base_name_ + "_right_Jx");
+      Jt2_[i].set_name(base_name_ + "_right_Jz");
+      Mt1_[i].set_name(base_name_ + "_right_Mx");
+      Mt2_[i].set_name(base_name_ + "_right_Mz");
+      face_size = region_.ymax() - region_.ymin();
+      break;
 
-  top_Jx_.set_name(base_name_ + "_top_Jx_");
-  top_Jy_.set_name(base_name_ + "_top_Jy_");
-  top_Mx_.set_name(base_name_ + "_top_Mx_");
-  top_My_.set_name(base_name_ + "_top_My_");
+    case TOP:
+      Jt1_[i].set_name(base_name_ + "_top_Jx");
+      Jt2_[i].set_name(base_name_ + "_top_Jy");
+      Mt1_[i].set_name(base_name_ + "_top_Mx");
+      Mt2_[i].set_name(base_name_ + "_top_My");
+      face_size = region_.zmax() - region_.zmin();
+      break;
+
+    case BOTTOM:
+      Jt1_[i].set_name(base_name_ + "_bottom_Jx");
+      Jt2_[i].set_name(base_name_ + "_bottom_Jy");
+      Mt1_[i].set_name(base_name_ + "_bottom_Mx");
+      Mt2_[i].set_name(base_name_ + "_bottom_My");
+      face_size = region_.zmax() - region_.zmin();
+      break;
+
+    }
+
+    if ((*region_).has_face_data(i))
+    {
+      Jt1_data_[i] = new field_t[face_size];
+      Jt2_data_[i] = new field_t[face_size];
+      Mt1_data_[i] = new field_t[face_size];
+      Mt2_data_[i] = new field_t[face_size];
+
+      Jt1_[i].set_ptr(Jt1_data[i]);
+      Jt2_[i].set_ptr(Jt2_data[i]);
+      Mt1_[i].set_ptr(Mt1_data[i]);
+      Mt2_[i].set_ptr(Mt2_data[i]);
+
+      Jt1_[i].set_num(1);
+      Jt2_[i].set_num(1);
+      Mt1_[i].set_num(1);
+      Mt2_[i].set_num(1);
+
+    } else {
+      Jt1_[i].set_num(0);
+      Jt2_[i].set_num(0);
+      Mt1_[i].set_num(0);
+      Mt2_[i].set_num(0);
+    }
+  } // end for (int i = 0; i < 6; i++)
 
 }
 
 void deinit()
 {
 
+  for (int i = 0; i < 6; i++)
+  {
+    if (Jt1_data_[i])
+    {
+      delete[] Jt1_data_;
+      Jt1_data_ = 0;
+    }
+
+    if (Jt2_data_[i])
+    {
+      delete[] Jt2_data_;
+      Jt2_data_ = 0;
+    }
+
+    if (Mt1_data_[i])
+    {
+      delete[] Mt1_data_;
+      Mt1_data_ = 0;
+    }
+
+    if (Mt2_data_[i])
+    {
+      delete[] Mt2_data_;
+      Mt2_data_ = 0;
+    }
+  }
+
+  if (freqs_)
+  {
+    delete[] freqs_;
+    freqs_ = 0;
+  }
 }
 
 map<string, Variable *> &
 SurfaceCurrentResult::get_result(const Grid &grid, 
                                  unsigned int time_step)
 {
-  
+
+  for (int face_idx = 0; face_idx < 6; face_idx++)
+  {
+    if (!region_.has_face_data(face_idx))
+      continue;
+
+    unsigned int xmin, xmax, ymin, ymax, zmin, zmax;
+    
+    xmin = region_.xmin();
+    ymin = region_.ymin();
+    zmin = region_.zmin();
+    xmax = region_.xmax();
+    ymax = region_.ymax();
+    zmax = region_.zmax();
+
+    switch (face_idx)
+    {
+    case FRONT:
+      xmin = xmax - 1;
+      break;
+
+    case BACK:
+      xmax = xmin + 1;
+      break;
+
+    case LEFT:
+      ymax = ymin + 1;
+      break;
+
+    case RIGHT:
+      ymin = ymax - 1;
+      break;
+
+    case TOP:
+      zmin = zmax - 1;
+      break;
+
+    case BOTTOM:
+      zmax = zmin + 1;
+      break;
+    }
+
+    for (unsigned int i = xmin; i < xmax; i++)
+    {
+      for (unsigned int j = ymin; j < ymax; j++)
+      {
+        for (unsigned int k = zmin; k < zmax; k++)
+        {
+          
+        }
+      }
+    }
+
+  } // end for (int i = 0; i < 6; i++)
+
+  return variables_;
 }

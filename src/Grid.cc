@@ -1050,6 +1050,45 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in,
     r.zmin_ = (*in).zmin_ - info_.start_z_;
   }
 
+  if ((*in).xmax_ >= info_.start_x_) {
+    if ((*in).xmax_ >= info_.start_x_ + info_.dimx_) {
+      r.xmax_ = info_.dimy_;
+      r.faces_[FRONT] = false;
+    } else {
+      r.xmax_ = (*in).xmax_ - info_.start_x_ + 1;
+      r.faces_[FRONT] = true;
+    }
+  } else {
+    r.xmax_ = 0;
+    r.faces_[FRONT] = false;
+  }
+
+  if ((*in).ymax_ >= info_.start_y_) {
+    if ((*in).ymax_ >= info_.start_y_ + info_.dimy_) {
+      r.ymax_ = info_.dimy_;
+      r.faces_[RIGHT] = false;
+    } else {
+      r.ymax_ = (*in).ymax_ - info_.start_y_ + 1;
+      r.faces_[RIGHT] = true;
+    }
+  } else {
+    r.ymax_ = 0;
+    r.faces_[RIGHT] = false;
+  }
+
+  if ((*in).zmax_ >= info_.start_z_) {
+    if ((*in).zmax_ >= info_.start_z_ + info_.dimz_) {
+      r.zmax_ = info_.dimz_;
+      r.faces_[RIGHT] = false;
+    } else {
+      r.zmax_ = (*in).zmax_ - info_.start_z_ + 1;
+      r.faces_[RIGHT] = true;
+    }
+  } else {
+    r.zmax_ = 0;
+    r.faces_[RIGHT] = false;
+  }
+
   // r.xmin_ = (info_.start_x_ > (*in).xmin_) ? 0
 //     : (*in).xmin_ - info_.start_x_;
 //   r.ymin_ = (info_.start_y_ > (*in).ymin_) ? 0
@@ -1057,20 +1096,20 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in,
 //   r.zmin_ = (info_.start_z_ > (*in).zmin_) ? 0
 //     : (*in).zmin_ - info_.start_z_;
 
-  r.xmax_ = ((*in).xmax_ >= info_.start_x_) ? 
-    (((*in).xmax_ >= info_.start_x_ + info_.dimx_) 
-     ? info_.dimx_ : (*in).xmax_ - info_.start_x_ + 1)
-    : 0;
+//   r.xmax_ = ((*in).xmax_ >= info_.start_x_) ? 
+//     (((*in).xmax_ >= info_.start_x_ + info_.dimx_) 
+//      ? info_.dimx_ : (*in).xmax_ - info_.start_x_ + 1)
+//     : 0;
 
-  r.ymax_ = ((*in).ymax_ >= info_.start_y_) ? 
-    (((*in).ymax_ >= info_.start_y_ + info_.dimy_) 
-     ? info_.dimy_ : (*in).ymax_ - info_.start_y_ + 1)
-    : 0;
+//   r.ymax_ = ((*in).ymax_ >= info_.start_y_) ? 
+//     (((*in).ymax_ >= info_.start_y_ + info_.dimy_) 
+//      ? info_.dimy_ : (*in).ymax_ - info_.start_y_ + 1)
+//     : 0;
 
-  r.zmax_ = ((*in).zmax_ >= info_.start_z_) ? 
-    (((*in).zmax_ >= info_.start_z_ + info_.dimz_) 
-     ? info_.dimz_ : (*in).zmax_ - info_.start_z_ + 1)
-    : 0;
+//   r.zmax_ = ((*in).zmax_ >= info_.start_z_) ? 
+//     (((*in).zmax_ >= info_.start_z_ + info_.dimz_) 
+//      ? info_.dimz_ : (*in).zmax_ - info_.start_z_ + 1)
+//     : 0;
 
 
   for (int i = 0; i < 6; i++)

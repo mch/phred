@@ -30,6 +30,8 @@
  * domain and frequency domain results are available. External
  * postprocessors should be able to use this to compute near to far
  * field, or make cool animations.
+ *
+ * \bug DFT is not yet implemented. 
  */
 class SurfaceCurrentResult : public Result
 {
@@ -110,7 +112,7 @@ private:
   shared_ptr<CSGBox> box_; /**< The box to use as the surface to
                               integrate currents over. */
   
-  region_t grid_box_; /**< The cells that are in our local region */ 
+  shared_ptr<Block> region_; /**< The cells that are in our local region */ 
 
   field_t freq_start_; /**< First frequency in the range */
   field_t freq_stop_; /**< Last frequency in the range */
@@ -121,65 +123,14 @@ private:
 
   bool do_dft_; /**< True if we should compute the DFT */ 
 
-  Variable back_Jy_;
-  Variable back_Jz_;
-  Variable back_My_;
-  Variable back_Mz_;
+  Variable Jt1_[6];
+  Variable Jt2_[6];
+  Variable Mt1_[6];
+  Variable Mt2_[6];
 
-  Variable front_Jy_;
-  Variable front_Jz_;
-  Variable front_My_;
-  Variable front_Mz_;
-
-  Variable left_Jx_;
-  Variable left_Jz_;
-  Variable left_Mx_;
-  Variable left_Mz_;
-
-  Variable right_Jx_;
-  Variable right_Jz_;
-  Variable right_Mx_;
-  Variable right_Mz_;
-
-  Variable bottom_Jx_;
-  Variable bottom_Jy_;
-  Variable bottom_Mx_;
-  Variable bottom_My_;
-
-  Variable top_Jx_;
-  Variable top_Jy_;
-  Variable top_Mx_;
-  Variable top_My_;
-
-  field_t *back_Jy_data_;
-  field_t *back_Jz_data_;
-  field_t *back_My_data_;
-  field_t *back_Mz_data_;
-
-  field_t *front_Jy_data_;
-  field_t *front_Jz_data_;
-  field_t *front_My_data_;
-  field_t *front_Mz_data_;
-
-  field_t *left_Jx_data_;
-  field_t *left_Jz_data_;
-  field_t *left_Mx_data_;
-  field_t *left_Mz_data_;
-
-  field_t *right_Jx_data_;
-  field_t *right_Jz_data_;
-  field_t *right_Mx_data_;
-  field_t *right_Mz_data_;
-
-  field_t *bottom_Jx_data_;
-  field_t *bottom_Jy_data_;
-  field_t *bottom_Mx_data_;
-  field_t *bottom_My_data_;
-
-  field_t *top_Jx_data_;
-  field_t *top_Jy_data_;
-  field_t *top_Mx_data_;
-  field_t *top_My_data_;
-  
+  field_t *Jt1_data_[6];
+  field_t *Jt2_data_[6];
+  field_t *Mt1_data_[6];
+  field_t *Mt2_data_[6];
   
 };
