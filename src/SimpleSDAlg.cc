@@ -1,4 +1,5 @@
 #include "SimpleSDAlg.hh"
+#include <exception>
 
 SimpleSDAlg::SimpleSDAlg()
 {}
@@ -10,6 +11,11 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
                                        GridInfo &info)
 {
   bool divided = false;
+
+  if (size < 0) // that just wrong
+    throw std::exception();
+
+  unsigned int sz = static_cast<unsigned int>(size);
   
   // n, m, and p are the number of divisions along the x, y, and z
   // axis' respectivly
@@ -22,34 +28,34 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
 
   for (int i = 0; i < size; i++)
   {
-    if (sdx >= sdy && sdx >= sdz && (n+1)*m*p <= size) {
+    if (sdx >= sdy && sdx >= sdz && (n+1)*m*p <= sz) {
       n++;
       sdx = info.global_dimx_ / n;
       divided = true;
     }
 
-    else if (sdy >= sdx && sdy >= sdz && n*(m+1)*p <= size) {
+    else if (sdy >= sdx && sdy >= sdz && n*(m+1)*p <= sz) {
       m++;
       sdy = info.global_dimy_ / m;
       divided = true;
     }
 
-    else if (sdz >= sdx && sdz >= sdy && n*m*(p+1) <= size) {
+    else if (sdz >= sdx && sdz >= sdy && n*m*(p+1) <= sz) {
       p++;
       sdz = info.global_dimz_ / p;
       divided = true;
     }
 
     if (!divided) {
-      if ((n+1)*m*p <= size) {
+      if ((n+1)*m*p <= sz) {
         n++;
         sdx = info.global_dimx_ / n;
       }
-      else if (n*(m+1)*p <= size) {
+      else if (n*(m+1)*p <= sz) {
         m++;
         sdy = info.global_dimy_ / m;
       }
-      else if (n*m*(p+1) <= size) {
+      else if (n*m*(p+1) <= sz) {
         p++;
         sdz = info.global_dimz_ / p;
       }
@@ -58,7 +64,7 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
     divided = false;
   }
 
-  if (n*m*p != size) {
+  if (n*m*p != sz) {
     cerr << "WARNING: simple domain decomposition did not result in one grid per\nprocessor!" << endl;
   }
 

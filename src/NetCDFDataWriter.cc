@@ -89,7 +89,7 @@ void NetCDFDataWriter::add_variable(Result &result)
 
   // Add dimension id's
   vector<int> dids;
-  for (int i = 0; i < dim_lens.size(); i++)
+  for (unsigned int i = 0; i < dim_lens.size(); i++)
   {
     dimid = get_dim(i, dim_lens[i], dim_names[i]);
     dids.push_back(dimid);
@@ -109,20 +109,22 @@ void *NetCDFDataWriter::write_data(Data &data, MPI_Datatype t,
     throw exception(); // File must be opened and dimensions defined. 
 
   vector<int> &dids = dim_ids_[data.get_var_name()];
-  int status = NC_NOERR;
   int var_id = var_ids_[data.get_var_name()];
   size_t *start, *count;
   
   start = new size_t[dids.size()];
   count = new size_t[dids.size()];
 
-  for (int i = 0; i < dids.size(); i++)
+  for (unsigned int i = 0; i < dids.size(); i++)
   {
     start[i] = 0;
     count[i] = dids[i]; // This should write the entire region at
                         // once; it's a bit naieve, but it should
                         // work for now...
   }
+  
+  return write_data(var_id, start, count, data.get_datatype(), 
+                    ptr, len);
 }
 
 void *NetCDFDataWriter::write_data(int var_id, size_t *start, 
@@ -207,7 +209,10 @@ void *NetCDFDataWriter::write_data(int var_id, size_t *start,
 int NetCDFDataWriter::get_dim(int i, int size, string basename)
 {
   int status, dimid, idx;
-  size_t len;
+  size_t len, sz;
+
+  sz = size; 
+
   ostringstream name;
 
   if (basename.length() == 0)
@@ -236,7 +241,7 @@ int NetCDFDataWriter::get_dim(int i, int size, string basename)
     if (status != NC_NOERR)
       handle_error(status);
 
-    if (len == size)
+    if (len == sz)
       return dimid;
     else {
       idx = 0;
@@ -251,7 +256,7 @@ int NetCDFDataWriter::get_dim(int i, int size, string basename)
           if (status == NC_NOERR) 
             handle_error(status);
 
-          if (len == size) 
+          if (len == sz) 
             return dimid;        
         } else {
           // Create the dimension

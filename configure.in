@@ -27,12 +27,6 @@ AC_ARG_WITH(cxx, AC_HELP_STRING([--with-cxx=CXX], [C++ compiler to use]),
 WANT_PROFILE=
 AC_ARG_ENABLE(profile, AC_HELP_STRING([--enable-profile], [Compile with -pg flag for gprof support.]), [WANT_PROFILE=1])
 
-WANT_BP=
-AC_ARG_ENABLE(pythonbuild, AC_HELP_STRING([--enable-python-build], [Built 3rd party Python]), [WANT_BP=1])
-
-WANT_BPB=
-AC_ARG_ENABLE(boostpythonbuild, AC_HELP_STRING([--enable-boost-python-build], [Built 3rd party Boost Python interface]), [WANT_BPB=1])
-
 WANT_OPENMP=
 AC_ARG_ENABLE(openmp, AC_HELP_STRING([--enable-openmp], [Use OpenMP directives for SMP shared memory parallism]), [WANT_OPENMP=1])
 
@@ -48,6 +42,7 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AM_PROG_LEX
 AC_PROG_YACC
+AC_PROG_MAKE_SET
 
 dnl Use SWIG to generate python scripting support?
 AC_ARG_WITH(python, AC_HELP_STRING([--with-python], [Generate Python scripting support]))
@@ -112,25 +107,6 @@ AC_ARG_WITH(ibmpe_libs, [  --with-ibmpe-libs       Location of IBM/PE libraries]
 AC_ARG_WITH(ibmpe_includes, [  --with-ibmpe-includes   Location of IBM/PE include files])
 
 
-dnl Setup scripting
-if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
-        AC_CHECK_LIB(python2.3, Py_Initialize, [], [
-            AC_MSG_ERROR(*** Can't find the Python libraries.)],
-            [-L$with_python_libs])
-
-        CPPFLAGS="$CPPFLAGS -I$with_python_INCLUDES"
-        AC_CHECK_HEADER(Python.h, [], [AC_MSG_ERROR([*** Can't find the Python header files])])
-
-fi
-
-dnl if [[ ! -z "$with_guile" ]]; then
-dnl 
-dnl fi
-
-dnl if [[ ! -z "$with_ruby" ]]; then
-dnl 
-dnl fi
-
 
 dnl Obviously "there can be only one" MPI library
 if [[ ! -z "$with_lammpi" ]] || [[ ! -z "$with_lammpi_libs" ]] || [[ ! -z "$with_lammpi_includes" ]]; then
@@ -174,9 +150,23 @@ fi
 dnl Use OpenMP parallism? Does the compiler support it? Are the 
 dnl libraries available? 
 if test "x$WANT_OPENMP" = "x1"; then
-        AC_MSG_WARN([OpenMP support is not fully implemented yet. ])
+dnl        AC_MSG_WARN([OpenMP support is not fully implemented yet. ])
+        CXXFLAGS_TEMP="$CXXFLAGS"
+        AC_LANG_PUSH(C++)
+        CXXFLAGS="-Wall -Werror -qSMP-omp"        
+        AC_COMPILE_IFELSE([
+void test() {
+int i = 0, j = 0;
+#pragma omp parallel
+#pragma omp for reduction(+:j)
+for (i = 0; i < 100; i++)
+  j += i;
+}], [
         AC_DEFINE([USE_OPENMP], [1], [Using OpenMP (-qSMP=omp on AIX)])
-        CXXFLAGS="$CXXFLAGS -qSMP-omp"
+        CXXFLAGS_TEMP="$CXXFLAGS_TEMP -qSMP-omp"], [
+        AC_LANG_POP(C++)
+        CXXFLAGS="$CXXFLAGS_TEMP"
+        AC_MSG_ERROR([OpenMP is not supported by the compiler.])])
 fi
 
 dnl Checks for libraries.
@@ -261,6 +251,25 @@ AC_CHECK_LIB(hdf5, H5open, [
     AC_CHECK_HEADER([hdf5.h], [
         AC_DEFINE([USE_HDF5], [1], [Use HDF5 as a DataWriter])], [], 
                   [$with_hdf5_includes])], [], [$with_hdf5_libs])
+
+dnl Setup scripting
+if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
+        AC_CHECK_LIB(python2.3, Py_Initialize, [], [
+            AC_MSG_ERROR(*** Can't find the Python libraries.)],
+            [-L$with_python_libs])
+
+        if [[ ! -z "$with_python_includes" ]]; then 
+          CPPFLAGS="$CPPFLAGS -I$with_python_includes"
+        fi
+        AC_CHECK_HEADER([Python.h], [], [AC_MSG_ERROR([*** Can't find the Python header files])])
+
+        if [[ ! -z "$with_boost_includes" ]]; then 
+          CPPFLAGS="$CPPFLAGS -I$with_boost_includes"
+        fi
+        AC_CHECK_HEADER([boost/python.hpp], [], [AC_MSG_ERROR([*** Can't find the Boost Python header files])])
+
+        AM_CONDITIONAL(PY_BINDINGS, test "1" = "1")
+fi
 
 dnl Checks for header files.
 AC_HEADER_STDC

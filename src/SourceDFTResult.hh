@@ -11,7 +11,7 @@ class SourceDFTResult : public Result
 {
 private:
 protected:
-  DftExcitation &te_; /**< The dft excitation to save. */
+  TimeExcitation &te_; /**< The dft excitation to save. */
 
   field_t freq_start_; /**< First frequency in the range */
   field_t freq_stop_; /**< Last frequency in the range */
@@ -20,9 +20,9 @@ protected:
   field_t *result_; /**< Storage for the result. */
 
 public:
-  SourceDftResult(DftExcitation &te, field_t freq_start,
+  SourceDFTResult(TimeExcitation &te, field_t freq_start,
                   field_t freq_stop, unsigned int num_freqs);
-  ~SourceDftResult();
+  ~SourceDFTResult();
 
   /**
    * Set the source or TimeExcitation to use.

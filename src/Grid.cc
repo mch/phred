@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "Grid.hh"
 
 #include "Ewall.hh"
@@ -25,7 +27,7 @@ const Grid &Grid::operator=(const Grid &rhs)
 {
   info_ = rhs.info_;
   update_r_ = rhs.update_r_;
-  num_materials_;
+  num_materials_ = rhs.num_materials_;
   Ca_ = Cbx_ = Cby_ = Cbz_ = Da_ = Dbx_ = Dby_ = Dbz_ = 0;
   ex_ = ey_ = ez_ = hx_ = hy_ = hz_ = 0;
   material_ = 0;
@@ -352,7 +354,6 @@ void Grid::define_box(unsigned int x_start, unsigned int x_stop,
                       unsigned int mat_index)
 {
   // Given coordinates are global, so we have to convert them to local. 
-  unsigned int xs, ys, zs, xe, ye, ze;
   
   if (!define_)
   {
@@ -399,6 +400,9 @@ void Grid::update_ex()
 {
   unsigned int mid, idx, idx2, i, j, k;
   
+#ifdef USE_OPENMP
+#pragma opt parallel 
+#endif
   // Inner part
   for (i = 0; i < get_ldx(); i++) {
     for (j = 1; j < get_ldy(); j++) {

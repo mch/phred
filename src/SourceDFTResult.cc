@@ -1,6 +1,6 @@
 #include "SourceDFTResult.hh"
 
-SourceTimeResult::SourceDFTResult(TimeExcitation &te, 
+SourceDFTResult::SourceDFTResult(TimeExcitation &te, 
                                   field_t freq_start,
                                   field_t freq_stop, 
                                   unsigned int num_freqs)
@@ -19,15 +19,15 @@ SourceTimeResult::SourceDFTResult(TimeExcitation &te,
   data_.set_datatype(temp);
 }
 
-SourceTimeResult::~SourceTimeResult()
+SourceDFTResult::~SourceDFTResult()
 { }
 
-void SourceTimeResult::set_excitation(const TimeExcitation &te)
+void SourceDFTResult::set_excitation(const TimeExcitation &te)
 {
   te_ = te;
 }
 
-Data &SourceTimeResult::get_result(Grid &grid, unsigned int time_step)
+Data &SourceDFTResult::get_result(Grid &grid, unsigned int time_step)
 {
   result_[0] = grid.get_deltat() * time_step; 
   result_[1] = te_.source_function(grid, time_step);

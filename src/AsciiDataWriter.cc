@@ -34,7 +34,7 @@ void AsciiDataWriter::add_variable(Result &result)
     throw std::exception(); //"Result must have at least one dimension.");
   
   dim_len_ = 0;
-  for (int i = 0; i < dim_lens.size(); i++)
+  for (unsigned int i = 0; i < dim_lens.size(); i++)
     dim_len_ += dim_lens[i];
 
 }

@@ -13,7 +13,7 @@
 /* #undef C_ALLOCA */
 
 /* Turn on debugging messages */
-/* #undef DEBUG */
+#define DEBUG 1
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
@@ -33,13 +33,13 @@
 /* #undef HAVE_INTTYPES_H */
 
 /* Define to 1 if you have the `mpi' library (-lmpi). */
-/* #undef HAVE_LIBMPI */
+#define HAVE_LIBMPI 1
 
 /* Define to 1 if you have the `popt' library (-lpopt). */
 /* #undef HAVE_LIBPOPT */
 
 /* Define to 1 if you have the `python2.3' library (-lpython2.3). */
-/* #undef HAVE_LIBPYTHON2_3 */
+#define HAVE_LIBPYTHON2_3 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
@@ -87,7 +87,7 @@
 /* #undef HAVE_SYS_STAT_H */
 
 /* Define to 1 if you have the <sys/sysmacros.h> header file. */
-/* #undef HAVE_SYS_SYSMACROS_H */
+#define HAVE_SYS_SYSMACROS_H 1
 
 /* Define to 1 if you have the <sys/time.h> header file. */
 #define HAVE_SYS_TIME_H 1
@@ -110,7 +110,7 @@
 /* #undef MAJOR_IN_SYSMACROS */
 
 /* Turn off assertions */
-#define NDEBUG 1
+/* #undef NDEBUG */
 
 /* Name of package */
 #define PACKAGE "phred"
@@ -136,9 +136,9 @@
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-        STACK_DIRECTION > 0 => grows toward higher addresses
-        STACK_DIRECTION < 0 => grows toward lower addresses
-        STACK_DIRECTION = 0 => direction of growth unknown */
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
 /* #undef STACK_DIRECTION */
 
 /* Define to 1 if you have the ANSI C header files. */

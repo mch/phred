@@ -1,4 +1,5 @@
 #include "TimeExcitation.hh"
+#include <exception>
 
 void TimeExcitation::excite(Grid &grid, unsigned int time_step,
                             FieldType type)
@@ -37,6 +38,10 @@ void TimeExcitation::excite(Grid &grid, unsigned int time_step,
           if (fld[1] > 0) grid.set_hy(i,j,k, fld[1]);
           if (fld[2] > 0) grid.set_hz(i,j,k, fld[2]);
           break;
+
+        case BOTH: // Isn't meant for Excitations.
+          throw std::exception();
+          break; 
         }
       }
     }

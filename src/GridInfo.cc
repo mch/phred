@@ -115,6 +115,9 @@ BoundaryCond *GridInfo::copy_bc(BoundaryCond *bc, BoundaryCondition bc_type)
     ret = new Pml(dynamic_cast<const Pml&>(*bc));
     break;
 
+  case UNKNOWN:
+    ret = new UnknownBc(dynamic_cast<const UnknownBc&>(*bc));
+    break;
   }
 
   return ret;

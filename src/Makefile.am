@@ -1,4 +1,13 @@
 bin_PROGRAMS=phred
+
+# Conditional on having Python and boost.python
+if PY_BINDINGS
+phred_cond = python-bindings/PyExcitations.cc
+#	python-bindings/PyGrid.cc \
+#	python-bindings/PyMaterial.cc
+
+endif
+
 phred_SOURCES=phred.cc \
 	system.h \
 	Grid.cc \
@@ -49,7 +58,7 @@ phred_SOURCES=phred.cc \
 	SourceTimeResult.hh \
 	SourceTimeResult.cc \
 	SourceDFTResult.hh \
-	SourceDFTResult.cc
+	SourceDFTResult.cc $(phred_cond)
 #	jan-grammer.yy \
 #	jan-grammer-flex.ff \
 #	lex.yy.cc
