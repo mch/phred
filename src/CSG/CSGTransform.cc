@@ -40,13 +40,16 @@ CSGTransform::~CSGTransform()
 bool CSGTransform::is_point_inside(float x, float y, float z) const
 {
   // Transform the point to the child object's coordinates. 
-  float x0 = x - tx_;
-  float y0 = y - ty_;
-  float z0 = z - tz_;
+  float x0 = x - tx_ + rotation_point_.x;
+  float y0 = y - ty_ + rotation_point_.y;
+  float z0 = z - tz_ + rotation_point_.z;
 
-  float x1 = x0 * Ainv[0][0] + y0 * Ainv[0][1] + z0 * Ainv[0][2];
-  float y1 = x0 * Ainv[1][0] + y0 * Ainv[1][1] + z0 * Ainv[1][2];
-  float z1 = x0 * Ainv[2][0] + y0 * Ainv[2][1] + z0 * Ainv[2][2];
+  float x1 = x0 * Ainv[0][0] + y0 * Ainv[0][1] + z0 * Ainv[0][2]
+    - rotation_point_.x;
+  float y1 = x0 * Ainv[1][0] + y0 * Ainv[1][1] + z0 * Ainv[1][2]
+    - rotation_point_.y;
+  float z1 = x0 * Ainv[2][0] + y0 * Ainv[2][1] + z0 * Ainv[2][2]
+    - rotation_point_.z;
 
   return (*child_).is_point_inside(x1, y1, z1);
 }
@@ -72,7 +75,7 @@ void CSGTransform::set_rotation(point p, point v, float angle)
   calc_rotation_matrix(rotation_point_, vector_, (-1) * angle_, &Ainv);
 }
 
-void CSGTransform::calc_rotation_matrix(const point &p, const point &v, 
+void CSGTransform::calc_rotation_matrix(const point &v, 
                                         const float &angle, 
                                         float **A) const
 {

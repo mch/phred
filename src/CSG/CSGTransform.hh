@@ -94,7 +94,7 @@ protected:
   /**
    * Calculate a rotation matrix. A must be a 3x3 array. 
    */ 
-  void calc_rotation_matrix(const point &p, const point &v, 
+  void calc_rotation_matrix(const point &v, 
                             const float &angle, 
                             float **A) const;
 };
