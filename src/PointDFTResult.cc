@@ -123,46 +123,39 @@ map<string, Variable *> &PointDFTResult::get_result(const Grid &grid,
   delta_t dt = grid.get_deltat();
   delta_t time = dt * time_step;
 
+  field_t cos_temp, sin_temp;
+
   if (ours_)
   {
     for (unsigned int i = 0; i <= num_freqs_; i++)
     {
-      result_[i*13 + 1] += grid.get_ex(l_.x, l_.y, l_.z)
-        * cos(2 * PI * result_[i*13] * time);
-    
-      result_[i*13 + 2] += (-1) * grid.get_ex(l_.x, l_.y, l_.z) 
-        * sin(2 * PI * result_[i*13] * time);
+      cos_temp = cos(2 * PI * result_[i*13] * time);
+      sin_temp = sin(2 * PI * result_[i*13] * time);
 
-      result_[i*13 + 3] += grid.get_ey(l_.x, l_.y, l_.z)
-        * cos(2 * PI * result_[i*13] * time);
+      result_[i*13 + 1] += grid.get_ex(l_.x, l_.y, l_.z) * cos_temp;
     
-      result_[i*13 + 4] += (-1) * grid.get_ey(l_.x, l_.y, l_.z) 
-        * sin(2 * PI * result_[i*13] * time);
+      result_[i*13 + 2] += (-1) * grid.get_ex(l_.x, l_.y, l_.z) * sin_temp;
 
-      result_[i*13 + 5] += grid.get_ez(l_.x, l_.y, l_.z)
-        * cos(2 * PI * result_[i*13] * time);
+      result_[i*13 + 3] += grid.get_ey(l_.x, l_.y, l_.z) * cos_temp;
     
-      result_[i*13 + 6] += (-1) * grid.get_ez(l_.x, l_.y, l_.z) 
-        * sin(2 * PI * result_[i*13] * time);
+      result_[i*13 + 4] += (-1) * grid.get_ey(l_.x, l_.y, l_.z) * sin_temp;
+
+      result_[i*13 + 5] += grid.get_ez(l_.x, l_.y, l_.z) * cos_temp;
+    
+      result_[i*13 + 6] += (-1) * grid.get_ez(l_.x, l_.y, l_.z) * sin_temp;
 
       // H components
-      result_[i*13 + 7] += grid.get_hx(l_.x, l_.y, l_.z)
-        * cos(2 * PI * result_[i*13] * time);
+      result_[i*13 + 7] += grid.get_hx(l_.x, l_.y, l_.z) * cos_temp;
     
-      result_[i*13 + 8] += (-1) * grid.get_hx(l_.x, l_.y, l_.z) 
-        * sin(2 * PI * result_[i*13] * time);
+      result_[i*13 + 8] += (-1) * grid.get_hx(l_.x, l_.y, l_.z) * sin_temp;
 
-      result_[i*13 + 9] += grid.get_hy(l_.x, l_.y, l_.z)
-        * cos(2 * PI * result_[i*13] * time);
+      result_[i*13 + 9] += grid.get_hy(l_.x, l_.y, l_.z) * cos_temp;
     
-      result_[i*13 + 10] += (-1) * grid.get_hy(l_.x, l_.y, l_.z) 
-        * sin(2 * PI * result_[i*13] * time);
+      result_[i*13 + 10] += (-1) * grid.get_hy(l_.x, l_.y, l_.z) * sin_temp;
 
-      result_[i*13 + 11] += grid.get_hz(l_.x, l_.y, l_.z)
-        * cos(2 * PI * result_[i*13] * time);
+      result_[i*13 + 11] += grid.get_hz(l_.x, l_.y, l_.z) * cos_temp;
     
-      result_[i*13 + 12] += (-1) * grid.get_hz(l_.x, l_.y, l_.z) 
-        * sin(2 * PI * result_[i*13] * time);
+      result_[i*13 + 12] += (-1) * grid.get_hz(l_.x, l_.y, l_.z) * sin_temp;
     }
   }
 

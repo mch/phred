@@ -38,8 +38,6 @@ public:
 
   virtual ~DFTResult();
 
-  map<string, Variable *> &get_result(const Grid &grid, 
-                                      unsigned int time_step) = 0;
   /**
    * Set the start frequency of the range
    */

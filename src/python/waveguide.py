@@ -14,7 +14,7 @@ centre_f = 15e9 # Hz
 wl = 2.997925e8 / centre_f
 
 # Extent of region
-xlen = 400
+xlen = 500
 ylen = 317
 zlen = 79
 
@@ -30,7 +30,6 @@ print "FDTD grid initialized. Cell size is 0.1mm x 0.1mm x 0.1mm\n"
 print "Region is %ix%ix%i. Time step size is %g.\n" % (xlen, ylen,
                                                        zlen, fdtd.get_time_delta())
 
-quit
 
 # Add boundary conditions
 front = Pml()

@@ -113,6 +113,8 @@ phred_SOURCES=\
 	SourceDFTResult.hh \
 	SourceDFTResult.cc \
 	counted_ptr.hh \
+	PowerResult.hh \
+	PowerResult.cc \
 	phred.cc $(phred_cond)
 
 #	SpaceExcitation.cc 

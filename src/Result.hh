@@ -85,6 +85,17 @@ public:
   }
 
   /**
+   * Reset the variable. This should be called in init() by all
+   * results, in case the variable was previously used.
+   */ 
+  inline void reset()
+  {
+    dim_names_.clear();
+    dim_lens_.clear();
+    dim_starts_.clear();
+  }
+
+  /**
    * Set the MPI data type for the individual elements. This MUST NOT
    * be a derived data type. 
    */ 
