@@ -22,7 +22,7 @@
 #include "Material.hh"
 
 Material::Material()
-  : type_(NON_PERMEABLE), epsilon_(1), sigma_(0), 
+  : type_(NON_PERMEABLE), epsilon_(1), sigma_(0), pec_(false),
     mu_(1), sigma_star_(0), name_("Free space"), vc_(0), fp_(0)
     // Look at me, I'm free space!
 {
