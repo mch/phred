@@ -98,6 +98,7 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "Hwall.hh"
 #include "PointResult.hh"
 #include "AsciiDataWriter.hh"
+#include "MatlabDataWriter.hh"
 #include "NetCDFDataWriter.hh"
 #include "PlaneResult.hh"
 #include "PointDFTResult.hh"
@@ -565,6 +566,10 @@ static void pml_test(int rank, int size)
   fdtd.map_result_to_datawriter("res4", "adw12");
   fdtd.map_result_to_datawriter("p2dft", "adw13");
 
+  MatlabDataWriter mdw(rank, size);
+  mdw.set_filename("test.mat");
+  fdtd.add_datawriter("mdw", &mdw);
+  fdtd.map_result_to_datawriter("pres60", "mdw");
 
   NetCDFDataWriter ncdw(rank, size);
   ncdw.set_filename("yz_plane.nc");
@@ -662,7 +667,7 @@ static void pml_test(int rank, int size)
      cout << "j[" << i << "] = " << j[i] << endl;
 #endif
 
-   fdtd.run(rank, size, 250);
+   fdtd.run(rank, size, 50);
 }
 
 static void takakura_test(int rank, int size)

@@ -115,8 +115,7 @@ public:
    *
    * @param filename 
    */
-  virtual void set_filename(string filename)
-  { }
+  virtual void set_filename(string filename);
 
   /**
    * Add a result that this data writer will have to know how to

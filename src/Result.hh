@@ -56,9 +56,12 @@ protected:
                      false, DataWriters except only one result from
                      this Result, usually at time_stop_. */
 
+  MPI_Datatype element_type_; /**< The MPI data type of the individual
+                                 elements of this variable. */ 
 public:
   Variable()
-    : var_name_("Result"), time_dim_(true)
+    : var_name_("Result"), time_dim_(true), 
+      element_type_(GRID_MPI_TYPE)
   {}
 
   ~Variable()
@@ -78,6 +81,24 @@ public:
     dim_names_.push_back(name);
     dim_lens_.push_back(length);
     dim_starts_.push_back(start);
+  }
+
+  /**
+   * Set the MPI data type for the individual elements. This MUST NOT
+   * be a derived data type. 
+   */ 
+  inline void set_element_type(MPI_Datatype t)
+  {
+    element_type_ = t;
+  }
+
+  /**
+   * Returns the MPI data type for the individual elements of this
+   * variable. 
+   */
+  inline MPI_Datatype get_element_type()
+  {
+    return element_type_;
   }
 
   /**

@@ -28,6 +28,9 @@
 #include <map>
 #include <string>
 
+#include <sys/types.h>
+#include <stdint.h>
+
 using namespace std;
 
 /**
@@ -45,7 +48,20 @@ enum MATLAB_data_type {
   miINT64 = 12, /**< 64 bit signed */
   miUINT64 = 13, /**< 64 bit unsigned */
   miMATRIX = 14, /**< Matrix */ 
-}
+};
+
+/**
+ * A little helper to convert MPI data types to MATLAB data types. 
+ *
+ * @param mpi_type The MPI Data type to convert
+ * @return MATLAB_data_type
+ */ 
+MATLAB_data_type MPI_to_matlab_dt(MPI_Datatype mpi_type);
+
+/**
+ * Tells the number of bytes for a given MATLAB data type.
+ */ 
+unsigned int sizeof_matlab(MATLAB_data_type type);
 
 /**
  * MATLAB Array classes 
@@ -79,26 +95,36 @@ typedef struct {
  */
 typedef struct {
   uint8_t undefined[2];
-  union flags {
+  union flags_t {
     uint8_t byte;
-    struct bits {
-      unsigned bits : 8;
-    }
-  }
+    struct {
+      char bits: 4;
+      char complex_bit: 1;
+      char global_bit: 1;
+      char logical_bit: 1;
+      char one_more_bit: 1;
+    } bits;
+  } flags;
   uint8_t array_class;
-  uint8_t undefined[4];
+  uint8_t undefined2[4];
 } array_flags_t;
 
 /**
  * Represents a data element in a MATLAB file. 
+ *
+ * \bug This buffers data until we can write it out. The buffer
+ * implementation is extremly poor; it reallocates a new chunk of
+ * memory when it is needed and just copies everything. Ugg. 
  */
 class MatlabElement {
-  friend class MatlabMatrix;
+  friend class MatlabArray;
   friend class MatlabDataWriter;
 private:
+  MatlabElement(MATLAB_data_type type);
   MatlabElement();
-  MatlabElement(const MatlabElement &rhs);
-  const MatlabElement &operator=(const MatlabElement &rhs);
+
+  //MatlabElement(const MatlabElement &rhs);
+  //const MatlabElement &operator=(const MatlabElement &rhs);
 
 protected:
   data_tag_t tag_; /**< Type and size of data */ 
@@ -108,7 +134,15 @@ protected:
   
   unsigned int file_offset_; /**< Position (in bytes) in the file of
                                 the start of the tag for this element */ 
+
+  char *buffer_; /**< Buffer for data, so we can just write it all out
+                    at the end. */ 
+  unsigned int buffer_pos_; /**< Place to start appending data in the
+                               buffer. */ 
+  unsigned int buffer_size_; /**< Actual allocated memory */ 
+
 public:
+  virtual ~MatlabElement();
 
   /**
    * How many bytes (data and tag) will this variable write? 
@@ -127,6 +161,23 @@ public:
   }
 
   /**
+   * Append to the buffer. 
+   *
+   * @param num_bytes The number of bytes to append to the end of
+   * this element. 
+   * @param ptr The memory to get the data from. 
+   */
+  virtual void append_buffer(unsigned int num_bytes, const void *ptr);
+
+  /**
+   * Write the buffered data to disk, along with it's tag telling the
+   * data type and length.
+   *
+   * @param stream the stream to write the data to
+   */ 
+  virtual void write_buffer(ostream &stream);
+
+  /**
    * Writes some data to the given ostream
    *
    * @param stream The output stream to write to. 
@@ -134,8 +185,8 @@ public:
    * this element. 
    * @param ptr The memory to get the data from. 
    */
-  virtual void write_data(ostream &stream, unsigned int num_bytes,
-                          const void *ptr);
+  // virtual void write_data(ostream &stream, unsigned int num_bytes,
+//                           const void *ptr, bool buffer = true);
   
   /**
    * Updates the file offset so that we know where to find the tag in
@@ -143,7 +194,7 @@ public:
    *
    * @param bytes The number of bytes to add to the current offset. 
    */ 
-  virtual void update_file_offset(int bytes);
+  //virtual void update_file_offset(int bytes);
 };
 
 /**
@@ -155,29 +206,54 @@ public:
 class MatlabArray : public MatlabElement {
   friend class MatlabDataWriter; 
 private:
-  MatlabArray(); 
-  MatlabArray(const MatlabVariable &rhs);
-  const MatlabArray &operator=(const MatlabVariable &rhs);
+
+  //MatlabArray(const MatlabVariable &rhs);
+  //const MatlabArray &operator=(const MatlabVariable &rhs);
 
 protected:
-  vector <MatlabElement *> children_;
+  MatlabElement me_flags_;
+  MatlabElement me_dim_lens_;
+  MatlabElement me_name_;
+  MatlabElement me_data_;
 
-public:
+  array_flags_t flags_; /**< Flags for this array. */ 
+  string name_; /**< The name of this array */
+  bool time_dim_; /**< True if this thing has a time dimension. */ 
+
+  unsigned int num_dims_; /**< Number of dimensions */ 
+  int32_t *dim_lengths_; /**< Dimension lengths */ 
+
   /**
-   * Construct a numeric array with a given MATLAB datatype. 
+   * Translate the given MATLAB data type into the appropriate MATLAB
+   * array class.
    *
-   * @param name The name of the variable (in the MATLAB workspace)
-   * @param num_dimensions The number of dimensions of the array
-   * @param type The MATLAB datatype of the array
-   * @param complex True if the array contains elements which are
-   * complex. 
-   */
-  static MatlabArray build_array(const char *name, 
-                                 unsigned int num_dimensions, 
-                                 MATLAB_data_type type,
-                                 bool complex);
+   * @param type the MATLAB data type
+   */ 
+  MATLAB_array_type get_array_class(MATLAB_data_type type);
+  
+public:
+  MatlabArray(const char *name, 
+              const vector<int> &dim_lens, bool time_dim,
+              MATLAB_data_type type,
+              bool complex); 
 
-  //static MatlabArray build_char_array(const char *name);
+  virtual ~MatlabArray();
+
+  /**
+   * Append to the buffer. 
+   *
+   * @param num_bytes The number of bytes to append to the end of
+   * this element. 
+   * @param ptr The memory to get the data from. 
+   */
+  virtual void append_buffer(unsigned int num_bytes, const void *ptr);
+
+  /**
+   * Write the buffered data to disk
+   *
+   * @param stream the stream to write the data to
+   */ 
+  virtual void write_buffer(ostream &stream);
 
   /**
    * Writes this array to the given ostream
@@ -187,22 +263,27 @@ public:
    * this element. 
    * @param ptr The memory to get the data from. 
    */
-  void write_data(ostream &stream, unsigned int num_bytes,
-                          const void *ptr);
+  //void write_data(ostream &stream, unsigned int num_bytes,
+  //                const void *ptr);
   
   /**
    * How many bytes (data and tag) will this variable write? This
    * must ask all of the children how big they are, and report the
    * sum plus the header. 
    */
-  unsigned int get_num_bytes();
+  virtual unsigned int get_num_bytes();
 };
 
 /**
  * Writes data to a Matlab 5 binary data file. Data is aligned to 64
  * bit boundaries in the file. For matrix types, the number of bytes
  * in the tag includes these any padding bytes that may be required
- * for alignment; for other types the padding bytes are NOT included. 
+ * for alignment; for other types the padding bytes are NOT included.
+ *
+ * \bug This only implements matrix output... it shouldn't be too much
+ * of a stretch to implement everything, but we don't really need it.
+ *
+ * \bug All data is buffered until deinit() is called...
  */
 class MatlabDataWriter : public DataWriter {
   
@@ -214,32 +295,19 @@ protected:
   
   unsigned int dim_len_;
 
-  struct header_ {
+  struct {
     char text[124];
     uint16_t version;
-    union endian {
+    union {
       uint16_t endian_16; 
       char bytes[2];
-    }
-  }
+    } endian;
+  } header_;
 
-  map<string, MatlabVariable *> vars_;
+  map<string, MatlabArray *> vars_;
 
-  /**
-   * Write an array of data
-   * @param ptr location of start of array
-   * @param len number of items in array
-   * @return the advanced ptr
-   */
-  template<class T>
-  unsigned int write_array(void *ptr, unsigned int len);
-
-  /**
-   * Does recursive writing of packed data. This function will only be
-   * called on rank 0.
-   */
-  unsigned int write_data(MPI_Datatype t, void *ptr, 
-                          unsigned int len);
+  bool buffered_; /**< Data is buffered in memory and only written out
+                     at the end, when deinit() is called. */ 
 
   /**
    * Called by gather_data(), calls the above function. 
@@ -259,26 +327,47 @@ protected:
    */ 
   void header_setup();
 
+  /**
+   * Add a numeric array with a given MATLAB datatype. 
+   *
+   * @param name The name of the variable (in the MATLAB workspace)
+   * @param num_dimensions The number of dimensions of the array
+   * @param type The MATLAB datatype of the array
+   * @param complex True if the array contains elements which are
+   * complex. 
+   */
+  void add_array(const char *name, 
+                 const vector<int> &dimensions, 
+                 MATLAB_data_type type,
+                 bool complex);
+
+  //static MatlabArray build_char_array(const char *name);
+
 public:
   MatlabDataWriter(int rank, int size);
   MatlabDataWriter(int rank, int size, const char *fn, Result &result);
-  ~MatlabDataWriter();
+  virtual ~MatlabDataWriter();
 
   /**
    * Initialize this object; open the file
    */
-  void init();
+  virtual void init(const Grid &grid);
 
   /**
    * Deinit; close the file.
    */
-  void deinit();
+  virtual void deinit(const Grid &grid);
 
   /**
    * Add a variable that we should know about. 
    * @param result describes the variable
    */
-  void add_variable(Result &result);
+  virtual void add_variable(Result &result);
+
+  /**
+   * Write a test file
+   */ 
+  void test();
 
 };
 

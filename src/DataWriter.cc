@@ -21,6 +21,11 @@
 
 #include "DataWriter.hh"
 
+void DataWriter::set_filename(string filename)
+{
+  filename_ = filename;
+}
+
 void DataWriter::handle_data(unsigned int time_step, 
                              map<string, Variable *> &data)
 {
