@@ -13,7 +13,7 @@
 /* #undef C_ALLOCA */
 
 /* Turn on debugging messages */
-#define DEBUG 1
+/* #undef DEBUG */
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
@@ -27,7 +27,7 @@
 #define HAVE_DIRENT_H 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
-#define HAVE_DLFCN_H 1
+/* #undef HAVE_DLFCN_H */
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #define HAVE_FCNTL_H 1
@@ -42,10 +42,10 @@
 #define HAVE_LIBMPI 1
 
 /* Define to 1 if you have the `popt' library (-lpopt). */
-#define HAVE_LIBPOPT 1
+/* #undef HAVE_LIBPOPT */
 
 /* Define to 1 if you have the `python2.3' library (-lpython2.3). */
-#define HAVE_LIBPYTHON2_3 1
+/* #undef HAVE_LIBPYTHON2_3 */
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
@@ -93,7 +93,7 @@
 #define HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/sysmacros.h> header file. */
-#define HAVE_SYS_SYSMACROS_H 1
+/* #undef HAVE_SYS_SYSMACROS_H */
 
 /* Define to 1 if you have the <sys/time.h> header file. */
 #define HAVE_SYS_TIME_H 1
@@ -116,7 +116,7 @@
 /* #undef MAJOR_IN_SYSMACROS */
 
 /* Turn off assertions */
-/* #undef NDEBUG */
+#define NDEBUG 1
 
 /* Name of package */
 #define PACKAGE "phred"
@@ -137,7 +137,7 @@
 #define PACKAGE_VERSION "0.1.0"
 
 /* Using profiling (-pg) */
-#define PROFILE 1
+/* #undef PROFILE */
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
@@ -166,7 +166,7 @@
 /* #undef USE_OPENMP */
 
 /* Use the popt library */
-#define USE_POPT 1
+/* #undef USE_POPT */
 
 /* Use Python bindings */
 #define USE_PY_BINDINGS 1
