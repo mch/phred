@@ -56,7 +56,6 @@ void export_results()
 
   class_<PlaneResult, bases<Result> >("PlaneResult")
     .def("set_plane", &PlaneResult::set_plane)
-    .def("get_plane", &PlaneResult::get_plane)
     .def("get_face", &PlaneResult::get_face)
     .def("set_field", &PlaneResult::set_field)
     ;

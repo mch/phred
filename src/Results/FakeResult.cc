@@ -63,9 +63,9 @@ void FakeResult::deinit()
   }
 }
 
-map<string, Variable *> &
-FakeResult::get_result(const Grid &grid, 
-                       unsigned int time_step)
+void
+FakeResult::calculate_result(const Grid &grid, 
+                             unsigned int time_step)
 {
   if (result_time(time_step))
   {

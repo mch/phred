@@ -34,20 +34,6 @@ public:
   ~GridResult();
 
   /**
-   * Looks at the grid and produces output. Variables that can be
-   * output include the material index numbers at each point in the
-   * grid, the cell size along each axis (which may have different
-   * sizes in case of graded meshes), and other things as I think of
-   * them.
-   *
-   * @param grid a reference to a Grid object
-   * @return a reference to a data object, which contains an MPI
-   * derived data type, a pointer, and the number of items in the
-   * result.
-   */
-  map<string, Variable *> &get_pre_result(const Grid &grid);
-
-  /**
    * Called to perform any initialization that may be required.
    * Converts the region to local grid coordinates and constructs the
    * MPI datatype.

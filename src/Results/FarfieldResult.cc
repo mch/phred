@@ -660,8 +660,8 @@ public:
   }
 };
 
-map<string, Variable *> & FarfieldResult::get_result(const Grid &grid, 
-                                                     unsigned int time_step)
+void FarfieldResult::calculate_result(const Grid &grid, 
+                                      unsigned int time_step)
 {
   if (result_time(time_step))
   {
@@ -874,18 +874,12 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
     
   } // if (result_time...)
   
-  return variables_;
 }
 
-map<string, Variable *> &FarfieldResult::get_pre_result(const Grid &grid)
-{
-  return pre_vars_;
-}
-
-map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
+void FarfieldResult::calculate_post_result(const Grid &grid)
 {
   if (MPI_RANK != 0)
-    return post_vars_;
+    return;
   
   // Calculate E_theta, E_phi, rcs
   field_t W_t, W_p, U_t, U_p;
@@ -963,7 +957,5 @@ map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
 
     } // end for theta
   } // end for phi
-
-  return post_vars_;
 }
 

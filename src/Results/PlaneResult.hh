@@ -126,12 +126,11 @@ protected:
                     the calculation of power and near to farfield
                     results. */ 
 
-  field_t avg_data_; /**< Averaged data, only used when average_ == true */
+  field_t *avg_data_; /**< Averaged data, only used when average_ == true */
 
   bool have_data_; /**< True if the node has data to contribute. */ 
 
-  //shared_ptr<CSGBox> box_; /**< The box with the face on which data
-  //                            should be collected. */ 
+  void calculate_result(const Grid &grid, unsigned int time_step);
 
  };
 

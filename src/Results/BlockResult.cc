@@ -170,8 +170,8 @@ void BlockResult::init(const Grid &grid)
   init_ = true;
 }
 
-map<string, Variable *> &BlockResult::get_result(const Grid &grid, 
-                                         unsigned int time_step)
+void BlockResult::calculate_result(const Grid &grid, 
+                                   unsigned int time_step)
 {
   if (init_ && result_time(time_step))
   {
@@ -226,8 +226,6 @@ map<string, Variable *> &BlockResult::get_result(const Grid &grid,
   {
     var_.set_num(0);
   }
-
-  return variables_;
 }
 
 ostream& BlockResult::to_string(ostream &os) const

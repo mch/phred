@@ -48,21 +48,16 @@ protected:
   field_t *field_data_; /**< Used if we have to calculate the E or H
                            field intensity. */ 
 
+  /**
+   * Subclasses can implement this function to calculate results that
+   * need to be calculated at each time step. 
+   */
+  void calculate_result(const Grid &grid, unsigned int time_step);
+
 public:
   BlockResult();
   BlockResult(region_t r, FieldComponent field_comp = FC_EY);
   ~BlockResult();
-
-  /**
-   * Return an MPI datatype with a pointer to the block of data. 
-   *
-   * @param grid a reference to a Grid object
-   * @return a reference to a data object, which contains an MPI
-   * derived data type, a pointer, and the number of items in the
-   * result.
-   */
-  map<string, Variable *> &get_result(const Grid &grid, 
-                                      unsigned int time_step);
 
   /**
    * Set the region to return. 

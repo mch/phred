@@ -370,6 +370,28 @@ protected:
       return false; 
   }
 
+  /**
+   * Subclasses can implement this function to calculate results that
+   * are made available before time stepping begins.
+   */ 
+  virtual void calculate_pre_result(const Grid &grid)
+  {}
+
+  /**
+   * Subclasses can implement this function to calculate results that
+   * need to be calculated at each time step. 
+   */
+  virtual void calculate_result(const Grid &grid, unsigned int time_step)
+  {}
+
+  /**
+   * Subclasses can implement this function to calculate results that
+   * can only be calculated once time stepping has been completed. 
+   */ 
+  virtual void calculate_post_result(const Grid &grid)
+  {}
+
+
 public:
   Result() 
     : time_start_(0), time_stop_(~0),
@@ -492,9 +514,13 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  virtual map<string, Variable *> &get_result(const Grid &grid, 
-                                              unsigned int time_step)
-  { return variables_; }
+  map<string, Variable *> &get_result(const Grid &grid, 
+                                      unsigned int time_step)
+  { 
+    calculate_result(grid, time_step);
+
+    return variables_; 
+  }
   
   /**
    * Pre-output. Returns a set of variables that are ready before time
@@ -502,8 +528,12 @@ public:
    *
    * @param grid the grid!
    */ 
-  virtual map<string, Variable *> &get_pre_result(const Grid &grid)
-  { return pre_vars_; }
+  map<string, Variable *> &get_pre_result(const Grid &grid)
+  { 
+    calculate_pre_result(grid);
+
+    return pre_vars_; 
+  }
 
   /**
    * Post-output. Returns a set of variables that are ready after time
@@ -511,8 +541,12 @@ public:
    *
    * @param grid the grid!
    */ 
-  virtual map<string, Variable *> &get_post_result(const Grid &grid)
-  { return post_vars_; }
+  map<string, Variable *> &get_post_result(const Grid &grid)
+  { 
+    calculate_post_result(grid);
+
+    return post_vars_; 
+  }
 
   /**
    * Print a string representation to an ostream.

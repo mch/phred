@@ -424,14 +424,8 @@ void FarfieldResult2::deinit()
 #endif
 }
 
-map<string, Variable *> &
-FarfieldResult2::get_pre_result(const Grid &grid)
-{
-  return pre_vars_;
-}
-
-map<string, Variable *> &
-FarfieldResult2::get_post_result(const Grid &grid)
+void
+FarfieldResult2::calculate_post_result(const Grid &grid)
 {
 #ifdef HAVE_COMPLEX
 
@@ -492,7 +486,6 @@ FarfieldResult2::get_post_result(const Grid &grid)
 
 #endif
 
-  return post_vars_;
 }
 
 void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta, 
@@ -694,9 +687,9 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
   
 }
 
-map<string, Variable *> &
-FarfieldResult2::get_result(const Grid &grid, 
-                            unsigned int time_step)
+void
+FarfieldResult2::calculate_result(const Grid &grid, 
+                                  unsigned int time_step)
 {
 #ifdef HAVE_COMPLEX
 
@@ -757,7 +750,6 @@ FarfieldResult2::get_result(const Grid &grid,
   } // end for (face_idx...)
 #endif
 
-  return variables_;
 }
 
 template<class T>

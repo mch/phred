@@ -85,27 +85,6 @@ public:
   void deinit();
 
   /**
-   * Looks at the grid and produces output. 
-   *
-   * @param grid a reference to a Grid object
-   * @return a reference to a data object, which contains an MPI
-   * derived data type, a pointer, and the number of items in the
-   * result.
-   */
-  map<string, Variable *> &get_result(const Grid &grid, 
-                                      unsigned int time_step);
-
-  /**
-   * Returns the frequency range, theta, and phi ranges. 
-   */ 
-  map<string, Variable *> &get_pre_result(const Grid &grid);
-
-  /**
-   * Returns the farfield RCS data. 
-   */ 
-  map<string, Variable *> &get_post_result(const Grid &grid);
-
-  /**
    * Set the box over which the currents should be calculated so that
    * the farfield can be calculated from those currents.
    */ 

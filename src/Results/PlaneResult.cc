@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -23,29 +23,45 @@
 #include "../Globals.hh"
 
 PlaneResult::PlaneResult()
-  : face_(FRONT), field_(FC_EY), have_data_(true)
+  : face_(FRONT), field_(FC_EY), average_(false), 
+    avg_data_(0), have_data_(true)
 {
-  plane_.x = 0;
-  plane_.y = 0;
-  plane_.z = 0;
-
   variables_["Plane"] = &var_;
 }
 
 PlaneResult::~PlaneResult()
-{}
+{
+  deinit();
+}
 
-map<string, Variable *> &PlaneResult::get_result(const Grid &grid, 
-                                                 unsigned int time_step)
+void PlaneResult::calculate_result(const Grid &grid, 
+                                   unsigned int time_step)
 {
   if (result_time(time_step) && have_data_)
   {
     var_.set_num(1);
+
+    if (average_)
+    {
+      int idx = 0;
+      switch(face_)
+      {
+      case FRONT:
+        for (int j = (*region_).ymin(); j < (*region_).ymax(); j++)
+        {
+          for (int k = (*region_).zmin(); k < (*region_).zmax(); k++)
+          {
+            avg_data_ = 0;
+            idx++;
+          }
+        }
+        break;
+      }
+    }
+
   } else {
     var_.set_num(0);
   }
-
-  return variables_;
 }
 
 void PlaneResult::init(const Grid &grid)
@@ -55,110 +71,119 @@ void PlaneResult::init(const Grid &grid)
   // is located in the local subdomain.
 
   region_ = grid.get_local_region(*box_);
-  shared_pre<Block> global_b_ = grid.get_global_region(*box_);
+  shared_ptr<Block> global_b = grid.get_global_region(*box_);
 
-//   cerr << "PlaneResult global point location: " << plane_.x 
-//        << " x " << plane_.y << " x " << plane_.z << endl;
-//   grid_point l_point = grid.global_to_local(plane_);
-//   cerr << "PlaneResult local point location: " << l_point.x 
-//        << " x " << l_point.y << " x " << l_point.z << endl;
-  
-  bool x_sd = false;
-  bool y_sd = false;
-  bool z_sd = false;
+  have_data_ = (*region_).has_face_data(face_);
+  unsigned int sz = 0;
+  grid_point gp;
 
-  if (grid.get_ldx() != grid.get_gdx())
-  {
-    x_sd = true;
-  }
-
-  if (grid.get_ldy() != grid.get_gdy())
-  {
-    y_sd = true;
-  }
-
-  if (grid.get_ldz() != grid.get_gdz())
-  {
-    z_sd = true;
-  }
-
-  //cerr << MPI_RANK << ": ";
- 
   switch (face_) 
   {
   case FRONT:
   case BACK:
+    if (face_ == BACK)
+      gp.x = (*region_).xmin();
+    else
+      gp.x = (*region_).xmax() - 1;    
+    
+    gp.y = (*region_).ymin();
+    gp.z = (*region_).zmin();
+
     // DIMENSION STARTS HAVE TO CHANGE TOO!
-    var_.add_dimension("y", grid.get_ldy(), grid.get_gdy(), grid.get_lsy_ol());
-    var_.add_dimension("z", grid.get_ldz(), grid.get_gdz(), grid.get_lsz_ol());
+    var_.add_dimension("y", (*region_).ylen(), (*global_b).ylen(), 
+                       (*region_).ystart());
+    var_.add_dimension("z", (*region_).zlen(), (*global_b).zlen(), 
+                       (*region_).zstart());
 
-//     cerr << "X subdomin split? " << (x_sd ? "yup":"nope") << " plane_.x: "
-//          << plane_.x << ", min: " << grid.get_lsx() 
-//          << ", max: " << grid.get_lsx() + grid.get_ldx() << endl;
-     
-    if (x_sd && (plane_.x > grid.get_ldx() - 1 + grid.get_lsx() 
-                 || plane_.x < grid.get_lsx()))
-      have_data_ = false;
+    sz = (*region_).ylen() * (*region_).zlen();
 
-    // ERROR: This is only contiguous if the overlap IS INCLUDED!
-    // That's not what we want for results!
-    MPI_Type_contiguous(grid.get_ldz() * grid.get_ldy(), 
-                        GRID_MPI_TYPE, &datatype_);
 
-    //MPI_Type_vector(grid.get_ldy(), grid.get_ldz(), 
-    //                grid.get_ldz_sd() - grid.get_ldz(), 
-    //                GRID_MPI_TYPE, &datatype_);
-
+    if (!average_)
+    {
+      MPI_Type_hvector((*region_).ylen(), (*region_).zlen(), 
+                       sizeof(field_t) * grid.get_ldz_sd(), 
+                       GRID_MPI_TYPE, &datatype_);
+    }
     break;
 
   case TOP:
   case BOTTOM:
-    var_.add_dimension("x", grid.get_ldx(), grid.get_gdx(), grid.get_lsx_ol());
-    var_.add_dimension("y", grid.get_ldy(), grid.get_gdy(), grid.get_lsy_ol());
+    gp.x = (*region_).xmin();
+    gp.y = (*region_).ymin();
+    
+    if (face_ == BOTTOM)
+      gp.z = (*region_).zmin();
+    else
+      gp.z = (*region_).zmax() - 1;    
+    
+    var_.add_dimension("x", (*region_).xlen(), (*global_b).xlen(), 
+                       (*region_).xstart());
+    var_.add_dimension("y", (*region_).ylen(), (*global_b).ylen(), 
+                       (*region_).ystart());
 
-    MPI_Datatype y_vector;
-    MPI_Type_vector(grid.get_ldy(), 1, grid.get_ldz_sd(), 
-                    GRID_MPI_TYPE, &y_vector);
+    sz = (*region_).ylen() * (*region_).xlen();
 
-    MPI_Type_hvector(grid.get_ldx(), 1, 
-                     sizeof(field_t) * grid.get_ldz_sd() * grid.get_ldy_sd(), 
-                     y_vector, &datatype_);
+    if (!average_)
+    {
+      MPI_Datatype y_vector;
+      MPI_Type_vector((*region_).ylen(), 1, grid.get_ldz_sd(), 
+                      GRID_MPI_TYPE, &y_vector);
 
-//      cerr << "Z subdomin split? " << (z_sd ? "yup":"nope") << " plane_.z: "
-//           << plane_.z << ", min: " << grid.get_lsz() 
-//           << ", max: " << grid.get_lsz() + grid.get_ldz() << endl;
-
-    if (z_sd && (plane_.z > grid.get_ldz() - 1 + grid.get_lsz() 
-                 || plane_.z < grid.get_lsz()))
-      have_data_ = false;
-
+      MPI_Type_hvector((*region_).xlen(), 1, 
+                       sizeof(field_t) * grid.get_ldz_sd() 
+                       * grid.get_ldy_sd(), 
+                       y_vector, &datatype_);
+    }
     break;
 
   case LEFT:
   case RIGHT:
-    var_.add_dimension("x", grid.get_ldx(), grid.get_gdx(), grid.get_lsx_ol());
-    var_.add_dimension("z", grid.get_ldz(), grid.get_gdz(), grid.get_lsz_ol());
+    gp.x = (*region_).xmin();
+    
+    if (face_ == LEFT)
+      gp.y = (*region_).ymin();
+    else
+      gp.y = (*region_).zmax() - 1;    
 
-//     cerr << "Y subdomin split? " << (y_sd ? "yup":"nope") << " plane_.y: "
-//          << plane_.y << ", min: " << grid.get_lsy() 
-//          << ", max: " << grid.get_lsy() + grid.get_ldy() << endl;
+    gp.z = (*region_).zmin();
+    
+    var_.add_dimension("z", (*region_).zlen(), (*global_b).zlen(), 
+                       (*region_).zstart());
+    var_.add_dimension("x", (*region_).xlen(), (*global_b).xlen(), 
+                       (*region_).xstart());
 
-    if (y_sd && (plane_.y > grid.get_ldy() + grid.get_lsy() 
-                 || plane_.y < grid.get_lsy()))
-      have_data_ = false;
+    sz = (*region_).xlen() * (*region_).zlen();
 
-    MPI_Type_vector(grid.get_ldx(), grid.get_ldz(), 
-                    grid.get_ldy() * grid.get_ldz(), 
-                    GRID_MPI_TYPE, &datatype_);
+    if (!average_)
+    {
+      MPI_Type_vector((*region_).xlen(), (*region_).zlen(), 
+                      grid.get_ldy_sd() * grid.get_ldz_sd(), 
+                      GRID_MPI_TYPE, &datatype_);
+    }
+
     break;
+  }
+
+  if (average_)
+  {
+    MPI_Type_contiguous(sz, GRID_MPI_TYPE, &datatype_);
   }
 
   MPI_Type_commit(&datatype_);
 
   var_.set_name(base_name_);
-  var_.set_datatype(datatype_);
-  var_.set_ptr(grid.get_face_start(face_, field_, plane_));
 
+  if (average_)
+  {
+    avg_data_ = new field_t[sz];
+    memset(avg_data_, 0, sz * sizeof(field_t));
+    var_.set_ptr(avg_data_);
+  } 
+  else
+  {
+    var_.set_datatype(datatype_);
+    var_.set_ptr(grid.get_face_start(face_, field_, gp));
+  }
 }
 
 void PlaneResult::deinit()

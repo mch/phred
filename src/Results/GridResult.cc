@@ -116,12 +116,6 @@ void GridResult::init(const Grid &grid)
 void GridResult::deinit()
 {}
 
-map<string, Variable *> &
-GridResult::get_pre_result(const Grid &grid)
-{
-  return pre_vars_;
-}
-
 ostream& GridResult::to_string(ostream &os) const
 {
   return os << "GridResult; exports material information in the grid.";
