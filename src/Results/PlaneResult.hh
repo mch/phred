@@ -40,17 +40,6 @@ public:
   ~PlaneResult();
 
   /**
-   * Look for the plane we want to return, and return it. 
-   *
-   * @param grid a reference to a Grid object
-   * @return a reference to a data object, which contains an MPI
-   * derived data type, a planeer, and the number of items in the
-   * result.
-   */
-  virtual map<string, Variable *> &get_result(const Grid &grid, 
-                                              unsigned int time_step);
-
-  /**
    * Set the plane position in global coordinates
    *
    * @param p

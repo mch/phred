@@ -73,8 +73,6 @@ FakeResult::calculate_result(const Grid &grid,
   } else {
     var_.set_num(0);
   }
-  
-  return variables_;
 }
 
 ostream& FakeResult::to_string(ostream &os) const

@@ -451,12 +451,13 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
     fdtd.add_result("grid", gridr);
     fdtd.map_result_to_datawriter("grid", "ncdw");
 
+    shared_ptr<CSGBox> pln_box = shared_ptr<CSGBox>(new CSGBox);
+    pln_box->set_size(gridx, deltay, gridz);
+
     shared_ptr<PlaneResult> plnr1
       = shared_ptr<PlaneResult>(new PlaneResult);
     plnr1->set_time_param(0, time_steps, 10);
-    plnr1->set_plane(grid_point(fdtd.get_num_x_cells() / 2, \
-                                fdtd.get_num_y_cells() / 2, \
-                                fdtd.get_num_z_cells() / 2), LEFT);
+    plnr1->set_plane(pln_box, LEFT);
     plnr1->set_field(FC_EX);
     fdtd.add_result("xz_ex", plnr1);
     fdtd.map_result_to_datawriter("xz_ex", "ncdw");
@@ -768,12 +769,14 @@ void square_hole_thin(int ysize)
     fdtd.add_result("grid", gridr);
     fdtd.map_result_to_datawriter("grid", "ncdw");
 
+    shared_ptr<CSGBox> pln_box = shared_ptr<CSGBox>(new CSGBox());
+    pln_box->set_size(gridx, deltay, gridz);
+    
     shared_ptr<PlaneResult> plnr1
       = shared_ptr<PlaneResult>(new PlaneResult);
     plnr1->set_time_param(0, time_steps, 10);
-    plnr1->set_plane(grid_point(fdtd.get_num_x_cells() / 2, \
-                                fdtd.get_num_y_cells() / 2, \
-                                fdtd.get_num_z_cells() / 2), LEFT);
+
+    plnr1->set_plane(pln_box, LEFT);
     plnr1->set_field(FC_EX);
     fdtd.add_result("xz_ex", plnr1);
     fdtd.map_result_to_datawriter("xz_ex", "ncdw");
