@@ -538,28 +538,31 @@ void FDTD::run()
     double wall_mnps = num_mnodes / avg_time;
     unsigned int num_nodes = grid_->get_num_updated_nodes();
 
-    MPI_Reduce(&num_mnodes, &num_mnodes, 1, MPI_DOUBLE, 
+    double total_mnodes, total_cpu_mnps, total_wall_mnps;
+    unsigned int total_nodes;
+
+    MPI_Reduce(&num_mnodes, &total_mnodes, 1, MPI_DOUBLE, 
                MPI_SUM, 0, MPI_COMM_PHRED);
 
-    MPI_Reduce(&num_nodes, &num_nodes, 1, MPI_UNSIGNED, 
+    MPI_Reduce(&num_nodes, &total_nodes, 1, MPI_UNSIGNED, 
                MPI_SUM, 0, MPI_COMM_PHRED);
 
-    MPI_Reduce(&cpu_mnps, &cpu_mnps, 1, MPI_DOUBLE, 
+    MPI_Reduce(&cpu_mnps, &total_cpu_mnps, 1, MPI_DOUBLE, 
                MPI_SUM, 0, MPI_COMM_PHRED);
 
-    MPI_Reduce(&wall_mnps, &wall_mnps, 1, MPI_DOUBLE, 
+    MPI_Reduce(&wall_mnps, &total_wall_mnps, 1, MPI_DOUBLE, 
                MPI_SUM, 0, MPI_COMM_PHRED);
 
     if (MPI_RANK == 0)
     {
-      cout << "Number of updated nodes: " << num_nodes
-           << ", millions of updated nodes: " << num_mnodes << endl;
+      cout << "Number of updated nodes: " << total_nodes
+           << ", millions of updated nodes: " << total_mnodes << endl;
       cout << "Average wall time: " << avg_time << ", avg cpu time: "
            << avg_cpu_time / static_cast<double>(CLOCKS_PER_SEC) << endl;
       cout << "Average millions of nodes per second, w.r.t. wall clock time: " 
-           << wall_mnps << endl;
+           << total_wall_mnps << endl;
       cout << "Average millions of nodes per second, w.r.t. CPU time: " 
-           << cpu_mnps << endl;
+           << total_cpu_mnps << endl;
       cout << "Note: MNPS w.r.t. CPU time may be incorrect. " << endl;
     }
 

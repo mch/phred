@@ -387,13 +387,16 @@ void AvgPowerResult::calculate_post_result(const Grid &grid)
         ::loop(grid, (*region_), face_, data);
     }
 
-    MPI_Reduce(&data.p_real, &data.p_real, 1, 
+    field_t temp_real, temp_imag;
+    MPI_Reduce(&data.p_real, &temp_real, 1, 
                GRID_MPI_TYPE, MPI_SUM, 0, 
                MPI_COMM_PHRED);
-    
-    MPI_Reduce(&data.p_imag, &data.p_imag, 1, 
+    data.p_real = temp_real;
+
+    MPI_Reduce(&data.p_imag, &temp_imag, 1, 
                GRID_MPI_TYPE, MPI_SUM, 0, 
                MPI_COMM_PHRED);
+    data.p_imag = temp_imag;
 
     power_real_[i] = data.p_real;
     power_imag_[i] = data.p_imag;

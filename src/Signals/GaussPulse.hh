@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 */
 
 /** \class Gaussm
- * \brief A modulated gaussian excitation
+ * \brief A gaussian excitation
  *
- * A Gaussian function modulated by a sine wave. 
+ * A Gaussian function. 
  */
 
 #ifndef EXCITE_GAUSS_PULSE_H
@@ -66,7 +66,7 @@ public:
   field_t get_taup() const;
 
   /**
-   * Produces a modulated gauss function. 
+   * Produces a gauss function. 
    *
    * @param time the time at which to apply the excitation
    *

@@ -327,8 +327,10 @@ void PowerResult::calculate_result(const Grid &grid,
     time_power_ = data.tp_;
   }
 
-  MPI_Reduce(&time_power_, &time_power_, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
+  field_t temp_time_power;
+  MPI_Reduce(&time_power_, &temp_time_power, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
              MPI_COMM_PHRED);
+  time_power_ = temp_time_power;
 
   // DFTPowerAlg::Data dftdata;
 
@@ -371,13 +373,16 @@ void PowerResult::calculate_result(const Grid &grid,
 //                                                         face_, dftdata);
 //     }
     
-//     MPI_Reduce(&dftdata.p_real, &dftdata.p_real, 1, 
+//     field_t temp_real, temp_imag;
+//     MPI_Reduce(&dftdata.p_real, &temp_real, 1, 
 //                GRID_MPI_TYPE, MPI_SUM, 0, 
 //                MPI_COMM_PHRED);
-    
-//     MPI_Reduce(&dftdata.p_imag, &dftdata.p_imag, 1, 
+//     dftdata.p_real = temp_real;
+
+//     MPI_Reduce(&dftdata.p_imag, &temp_imag, 1, 
 //                GRID_MPI_TYPE, MPI_SUM, 0, 
 //                MPI_COMM_PHRED);
+//     dftdata.p_imag = temp_imag;
 
 //     power_real_[i] = dftdata.p_real;
 //     power_imag_[i] = dftdata.p_imag;
