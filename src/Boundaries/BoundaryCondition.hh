@@ -75,11 +75,11 @@ protected:
                          unsigned int z)
   {
     assert(x < bc_r_.xmax && y < bc_r_.ymax && z < bc_r_.zmax);
-    //assert(z + (y + x*(bc_r_.ymax - bc_r_.ymin) 
-    //            * (bc_r_.zmax - bc_r_.zmin)) < sz_);
+    //assert(z + (y + x*(bc_r_.ymax - bc_r_.y_start) 
+    //            * (bc_r_.zmax - bc_r_.z_start)) < sz_);
 
-    return z + (y + x*(bc_r_.ymax - bc_r_.ymin)) 
-                * (bc_r_.zmax - bc_r_.zmin);
+    return z + (y + x*(bc_r_.ymax - bc_r_.ymax)) 
+                * (bc_r_.zmax - bc_r_.zmax);
   }
 
   // These regions are regions *in the grid coordinates*, not in the

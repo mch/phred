@@ -74,9 +74,8 @@ public:
  * Free helper function for calling window() on WindowedExcitation's. 
  */
 field_t call_window(WindowedExcitation &w, 
-                    region_t r, unsigned int x, 
-                    unsigned int y, unsigned int z)
-{ w.window(r, x, y, z); }
+                    float x, float y, float z)
+{ w.window(x, y, z); }
 
 /**
  * This wrapper allows subclasses of WindowedExcitation written in Python
@@ -100,9 +99,8 @@ public:
                       FieldType type) 
   { WindowedExcitation::excite(grid, time_step, type); }  
 
-  field_t window(region_t r, unsigned int x, unsigned int y, 
-                 unsigned int z)
-  { return call_method<field_t>(self_, "window", r, x, y, z); }
+  field_t window(float x, float y, float z)
+  { return call_method<field_t>(self_, "window", x, y, z); }
 };
 
 /**

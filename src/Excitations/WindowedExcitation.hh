@@ -111,13 +111,15 @@ public:
     //     << ": ---------------------" << endl;
     if (!soft_) 
     {
-      for(unsigned int i = region_.xmin; i < region_.xmax; i++)
+      fx = grid.get_deltax() * (grid.get_lsx_ol() + region_.xmin);
+      for(unsigned int i = region_.xmin; i < region_.xmax; i++, 
+            fx += grid.get_deltax())
       {
-        fx = grid.get_deltax() * (grid.get_lsx_ol() + i);
-        for (unsigned int j = region_.ymin; j < region_.ymax; j++)
+        fy = grid.get_deltay() * (grid.get_lsy_ol() + region_.ymin);
+        for (unsigned int j = region_.ymin; j < region_.ymax; j++,
+               fy += grid.get_deltay())
         {
-          fy = grid.get_deltay() * (grid.get_lsy_ol() + j);
-          fz = grid.get_deltaz() * grid.get_lsz_ol();
+          fz = grid.get_deltaz() * (grid.get_lsz_ol() + region_.zmin);
           for (unsigned int k = region_.zmin; k < region_.zmax; k++,
                  fz += grid.get_deltaz())
           {
@@ -146,13 +148,15 @@ public:
         }
       }
     } else {
-      for(unsigned int i = region_.xmin; i < region_.xmax; i++)
+      fx = grid.get_deltax() * (grid.get_lsx_ol() + region_.xmin);
+      for(unsigned int i = region_.xmin; i < region_.xmax; i++,
+            fx += grid.get_deltax())
       {
-        fx = grid.get_deltax() * (grid.get_lsx_ol() + i);
-        for (unsigned int j = region_.ymin; j < region_.ymax; j++)
+        fy = grid.get_deltay() * (grid.get_lsy_ol() + region_.ymin);
+        for (unsigned int j = region_.ymin; j < region_.ymax; j++,
+               fy += grid.get_deltay())
         {
-          fy = grid.get_deltay() * (grid.get_lsy_ol() + j);
-          fz = grid.get_deltaz() * grid.get_lsz_ol();
+          fz = grid.get_deltaz() * (grid.get_lsz_ol() + region_.zmin);
           for (unsigned int k = region_.zmin; k < region_.zmax; k++,
                  fz += grid.get_deltaz())
           {

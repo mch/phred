@@ -20,4 +20,7 @@ libresults_a_SOURCES = 	Result.hh \
 	PowerResult.hh \
 	PowerResult.cc \
 	FakeResult.hh \
-	FakeResult.cc
+	FakeResult.cc \
+	GridResult.hh \
+	GridResult.cc
+

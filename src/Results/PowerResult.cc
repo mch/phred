@@ -100,36 +100,36 @@ void PowerResult::init(const Grid &grid)
 {
   const GridInfo &gi = grid.get_grid_info();
 
-  region2_.set_x(region_.xmin, region_.xmax);
-  region2_.set_y(region_.ymin, region_.ymax);
-  region2_.set_z(region_.zmin, region_.zmax);
+//   region2_.set_x(region_.xmin, region_.xmax);
+//   region2_.set_y(region_.ymin, region_.ymax);
+//   region2_.set_z(region_.zmin, region_.zmax);
 
-  cerr << "PowerResult global region is x: " << region2_.get_global_xmin()
-       << " to " << region2_.get_global_xmax() << " y: "
-       << region2_.get_global_ymin() << " to " 
-       << region2_.get_global_ymax() << " z: " 
-       << region2_.get_global_zmin() << " to " 
-       << region2_.get_global_zmax() << endl;
+//   cerr << "PowerResult global region is x: " << region2_.get_global_xmin()
+//        << " to " << region2_.get_global_xmax() << " y: "
+//        << region2_.get_global_ymin() << " to " 
+//        << region2_.get_global_ymax() << " z: " 
+//        << region2_.get_global_zmin() << " to " 
+//        << region2_.get_global_zmax() << endl;
 
   /* Region must be in out local sub-domain */ 
-  //region_ = grid.global_to_local(region_, true);
-//   x_size_ = region_.xmax - region_.xmin;
-//   y_size_ = region_.ymax - region_.ymin;
-//   z_size_ = region_.zmax - region_.zmin;
+  region_ = grid.global_to_local(region_, true);
+  x_size_ = region_.xmax - region_.xmin;
+  y_size_ = region_.ymax - region_.ymin;
+  z_size_ = region_.zmax - region_.zmin;
 
-  x_size_ = region2_.get_xmax(gi) - region2_.get_xmin(gi) + 1;
-  y_size_ = region2_.get_ymax(gi) - region2_.get_ymin(gi) + 1;
-  z_size_ = region2_.get_zmax(gi) - region2_.get_zmin(gi) + 1;
+//   x_size_ = region2_.get_xmax(gi) - region2_.get_xmin(gi) + 1;
+//   y_size_ = region2_.get_ymax(gi) - region2_.get_ymin(gi) + 1;
+//   z_size_ = region2_.get_zmax(gi) - region2_.get_zmin(gi) + 1;
 
   cerr << "PowerResult local region is " << x_size_ << " x "
        << y_size_ << " x " << z_size_ << endl;
 
-  cerr << "PowerResult local region is x: " << region2_.get_xmin(gi)
-       << " to " << region2_.get_xmax(gi) << " y: "
-       << region2_.get_ymin(gi) << " to " 
-       << region2_.get_ymax(gi) << " z: " 
-       << region2_.get_zmin(gi) << " to " 
-       << region2_.get_zmax(gi) << endl;
+//   cerr << "PowerResult local region is x: " << region2_.get_xmin(gi)
+//        << " to " << region2_.get_xmax(gi) << " y: "
+//        << region2_.get_ymin(gi) << " to " 
+//        << region2_.get_ymax(gi) << " z: " 
+//        << region2_.get_zmin(gi) << " to " 
+//        << region2_.get_zmax(gi) << endl;
 
   /* Region must be a plane; set up grid plane */
   if (x_size_ == 1)

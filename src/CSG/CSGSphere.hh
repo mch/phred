@@ -22,9 +22,9 @@
 #ifndef CSG_SPHERE_H
 #define CSG_SPHERE_H
 
-#include "CSGObject.hh"
+#include "CSGPrimitive.hh"
 
-class CSGSphere : public CSGObject 
+class CSGSphere : public CSGPrimitive 
 {
 public:
   CSGSphere();

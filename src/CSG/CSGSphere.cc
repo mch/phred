@@ -33,7 +33,8 @@ CSGStatus CSGSphere::is_point_inside(float x, float y, float z) const
 {
   CSGStatus ret = OUTSIDE;
 
-  float r = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+  float r = sqrt(pow(centre_[0] - x, 2) + pow(centre_[1] - y, 2) 
+                 + pow(centre_[2] - z, 2));
 
   if (r < radius_)
     ret = INSIDE;

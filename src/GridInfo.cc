@@ -70,7 +70,6 @@ GridInfo& GridInfo::operator=(const GridInfo &info)
   
   for (int i = 0; i < 6; i++) {
     face_bc_[i] = info.face_bc_[i];
-    //face_ptr_owner_ = false;
   }
   
   return *this;
@@ -85,35 +84,6 @@ void GridInfo::set_boundary(Face face, shared_ptr<BoundaryCond> bc)
 {
     face_bc_[face] = bc;
 }
-
-// BoundaryCond *GridInfo::copy_bc(BoundaryCond *bc, BoundaryCondition bc_type)
-// {
-//   BoundaryCond *ret = 0;
-
-//   switch (bc_type) {
-//   case SUBDOMAIN:
-//     ret = new SubdomainBc(dynamic_cast<const SubdomainBc&>(*bc));
-//     break;
-
-//   case EWALL:
-//     ret = new Ewall(dynamic_cast<const Ewall&>(*bc));
-//     break;
-
-//   case HWALL:
-//     ret = new Hwall(dynamic_cast<const Hwall&>(*bc));
-//     break;
-
-//   case PML:
-//     ret = new Pml(dynamic_cast<const Pml&>(*bc));
-//     break;
-
-//   case UNKNOWN:
-//     ret = new UnknownBc(dynamic_cast<const UnknownBc&>(*bc));
-//     break;
-//   }
-
-//   return ret;
-// }
 
 unsigned int GridInfo::get_face_thickness(Face face)
 {

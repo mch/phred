@@ -21,6 +21,7 @@
 
 #include "ProblemGeometry.hh"
 #include "Grid.hh"
+#include "CSG/CSGSphere.hh"
 
 ProblemGeometry::ProblemGeometry()
   : unit_(1), grid_box_(string("FreeSpace"), 
@@ -58,6 +59,22 @@ ProblemGeometry::get_material_id(float x, float y, float z) const
 void ProblemGeometry::add_object(string material, shared_ptr<CSGObject> obj)
 {
   objects_.push_back(GeomObject(material, obj));
+
+  CSGBox *b = dynamic_cast<CSGBox *>(obj.get());
+  CSGSphere *s = dynamic_cast<CSGSphere *>(obj.get());
+  if (b)
+  {
+    point sz = b->get_size();
+    point c = b->get_centre();
+    cerr << "Added box with centre at " << c.x << ", " << c.y << ", "
+         << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
+         << endl;
+  } else if (s) {
+    point c = s->get_centre();
+    cerr << "Added sphere with centre at " << c.x << ", " << c.y << ", "
+         << c.z << ", radius " << s->get_radius()
+         << endl;
+  }
 }
 
 void ProblemGeometry::set_grid_size(float x_size, float y_size, float z_size)
@@ -74,7 +91,7 @@ point ProblemGeometry::get_grid_size() const
   point ret;
 
   if (box)
-    box->get_size();
+    ret = box->get_size();
 
   return ret;
 }
@@ -100,13 +117,26 @@ point ProblemGeometry::get_grid_centre() const
 
 void ProblemGeometry::init(const Grid &grid)
 {
+  CSGBox *box = dynamic_cast<CSGBox *>(grid_box_.obj_.get());
+
+  point c = box->get_centre();
+  point sz = box->get_size();
+
+  cerr << "Grid is centred at " << c.x << ", " << c.y << ", "
+       << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
+       << endl;
+
   vector <GeomObject>::iterator iter = objects_.begin();
   vector <GeomObject>::iterator iter_e = objects_.end();
-  const MaterialLib &material = grid.get_material_lib();
+  shared_ptr<MaterialLib> material = grid.get_material_lib();
 
   try {
-    const Material &mat = material.get_material(grid_box_.material_.c_str());
+    const Material &mat = (*material).get_material(grid_box_.material_.c_str());
     grid_box_.material_id_ = mat.get_id();
+
+    cerr << "ProblemGeom, set mat id to " << grid_box_.material_id_
+         << " for material '" << grid_box_.material_ << "'." << endl;
+
   } catch (const UnknownMaterialException &e) {
     cout << "WARNING! The grid is using the material '"
          << (*iter).material_ << "' which does not exist!" << endl;
@@ -116,7 +146,7 @@ void ProblemGeometry::init(const Grid &grid)
   for(; iter != iter_e; ++iter)
   {
     try {
-      const Material &mat = material.get_material((*iter).material_.c_str());
+      const Material &mat = (*material).get_material((*iter).material_.c_str());
 
       (*iter).material_id_ = mat.get_id();
 
@@ -125,6 +155,8 @@ void ProblemGeometry::init(const Grid &grid)
            << (*iter).material_ << "' which does not exist!" << endl;
       throw e;
     }
+    cerr << "ProblemGeom, set mat id to " << (*iter).material_id_
+         << " for material '" << (*iter).material_ << "'." << endl;
   }  
 }
 

@@ -24,7 +24,7 @@
 
 #include "DFTResult.hh"
 #include "../GridPlane.hh"
-#include "../Region.hh"
+//#include "../Region.hh"
 
 /**
  * Calculates the power flowing through a surface at specific
@@ -85,7 +85,7 @@ protected:
                        be a plane, so the min and max on one axis
                        should be the same. */
 
-  Region region2_; /**< The REAL region! */ 
+  //  Region region2_; /**< The REAL region! */ 
 
   field_t cell_area_; /**< Area for each FDTD cell... */ 
 

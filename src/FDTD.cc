@@ -274,10 +274,10 @@ void FDTD::run()
 
   grid_->setup_grid(local_ginfo_);
 
-  grid_->load_materials(*mlib_);
+  grid_->load_materials(mlib_);
 
   geometry_.init(*grid_);
-  grid_->load_geometry(geometry_);
+  grid_->load_geometry(&geometry_);
 
   grid_->set_define_mode(false);
 

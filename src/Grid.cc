@@ -110,6 +110,54 @@ void Grid::set_define_mode(bool d)
     
     alloc_grid();
 
+    // Set up the grid geometry. 
+    if (pg_)
+    {
+      point size = (*pg_).get_grid_size();
+      point centre = (*pg_).get_grid_centre();
+
+      float x = centre.x - size.x / 2 + get_deltax() * info_.start_x_;
+      float y = centre.y - size.y / 2 + get_deltay() * info_.start_y_;
+      float z = centre.z - size.z / 2 + get_deltaz() * info_.start_z_;
+
+      for (unsigned int i = 0; i < info_.dimx_; i++)
+      {
+        y = centre.y - size.y / 2 + get_deltay() * info_.start_y_;
+        for (unsigned int j = 0; j < info_.dimy_; j++)
+        {
+          z = centre.z - size.z / 2 + get_deltaz() * info_.start_z_;
+          for (unsigned int k = 0; k < info_.dimz_; k++)
+          {
+            material_[pi(i,j,k)] = pg_->get_material_id(x, y, z);
+
+//             cerr << "Point at (" << x << ", " << y << ", " << z << ") is... ";
+//             cerr << material_[pi(i,j,k)] << endl;
+  
+
+            z += info_.deltax_;
+          }
+          y += info_.deltay_;
+        }
+        x += info_.deltax_;
+      }
+
+      // SET UP Data structures for dealing with blocks of memory for different
+      // kinds of dispersion relationships. 
+
+      //   num_geoms_ = geoms.size();
+      //   vector<Geometry *>::iterator iter;
+      //   vector<Geometry *>::iterator iter_e = geoms.end();
+      //   int idx = 0;
+  
+      //   if (geometries_)
+      //     delete geometries_;
+
+      //   geometries_ = new Geometry*[num_geoms_];
+
+      //   for (iter = geoms.begin(), idx = 0; iter != iter_e; ++iter, idx++)
+      //     geometries_[idx] = *iter;
+    }
+
     init_datatypes();
 
     // Calculate update region_t by considering the thickness of the PML's. 
@@ -464,51 +512,17 @@ void Grid::alloc_grid()
   }
 }
 
-void Grid::load_geometry(const ProblemGeometry &pg)
+void Grid::load_geometry(const ProblemGeometry *pg)
 {
   // Loop through the voxels and ask the problem geometry what
   // material id should be used at each. THIS MUST BE CHANGED TO
   // SUPPORT GRADED MESHES.
-  
-  point size = pg.get_grid_size();
-  point centre = pg.get_grid_centre();
 
-  float x = centre.x - size.x / 2;
-  float y = centre.y - size.y / 2;
-  float z = centre.z - size.z / 2;
+  pg_ = pg;
 
-  for (unsigned int i = 0; i < info_.dimx_; i++)
-  {
-    for (unsigned int j = 0; j < info_.dimy_; j++)
-    {
-      for (unsigned int k = 0; k < info_.dimz_; k++)
-      {
-        material_[pi(i,j,k)] = pg.get_material_id(x, y, z);
-        z += info_.deltax_;
-      }
-      y += info_.deltay_;
-    }
-    x += info_.deltax_;
-  }
-
-  // SET UP Data structures for dealing with blocks of memory for different
-  // kinds of dispersion relationships. 
-
-//   num_geoms_ = geoms.size();
-//   vector<Geometry *>::iterator iter;
-//   vector<Geometry *>::iterator iter_e = geoms.end();
-//   int idx = 0;
-  
-//   if (geometries_)
-//     delete geometries_;
-
-//   geometries_ = new Geometry*[num_geoms_];
-
-//   for (iter = geoms.begin(), idx = 0; iter != iter_e; ++iter, idx++)
-//     geometries_[idx] = *iter;
 }
 
-void Grid::load_materials(MaterialLib &matlib)
+void Grid::load_materials(shared_ptr<MaterialLib> matlib)
 {
   if (!define_)
   {
@@ -521,7 +535,7 @@ void Grid::load_materials(MaterialLib &matlib)
   // Clear up any material data that may already be loaded
   free_material();
 
-  int num_mat = matlib.num_materials() + 1;
+  int num_mat = (*matlib).num_materials() + 1;
   Ca_ = new mat_coef_t[num_mat];
   Da_ = new mat_coef_t[num_mat];
 
@@ -564,8 +578,8 @@ void Grid::load_materials(MaterialLib &matlib)
   memset(Dby_, 0, sizeof(mat_coef_t) * num_mat);
   memset(Dbz_, 0, sizeof(mat_coef_t) * num_mat);
 
-  map<string, Material>::iterator iter = matlib.materials_.begin();
-  map<string, Material>::iterator iter_e = matlib.materials_.end();
+  map<string, Material>::iterator iter = (*matlib).materials_.begin();
+  map<string, Material>::iterator iter_e = (*matlib).materials_.end();
 
   // The first one is always PEC
   unsigned int index = 0;
@@ -655,18 +669,6 @@ void Grid::load_materials(MaterialLib &matlib)
   }
 }
 
-
-void Grid::setup_grid(const Region &region)
-{
-  if (!define_)
-  {
-    cerr << "Unable to setup grid; the grid is not in define mode." << endl;
-    return;
-  }
-
-  
-}
-
 void Grid::setup_grid(const GridInfo &info)
 {
   if (!define_)
@@ -679,9 +681,9 @@ void Grid::setup_grid(const GridInfo &info)
 }
 
 
-// void Grid::define_box(unsigned int x_start, unsigned int x_stop, 
-//                       unsigned int y_start, unsigned int y_stop, 
-//                       unsigned int z_start, unsigned int z_stop, 
+// void Grid::define_box(unsigned int xmin, unsigned int x_stop, 
+//                       unsigned int ymin, unsigned int y_stop, 
+//                       unsigned int zmin, unsigned int z_stop, 
 //                       unsigned int mat_index)
 // {
 //   // Given coordinates are global, so we have to convert them to local. 
@@ -692,9 +694,9 @@ void Grid::setup_grid(const GridInfo &info)
 //     return;
 //   }
 
-//   region_t r = global_to_local(x_start, x_stop,
-//                                y_start, y_stop,
-//                                z_start, z_stop);
+//   region_t r = global_to_local(xmin, x_stop,
+//                                ymin, y_stop,
+//                                zmin, z_stop);
 
 //   for (unsigned int i = r.xmin; i < r.xmax; i++)
 //   {
@@ -1049,18 +1051,18 @@ region_t Grid::global_to_local(region_t in, bool no_ol) const
   return r;
 }
 
-region_t Grid::global_to_local(unsigned int x_start, unsigned int x_stop, 
-                               unsigned int y_start, unsigned int y_stop, 
-                               unsigned int z_start, unsigned int z_stop,
+region_t Grid::global_to_local(unsigned int xmin, unsigned int x_stop, 
+                               unsigned int ymin, unsigned int y_stop, 
+                               unsigned int zmin, unsigned int z_stop,
                                bool no_ol) const
 {
   region_t result;
   
-  result.xmin = x_start;
+  result.xmin = xmin;
   result.xmax = x_stop;
-  result.ymin = y_start;
+  result.ymin = ymin;
   result.ymax = y_stop;
-  result.zmin = z_start;
+  result.zmin = zmin;
   result.zmax = z_stop;
 
   return global_to_local(result, no_ol);
@@ -1276,18 +1278,73 @@ void Grid::setup_subdomain_data(SubdomainBc *sd, Face face)
   sd->add_tx_rx_data(rxtx);
 }
 
-Region Grid::get_region(CSGBox &box) const
+grid_point Grid::get_global_cell(float x, float y, float z) const
+{
+  if (pg_)
+  {
+    point size = (*pg_).get_grid_size();
+    point centre = (*pg_).get_grid_centre();
+
+    float xs = centre.x - size.x / 2;
+    float ys = centre.y - size.y / 2;
+    float zs = centre.z - size.z / 2;
+    
+    unsigned int i = 0; 
+    unsigned int j = 0; 
+    unsigned int k = 0;
+
+    // Will need modification for graded meshes. 
+    if (x > xs)
+    {
+      i = static_cast<unsigned int>(floor((x - xs) / get_deltax()));
+      if (i > get_ldx_sd())
+        i = get_ldx_sd() - 1;
+    }
+
+    if (y > ys)
+    {
+      j = static_cast<unsigned int>(floor((y - ys) / get_deltay()));
+      if (j > get_ldy_sd())
+        j = get_ldy_sd() - 1;
+    }
+
+    if (z > zs)
+    {
+      k = static_cast<unsigned int>(floor((z - zs) / get_deltaz()));
+      if (k > get_ldz_sd())
+        k = get_ldz_sd() - 1;
+    }
+  }
+}
+
+region_t Grid::get_local_region(CSGBox &box) const
+{
+  region_t hmm = get_global_region(box);
+
+  return global_to_local(hmm);
+}
+
+region_t Grid::get_global_region(CSGBox &box) const
 {
   point centre = box.get_centre();
   point size = box.get_size();
-  
-  grid_point start, lengths;
+  region_t ret;
 
+  float xs = centre.x - size.x / 2;
+  float ys = centre.y - size.y / 2;
+  float zs = centre.z - size.z / 2;
   
+  float xe = centre.x + size.x / 2;
+  float ye = centre.y + size.y / 2;
+  float ze = centre.z + size.z / 2;
   
+  grid_point start = get_global_cell(xs, ys, zs);
+  grid_point end = get_global_cell(xe, ye, ze);
+  
+  ret.xmin = start.x; ret.xmax = end.x;
+  ret.ymin = start.y; ret.ymax = end.y;
+  ret.zmin = start.z; ret.zmax = end.z;
+
+  return ret;
 }
 
-OverlapRegion Grid::get_overlap_region(CSGBox &box) const
-{
-
-}

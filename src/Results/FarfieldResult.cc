@@ -461,9 +461,9 @@ void FarfieldResult::arc_connect()
   // From Jan's implementation...
   float farf_delt;
   float farf_angle;
-  float x_start,x_stop;
-  float y_start,y_stop;
-  float z_start,z_stop;
+  float xmin,x_stop;
+  float ymin,y_stop;
+  float zmin,z_stop;
   int ptnr;
 
   if(num_pts_ == 1)
@@ -477,11 +477,11 @@ void FarfieldResult::arc_connect()
   {
 
     farf_delt = 2.*PI/( num_pts_-1);
-    x_start = sin( theta_start_/180.*PI)*
+    xmin = sin( theta_start_/180.*PI)*
       cos( phi_start_/180.*PI);      
-    y_start = sin( theta_start_/180.*PI)*
+    ymin = sin( theta_start_/180.*PI)*
       sin( phi_start_/180.*PI);      
-    z_start = cos( theta_start_/180.*PI);
+    zmin = cos( theta_start_/180.*PI);
                                         
     for(ptnr = 0; ptnr < num_pts_; ptnr++)
     {
@@ -489,38 +489,38 @@ void FarfieldResult::arc_connect()
       {
       case 1 :
         theta_[ptnr] = acos(
-                           z_start*cos(ptnr*farf_delt)+
-                           y_start*sin(ptnr*farf_delt));
+                           zmin*cos(ptnr*farf_delt)+
+                           ymin*sin(ptnr*farf_delt));
         phi_[ptnr] = atan2_local(
-                                y_start*cos(ptnr*farf_delt)-
-                                z_start*sin(ptnr*farf_delt),x_start)
+                                ymin*cos(ptnr*farf_delt)-
+                                zmin*sin(ptnr*farf_delt),xmin)
           ;
         break;
       case -1 :
         theta_[ptnr] = acos(
-                           z_start*cos(-ptnr*farf_delt)+
-                           y_start*sin(-ptnr*farf_delt));
+                           zmin*cos(-ptnr*farf_delt)+
+                           ymin*sin(-ptnr*farf_delt));
         phi_[ptnr] = atan2_local(
-                                y_start*cos(-ptnr*farf_delt)-
-                                z_start*sin(-ptnr*farf_delt),x_start
+                                ymin*cos(-ptnr*farf_delt)-
+                                zmin*sin(-ptnr*farf_delt),xmin
                                 );
         break;
       case 2 :
         theta_[ptnr] = acos(
-                           x_start*cos(ptnr*farf_delt)+
-                           z_start*sin(ptnr*farf_delt));
+                           xmin*cos(ptnr*farf_delt)+
+                           zmin*sin(ptnr*farf_delt));
         phi_[ptnr] = atan2_local(
-                                y_start,z_start*cos(ptnr*farf_delt)-
-                                x_start*sin(ptnr*farf_delt));
+                                ymin,zmin*cos(ptnr*farf_delt)-
+                                xmin*sin(ptnr*farf_delt));
         break;
       case -2 :
         theta_[ptnr] = acos(
-                           x_start*cos(-ptnr*farf_delt)+
-                           z_start*sin(-ptnr*farf_delt));
+                           xmin*cos(-ptnr*farf_delt)+
+                           zmin*sin(-ptnr*farf_delt));
         phi_[ptnr] = atan2_local(
-                                y_start,z_start*cos(-ptnr*farf_delt)
+                                ymin,zmin*cos(-ptnr*farf_delt)
                                 -
-                                x_start*sin(-ptnr*farf_delt));
+                                xmin*sin(-ptnr*farf_delt));
         break;
       case 3 :
         theta_[ptnr] = 
@@ -541,11 +541,11 @@ void FarfieldResult::arc_connect()
   }
   else
   {
-    x_start = sin( theta_start_/180.*PI)*
+    xmin = sin( theta_start_/180.*PI)*
       cos( phi_start_/180.*PI);      
-    y_start = sin( theta_start_/180.*PI)*
+    ymin = sin( theta_start_/180.*PI)*
       sin( phi_start_/180.*PI);      
-    z_start = cos( theta_start_/180.*PI);
+    zmin = cos( theta_start_/180.*PI);
                                                 
     x_stop = sin( theta_stop_/180.*PI)*
       cos( phi_stop_/180.*PI);       
@@ -553,7 +553,7 @@ void FarfieldResult::arc_connect()
       sin( phi_stop_/180.*PI);       
     z_stop = cos( theta_stop_/180.*PI);
                                                 
-    farf_angle = acos(x_start*x_stop+y_start*y_stop+z_start*z_stop);
+    farf_angle = acos(xmin*x_stop+ymin*y_stop+zmin*z_stop);
     if( axis_ < 0)
       farf_angle = 2.*PI-farf_angle;
 
@@ -562,11 +562,11 @@ void FarfieldResult::arc_connect()
     {
       theta_[ptnr] = acos(1./sin(farf_angle)*
                          (sin(farf_angle-ptnr*farf_delt)*
-                          z_start+sin(ptnr*farf_delt)*z_stop));
+                          zmin+sin(ptnr*farf_delt)*z_stop));
       phi_[ptnr] = atan2_local(
-                              sin(farf_angle-ptnr*farf_delt)*y_start
+                              sin(farf_angle-ptnr*farf_delt)*ymin
                               +sin(ptnr*farf_delt)*y_stop,
-                              sin(farf_angle-ptnr*farf_delt)*x_start
+                              sin(farf_angle-ptnr*farf_delt)*xmin
                               +sin(ptnr*farf_delt)*x_stop);
     }
   }

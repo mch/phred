@@ -160,10 +160,10 @@ typedef @FIELD_TYPE@ field_t;
 typedef @FIELD_TYPE@ delta_t;
 
 /** \struct region
- * \brief min and max coordinates that can be used to define a
+ * \brief Starting position and lengths that can be used to define a
  * block within the grid. Or a face. 
  */
-typedef struct region_str {
+typedef struct {
   unsigned int xmin;
   unsigned int xmax;
   unsigned int ymin;

@@ -105,6 +105,42 @@ public:
 protected:
   shared_ptr<BoundaryCond> face_bc_[6]; // Boundary condition to apply
   
+  /**
+   * This region defines the size of the entire computational domain,
+   * starting at zero.
+   */ 
+  region_t domain_;
+
+  /**
+   * This region defines the size of the computational domain present
+   * on this process only, starting at zero. 
+   */
+  region_t local_domain_;
+
+  /**
+   * This region defines the location of the computational domain
+   * running on this processor within the total computational
+   * domain. The maximums will be the same as for local_domain_, but
+   * the starting point will be different.
+   */
+  region_t local_domain_in_global_;
+
+  /**
+   * This region defines the minimums and maximums for the
+   * computational domain on the local process, not including any
+   * overlap that may occur due to the division of the global
+   * computational domain among processors.
+   */ 
+  region_t local_domain_no_ol_;
+
+  /**
+   * This region defines the minimums and maximums for the
+   * computational domain on the local process with respect to the
+   * global domain, not including any overlap that may occur due to
+   * the division of the global computational domain among processors.
+   */ 
+  region_t local_domain_in_global_no_ol_;
+
 public:
   GridInfo();
 
@@ -142,17 +178,6 @@ public:
    * Sets the boundary condition to apply to a certian face. 
    */ 
   void set_boundary(Face face, shared_ptr<BoundaryCond> bc);  
-
-  /**
-   * Set a PML boundary
-   * @param face the face to apply the pml to 
-   * @param thickness the number of cells thick the pml is
-   * @param var the pml variation profile
-   * @param nrml_refl amount of normal reflection (try 1.0)
-   * @return a point to the pml object if you want to mess with it some more. 
-   */
-  Pml *set_pml_boundary(Face face, unsigned int thickness, 
-                        PmlVariation_t var, float nrml_refl);
 
   /**
    * Returns the type of boundary assigned to a face.

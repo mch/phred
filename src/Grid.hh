@@ -120,7 +120,7 @@ class Grid {
   mat_coef_t *Dbz_;
 
   // Material library
-  MaterialLib material_lib_;
+  shared_ptr<MaterialLib> material_lib_;
 
   /**
    * Field data: one big vector, where a 3d coordinate is indexed
@@ -179,6 +179,11 @@ class Grid {
    * that can be used as keys are enumerated in Types.hh.in.
    */
   map<GridAuxData, void *> auxdata_; 
+
+  /**
+   * A pointer to the problem geometry. 
+   */ 
+  const ProblemGeometry *pg_;
 
   /**
    * Store some auxiliary data. 
@@ -353,15 +358,15 @@ class Grid {
    *
    * @param matlib the material library to load the materials from 
    */
-  virtual void load_materials(MaterialLib &matlib);
+  virtual void load_materials(shared_ptr<MaterialLib> matlib);
 
   /**
    * Store references to the geometry objects so that more specialized
    * dispersions can store data in them. Query the problem geometry
    * for the material id for each location in the grid and fill
-     material_. 
+   * material_. 
    */ 
-  virtual void load_geometry(const ProblemGeometry &pg);
+  virtual void load_geometry(const ProblemGeometry *pg);
 
   /**
    * Deallocate the memory used to store material coeffcients and so
@@ -440,18 +445,18 @@ class Grid {
    * of that grid, it is necessary to convert global coordinates to
    * local ones that can be used. 
    *
-   * @param x_start The starting cell of the box in x
+   * @param xmin The starting cell of the box in x
    * @param x_stop The ending cell of the box in x
-   * @param y_start The starting cell of the box in y
+   * @param ymin The starting cell of the box in y
    * @param y_stop The ending cell of the box in y
-   * @param z_start The starting cell of the box in z
+   * @param zmin The starting cell of the box in z
    * @param z_stop The ending cell of the box in z
    *
    * @return region_t in local coordinate. 
    */
-  region_t global_to_local(unsigned int x_start, unsigned int x_stop, 
-                           unsigned int y_start, unsigned int y_stop, 
-                           unsigned int z_start, unsigned int z_stop,
+  region_t global_to_local(unsigned int xmin, unsigned int x_stop, 
+                           unsigned int ymin, unsigned int y_stop, 
+                           unsigned int zmin, unsigned int z_stop,
                            bool no_ol = false) const;
 
   /**
@@ -461,20 +466,20 @@ class Grid {
    * and assign the material indicies appropriatly. This function can
    * only be used in define mode. 
    *
-   * @param x_start The starting cell of the box in x
+   * @param xmin The starting cell of the box in x
    * @param x_stop The ending cell of the box in x
-   * @param y_start The starting cell of the box in y
+   * @param ymin The starting cell of the box in y
    * @param y_stop The ending cell of the box in y
-   * @param z_start The starting cell of the box in z
+   * @param zmin The starting cell of the box in z
    * @param z_stop The ending cell of the box in z
    *
    * @param mat_index The material index to use in this region. 0 is
    * perfect electric conductor, 1 and up are ordered as in the
    * material library.
    */
-  //virtual void define_box(unsigned int x_start, unsigned int x_stop, 
-  //                        unsigned int y_start, unsigned int y_stop, 
-  //                        unsigned int z_start, unsigned int z_stop, 
+  //virtual void define_box(unsigned int xmin, unsigned int x_stop, 
+  //                        unsigned int ymin, unsigned int y_stop, 
+  //                        unsigned int zmin, unsigned int z_stop, 
   //                        unsigned int mat_index);
 
   /**
@@ -846,33 +851,6 @@ class Grid {
     return hz_[pi(x, y, z)];
   }
 
-//   /**
-//    * Return the MPI Derived data type for an X vector
-//    * @return MPI_Datatype
-//    */
-//   inline MPI_Datatype get_x_vector_dt() const
-//   {
-//     return x_vector_;
-//   }
-
-//   /**
-//    * Return the MPI Derived data type for an Y vector
-//    * @return MPI_Datatype
-//    */
-//   inline MPI_Datatype get_y_vector_dt() const
-//   {
-//     return y_vector_;
-//   }
-
-//   /**
-//    * Return the MPI Derived data type for an Z vector
-//    * @return MPI_Datatype
-//    */
-//   inline MPI_Datatype get_z_vector_dt() const
-//   {
-//     return z_vector_;
-//   }
-
   /**
    * Return a pointer to the start of a face. DANGER!! Clients must
    * take care when using this pointer! 
@@ -956,7 +934,7 @@ class Grid {
   /**
    * Return the material library
    */ 
-  inline const MaterialLib &get_material_lib() const
+  inline const shared_ptr<MaterialLib> get_material_lib() const
   {
     return material_lib_;
   }
@@ -977,15 +955,28 @@ class Grid {
 
   /**
    * Returns a region of cells contained inside a given non-rotated
-   * CSGBox, NOT INCLUDING any overlap due to subdomain division. 
+   * CSGBox, NOT INCLUDING any overlap due to subdomain division.
+   *
+   * Returned region is in local coordinates, suitable for iterating
+   * over.
    */ 
-  Region get_region(CSGBox &box) const;
+  region_t get_local_region(CSGBox &box) const;
 
   /**
    * Returns a region of cells contained inside a given non-rotated
-   * CSGBox, INCLUDING any overlap due to subdomain division. 
+   * CSGBox, NOT INCLUDING any overlap due to subdomain division. 
+   *
+   * Returned region is in GLOBAL coordinates, suitable only for setting
+   * up dimensions in Results. 
    */ 
-  OverlapRegion get_overlap_region(CSGBox &box) const;
+  region_t get_global_region(CSGBox &box) const;
+
+  /**
+   * Returns the grid cell point containing the given real point. If
+   * the coordinate falls outside of the grid, the closest grid cell
+   * is returned.
+   */ 
+  grid_point get_global_cell(float x, float y, float z) const;
 };
 
 #endif // GRID_H

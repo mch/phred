@@ -22,9 +22,9 @@
 #ifndef CSG_CYLINDER_H
 #define CSG_CYLINDER_H
 
-#include "CSGObject.hh"
+#include "CSGPrimitive.hh"
 
-class CSGCylinder : public CSGObject 
+class CSGCylinder : public CSGPrimitive 
 {
 public:
 

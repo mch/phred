@@ -12,7 +12,7 @@ UPmlCommon::UPmlCommon(const Grid &grid)
     c1_(0), c2_(0), c3_(0), c4_(0), c5_(0), c6_(0), x_size_(0), 
     y_size_(0), z_size_(0)
 {
-  num_materials_ = grid.get_material_lib().num_materials();
+  num_materials_ = grid.get_material_lib()->num_materials();
 }
 
 UPmlCommon *UPmlCommon::get_upml_common(Grid &grid)
@@ -96,7 +96,7 @@ void UPmlCommon::init_coeffs(Grid &grid)
 
 void UPmlCommon::init_sigmas()
 {
-  const MaterialLib *mlib = &(grid_.get_material_lib());
+  shared_ptr<MaterialLib> mlib = grid_.get_material_lib();
   delta_t delta;
   float *sigmas;
   unsigned int start, thickness;

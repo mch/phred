@@ -33,13 +33,13 @@ phred_LDADD += \
 #	jan-grammer-flex.ll \
 #	JanFDTD.hh \
 #	JanFDTD.cc 
+#	Region.hh \
+#	Region.cc 
 
 phred_SOURCES=\
 	system.h \
 	ProblemGeometry.hh \
 	ProblemGeometry.cc \
-	Region.hh \
-	Region.cc \
 	LifeCycle.hh \
 	LifeCycle.cc \
 	FDTD.hh \

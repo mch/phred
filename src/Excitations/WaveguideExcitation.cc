@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -30,31 +30,29 @@ WaveguideExcitation::WaveguideExcitation(SourceFunction *sf)
 WaveguideExcitation::~WaveguideExcitation()
 {}
 
-field_t WaveguideExcitation::window(region_t r, 
-                                    unsigned int x, 
-                                    unsigned int y, 
-                                    unsigned int z)
+field_t WaveguideExcitation::window(float x, float y, float z)
 {
   unsigned int dx, dy, dz;
   field_t ret = 1.0;
 
-  dx = region_.xmax - region_.xmin;
-  dy = region_.ymax - region_.ymin;
-  dz = region_.zmax - region_.zmin;
-
-  if (dx > 0 && mode_x_ > 0)
-    ret = ret * sin(mode_x_ * PI * (x - region_.xmin) / dx);
-
-  if (dy > 0 && mode_y_ > 0)
-    ret = ret * sin(mode_y_ * PI * (y - region_.ymin) / dy);
+  if (box_.get())
+  {
+    point size = (*box_).get_size();
   
-  if (dz > 0 && mode_z_ > 0)
-    ret = ret * sin(mode_z_ * PI * (z - region_.zmin) / dz);
-  
-  // if (y == 10)
-//     cerr << "Waveguide excitation at (" << x << ", " << y << ", " 
-//          << z << ") is " << ret
-//          << endl;
+    if (dx > 0 && mode_x_ > 0)
+      ret = ret * sin(mode_x_ * PI * (x - xmin_) / size.x);
+    
+    if (dy > 0 && mode_y_ > 0)
+      ret = ret * sin(mode_y_ * PI * (y - ymin_) / size.y);
+    
+    if (dz > 0 && mode_z_ > 0)
+      ret = ret * sin(mode_z_ * PI * (z - zmin_) / size.z);
+    
+    // if (y == 10)
+    //     cerr << "Waveguide excitation at (" << x << ", " << y << ", " 
+    //          << z << ") is " << ret
+    //          << endl;
+  }
 
   return ret;
 }

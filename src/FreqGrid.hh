@@ -130,7 +130,7 @@ public:
    *
    * @param matlib the material library to load the materials from 
    */
-  virtual void load_materials(MaterialLib &matlib);
+  virtual void load_materials(shared_ptr<MaterialLib> matlib);
 
   /**
    * Deallocate the memory used to store material coeffcients and so

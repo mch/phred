@@ -22,7 +22,7 @@
 #include <boost/python.hpp>
 
 #include "../Types.hh"
-#include "../Region.hh"
+//#include "../Region.hh"
 
 using namespace boost::python;
 
@@ -99,24 +99,24 @@ void export_types()
     .def_readwrite("z", &point::z)
     ;
 
-  class_<Region>("Region", init<unsigned int, unsigned int, 
-                 unsigned int, unsigned int, unsigned int, unsigned int>())
-    .def("is_local", &Region::is_local)
-    .def("set_x", &Region::set_x)
-    .def("set_y", &Region::set_y)
-    .def("set_z", &Region::set_z)
-    .def("get_global_xmin", &Region::get_global_xmin)
-    .def("get_global_ymin", &Region::get_global_ymin)
-    .def("get_global_zmin", &Region::get_global_zmin)
-    .def("get_global_xmax", &Region::get_global_xmax)
-    .def("get_global_ymax", &Region::get_global_ymax)
-    .def("get_global_zmax", &Region::get_global_zmax)
-    .def("get_xmin", &Region::get_xmin)
-    .def("get_ymin", &Region::get_ymin)
-    .def("get_zmin", &Region::get_zmin)
-    .def("get_xmax", &Region::get_xmax)
-    .def("get_ymax", &Region::get_ymax)
-    .def("get_zmax", &Region::get_zmax)
-    ;
+//   class_<Region>("Region", init<unsigned int, unsigned int, 
+//                  unsigned int, unsigned int, unsigned int, unsigned int>())
+//     .def("is_local", &Region::is_local)
+//     .def("set_x", &Region::set_x)
+//     .def("set_y", &Region::set_y)
+//     .def("set_z", &Region::set_z)
+//     .def("get_global_xmin", &Region::get_global_xmin)
+//     .def("get_global_ymin", &Region::get_global_ymin)
+//     .def("get_global_zmin", &Region::get_global_zmin)
+//     .def("get_global_xmax", &Region::get_global_xmax)
+//     .def("get_global_ymax", &Region::get_global_ymax)
+//     .def("get_global_zmax", &Region::get_global_zmax)
+//     .def("get_xmin", &Region::get_xmin)
+//     .def("get_ymin", &Region::get_ymin)
+//     .def("get_zmin", &Region::get_zmin)
+//     .def("get_xmax", &Region::get_xmax)
+//     .def("get_ymax", &Region::get_ymax)
+//     .def("get_zmax", &Region::get_zmax)
+//     ;
 
 }

@@ -244,7 +244,7 @@ public:
    */
   virtual void init(const Grid &grid)
   {
-    if (box.get())
+    if (box_.get())
     {
       region_ = grid.get_local_region(*(box_.get()));
     }

@@ -31,6 +31,7 @@
 #include "../Results/FarfieldResult.hh"
 #include "../Results/PowerResult.hh"
 #include "../Results/FakeResult.hh"
+#include "../Results/GridResult.hh"
 
 using namespace boost::python;
 
@@ -52,6 +53,9 @@ void export_results()
     ;
 
   class_<FakeResult, bases<Result> >("FakeResult")
+    ;
+
+  class_<GridResult, bases<Result> >("GridResult")
     ;
 
   class_<PointResult, bases<Result> >("PointResult")

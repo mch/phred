@@ -305,7 +305,7 @@ int main (int argc, char **argv)
 
   cout << "\nMPI information: \n\tThis process is rank number " << MPI_RANK
        << ".\n\tThere are a total of " << MPI_SIZE
-       << " processes in this group. \n\n";
+       << " processes in this group. \n" << endl;
 
   // Parse the input script (each process will just load it's own file
   // for now. ) 

@@ -22,9 +22,9 @@
 #ifndef CSG_CONE_H
 #define CSG_CONE_H
 
-#include "CSGObject.hh"
+#include "CSGPrimitive.hh"
 
-class CSGCone : public CSGObject 
+class CSGCone : public CSGPrimitive
 {
 public:
 
