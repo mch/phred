@@ -21,6 +21,12 @@
 
 #include "common.h"
 
+/* #undef USE_OPENMP */
+
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
 void alloc_grid();
 void free_grid();
 
@@ -37,12 +43,17 @@ field_t gaussm(unsigned int time_step, field_t deltaf,
 int main(int argc, char **argv)
 {
   field_t eps[2], mu[2];
-  unsigned int num_time_steps = 50, i; 
+  unsigned int num_time_steps = 100, i, j, k; 
+  FILE *fields;
+  unsigned int x, y, z;
+  x = 20;
+  y = 20;
+  z = 15;
 
   deltax_ = deltay_ = deltaz_ = 18.75e-9;
   deltat_ = 36e-18;
 
-  dimx_ = dimy_ = dimz_ = 250;
+  dimx_ = dimy_ = dimz_ = 40;
 
   eps[0] = 1;
   eps[1] = 2.2;
@@ -56,18 +67,54 @@ int main(int argc, char **argv)
   load_materials(2, eps, mu);
   alloc_grid();
 
+  for (i = 0; i < 40; i++)
+    for (j = 0; j < 40; j++)
+      for (k = 0; k < 40; k++)
+	material_[pi(i, j, k)] = 1;
+
+  fields = fopen("fields.txt", "w");
+
+#ifdef USE_OPENMP
+
+  printf("Number of threads in team: %i\n", omp_get_num_threads());
+  printf("Maximum number of threads in team: %i\n", omp_get_max_threads());
+  printf("Number of processors: %i\n", omp_get_num_procs());
+  printf("Current thread number: %i\n", omp_get_thread_num());
+  printf("Dynamic thread adjustment? %s\n",
+	 (omp_get_dynamic() ? "yes" : "no"));
+  printf("In parallel? %s",
+	 (omp_in_parallel() ? "yes" : "no"));
+  printf("Nested parallism? %s\n", 
+	 (omp_get_nested() ? "yes" : "no"));
+#endif
+
   /* Run loop */
   for (i = 0; i < num_time_steps; i++)
   {
     printf("High speed C, time step %i, source: %g\n", 
            i, gaussm(i, 500e12, 1, 300e12));
+
+#ifdef USE_OPENMP
+    omp_e_update();
+#else
     e_update();
+#endif
 
-    ey_[pi(100, 100, 100)] = gaussm(i, 500e12, 1, 300e12);
+    ey_[pi(20, 20, 20)] = ey_[pi(20, 20, 20)] + gaussm(i, 500e12, 1, 300e12);
 
+#ifdef USE_OPENMP
+    omp_h_update();
+#else
     h_update();
+#endif
 
+    fprintf(fields, "%i %g %g %g %g %g %g %g\n", 
+	    i, i * deltat_, ex_[pi(x, y, z)],
+	    ey_[pi(x, y, z)], ez_[pi(x, y, z)], 
+	    hx_[pi(x, y, z)], hy_[pi(x, y, z)],
+	    hz_[pi(x, y, z)]);
   }
+  fclose(fields);
 
   /* Clean up */
   free_grid();

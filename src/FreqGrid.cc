@@ -217,7 +217,7 @@ void FreqGrid::update_ex()
       hz2 = &(hz_[idx2]);
       hy = &(hy_[idx]);
 
-#ifdef USE_OPENMP
+#ifdef USE_OPENMP_NOT
 #pragma omp parallel for
 #endif
       for (k = update_ex_r_.zmin; k < update_ex_r_.zmax; k++) {
@@ -276,7 +276,7 @@ void FreqGrid::update_ey()
       hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
       hz2 = &(hz_[idx]);
 
-#ifdef USE_OPENMP
+#ifdef USE_OPENMP_NOT
 #pragma omp parallel for
 #endif
       for (k = update_ey_r_.zmin; k < update_ey_r_.zmax; k++) {
@@ -337,7 +337,7 @@ void FreqGrid::update_ez()
       hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin)]);
       hx2 = &(hx_[idx]);
 
-#ifdef USE_OPENMP
+#ifdef USE_OPENMP_NOT
 #pragma omp parallel for
 #endif
       for (k = update_ez_r_.zmin; k < update_ez_r_.zmax; k++) {

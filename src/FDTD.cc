@@ -144,9 +144,15 @@ void FDTD::run(int rank, int size, unsigned int steps)
   }
 
   if (freqgrid)
-    grid_ = new FreqGrid();
+    {
+      grid_ = new FreqGrid();
+      cout << "Using freq grid. " << endl;
+    }
   else
-    grid_ = new Grid();
+    {
+      cout << "Using simple grid. " << endl;
+      grid_ = new Grid();
+    }
 
   grid_->setup_grid(local_ginfo_);
 

@@ -32,6 +32,10 @@
 #include <math.h>
 #include <string.h> // for memset
 
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
 Grid::Grid() 
   : num_materials_(0),
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
@@ -660,8 +664,8 @@ void Grid::update_ex()
       hz2 = &(hz_[idx2]);
       hy = &(hy_[idx]);
 
-#ifdef USE_OPENMP
-#pragma omp parallel for
+#ifdef USE_OPENMP_NOT
+#pragma omp parallel for private(mid, i, j, k, idx, idx2, ex, hz1, hz2, hy) 
 #endif
       for (k = update_ex_r_.zmin; k < update_ex_r_.zmax; k++) {
         mid = material_[idx];
@@ -698,8 +702,8 @@ void Grid::update_ey()
       hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
       hz2 = &(hz_[idx]);
 
-#ifdef USE_OPENMP
-#pragma omp parallel for
+#ifdef USE_OPENMP_NOT
+#pragma omp parallel for private(mid, idx, i, j, k, ey, hx, hz1, hz2)
 #endif
       for (k = update_ey_r_.zmin; k < update_ey_r_.zmax; k++) {
         mid = material_[idx];
@@ -736,8 +740,8 @@ void Grid::update_ez()
       hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin)]);
       hx2 = &(hx_[idx]);
 
-#ifdef USE_OPENMP
-#pragma omp parallel for
+#ifdef USE_OPENMP_NOT
+#pragma omp parallel for private(mid, idx, i, j, k, ez, hy1, hy2, hx1, hx2)
 #endif
       for (k = update_ez_r_.zmin; k < update_ez_r_.zmax; k++) {
         mid = material_[idx];
@@ -760,7 +764,10 @@ void Grid::update_hx()
   unsigned int mid, idx;
   int i, j, k;
   field_t *hx, *ez1, *ez2, *ey;
-
+  
+#ifdef USE_OPENMP
+#pragma omp parallel private(idx, mid, i, j, k, hx, ez1, ez2, ey)
+#endif  
   for (i = update_hx_r_.xmin; i < update_hx_r_.xmax; i++) {
     for (j = update_hx_r_.ymin; j < update_hx_r_.ymax; j++) {
 
@@ -770,8 +777,8 @@ void Grid::update_hx()
       ez2 = &(ez_[pi(i, j+1, update_hx_r_.zmin)]);
       ey = &(ey_[idx]);
 
-#ifdef USE_OPENMP
-#pragma omp parallel for
+#ifdef USE_OPENMP_NOT
+#pragma omp for
 #endif
       for (k = update_hx_r_.zmin; k < update_hx_r_.zmax; k++) {
         mid = material_[idx];
@@ -785,6 +792,7 @@ void Grid::update_hx()
       }
     }
   }
+
 }
 
 // Straight out of Taflove.
@@ -803,8 +811,8 @@ void Grid::update_hy()
       ez1 = &(ez_[pi(i+1, j, update_hy_r_.zmin)]);
       ez2 = &(ez_[idx]);
 
-#ifdef USE_OPENMP
-#pragma omp parallel for
+#ifdef USE_OPENMP_NOT
+#pragma omp parallel for private(mid, idx, i, j, k, hy, ex, ez1, ez2)
 #endif
       for (k = update_hy_r_.zmin; k < update_hy_r_.zmax; k++) {
         mid = material_[idx];
@@ -837,8 +845,8 @@ void Grid::update_hz()
       ex1 = &(ex_[pi(i, j+1, update_hz_r_.zmin)]);
       ex2 = &(ex_[idx]);
 
-#ifdef USE_OPENMP
-#pragma omp parallel for
+#ifdef USE_OPENMP_NOT
+#pragma omp parallel for private(mid, idx, i, j, k, hz1, ey1, ey2, ex1, ex2)
 #endif
       for (k = update_hz_r_.zmin; k < update_hz_r_.zmax; k++) {
         mid = material_[idx];

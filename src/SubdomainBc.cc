@@ -60,7 +60,8 @@ void SubdomainBc::apply(Face face, Grid &grid, FieldType type)
       send_recv((*iter).get_tx_ptr(), (*iter).get_rx_ptr(), 
                 (*iter).get_datatype());
     }
-    iter++;
+
+    ++iter;
   }
 }
 

@@ -113,6 +113,10 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "python-bindings/PyInterpreter.hh"
 #endif
 
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
 static void usage (int status);
 
 #ifdef HAVE_LIBPOPT
@@ -444,7 +448,7 @@ static void pml_test(int rank, int size)
   //mat.set_plasma_freq(2 * PI * 2000e+12); // THz * 2 * pi
   mat.set_collision_freq(1.4e+14);
   mat.set_plasma_freq(2 * PI * 1.85e+15);
-  mats.add_material(mat);
+  //mats.add_material(mat);
 
   fdtd.load_materials(mats);
 
@@ -460,7 +464,7 @@ static void pml_test(int rank, int size)
   //metal1.set_region(45, 55, 7, 12, 7, 12); // STABLE
   metal1.set_region(40, 65, 5, 14, 5, 14); // UNSTABLE
   //metal1.set_region(40, 52, 7, 12, 7, 12); // UNSTABLE, but low intensity at 500
-  metal1.set_material_id(3);
+  metal1.set_material_id(2);
 
   //Box metal2;
   //metal2.set_region(45, 50, 5, 46, 35, 60);
@@ -477,15 +481,15 @@ static void pml_test(int rank, int size)
   Excitation ex(&gm);
   //BartlettExcitation ex(gm);
   ex.set_soft(false);
-  //ex.set_region(20, 20, 10, 10, 10, 10);
-  ex.set_region(20, 20, 6, 13, 6, 13);
+  ex.set_region(20, 20, 9, 9, 9, 9);
+  //ex.set_region(20, 20, 6, 13, 6, 13);
   ex.set_polarization(0.0, 1.0, 0.0);
 
   fdtd.add_excitation("modgauss", &ex);
 
   // Results
   point_t p;
-  p.x = 40;
+  p.x = 20;
   p.y = 9;
   p.z = 9;
   PointResult res1(p);
@@ -496,17 +500,17 @@ static void pml_test(int rank, int size)
   fdtd.add_result("pdft", &pdft);
   
   AsciiDataWriter adw1(rank, size);
-  adw1.set_filename("t_field_40.txt");
+  adw1.set_filename("t_field_20.txt");
 
   AsciiDataWriter adw2(rank, size);
-  adw2.set_filename("t_field_dft_40.txt");
+  adw2.set_filename("t_field_dft_20.txt");
 
   fdtd.add_datawriter("adw1", &adw1);
   fdtd.add_datawriter("adw2", &adw2);
   fdtd.map_result_to_datawriter("res1", "adw1");
   fdtd.map_result_to_datawriter("pdft", "adw2");
 
-  point_t p3(60, 9, 9);
+  point_t p3(21, 9, 9);
   PointResult pres60(p3);
   PointDFTResult pdft60(5e12, 600e12, 120);  
 
@@ -514,10 +518,10 @@ static void pml_test(int rank, int size)
   fdtd.add_result("pdft60", &pdft60);
 
   AsciiDataWriter adwp60(rank, size);
-  adwp60.set_filename("t_field_60.txt");
+  adwp60.set_filename("t_field_21.txt");
 
   AsciiDataWriter adwp60dft(rank, size);
-  adwp60dft.set_filename("t_field_dft_60.txt");
+  adwp60dft.set_filename("t_field_dft_21.txt");
 
   fdtd.add_datawriter("adwp60", &adwp60);
   fdtd.add_datawriter("adwp60dft", &adwp60dft);
@@ -607,6 +611,41 @@ static void pml_test(int rank, int size)
    fdtd.add_datawriter("adw8", &adw8);
 
    fdtd.map_result_to_datawriter("srctr", "adw8");
+
+#ifdef USE_OPENMP
+   cout << "Number of threads in team: " << omp_get_num_threads() << endl;
+   cout << "Maximum number of threads in team: " 
+	<< omp_get_max_threads() << endl;
+   cout << "Number of processors: " << omp_get_num_procs() << endl;
+   cout << "Current thread number: " << omp_get_thread_num() << endl;
+   cout << "Dynamic thread adjustment? " 
+	<< (omp_get_dynamic() ? "yes" : "no") << endl;
+   cout << "In parallel? " 
+	<< (omp_in_parallel() ? "yes" : "no") << endl;
+   cout << "Nested parallism? " 
+	<< (omp_get_nested() ? "yes" : "no") << endl;
+
+   int i, j[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+#pragma omp parallel for private(i)
+   for (i = 0; i < 10; i++)
+     {
+   cout << "Number of threads in team: " << omp_get_num_threads() << endl;
+   cout << "Maximum number of threads in team: " 
+	<< omp_get_max_threads() << endl;
+   cout << "Number of processors: " << omp_get_num_procs() << endl;
+   cout << "Current thread number: " << omp_get_thread_num() << endl;
+   cout << "Dynamic thread adjustment? " 
+	<< (omp_get_dynamic() ? "yes" : "no") << endl;
+   cout << "In parallel? " 
+	<< (omp_in_parallel() ? "yes" : "no") << endl;
+   cout << "Nested parallism? " 
+	<< (omp_get_nested() ? "yes" : "no") << endl;
+
+       j[i] = i * j[10];
+     }
+   for (i = 0; i < 10; i++)
+     cout << "j[" << i << "] = " << j[i] << endl;
+#endif
 
    fdtd.run(rank, size, 100);
 }
@@ -733,9 +772,10 @@ static void takakura_test(int rank, int size)
   pr1.set_name("ex-yzplane4");
   pr1.set_plane(point_t(24, 159, 75), FRONT);
   pr1.set_field(FC_EY);
-
+  pr1.set_time_param(1, 5000, 25);
+ 
   fdtd.add_result("pr1", &pr1);
   fdtd.map_result_to_datawriter("pr1", "ncdw");
 
-  fdtd.run(rank, size, 1000);
+  fdtd.run(rank, size, 5000);
 }
