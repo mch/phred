@@ -445,18 +445,23 @@ int NetCDFDataWriter::get_dim(int i, int size, string basename)
   status = nc_inq_dimid(ncid_, basename.c_str(), &dimid);
 
   if (status == NC_NOERR) { // Dimension name exists
-    status = nc_inq_dimlen(ncid_, dimid, &len);
+//     status = nc_inq_dimlen(ncid_, dimid, &len);
 
-    if (status != NC_NOERR)
-      handle_error(status);
+//     if (status != NC_NOERR)
+//       handle_error(status);
 
-    if (len == sz)
-      return dimid;
-    else {
+    // Can't allow reuse of dimensions... consider a variable that has
+    // 3 dimensions, but which all have the same length. The
+    // dimensions must be unique.
+ 
+    //if (len == sz)
+    //  return dimid;
+    //else 
+    {
       idx = 0;
       while (idx < 100) {
-        name.str(basename);
-        name <<  idx++;
+        name.str().clear();
+        name << basename << idx++;
         status = nc_inq_dimid(ncid_, name.str().c_str(), &dimid);
 
         if (status == NC_NOERR) {
@@ -465,8 +470,8 @@ int NetCDFDataWriter::get_dim(int i, int size, string basename)
           if (status != NC_NOERR) 
             handle_error(status);
 
-          if (len == sz) 
-            return dimid;        
+          //if (len == sz) 
+          //  return dimid;        
         } else {
           // Create the dimension
           status = nc_def_dim(ncid_, name.str().c_str(), size, &dimid);

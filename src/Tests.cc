@@ -34,6 +34,7 @@
 #include "DataWriters/MatlabDataWriter.hh"
 #include "DataWriters/NetCDFDataWriter.hh"
 #include "Results/PlaneResult.hh"
+#include "Results/BlockResult.hh"
 #include "Results/PointDFTResult.hh"
 #include "Results/PowerResult.hh"
 #include "Results/SignalDFTResult.hh"
@@ -417,7 +418,7 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
     = shared_ptr<CSGBox>(new CSGBox());
   exbox->set_size(gridx - 20 * deltax, gridy - 20 * deltay, 0);
   //exbox->set_size(gridx, gridy, 0);
-  exbox->set_centre(0, 0, ex_offset);
+  exbox->set_centre(deltax*2, deltay*2, ex_offset);
   ex->set_region(exbox);
   ex->set_soft(true);
   ex->set_type(E);
@@ -490,6 +491,38 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
     plnr3->set_field(FC_EX);
     fdtd.add_result("xy_ex", plnr3);
     fdtd.map_result_to_datawriter("xy_ex", "ncdw");
+
+
+    // Block result test
+    shared_ptr<CSGBox> blk_box1 = shared_ptr<CSGBox>(new CSGBox);
+    blk_box1->set_size(deltax * 20, deltay * 20, deltaz * 20);
+    
+    shared_ptr<BlockResult> blkx
+      = shared_ptr<BlockResult>(new BlockResult);
+    blkx->set_time_param(0, time_steps, 10);
+    blkx->set_region(blk_box1);
+    blkx->set_field(FC_EX);
+
+    fdtd.add_result("blkx", blkx);
+    fdtd.map_result_to_datawriter("blkx", "ncdw");
+
+    shared_ptr<BlockResult> blky
+      = shared_ptr<BlockResult>(new BlockResult);
+    blky->set_time_param(0, time_steps, 10);
+    blky->set_region(blk_box1);
+    blky->set_field(FC_EY);
+
+    fdtd.add_result("blky", blky);
+    fdtd.map_result_to_datawriter("blky", "ncdw");
+
+    shared_ptr<BlockResult> blkz
+      = shared_ptr<BlockResult>(new BlockResult);
+    blkz->set_time_param(0, time_steps, 10);
+    blkz->set_region(blk_box1);
+    blkz->set_field(FC_EZ);
+
+    fdtd.add_result("blkz", blkz);
+    fdtd.map_result_to_datawriter("blkz", "ncdw");
   }
 
   // INFORMATION ABOUT EXCIATION

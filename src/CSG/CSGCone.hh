@@ -24,6 +24,11 @@
 
 #include "CSGPrimitive.hh"
 
+/**
+ * A cone... FINISH ME!
+ *
+ * \bug Not implemented
+ */ 
 class CSGCone : public CSGPrimitive
 {
 public:

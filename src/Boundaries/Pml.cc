@@ -21,7 +21,6 @@
 
 #include "Pml.hh"
 #include "../Grid.hh"
-#include "../FreqGrid.hh"
 #include "../Exceptions.hh"
 #include "../Constants.hh"
 #include "../config.h"
@@ -345,20 +344,9 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
 
   if (type == E)
   {
-    FreqGrid *fgrid = dynamic_cast<FreqGrid *>(&grid);
-
-    if (fgrid)
-    {
-      pml_update_ex(*fgrid);   
-      pml_update_ey(*fgrid);
-      pml_update_ez(*fgrid);
-    }
-    else
-    {
-      pml_update_ex(grid);   
-      pml_update_ey(grid);
-      pml_update_ez(grid);
-    }
+    pml_update_ex(grid);   
+    pml_update_ey(grid);
+    pml_update_ez(grid);
   }
   else if (type == H)
   {
@@ -839,182 +827,4 @@ void Pml::add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface)
 BoundaryCondition Pml::get_type() const
 {
   return PML;
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// Frequency Grid Specific Updates
-// 
-// A TEMPORARY HACK!!!
-//////////////////////////////////////////////////////////////////////
-
-void Pml::pml_update_ex(FreqGrid &grid)
-{
-  unsigned int grid_idx, pml_idx, mid; 
-
-  int i,j,k; 	/* indices in PML-layer */
-  int it,jt,kt;/* indices in total computational domain (FDTD grid) */
-
-  // Region in the PML to update
-  region_t pml_r = find_local_region(grid_ex_r_); 
-
-  PmlCommon *com = PmlCommon::get_pml_common(grid);
-
-  int offset = grid_ex_r_.xmin - pml_r.xmin;
-  //i = pml_r.xmin;
-
-#ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt)
-  {
-#pragma omp for
-#endif
-    for(it = grid_ex_r_.xmin; it < grid_ex_r_.xmax; it++)
-      {
-	i = it - offset;
-	for(j = pml_r.ymin, jt = grid_ex_r_.ymin; jt < grid_ex_r_.ymax; j++, jt++)
-	  {
-	    for(k = pml_r.zmin, kt = grid_ex_r_.zmin; kt < grid_ex_r_.zmax; k++, kt++)
-	      {
-		grid_idx = grid.pi(it, jt, kt);
-		pml_idx = pi(i, j, k);
-		
-		mid = grid.material_[grid_idx];
-		
-		exz_[pml_idx] = 
-		  com->get_e_z_coef1(kt) * grid.Ca_[mid] * exz_[pml_idx] 
-		  + com->get_e_z_coef2(kt) * grid.Cbz_[mid] 
-		  * (grid.hy_[grid.pi(it, jt, kt-1)] 
-		     - grid.hy_[grid.pi(it, jt, kt)]);
-		
-		exy_[pml_idx] = 
-		  com->get_e_y_coef1(jt) * grid.Ca_[mid] * exy_[pml_idx] 
-		  + com->get_e_y_coef2(jt) * grid.Cby_[mid] 
-		  * (grid.hz_[grid.pi(it, jt, kt)] 
-		     - grid.hz_[grid.pi(it, jt-1, kt)]);
-        
-		grid.ex_[grid_idx] = exz_[pml_idx] + exy_[pml_idx];
-
-//                 if (grid.vcdt_[mid] > 0.0)
-//                 {
-//                   grid.dx_[grid_idx] = grid.Ca_[mid] * grid.dx_[grid_idx]
-//                     + grid.Cby_[mid] * (grid.hz_[grid.pi(it, jt, kt)] 
-//                                         - grid.hz_[grid.pi(it, jt-1, kt)])
-//                     + grid.Cbz_[mid] * (grid.hy_[grid.pi(it, jt, kt-1)]
-//                                         - grid.hy_[grid.pi(it, jt, kt)]);
-                  
-//                   grid.ex_[grid_idx] = 
-//                 }
-	      }
-	  }
-      }
-#ifdef USE_OPENMP
-  }
-#endif
-}
-
-void Pml::pml_update_ey(FreqGrid &grid)
-{
-  unsigned int grid_idx, pml_idx, mid; 
-
-  int i,j,k; 	/* indices in PML-layer */
-  int it,jt,kt;/* indices in total computational domain (FDTD grid) */
-
-  // Region in the PML to update
-  region_t pml_r = find_local_region(grid_ey_r_); 
-
-  PmlCommon *com = PmlCommon::get_pml_common(grid);
-
-  int offset = grid_ey_r_.xmin - pml_r.xmin;
-  //i = pml_r.xmin;
-
-#ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt)
-  {
-#pragma omp for
-#endif
-    for(it = grid_ey_r_.xmin; it < grid_ey_r_.xmax; it++)
-      {
-	i = it - offset;
-
-	for(j = pml_r.ymin, jt = grid_ey_r_.ymin; jt < grid_ey_r_.ymax; j++, jt++)
-	  for(k = pml_r.zmin, kt = grid_ey_r_.zmin; kt < grid_ey_r_.zmax; k++, kt++)
-	    {
-	      grid_idx = grid.pi(it, jt, kt);
-	      pml_idx = pi(i, j, k);
-	      
-	      mid = grid.material_[grid_idx];
-	      
-	      eyx_[pml_idx] = 
-		com->get_e_x_coef1(it) * grid.Ca_[mid] * eyx_[pml_idx] 
-		+ com->get_e_x_coef2(it) * grid.Cbx_[mid] 
-		* (grid.hz_[grid.pi(it-1, jt, kt)] 
-		   - grid.hz_[grid.pi(it, jt, kt)]);
-	      
-	      eyz_[pml_idx] = 
-		com->get_e_z_coef1(kt) * grid.Ca_[mid] * eyz_[pml_idx] 
-		+ com->get_e_z_coef2(kt) * grid.Cbz_[mid] 
-		* (grid.hx_[grid.pi(it, jt, kt)] 
-		   - grid.hx_[grid.pi(it, jt, kt-1)]);
-        
-	      grid.ey_[grid_idx] = eyx_[pml_idx] + eyz_[pml_idx];
-	    }
-	i++;
-      }
-#ifdef USE_OPENMP
-  }
-#endif
-
-}
-
-void Pml::pml_update_ez(FreqGrid &grid)
-{
-  unsigned int grid_idx, pml_idx, mid; 
-
-  int i,j,k; 	/* indices in PML-layer */
-  int it,jt,kt;/* indices in total computational domain (FDTD grid) */
-
-  // Region in the PML to update
-  region_t pml_r = find_local_region(grid_ez_r_); 
-
-  PmlCommon *com = PmlCommon::get_pml_common(grid);
-
-  int offset = grid_ez_r_.xmin - pml_r.xmin;
-  //i = pml_r.xmin;
-
-#ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt)
-  {
-#pragma omp for
-#endif
-    for(it = grid_ez_r_.xmin; it < grid_ez_r_.xmax; it++)
-      {
-	i = it - offset;
-
-	for(j = pml_r.ymin, jt = grid_ez_r_.ymin; jt < grid_ez_r_.ymax; j++, jt++)
-	  for(k = pml_r.zmin, kt = grid_ez_r_.zmin; kt < grid_ez_r_.zmax; k++, kt++)
-	    {
-	      grid_idx = grid.pi(it, jt, kt);
-	      pml_idx = pi(i, j, k);
-	      
-	      mid = grid.material_[grid_idx];
-	      
-	      ezy_[pml_idx] = 
-		com->get_e_y_coef1(jt) * grid.Ca_[mid] * ezy_[pml_idx] 
-		+ com->get_e_y_coef2(jt) * grid.Cby_[mid] 
-		* (grid.hx_[grid.pi(it, jt-1, kt)] 
-		   - grid.hx_[grid.pi(it, jt, kt)]);
-	      
-	      ezx_[pml_idx] = 
-		com->get_e_x_coef1(it) * grid.Ca_[mid] * ezx_[pml_idx] 
-		+ com->get_e_x_coef2(it) * grid.Cbx_[mid] 
-		* (grid.hy_[grid.pi(it, jt, kt)] 
-		   - grid.hy_[grid.pi(it-1, jt, kt)]);
-	      
-	      grid.ez_[grid_idx] = ezx_[pml_idx] + ezy_[pml_idx];
-	    }
-      }
-#ifdef USE_OPENMP
-  }
-#endif
-
 }

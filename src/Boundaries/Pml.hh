@@ -32,8 +32,6 @@
 #include "../config.h"
 #include <assert.h>
 
-class FreqGrid;
-
 /**
  * PML Variation types. Not that I know what they mean or anything. 
  */
@@ -210,19 +208,16 @@ protected: // Only called by apply().
    * Update the Ex field component inside the PML
    */
   void pml_update_ex(Grid &grid);
-  void pml_update_ex(FreqGrid &grid);
 
   /**
    * Update the Ey field component inside the PML
    */
   void pml_update_ey(Grid &grid);
-  void pml_update_ey(FreqGrid &grid);
 
   /**
    * Update the Ez field component inside the PML
    */
   void pml_update_ez(Grid &grid);
-  void pml_update_ez(FreqGrid &grid);
 
   /**
    * Update the Hx field component inside the PML

@@ -1,8 +1,8 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #define BLOCK_RESULT_H
 
 #include "Result.hh"
+#include "../CSG/CSGBox.hh"
 #include "../Types.hh"
 
 #include <mpi.h>
@@ -36,7 +37,10 @@ class BlockResult : public Result
 {
 private:
 protected:
-  region_t region_;
+  shared_ptr<CSGBox> box_; /**< The region in real coordinate to
+                                    output */ 
+  shared_ptr<Block> region_; /**< The Block of cells to output
+                                      in local grid coordinates */ 
   FieldComponent field_comp_;
 
   bool init_; /**< Set to true after init() has been called. */
@@ -56,7 +60,6 @@ protected:
 
 public:
   BlockResult();
-  BlockResult(region_t r, FieldComponent field_comp = FC_EY);
   ~BlockResult();
 
   /**
@@ -64,9 +67,9 @@ public:
    *
    * @param region
    */
-  inline void set_region(region_t region)
+  inline void set_region(shared_ptr<CSGBox> box)
   {
-    region_ = region;
+    box_ = box;
   }
 
   /**
@@ -86,9 +89,9 @@ public:
    *
    * @return the region
    */
-  inline region_t get_region()
+  inline shared_ptr<CSGBox> get_region() const
   {
-    return region_;
+    return box_;
   }
 
   /**

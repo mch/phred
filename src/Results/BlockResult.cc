@@ -2,7 +2,7 @@
    phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,12 +31,6 @@ BlockResult::BlockResult()
   variables_["block"] = &var_;
 }
 
-BlockResult::BlockResult(region_t r, FieldComponent field_comp)
-  : region_(r), field_comp_(field_comp), init_(false), field_data_(0)
-{
-  variables_["block"] = &var_;
-}
-
 BlockResult::~BlockResult()
 {
   deinit();
@@ -50,60 +44,41 @@ void BlockResult::deinit()
   }
 }
 
-// void BlockResult::init(const Grid &grid)
-// {
-//   MPI_Datatype temp;
-//   int sizes[3];
-//   int subsizes[3];
-//   int g_subsizes[3];
-//   int starts[3];
-  
-//   g_subsizes[0] = region_.xmax - region_.xmin;
-//   g_subsizes[1] = region_.ymax - region_.ymin;
-//   g_subsizes[2] = region_.zmax - region_.zmin;
-
-//   // Setup (convert to local)
-//   region_ = grid.global_to_local(region_);
-//   sizes[0] = grid.get_ldx();
-//   sizes[1] = grid.get_ldy();
-//   sizes[2] = grid.get_ldz();
-
-//   subsizes[0] = region_.xmax - region_.xmin;
-//   subsizes[1] = region_.ymax - region_.ymin;
-//   subsizes[2] = region_.zmax - region_.zmin;
-
-//   starts[0] = region_.xmin;
-//   starts[1] = region_.ymin;
-//   starts[2] = region_.zmin;
-
-//   // Create
-//   MPI_Type_create_subarray(3, sizes, subsizes, starts, 1, 
-//                            GRID_MPI_TYPE, &temp);
-//   MPI_Type_commit(&temp);
-
-//   var_.set_name(base_name_);
-//   var_.set_datatype(temp);
-//   var_.set_num(0);
-//   var_.set_ptr(const_cast<field_t *>(grid.get_pointer(grid_point(region_.xmin, 
-//                                                               region_.ymin, 
-//                                                               region_.zmin), 
-//                                                       field_comp_)));
-//   var_.add_dimension("x", subsizes[0], g_subsizes[0], starts[0]);
-//   var_.add_dimension("y", subsizes[1], g_subsizes[1], starts[1]);
-//   var_.add_dimension("z", subsizes[2], g_subsizes[2], starts[2]);
-  
-//   init_ = true; 
-// }
-
 void BlockResult::init(const Grid &grid)
 {
-//   if (MPI_SIZE != 1)
-//     throw DataWriterException("BlockResult is only available when running on a single node for now.");
-  
-  if (MPI_SIZE == 1)
+  /* Region must be in out local sub-domain */ 
+  shared_ptr<CellSet> cells;
+  shared_ptr<Block> global_b;
+
+  if (box_.get())
   {
-    MPI_Type_contiguous(grid.get_ldx() * grid.get_ldy() * grid.get_ldz(), 
-                        GRID_MPI_TYPE, &datatype_);
+    cells = grid.get_cellset(*box_);
+    region_ = cells->get_local_block();
+    global_b = cells->get_global_block();
+  } else {
+    throw ResultException("BlockResult has no CSGBox defined!");
+  }
+
+  var_.add_dimension("x", region_->xlen(), global_b->xlen(), 
+                     region_->xoffset());
+  var_.add_dimension("y", region_->ylen(), global_b->ylen(), 
+                     region_->yoffset());
+  var_.add_dimension("z", region_->zlen(), global_b->zlen(), 
+                     region_->zoffset());
+  
+  var_.set_name(base_name_);
+
+
+  if (field_comp_ == FC_E || field_comp_ == FC_H)
+  {
+    unsigned int sz = region_->xlen()
+      * region_->ylen() 
+      * region_->zlen();
+
+    field_data_ = new field_t[sz];
+    var_.set_ptr(field_data_);
+
+    MPI_Type_contiguous(sz, GRID_MPI_TYPE, &datatype_);
     MPI_Type_commit(&datatype_);
   } 
   else
@@ -115,17 +90,17 @@ void BlockResult::init(const Grid &grid)
     int *displacements = 0;
     const GridInfo &info = grid.get_grid_info();
 
-    dsize[0] = info.dimx_;
-    dsize[1] = info.dimy_;
-    dsize[2] = info.dimz_;
+    dsize[0] = grid.get_ldx_sd();
+    dsize[1] = grid.get_ldy_sd();
+    dsize[2] = grid.get_ldz_sd();
 
-    coord[0] = info.start_x_no_sd_ - info.start_x_;
-    coord[1] = info.start_y_no_sd_ - info.start_y_;
-    coord[2] = info.start_z_no_sd_ - info.start_z_;
+    coord[0] = region_->xmin();
+    coord[1] = region_->ymin();
+    coord[2] = region_->zmin();
 
-    lens[0] = info.dimx_no_sd_;
-    lens[1] = info.dimy_no_sd_;
-    lens[2] = info.dimz_no_sd_;
+    lens[0] = region_->xlen();
+    lens[1] = region_->ylen();
+    lens[2] = region_->zlen();
 
     Contiguous::compute_displacements(3, dsize, coord, lens, &ndisps, 
                                       &displacements);
@@ -135,38 +110,24 @@ void BlockResult::init(const Grid &grid)
       int *contig_lens = new int[ndisps];
 
       for (int i = 0; i < ndisps; i++)
-        contig_lens[i] = static_cast<int>(info.dimz_no_sd_);
+        contig_lens[i] = static_cast<int>(region_->zlen());
 
       MPI_Type_indexed(ndisps, contig_lens, displacements, 
                        GRID_MPI_TYPE, &datatype_);
       MPI_Type_commit(&datatype_);
     } else {
-      cerr << "BlockResult error: number of displacements is zero. ";
+      throw ResultException("BlockResult error: number of displacements is zero. ");
     }
 
     delete[] displacements;
+  
+    var_.set_ptr(const_cast<field_t *>
+                 (grid.get_pointer(grid_point(0,0,0), 
+                                   field_comp_)));
   }
 
-  var_.add_dimension("x", grid.get_ldx(), grid.get_gdx(), grid.get_lsx());
-  var_.add_dimension("y", grid.get_ldy(), grid.get_gdy(), grid.get_lsy());
-  var_.add_dimension("z", grid.get_ldz(), grid.get_gdz(), grid.get_lsz());
-  
-  var_.set_name(base_name_);
   var_.set_datatype(datatype_);
   
-  if (field_comp_ == FC_E || field_comp_ == FC_H)
-  {
-    field_data_ = new field_t[grid.get_ldx() 
-                              * grid.get_ldy() 
-                              * grid.get_ldz()];
-    var_.set_ptr(field_data_);
-  } 
-  else
-  {
-    var_.set_ptr(const_cast<field_t *>
-                 (grid.get_pointer(grid_point(0,0,0), field_comp_)));
-  }
-
   init_ = true;
 }
 
@@ -178,25 +139,26 @@ void BlockResult::calculate_result(const Grid &grid,
     if (field_comp_ == FC_E)
     {
       field_t *f = field_data_;
-      const field_t *ex = grid.get_pointer(grid_point(0,0,0), FC_EX);
-      const field_t *ey = grid.get_pointer(grid_point(0,0,0), FC_EY);
-      const field_t *ez = grid.get_pointer(grid_point(0,0,0), FC_EZ);
+      grid_point gp = grid_point(region_->xmin(),
+                                 region_->ymin(),
+                                 region_->zmin());
 
-      for (unsigned int i = 0; i < grid.get_ldx(); i++)
+      const field_t *ex = grid.get_pointer(gp, FC_EX);
+      const field_t *ey = grid.get_pointer(gp, FC_EY);
+      const field_t *ez = grid.get_pointer(gp, FC_EZ);
+
+      for (unsigned int i = region_->xmin(); i <= region_->xmax(); i++)
       {
-        for (unsigned int j = 0; j < grid.get_ldy(); j++)
+        for (unsigned int j = region_->ymin(); j <= region_->ymax(); j++)
         {
-          ex = grid.get_pointer(grid_point(i, j, 0), FC_EX);
-          ey = grid.get_pointer(grid_point(i, j, 0), FC_EY);
-          ez = grid.get_pointer(grid_point(i, j, 0), FC_EZ);
-          for (unsigned int k = 0; k < grid.get_ldz(); 
+          ex = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_EX);
+          ey = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_EY);
+          ez = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_EZ);
+
+          for (unsigned int k = region_->zmin(); k <= region_->zmax(); 
                k++, f++, ex++, ey++, ez++)
           {
             *f = sqrt(*ex * *ex + *ey * *ey + *ez * *ez);
-//             field_data_[grid.pi(i,j,k)] 
-//               = sqrt(pow(grid.get_ex(i,j,k), 2) 
-//                      + pow(grid.get_ey(i,j,k), 2) 
-//                      + pow(grid.get_ez(i,j,k), 2) );
           }
         }
       }
@@ -204,20 +166,29 @@ void BlockResult::calculate_result(const Grid &grid,
     else if (field_comp_ == FC_H)
     {
       field_t *f = field_data_;
-      const field_t *hx = grid.get_pointer(grid_point(0,0,0), FC_HX);
-      const field_t *hy = grid.get_pointer(grid_point(0,0,0), FC_HY);
-      const field_t *hz = grid.get_pointer(grid_point(0,0,0), FC_HZ);
+      grid_point gp = grid_point(region_->xmin(),
+                                 region_->ymin(),
+                                 region_->zmin());
 
-      for (unsigned int i = 0; i < grid.get_ldx(); i++)
-        for (unsigned int j = 0; j < grid.get_ldy(); j++)
-          for (unsigned int k = 0; k < grid.get_ldz(); 
+      const field_t *hx = grid.get_pointer(gp, FC_HX);
+      const field_t *hy = grid.get_pointer(gp, FC_HY);
+      const field_t *hz = grid.get_pointer(gp, FC_HZ);
+
+      for (unsigned int i = region_->xmin(); i <= region_->xmax(); i++)
+      {
+        for (unsigned int j = region_->ymin(); j <= region_->ymax(); j++)
+        {
+          hx = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_HX);
+          hy = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_HY);
+          hz = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_HZ);
+
+          for (unsigned int k = region_->zmin(); k <= region_->zmax(); 
                k++, f++, hx++, hy++, hz++)
+          {
             *f = sqrt(*hx * *hx + *hy * *hy + *hz * *hz);
-
-//             field_data_[grid.pi(i,j,k)] 
-//               = sqrt(pow(grid.get_hx(i,j,k), 2) 
-//                      + pow(grid.get_hy(i,j,k), 2) 
-//                      + pow(grid.get_hz(i,j,k), 2) );
+          }
+        }
+      }
     }
 
     var_.set_num(1);
@@ -270,7 +241,9 @@ ostream& BlockResult::to_string(ostream &os) const
     break;
   }
 
-  os << " over the entire grid.";
+  os << " from the following block:" << endl;
   
+  os << *region_ << endl;
+
   return os;
 }

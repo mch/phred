@@ -66,8 +66,6 @@ PowerResult::~PowerResult()
 
 void PowerResult::init(const Grid &grid)
 {
-  const GridInfo &gi = grid.get_grid_info();
-
   /* Region must be in out local sub-domain */ 
   shared_ptr<CellSet> cells = grid.get_cellset(*box_);
 

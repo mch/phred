@@ -24,6 +24,10 @@
 
 #include "CSGPrimitive.hh"
 
+/**
+ * A box in three dimensions, centred at 0,0,0 and 1,1,1 in size by
+ * default. 
+ */ 
 class CSGBox : public CSGPrimitive 
 {
 public:

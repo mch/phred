@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,7 +26,12 @@
 
 /**
  * A subset of Yee cells contained by the grid. This object can only
- * be created by a Grid.
+ * be created by a Grid. 
+ *
+ * This is only intended to be used by Results and other objects which
+ * need to know about the Grid when they have a CSGBox as a starting
+ * point. All other uses should use the more mutable region_t defined
+ * in Types.hh.
  */ 
 class Block {
   friend class Grid;
