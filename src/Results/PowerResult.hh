@@ -73,6 +73,12 @@ public:
                                               unsigned int time_step);
 
   /**
+   * A test of PlaneTiling...
+   */ 
+  virtual map<string, Variable *> &get_result_test(const Grid &grid, 
+                                                   unsigned int time_step);
+
+  /**
    * Set the plane to do the calculation on
    */
   inline void set_region(shared_ptr<CSGBox> box, Face face)

@@ -51,6 +51,7 @@ phred_SOURCES=\
 	GridInfo.hh \
 	GridInfo.cc \
 	GridPlane.hh \
+	PlaneTiling.hh \
 	FreqGrid.hh \
 	FreqGrid.cc \
 	Material.cc \

@@ -463,260 +463,77 @@ public:
   ~XZPlane()
   {}
 
-  /**
-   * Returns a pointer the normal (Ey) component. 
-   *
-   * @param x
-   * @param y
-   * @param z
-   */ 
   inline const field_t *get_e_n_ptr(unsigned int x, unsigned int y, 
                                     unsigned int z) const
-  {
-    return grid_.get_pointer(grid_point(x, y, z), FC_EY);
-  }
+  { return grid_.get_pointer(grid_point(x, y, z), FC_EY); }
 
-  /**
-   * Returns a pointer the (Hy) component. This is intended to be
-   * used in Result gathering and update loops to make things faster.
-   * 
-   * @param x
-   * @param y
-   * @param z
-   */ 
   inline const field_t *get_h_n_ptr(unsigned int x, unsigned int y, 
                                     unsigned int z) const
-  {
-    return grid_.get_pointer(grid_point(x, y, z), FC_HY);
-  }
+  { return grid_.get_pointer(grid_point(x, y, z), FC_HY); }
 
-  /**
-   * Returns a pointer the first tangential (Ez) component. This is
-   * intended to be used in Result gathering and update loops to make
-   * things faster.
-   * 
-   * @param x
-   * @param y
-   * @param z
-   */ 
   inline const field_t *get_e_t1_ptr(unsigned int x, unsigned int y, 
                                      unsigned int z) const
-  {
-    return grid_.get_pointer(grid_point(x, y, z), FC_EZ);
-  }
+  { return grid_.get_pointer(grid_point(x, y, z), FC_EZ); }
 
-  /**
-   * Returns a pointer the first tangential (Hz) component. This is
-   * intended to be used in Result gathering and update loops to make
-   * things faster.
-   * 
-   * @param x
-   * @param y
-   * @param z
-   */ 
   inline const field_t *get_h_t1_ptr(unsigned int x, unsigned int y, 
                                      unsigned int z) const
-  {
-    return grid_.get_pointer(grid_point(x, y, z), FC_HZ);
-  }
+  { return grid_.get_pointer(grid_point(x, y, z), FC_HZ); }
 
-  /**
-   * Returns a pointer the second tangential (Ex) component. This is
-   * intended to be used in Result gathering and update loops to make
-   * things faster.
-   * 
-   * @param x
-   * @param y
-   * @param z
-   */ 
   inline const field_t *get_e_t2_ptr(unsigned int x, unsigned int y, 
                                      unsigned int z) const
-  {
-    return grid_.get_pointer(grid_point(x, y, z), FC_EX);
-  }
+  { return grid_.get_pointer(grid_point(x, y, z), FC_EX); }
 
-  /**
-   * Returns a pointer the second tangential (Hx) component. This is
-   * intended to be used in Result gathering and update loops to make
-   * things faster.
-   * 
-   * @param x
-   * @param y
-   * @param z
-   */ 
   inline const field_t *get_h_t2_ptr(unsigned int x, unsigned int y, 
                                      unsigned int z) const
-  {
-    return grid_.get_pointer(grid_point(x, y, z), FC_HX);
-  }
+  { return grid_.get_pointer(grid_point(x, y, z), FC_HX); }
   
-  /** 
-   * Set the normal E field component, Ey
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @param value new field component value
-   */
   inline void set_e_n(unsigned int x, unsigned int y, 
                        unsigned int z, field_t value)
-  {
-    grid_.set_ey(x, y, z, value);
-  }
+  { grid_.set_ey(x, y, z, value); }
 
-  /** 
-   * Set the normal H field component, Hy
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @param value new field component value
-   */
   inline void set_h_n(unsigned int x, unsigned int y, 
                        unsigned int z, field_t value)
-  {
-    grid_.set_hy(x, y, z, value);
-  }
+  { grid_.set_hy(x, y, z, value); }
 
-  /**
-   * Set the first tangential E field component, Ez.
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @param value new field component value
-   */
   inline void set_e_t1(unsigned int x, unsigned int y, 
                         unsigned int z, field_t value) 
-  {
-    grid_.set_ez(x, y, z, value);
-  }
+  { grid_.set_ez(x, y, z, value); }
 
-  /**
-   * Set the second tangential E field component, Ex. 
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @param value new field component value
-   */
   inline void set_e_t2(unsigned int x, unsigned int y, 
                         unsigned int z, field_t value)
-  {
-    grid_.set_ex(x, y, z, value);
-  }
+  { grid_.set_ex(x, y, z, value); }
 
-  /**
-   * Set the first tangential H field component, Hz.
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @param value new field component value
-   */
   inline void set_h_t1(unsigned int x, unsigned int y, 
                         unsigned int z, field_t value) 
-  {
-    grid_.set_hz(x, y, z, value);
-  }
+  { grid_.set_hz(x, y, z, value); }
 
-  /**
-   * Set the second tangential H field component, Hx.
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @param value new field component value
-   */
   inline void set_h_t2(unsigned int x, unsigned int y, 
                         unsigned int z, field_t value)
-  {
-    grid_.set_hx(x, y, z, value);
-  }
+  { grid_.set_hx(x, y, z, value); }
 
-  /** 
-   * Get the normal E field component, Ey
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @return field component value
-   */
   inline field_t get_e_n(unsigned int x, unsigned int y, 
                           unsigned int z) const
-  {
-    return grid_.get_ey(x, y, z);
-  }
+  { return grid_.get_ey(x, y, z); }
 
-  /** 
-   * Get the normal H field component, Hy
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @return field component value
-   */
   inline field_t get_h_n(unsigned int x, unsigned int y, 
                           unsigned int z) const
-  {
-    return grid_.get_hy(x, y, z);
-  }
+  { return grid_.get_hy(x, y, z); }
 
-  /**
-   * Get the first tangential E field component, Ez.
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @return field component value
-   */
   inline field_t get_e_t1(unsigned int x, unsigned int y, 
                            unsigned int z) const
-  {
-    return grid_.get_ez(x, y, z);
-  }
+  { return grid_.get_ez(x, y, z); }
 
-  /**
-   * Get the second tangential E field component, Ex.
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @return field component value
-   */
   inline field_t get_e_t2(unsigned int x, unsigned int y, 
                            unsigned int z) const
-  {
-    return grid_.get_ex(x, y, z);
-  }
+  { return grid_.get_ex(x, y, z); }
 
-  /**
-   * Get the first tangential H field component, Hz.
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @return field component value
-   */
   inline field_t get_h_t1(unsigned int x, unsigned int y, 
                            unsigned int z) const
-  {
-    return grid_.get_hz(x, y, z);
-  }
+  { return grid_.get_hz(x, y, z); }
 
-  /**
-   * Get the second tangential H field component, Hx.
-   *
-   * @param x x coordinate
-   * @param y y coordinate
-   * @param z z coordinate
-   * @return field component value
-   */
   inline field_t get_h_t2(unsigned int x, unsigned int y, 
                            unsigned int z) const
-  {
-    return grid_.get_hx(x, y, z);
-  }
+  { return grid_.get_hx(x, y, z); }
 
   inline field_t get_avg_e_t1(unsigned int x, unsigned int y, 
                                unsigned int z) const

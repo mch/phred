@@ -27,22 +27,17 @@ COMPILERS:
 
 * GCC 3.3.3 is known to work well
 
+
 * ICC 8.1
 Getting Intel's compiler to work takes a little effort. If everything
 is installed and your environment variables are set, you just have to
 tell your mpic++ script to use it. For LAM, do this:
 
 export LAMHCP=/opt/intel_cc_80/bin/icpc
+export GXX_INCLUDE=/usr/include/c++/3.3
 
 You have to use icpc rather than icc because otherwise the final link
 step will not be able to find the Intel C++ symbols. 
-
-I wanted to use the Intel C++ libraries rather than the GCC ones, so
-it was necessary to add the -cxxlib-icc flag to CXXFLAGS.
-
-I also found it necessary to add an include path to CPPFLAGS:
-
-CXXFLAGS="-cxxlib-icc" CPPFLAGS="-I /opt/intel_cc_80/include/c++" ../phred/configure
 
 If you want to try vectorizing the code, add the -restrict and
 -vec_report. Use -vec_report5 for more information about what can and

@@ -31,10 +31,10 @@ void FarfieldResult2::export_dfts()
 {
   ofstream jt1_of, jt2_of, mt1_of, mt2_of;
 
-  jt1_of.open("jt1_front.txt", ofstream::out);
-  jt2_of.open("jt2_front.txt", ofstream::out);
-  mt1_of.open("mt1_front.txt", ofstream::out);
-  mt2_of.open("mt2_front.txt", ofstream::out);
+  jt1_of.open("jt1.txt", ofstream::out);
+  jt2_of.open("jt2.txt", ofstream::out);
+  mt1_of.open("mt1.txt", ofstream::out);
+  mt2_of.open("mt2.txt", ofstream::out);
 
   for (int face_idx = 0; face_idx < 6; face_idx++)
   {
@@ -867,22 +867,13 @@ void FarfieldResult2::calc_currents(const Grid &grid,
       {
         for (unsigned int k = cells.zmin; k < cells.zmax; k++, idx++)
         {
-          // SOME AVERAGING IS REQUIRED HERE!!! I.e. average all field
-          // components such that they are translated to the centre of
-          // the cell.
-          // FRONT and BACK:
-          // e_y = 0.5 * (grid.get_ey(i, j, k) + grid.get_ey(i, j, k + 1)
-          // e_z = 0.5 * (grid.get_ez(i, j, k) + grid.get_ez(i, j + 1, k)
-          // h_y = 0.25 * (grid.get_hy(i-1, j, k) + grid.get_hy(i-1, j+1, k)
-          //               + grid.get_hy(i, j, k) + grid.get_hy(i, j+1, k)
-          // h_z = 0.25 * (grid.get_hz(i-1, j, k) + grid.get_hz(i-1, j, k+1)
-          //               + grid.get_hz(i, j, k) + grid.get_hz(i, j, k+1)
           e_t1 = p.get_avg_e_t1(i, j, k);
           e_t2 = p.get_avg_e_t2(i, j, k);
           h_t1 = p.get_avg_h_t1(i, j, k);
           h_t2 = p.get_avg_h_t2(i, j, k);
 
-          // Slow due to temporaries? Optimized out? 
+          // Slow due to temporaries? Optimized out? (On Kai C++,
+          // apparently yes, optimized out)
           Jt1[idx] += complex<field_t>((-1) * h_t2 * h_cos_temp, 
                                        h_t2 * h_sin_temp);
 

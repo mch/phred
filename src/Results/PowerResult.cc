@@ -22,6 +22,7 @@
 #include "PowerResult.hh"
 #include "../Constants.hh"
 #include "../Globals.hh"
+#include "../PlaneTiling.hh"
 
 #include <string.h> // for memset
 #include <math.h>
@@ -545,4 +546,148 @@ ostream& PowerResult::to_string(ostream &os) const
      << face_string(face_) << " of a "; // << box_->get();
 
   return os;
+}
+
+class TimePowerAlg
+{
+public:
+  class Data
+  {
+  public:
+    field_t area_;
+    field_t tp_; 
+
+    Data(field_t area)
+      : area_(area), tp_(0)
+    {}
+  }
+
+  static inline alg(Fields_t &f, Data &data)
+  {
+    data.tp_ += (f.et1_avg * f.ht2_avg - f.et2_avg * f.ht1_avg) 
+      * data.area_;
+  }
+};
+
+class DFTPowerAlg
+{
+public:
+  class Data
+  {
+  public:
+    int idx;
+    
+    field_t e_cos_temp;
+    field_t e_sin_temp;
+
+    field_t h_cos_temp;
+    field_t h_sin_temp;
+
+    field_t *et1r_, *et2r_, *et1i_, *et2i_;
+    field_t *ht1r_, *ht2r_, *ht1i_, *ht2i_;
+
+    field_t p_real;
+    field_t p_imag;
+
+    field_t cell_area;
+  };
+
+  static inline void alg(Fields_t &f, Data &data)
+  {
+    data.et1r_[data.idx] += f.et1_avg * data.e_cos_temp;
+    data.et1i_[data.idx] += -1 * f.et1_avg * data.e_sin_temp;
+
+    data.et2r_[data.idx] += f.et2_avg * data.e_cos_temp;
+    data.et2i_[data.idx] += -1 * f.et2_avg * data.e_sin_temp;
+
+    data.ht1r_[data.idx] += f.ht1_avg * data.h_cos_temp;
+    data.ht1i_[data.idx] += -1 * f.ht1_avg * data.h_sin_temp;
+
+    data.ht2r_[data.idx] += f.ht2_avg * data.h_cos_temp;
+    data.ht2i_[data.idx] += -1 * f.ht2_avg * data.h_sin_temp;
+
+    data.p_real += ((data.et1r_[data.idx] * data.ht2r_[data.idx] 
+                     + data.et1i_[data.idx] * data.ht2i_[data.idx])
+                - (data.et2r_[data.idx] * data.ht1r_[data.idx] 
+                   + data.et2i_[data.idx] * data.ht1i_[data.idx])) 
+      * data.cell_area;
+
+    data.p_imag += ((data.et1i_[data.idx] * data.ht2r_[data.idx] 
+                     - data.ht2i_[data.idx] * data.et1r_[data.idx]) 
+                + (data.ht1i_[data.idx] * data.et2r_[data.idx] 
+                   - data.et2i_[data.idx] * data.ht1r_[data.idx]))
+      * data.cell_area;
+
+    ++data.idx;
+  }
+};
+
+// An experimental implementation of get_result which uses algorithm
+// objects and PlaneTiling.
+map<string, Variable *> &PowerResult::get_result_test(const Grid &grid, 
+                                                      unsigned int time_step)
+{
+  time_power_ = 0;
+  field_t p_real = 0;
+  field_t p_imag = 0;
+
+  if (has_data_)
+  {
+    // Make this a templated function taking the GridPlane as a template
+    // parameter for speed, so we can avoid virtual function calls. 
+
+    TimePowerAlg::Data data(cell_area_);
+    
+    PlaneTiling<TimePowerAlg, TimePowerAlg::Data>::loop(grid, (*region_),
+                                                        face_, data);
+    time_power_ = data.tp_;
+  }
+
+  MPI_Reduce(&time_power_, &time_power_, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
+             MPI_COMM_WORLD);
+
+  DFTPowerAlg::Data dftdata;
+
+  dftdata.cell_area = cell_area_;
+
+  delta_t dt = grid.get_deltat();
+  delta_t e_time = dt * time_step;
+  delta_t h_time = dt * (static_cast<delta_t>(time_step) - 0.5);
+
+  for (unsigned int i = 0; i < frequencies_.length(); i++)
+  {
+    dftdata.p_real = 0;
+    dftdata.p_imag = 0;
+
+    if (has_data_)
+    {
+      dftdata.e_cos_temp = cos(-2 * PI * frequencies_.get(i) * e_time);
+      dftdata.e_sin_temp = sin(-2 * PI * frequencies_.get(i) * e_time);
+
+      dftdata.h_cos_temp = cos(-2 * PI * frequencies_.get(i) * h_time);
+      dftdata.h_sin_temp = sin(-2 * PI * frequencies_.get(i) * h_time);
+
+      dftdata.p_real = 0;
+      dftdata.p_imag = 0;
+
+      dftdata.idx = i * x_size_ * y_size_ * z_size_;
+      
+      PlaneTiling<DFTPowerAlg, DFTPowerAlg::Data>::loop(grid, (*region_),
+                                                        face_, dftdata);
+    }
+    
+    MPI_Reduce(&dftdata.p_real, &dftdata.p_real, 1, 
+               GRID_MPI_TYPE, MPI_SUM, 0, 
+               MPI_COMM_WORLD);
+    
+    MPI_Reduce(&dftdata.p_imag, &dftdata.p_imag, 1, 
+               GRID_MPI_TYPE, MPI_SUM, 0, 
+               MPI_COMM_WORLD);
+
+    power_real_[i] = dftdata.p_real;
+    power_imag_[i] = dftdata.p_imag;
+  }
+
+  return variables_;
+
 }
