@@ -242,7 +242,7 @@ private:
   // breaks the suface equivalence theorm, but...
   bool use_face_[6];
   
-  void export_dfts();
+  //  void export_dfts();
 
   void calculate_post_result(const Grid &grid);
   void calculate_result(const Grid &grid, unsigned int time_step);

@@ -26,101 +26,101 @@
 
 #include "../PlaneTiling.hh"
 
-#include <fstream>
+//#include <fstream>
 using namespace std;
 
-void FarfieldResult2::export_dfts()
-{
-#ifdef HAVE_COMPLEX
-  ofstream jt1_of, jt2_of, mt1_of, mt2_of;
+// void FarfieldResult2::export_dfts()
+// {
+// #ifdef HAVE_COMPLEX
+//   ofstream jt1_of, jt2_of, mt1_of, mt2_of;
 
-  jt1_of.open("jt1.txt", ofstream::out);
-  jt2_of.open("jt2.txt", ofstream::out);
-  mt1_of.open("mt1.txt", ofstream::out);
-  mt2_of.open("mt2.txt", ofstream::out);
+//   jt1_of.open("jt1.txt", ofstream::out);
+//   jt2_of.open("jt2.txt", ofstream::out);
+//   mt1_of.open("mt1.txt", ofstream::out);
+//   mt2_of.open("mt2.txt", ofstream::out);
 
-  for (int face_idx = 0; face_idx < 6; face_idx++)
-  {
-    if (!(*region_).has_face_data(static_cast<Face>(face_idx))
-        || !use_face_[face_idx])
-      continue;
+//   for (int face_idx = 0; face_idx < 6; face_idx++)
+//   {
+//     if (!(*region_).has_face_data(static_cast<Face>(face_idx))
+//         || !use_face_[face_idx])
+//       continue;
 
-    region_t cells;
+//     region_t cells;
 
-    cells.xmin = (*region_).xmin();
-    cells.ymin = (*region_).ymin();
-    cells.zmin = (*region_).zmin();
-    cells.xmax = (*region_).xmax();
-    cells.ymax = (*region_).ymax();
-    cells.zmax = (*region_).zmax();
+//     cells.xmin = (*region_).xmin();
+//     cells.ymin = (*region_).ymin();
+//     cells.zmin = (*region_).zmin();
+//     cells.xmax = (*region_).xmax();
+//     cells.ymax = (*region_).ymax();
+//     cells.zmax = (*region_).zmax();
 
-    switch (face_idx)
-    {
-    case FRONT:
-      cells.xmin = cells.xmax - 1;
-      break;
+//     switch (face_idx)
+//     {
+//     case FRONT:
+//       cells.xmin = cells.xmax - 1;
+//       break;
 
-    case BACK:
-      cells.xmax = cells.xmin + 1;
-      break;
+//     case BACK:
+//       cells.xmax = cells.xmin + 1;
+//       break;
 
-    case LEFT:
-      cells.ymax = cells.ymin + 1;
-      break;
+//     case LEFT:
+//       cells.ymax = cells.ymin + 1;
+//       break;
 
-    case RIGHT:
-      cells.ymin = cells.ymax - 1;
-      break;
+//     case RIGHT:
+//       cells.ymin = cells.ymax - 1;
+//       break;
 
-    case TOP:
-      cells.zmin = cells.zmax - 1;
-      break;
+//     case TOP:
+//       cells.zmin = cells.zmax - 1;
+//       break;
 
-    case BOTTOM:
-      cells.zmax = cells.zmin + 1;
-      break;
-    }
+//     case BOTTOM:
+//       cells.zmax = cells.zmin + 1;
+//       break;
+//     }
 
-    complex<field_t> *Jt1 = Jt1_data_[face_idx];
-    complex<field_t> *Jt2 = Jt2_data_[face_idx];
+//     complex<field_t> *Jt1 = Jt1_data_[face_idx];
+//     complex<field_t> *Jt2 = Jt2_data_[face_idx];
 
-    complex<field_t> *Mt1 = Mt1_data_[face_idx];
-    complex<field_t> *Mt2 = Mt2_data_[face_idx];
+//     complex<field_t> *Mt1 = Mt1_data_[face_idx];
+//     complex<field_t> *Mt2 = Mt2_data_[face_idx];
 
-    unsigned int idx = 0;
+//     unsigned int idx = 0;
 
-    for (unsigned int f_idx = 0; f_idx < frequencies_.length(); f_idx++)
-    {
-      for (unsigned int i = cells.xmin; i < cells.xmax; i++)
-      {
-        for (unsigned int j = cells.ymin; j < cells.ymax; j++)
-        {
-          for (unsigned int k = cells.zmin; k < cells.zmax; k++, idx++)
-          {
-            jt1_of << frequencies_.get(f_idx) << " " 
-                   << i << " " << j << " " << k << " " 
-                   << Jt1[idx].real() << " " << Jt1[idx].imag() << "\n";
-            jt2_of << frequencies_.get(f_idx) << " " 
-                   << i << " " << j << " " << k << " " 
-                   << Jt2[idx].real() << " " << Jt2[idx].imag() << "\n";
-            mt1_of << frequencies_.get(f_idx) << " " 
-                   << i << " " << j << " " << k << " " 
-                   << Mt1[idx].real() << " " << Mt1[idx].imag() << "\n";
-            mt2_of << frequencies_.get(f_idx) << " " 
-                   << i << " " << j << " " << k << " " 
-                   << Mt2[idx].real() << " " << Mt2[idx].imag() << "\n";
-          }
-        }
-      }
-    }
-  }
+//     for (unsigned int f_idx = 0; f_idx < frequencies_.length(); f_idx++)
+//     {
+//       for (unsigned int i = cells.xmin; i < cells.xmax; i++)
+//       {
+//         for (unsigned int j = cells.ymin; j < cells.ymax; j++)
+//         {
+//           for (unsigned int k = cells.zmin; k < cells.zmax; k++, idx++)
+//           {
+//             jt1_of << frequencies_.get(f_idx) << " " 
+//                    << i << " " << j << " " << k << " " 
+//                    << Jt1[idx].real() << " " << Jt1[idx].imag() << "\n";
+//             jt2_of << frequencies_.get(f_idx) << " " 
+//                    << i << " " << j << " " << k << " " 
+//                    << Jt2[idx].real() << " " << Jt2[idx].imag() << "\n";
+//             mt1_of << frequencies_.get(f_idx) << " " 
+//                    << i << " " << j << " " << k << " " 
+//                    << Mt1[idx].real() << " " << Mt1[idx].imag() << "\n";
+//             mt2_of << frequencies_.get(f_idx) << " " 
+//                    << i << " " << j << " " << k << " " 
+//                    << Mt2[idx].real() << " " << Mt2[idx].imag() << "\n";
+//           }
+//         }
+//       }
+//     }
+//   }
   
-  jt1_of.close();
-  jt2_of.close();
-  mt1_of.close();
-  mt2_of.close();
-#endif
-}
+//   jt1_of.close();
+//   jt2_of.close();
+//   mt1_of.close();
+//   mt2_of.close();
+// #endif
+// }
 
 FarfieldResult2::FarfieldResult2()
   : r_(100), 
@@ -439,7 +439,7 @@ FarfieldResult2::calculate_post_result(const Grid &grid)
   complex<field_t> eta(ETA,0);
 
   // TEMPORARY: checking only. Output the DFT's of the currents 
-  export_dfts();  
+  //export_dfts();  
 
   unsigned int idx = 0;
   for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)

@@ -810,7 +810,7 @@ void Grid::update_ez(region_t update_r)
   
   // Inner part
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, i, j, k, idx, ez, hy1, hy2, hx1, hx2)
+#pragma omp parallel private(mid, idx, ez, hy1, hy2, hx1, hx2)
 #endif
   {
 #ifdef USE_OPENMP

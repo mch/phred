@@ -207,8 +207,8 @@ protected:
   // breaks the suface equivalence theorm, but...
   bool use_face_[6];
   
-  void idx_tests();
-  void dump_temps();
+//   void idx_tests();
+//   void dump_temps();
 
   /**
    * A helper for calculating the offset into the dft arrays

@@ -3,8 +3,22 @@ Running Phred on IRIX
 Read the MPI and OpenMP man pages! There is lots of important info
 there! 
 
-Debugging:
+* Checkpointing 
+
+Pass the -cpr or -miser flag to to mpirun in the PBS script. The cpr
+command should make it possible to checkpoint an restore the program.
+
+* Debugging
 Set MPI_COREDUMP_VERBOSE=1 
+
+* Performance testing / profiling
+
+Run an experiment using the ssrun command
+ssrun -workshop -usertime my_prog
+cvperf my_prog.usertime.m88888
+
+
+* MPI and OpenMP 
 
 Use a CPU list? 
 
@@ -29,3 +43,13 @@ cpusets? MPI_DSM_OFF?
 OpenMP options:
 _DSM_MIGRATION=ON to migrate pages around...
 _DSM_VERBOSE
+
+
+
+
+export OMP_NUM_THREADS=4
+export MPI_DSM_TOPOLOGY=cube
+export MPI_DSM_VEBOSE=1
+export MPI_OPENMP_INTEROP=1
+export _DSM_MIGRATION=ON
+export _DSM_VERBOSE=1

@@ -29,7 +29,7 @@
 #include <cstring>
 #include <cassert>
 
-#include <fstream>
+//#include <fstream>
 
 using namespace std;
 
@@ -43,63 +43,63 @@ using namespace std;
 //   fcs.close();
 // }
 
-void FarfieldResult::idx_tests()
-{
-  ofstream wuf;
+// void FarfieldResult::idx_tests()
+// {
+//   ofstream wuf;
 
-  wuf.open("wutest.txt", ofstream::out);
-  wuf << "# phis: " << phi_data_.length() << "\n";
-  wuf << "# thetas: " << theta_data_.length() << "\n";
-  wuf << "# fftsteps: " << ff_tsteps_ << "\n";
+//   wuf.open("wutest.txt", ofstream::out);
+//   wuf << "# phis: " << phi_data_.length() << "\n";
+//   wuf << "# thetas: " << theta_data_.length() << "\n";
+//   wuf << "# fftsteps: " << ff_tsteps_ << "\n";
 
-  wuf << "phi_idx phi theta_idx theta WU_index\n";
+//   wuf << "phi_idx phi theta_idx theta WU_index\n";
 
-  for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
-  {
-    for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
-    {
-      wuf << phi_idx << "\t" << phi_data_.get(phi_idx) << "\t"
-          << theta_idx << "\t" << theta_data_.get(theta_idx) << "\t"
-          << WU_index(phi_idx, theta_idx, 0, theta_data_.length(),
-                      ff_tsteps_) << "\n";
-    }
-  }
+//   for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
+//   {
+//     for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
+//     {
+//       wuf << phi_idx << "\t" << phi_data_.get(phi_idx) << "\t"
+//           << theta_idx << "\t" << theta_data_.get(theta_idx) << "\t"
+//           << WU_index(phi_idx, theta_idx, 0, theta_data_.length(),
+//                       ff_tsteps_) << "\n";
+//     }
+//   }
 
-  wuf.close();
-}
+//   wuf.close();
+// }
 
-void FarfieldResult::dump_temps()
-{
-  ofstream fp;
+// void FarfieldResult::dump_temps()
+// {
+//   ofstream fp;
 
-  fp.open("cartesian_fields.txt", ofstream::out);
+//   fp.open("cartesian_fields.txt", ofstream::out);
   
-  int idx = 0;
-  int t_start = (ff_tsteps_ / 2) - (ff_tsteps_ / 8);
-  int t_end = (ff_tsteps_ / 2) + (ff_tsteps_ / 8);
+//   int idx = 0;
+//   int t_start = (ff_tsteps_ / 2) - (ff_tsteps_ / 8);
+//   int t_end = (ff_tsteps_ / 2) + (ff_tsteps_ / 8);
 
-  fp << scientific;
+//   fp << scientific;
 
-  for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
-  {
-    for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
-    {
-      for (int t = t_start; t < t_end; t++)
-      {
-        fp << phi_data_.get(phi_idx) << " " << theta_data_.get(theta_idx)
-           << " " << t << " " 
-           << Wx_[idx] << " " << Wy_[idx] << " " << Wz_[idx] << " "
-           << Ux_[idx] << " " << Uy_[idx] << " " << Uz_[idx]
-           << "\n";
+//   for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
+//   {
+//     for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
+//     {
+//       for (int t = t_start; t < t_end; t++)
+//       {
+//         fp << phi_data_.get(phi_idx) << " " << theta_data_.get(theta_idx)
+//            << " " << t << " " 
+//            << Wx_[idx] << " " << Wy_[idx] << " " << Wz_[idx] << " "
+//            << Ux_[idx] << " " << Uy_[idx] << " " << Uz_[idx]
+//            << "\n";
 
-        idx++;
-      }
-    }
-  }
+//         idx++;
+//       }
+//     }
+//   }
 
-  fp.close();
+//   fp.close();
 
-}
+// }
 
 FarfieldResult::FarfieldResult()
   : r_(100),

@@ -123,8 +123,8 @@ dnl        AC_LANG_WERROR
         CFLAGS="$CFLAGS -g"
 else
         AC_DEFINE([NDEBUG], [1], [Turn off assertions])
-        CXXFLAGS="$CXXFLAGS -O2"
-        CFLAGS="$CFLAGS -O2"
+        CXXFLAGS="$CXXFLAGS -O3"
+        CFLAGS="$CFLAGS -O3"
 
         if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then        
                CXXFLAGS="$CXXFLAGS -qstrict -Q -qansialias -qhot"
