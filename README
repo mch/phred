@@ -33,11 +33,9 @@ Python your self, be sure to 'make libinstall' and 'make
 libpython2.3.so'. 'make altinstall' seems to be the only target that
 actually installs the shared library in $PREFIX/lib. 
 
-On AIX, I had to use GCC 3.3.3 to build boost.python, because the
-Visual Age 6 C++ compiler choked on partial template specializations
-used by boost. I used Visual Age to compile the rest of Phred,
-for the MPI and OpenMP stuff to work. 
-
+On Minerva (an RS/6000 SP), I could not compile python in because the
+compiler version we have has a bug related to partial template
+specialization which the Boost.Python glue library relies on. 
 
 NOTE ON LICENCES:
 This program optionally depends on a number of other software
@@ -82,3 +80,14 @@ Parallel stuff:
 FDTD stuff:
 - Near to far field transformation
 - Total scattered field formulation
+
+
+
+Aix xlC_r optimize flags (from Blitz++):
+-O3 -qstrict -Q -qansialias -qhot
+
+-Q turns on inlining
+-qstrict turns off optimizations that might alter program semantics 
+-qhot turns on high order transformations; pad arrays etc to avoid
+      cache misses, use vector library routines where possible
+-qansialias Use type-based aliasing during optimization

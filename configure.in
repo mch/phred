@@ -74,6 +74,9 @@ dnl Check for compiler things
 AC_C_INLINE
 AC_C_BIGENDIAN
 
+dnl Blitz++, required for optimization
+AC_CXX_LIB_BLITZ
+
 dnl Generate python scripting support?
 AC_ARG_WITH(python, AC_HELP_STRING([--with-python], [Generate Python scripting support]))
 AC_ARG_WITH(python_libs, AC_HELP_STRING([--with-python-libs], [Location of Python libraries]))
@@ -117,8 +120,12 @@ if test "x$WANT_DEBUG" = "x1"; then
         CFLAGS="-g"
 else
         AC_DEFINE([NDEBUG], [1], [Turn off assertions])
-        CXXFLAGS="-O2"
-        CFLAGS="-O2"
+        CXXFLAGS="-O3"
+        CFLAGS="-O3"
+
+        if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then        
+               CXXFLAGS="$CXXFLAGS -qstrict -Q -qansialias -qhot"
+        fi
 fi
 
 dnl Profile?
@@ -134,7 +141,7 @@ dnl instance).
 
 if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then
 dnl Turn on inlining, template registry, RTTI, 2 GB memory access
-   CXXFLAGS="$CXXFLAGS -Q -qtemplateregistry -qrtti=all"
+   CXXFLAGS="$CXXFLAGS -qtemplateregistry -qrtti=all"
    if test "x$WANT_64BIT" = "x1"; then
       CXXFLAGS="-q64 -qwarn64 $CXXFLAGS"
    else
