@@ -126,6 +126,14 @@ public:
   ~FarfieldResult();
 
   /**
+   * Set the Huygen's box surface to use
+   */
+  inline void set_huygens(region_t h)
+  {
+    global_r_ = h;
+  }
+
+  /**
    * Set the type of result to produce. Defaults to ETHETAPHI.
    */
   inline void set_output_type(FfType ot)
@@ -186,7 +194,11 @@ public:
    * for this Resault, because it needs to fetch data from other
    * ranks to do the computation. 
    */ 
-  void set_mpi_rank_size(int rank, int size);
+  inline void set_mpi_rank_size(int rank, int size)
+  {
+    rank_ = rank;
+    size_ = size;
+  }
 
   /**
    * Set the angles that define the arc on which the transformation

@@ -126,7 +126,11 @@ MatlabElement::~MatlabElement()
 
 unsigned int MatlabElement::get_num_bytes()
 {
-  return tag_.num_bytes + 8;
+  unsigned int padding = (8 - (tag_.num_bytes) % 8);
+  if (padding >= 8)
+    padding = 0;
+
+  return tag_.num_bytes + 8 + padding;
 }
 
 // void MatlabElement::write_data(ostream &stream, unsigned int num_bytes,
@@ -165,16 +169,17 @@ void MatlabElement::append_buffer(unsigned int num_bytes, const void *ptr)
 
 void MatlabElement::write_buffer(ostream &stream)
 {
-  stream.write((char *)(&tag_), sizeof(data_tag_t));
+  stream.write(reinterpret_cast<char *>(&tag_), 8);
 
   // Rejigger the data so that it is in column major order, otherwise
   // the matrix in matlab will have to be transposed.
   stream.write(buffer_, tag_.num_bytes);
-  
-  int padding = tag_.num_bytes % 64;
-  if (padding)
+
+  int padding = 8 - (tag_.num_bytes) % 8;
+  if (padding > 0 && padding < 8)
     for (int i = 0; i < padding; i++)
       stream.put(0);
+  stream.flush();
 }
 
 // void MatlabElement::update_file_offset(int bytes)
@@ -193,15 +198,16 @@ MatlabArray::MatlabArray(const char *name,
   name_ = name;
   memset(static_cast<void *>(&flags_), 0, sizeof(array_flags_t));
   flags_.flags.bits.complex_bit = complex ? 1 : 0;
-  flags_.flags.bits.global_bit = 1;
+  flags_.flags.bits.global_bit = 0; // 1;
   flags_.flags.bits.logical_bit = 0;
-  flags_.array_class = get_array_class(type);
+  //flags_.flags.byte = 0x8 + 0x4;
+  flags_.array_class = static_cast<uint8_t>(get_array_class(type));
 
   time_dim_ = time_dim;
     
   // Array flags
   me_flags_.set_type(miUINT32);
-  me_flags_.append_buffer(sizeof(array_flags_t), (void *)(&flags_));
+  me_flags_.append_buffer(8, reinterpret_cast<void *>(&flags_));
 
   // Dimension lengths
   me_dim_lens_.set_type(miINT32);
@@ -240,10 +246,6 @@ MatlabArray::MatlabArray(const char *name,
   // Optional Imaginary data ... 
 
   tag_.datatype = miMATRIX;
-  tag_.num_bytes = 8;
-  tag_.num_bytes += me_data_.get_num_bytes();
-  tag_.num_bytes += me_name_.get_num_bytes();
-  tag_.num_bytes += me_flags_.get_num_bytes();
 }
 
 MatlabArray::~MatlabArray()
@@ -266,12 +268,41 @@ void MatlabArray::write_buffer(ostream &stream)
   me_dim_lens_.append_buffer(sizeof(int32_t) * num_dims_,
                              static_cast<const void *>(dim_lengths_));
 
+  tag_.num_bytes = 0;
+  tag_.num_bytes += me_data_.get_num_bytes();
+  tag_.num_bytes += me_name_.tag_.num_bytes + 4;
+  int padding = 8 - (me_name_.tag_.num_bytes + 4) % 8;
+
+  if (padding == 8)
+    padding = 0;
+
+  tag_.num_bytes += padding;
+  tag_.num_bytes += me_flags_.get_num_bytes();
   tag_.num_bytes += me_dim_lens_.get_num_bytes();
 
-  stream.write((char *)(&tag_), sizeof(data_tag_t));
+  stream.write(reinterpret_cast<char *>(&tag_), sizeof(data_tag_t));
+  stream.flush();
+
   me_flags_.write_buffer(stream);
   me_dim_lens_.write_buffer(stream);
-  me_name_.write_buffer(stream);
+
+  // The writing of the name doesn't work the same way as for other elements. 
+  uint16_t temp = static_cast<uint16_t>(me_name_.tag_.num_bytes);
+  stream.write(reinterpret_cast<char *>(&temp), 2);
+  stream.flush();
+  
+  temp = static_cast<uint16_t>(me_name_.tag_.datatype);
+  stream.write(reinterpret_cast<char *>(&temp), 2);
+  stream.flush();
+  
+  stream.write(me_name_.buffer_, me_name_.tag_.num_bytes);
+  stream.flush();
+
+  if (padding > 0 && padding < 8)
+    for (int i = 0; i < padding; i++)
+      stream.put(0);
+  stream.flush();
+
   me_data_.write_buffer(stream);
 }
 
@@ -329,18 +360,18 @@ MatlabDataWriter::~MatlabDataWriter()
 void MatlabDataWriter::header_setup()
 {
   time_t t = time(0);
-  memset(static_cast<void *>(&header_), 0, 128);
+  memset(static_cast<void *>(&header_), ' ', 124);
   snprintf(header_.text, 124, "MATLAB 5.0 MAT-file, Platform: %s, Created on: %s by phred %s", 
            PLATFORM, ctime(&t), PACKAGE_VERSION);
-  //header_.version = 0x0100;
-  header_.version = 0x0001;
-  header_.endian.bytes[0] = 'I';
-  header_.endian.bytes[1] = 'M';
+  header_.version = 0x0100;
+  //header_.version = 0x0001;
+  header_.endian.bytes[0] = 'M';
+  header_.endian.bytes[1] = 'I';
 }
 
 void MatlabDataWriter::init(const Grid &grid)
 {
-  test();
+  //test();
 
   if (filename_.length() > 0 && rank_ == 0)
   {
@@ -355,14 +386,16 @@ void MatlabDataWriter::deinit(const Grid &grid)
   map<string, MatlabArray *>::iterator iter;
   map<string, MatlabArray *>::iterator iter_e = vars_.end();
 
-  file_.write((char *)(&header_), 128);
-
-  for(iter = vars_.begin(); iter != iter_e; ++iter)
-    iter->second->write_buffer(file_);
-
   if (rank_ == 0 && file_.is_open())
+  {
+    file_.write((char *)(&header_), 128);
+
+    for(iter = vars_.begin(); iter != iter_e; ++iter)
+      iter->second->write_buffer(file_);
+
     file_.close();
-  
+  }
+
   for (iter = vars_.begin(); iter != iter_e; ++iter)
   {
     delete iter->second;
@@ -402,26 +435,53 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
   if (!file_.is_open()) 
     throw DataWriterException("MatlabDataWriter: File should already be open!");
 
-  vars_[variable.get_name()]->append_buffer(len, ptr);
+  try {
+    vars_[variable.get_name()]->append_buffer(len, ptr);
+  } catch (MemoryException e) {
+    if (rank_ == 0 && file_.is_open())
+    {
+      file_.write(reinterpret_cast<char *>(&header_), 128);
+      
+      map<string, MatlabArray *>::iterator iter;
+      map<string, MatlabArray *>::iterator iter_e = vars_.end();
 
+      for(iter = vars_.begin(); iter != iter_e; ++iter)
+        iter->second->write_buffer(file_);
+      
+      file_.close();
+    }
+    throw MemoryException();
+  }
   return len;
 }
 
 void MatlabDataWriter::test()
 {
-  vector<int> dims;
-  dims.push_back(1);
-  dims.push_back(4);
-  MatlabArray *ma = new MatlabArray("a", dims, false, miDOUBLE, false);
+  vector<int> dims, dims2;
+  dims.push_back(2);
+  dims.push_back(2);
+  dims2.push_back(4);
+  dims2.push_back(2);
+  dims2.push_back(2);
+  double data2[] = {1, 2, 3, 4, 1, 2, 3, 4, 7, 8, 9, 5, 7, 8, 9, 5};
+
+  MatlabArray *ma = new MatlabArray("ab", dims, false, miDOUBLE, false);
+  MatlabArray *ma2 = new MatlabArray("test", dims2, false, miDOUBLE, false);
 
   double data[] = {1, 2, 3, 4};
-  ma->append_buffer(4, data);
+  ma->append_buffer(4 * sizeof(double), reinterpret_cast<void *>(data));
+  ma2->append_buffer(16 * sizeof(double), reinterpret_cast<void *>(data2));
   
   ofstream tf("a.mat",  ofstream::out | ofstream::binary
              | ofstream::trunc);
 
-  tf.write((char *)(&header_), 128);
+  tf.write(reinterpret_cast<char *>(&header_), 128);
+  tf.flush();
+  ma2->write_buffer(tf);
+  delete ma2;
+
   ma->write_buffer(tf);
   delete ma;
+
   tf.close();
 }

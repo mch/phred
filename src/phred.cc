@@ -109,6 +109,7 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "FDTD.hh"
 #include "Box.hh"
 #include "SphereGeom.hh"
+#include "FarfieldResult.hh"
 
 #ifdef USE_PY_BINDINGS
 #include <Python.h>
@@ -468,17 +469,12 @@ static void pml_test(int rank, int size)
   all.set_material_id(1);
 
   Box metal1;
-  //metal1.set_region(45, 55, 6, 13, 7, 12); // UNSTABLE
-  //metal1.set_region(45, 55, 6, 12, 7, 12); // UNSTABLE
-  //metal1.set_region(45, 55, 7, 13, 7, 12); // UNSTABLE, but slower than above
-  //metal1.set_region(45, 55, 7, 12, 7, 12); // STABLE
   metal1.set_region(40, 65, 5, 14, 5, 14); // UNSTABLE
-  //metal1.set_region(40, 52, 7, 12, 7, 12); // UNSTABLE, but low intensity at 500
   metal1.set_material_id(3);
 
-  //Box metal2;
-  //metal2.set_region(45, 50, 5, 46, 35, 60);
-  //metal2.set_material_id(3);
+  Box metal2;
+  metal2.set_region(45, 50, 5, 46, 35, 60);
+  metal2.set_material_id(3);
 
   Sphere sp1;
   sp1.set_centre(point_t(40, 10, 10));
@@ -571,6 +567,20 @@ static void pml_test(int rank, int size)
   fdtd.add_datawriter("mdw", &mdw);
   fdtd.map_result_to_datawriter("pres60", "mdw");
 
+  FarfieldResult farfield; 
+  farfield.set_mpi_rank_size(rank, size);
+  farfield.set_angles(0, 90, 90, 90, 45);
+  farfield.set_freq_start(300e12);
+  farfield.set_freq_stop(300e12);
+  farfield.set_num_freq(1);
+  region_t h;
+  h.xmin = 20; h.xmax = 80; h.ymin = 5; h.ymax = 15; 
+  h.zmin = 5; h.zmax = 15; 
+  farfield.set_huygens(h);
+
+  fdtd.add_result("farfield", &farfield);
+  fdtd.map_result_to_datawriter("farfield", "mdw");
+
   NetCDFDataWriter ncdw(rank, size);
   ncdw.set_filename("yz_plane.nc");
 
@@ -631,41 +641,6 @@ static void pml_test(int rank, int size)
    fdtd.add_datawriter("adw8", &adw8);
 
    fdtd.map_result_to_datawriter("srctr", "adw8");
-
-#ifdef USE_OPENMP
-   cout << "Number of threads in team: " << omp_get_num_threads() << endl;
-   cout << "Maximum number of threads in team: " 
-	<< omp_get_max_threads() << endl;
-   cout << "Number of processors: " << omp_get_num_procs() << endl;
-   cout << "Current thread number: " << omp_get_thread_num() << endl;
-   cout << "Dynamic thread adjustment? " 
-	<< (omp_get_dynamic() ? "yes" : "no") << endl;
-   cout << "In parallel? " 
-	<< (omp_in_parallel() ? "yes" : "no") << endl;
-   cout << "Nested parallism? " 
-	<< (omp_get_nested() ? "yes" : "no") << endl;
-
-   int i, j[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-#pragma omp parallel for private(i)
-   for (i = 0; i < 10; i++)
-     {
-   cout << "Number of threads in team: " << omp_get_num_threads() << endl;
-   cout << "Maximum number of threads in team: " 
-	<< omp_get_max_threads() << endl;
-   cout << "Number of processors: " << omp_get_num_procs() << endl;
-   cout << "Current thread number: " << omp_get_thread_num() << endl;
-   cout << "Dynamic thread adjustment? " 
-	<< (omp_get_dynamic() ? "yes" : "no") << endl;
-   cout << "In parallel? " 
-	<< (omp_in_parallel() ? "yes" : "no") << endl;
-   cout << "Nested parallism? " 
-	<< (omp_get_nested() ? "yes" : "no") << endl;
-
-       j[i] = i * j[10];
-     }
-   for (i = 0; i < 10; i++)
-     cout << "j[" << i << "] = " << j[i] << endl;
-#endif
 
    fdtd.run(rank, size, 50);
 }
