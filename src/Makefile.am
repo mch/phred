@@ -43,6 +43,8 @@ phred_SOURCES=phred.cc \
 	DataWriter.hh \
 	AsciiDataWriter.hh \
 	AsciiDataWriter.cc \
+	NetCDFDataWriter.hh \
+	NetCDFDataWriter.cc \
 	jan-grammer.yy \
 	jan-grammer-flex.ff \
 	lex.yy.cc

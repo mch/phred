@@ -256,16 +256,19 @@ if [[ ! "$with_popt" = no ]]; then
 fi
 
 AC_CHECK_LIB(netcdf, ncopen, [
+    LIBS="-lnetcdf $LIBS";
     AC_CHECK_HEADER([netcdf.h], [
         AC_DEFINE([USE_NETCDF], [1], [Use netCDF as a DataWriter])], [], 
                   [$with_netcdf_includes])], [], [$with_netcdf_libs])
 
 AC_CHECK_LIB(hdf, Hopen, [
+    LIBS="-lhdf $LIBS";
     AC_CHECK_HEADER([hdf.h], [
         AC_DEFINE([USE_HDF4], [1], [Use HDF4 as a DataWriter])], [], 
                   [$with_hdf4_includes])], [], [$with_hdf4_libs])
 
 AC_CHECK_LIB(hdf5, H5open, [
+    LIBS="-lhdf5 $LIBS";
     AC_CHECK_HEADER([hdf5.h], [
         AC_DEFINE([USE_HDF5], [1], [Use HDF5 as a DataWriter])], [], 
                   [$with_hdf5_includes])], [], [$with_hdf5_libs])

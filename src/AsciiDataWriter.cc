@@ -7,8 +7,7 @@ AsciiDataWriter::AsciiDataWriter(int rank, int size)
 
 AsciiDataWriter::~AsciiDataWriter()
 {
-  if (file_.is_open())
-    file_.close();
+  deinit();
 }
 
 void AsciiDataWriter::init()
@@ -22,7 +21,8 @@ void AsciiDataWriter::init()
 
 void AsciiDataWriter::deinit()
 {
-
+  if (rank_ == 0 && file_.is_open())
+    file_.close();
 }
 
 void AsciiDataWriter::add_variable(Result &result)

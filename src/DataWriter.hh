@@ -26,15 +26,12 @@ using namespace std;
 class DataWriter 
 {
 private:
-public:
+  DataWriter()
+  {}
 
 protected:
   int rank_;  /**< MPI Rank of this process */
   int size_; /**< Number of processes in MPI comm. */
-
-private:
-  DataWriter()
-  {}
 
 public:
   DataWriter(int rank, int size) 
