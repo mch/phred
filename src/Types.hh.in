@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -227,6 +227,11 @@ public:
     : x(xn), y(yn), z(zn)
   {}
 };
+
+#include <ostream>
+std::ostream& operator<< (std::ostream& os, point &p);
+std::ostream& operator<< (std::ostream& os, grid_point &p);
+
 #else
 typedef struct {
   unsigned int x;

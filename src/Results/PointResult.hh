@@ -93,6 +93,13 @@ public:
   
   virtual void init(const Grid &grid);
   virtual void deinit();
+
+  friend ostream& operator<< (ostream& , PointResult &);
 };
+
+/**
+ * An external ostream helper function that writes a description of
+ * the object to an ostream. */
+ostream& operator<< (ostream& os, PointResult &pr);
 
 #endif // POINT_RESULT_H

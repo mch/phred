@@ -1,11 +1,20 @@
 TODO LIST FOR PHRED
 
+* Various
+
+- Overloaded operator<< for objects which need to print out a
+  representation
+
+- Have a generic object that represents configuration, with a
+  map<string, Varient> where Varient stores type information and
+  data. Boost has a variant.
+
 * Sanity
 Sanity checks required:
 
-** Ensure excitations apply to some cell in the grid
+- Ensure excitations apply to some cell in the grid
 
-** Ensure excitations do not overlap boundaries
+- Ensure excitations do not overlap boundaries
 
 
 * Checkpoints
@@ -15,3 +24,14 @@ Sanity checks required:
 * Test cases!!
 Unit tests are looking more and more useful, as small changes break
 old things all over the place.
+
+- Roast? http://www.cs.uvic.ca/~dhoffman/roast1.2/docs/manual/index.html
+
+* Results
+
+- Fix PlaneResult so that it takes coordinates in terms of real space
+  instead of grid cells
+
+- Fix GridResult and BlockResult so that a subset of the grid defined
+  by a CSGBox can be returned, rather than the entire grid.
+

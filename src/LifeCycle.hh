@@ -32,8 +32,6 @@ class Grid;
  */
 class LifeCycle
 {
-private:
-protected:
 public:
   LifeCycle();
 
@@ -54,6 +52,17 @@ public:
    */
   virtual void deinit()
   {}
+
+private:
+//  bool inited_; /**< True if init() has been called and deinit has not. */
+  
+protected:
+//   virtual void private_init(const Grid &grid)
+//   {}
+
+//   virtual void private_deinit()
+//   {}
+
 };
 
 #endif // LIFE_CYCLE_H

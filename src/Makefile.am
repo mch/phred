@@ -59,6 +59,7 @@ phred_SOURCES=\
 	Constants.hh \
 	AltiVec.hh \
 	Types.hh \
+	Types.cc \
 	Exceptions.hh \
 	Data.hh \
 	SubdomainAlg.hh \

@@ -229,3 +229,50 @@ map<string, Variable *> &BlockResult::get_result(const Grid &grid,
 
   return variables_;
 }
+
+ostream& operator<< (ostream& os, BlockResult &r)
+{
+  os << "BlockResult: returning the ";
+  switch(r.field_comp_)
+  {
+  case FC_E:
+    os << "magnitude of the electric field";
+    break;
+
+  case FC_H:
+    os << "magnitude of the magnetic field";
+    break;
+
+  case FC_EX:
+    os << "ex component";
+    break;
+
+  case FC_EY:
+    os << "ey component";
+    break;
+
+  case FC_EZ:
+    os << "ez component";
+    break;
+
+  case FC_HX:
+    os << "hx component";
+    break;
+
+  case FC_HY:
+    os << "hy component";
+    break;
+
+  case FC_HZ:
+    os << "hz component";
+    break;
+
+  default:
+    os << "invalid field";
+    break;
+  }
+
+  os << " over the entire grid.";
+  
+  return os;
+}

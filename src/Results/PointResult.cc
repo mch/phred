@@ -103,3 +103,11 @@ void PointResult::init(const Grid &grid)
 
 void PointResult::deinit()
 {}
+
+
+ostream& operator<< (ostream& os, PointResult &pr)
+{
+  return os << "PointResult: sampling data at point "
+            << pr.space_point_ << "\n"
+            << "sampling data at grid cell " << pr.point_ << "\n";
+}

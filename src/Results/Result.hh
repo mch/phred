@@ -459,6 +459,13 @@ public:
    */
   virtual map<string, Variable *> &get_result(const Grid &grid, 
                                               unsigned int time_step) = 0;
+
+  friend ostream& operator<< (ostream& os, Result &r);
 };
+
+inline ostream& operator<< (ostream& os, Result &r)
+{
+  return os << "A Result of indeterminate type.";
+}
 
 #endif // RESULT_H

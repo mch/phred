@@ -35,6 +35,14 @@ class PowerResult : public DFTResult
 public:
 
   PowerResult();
+
+  /**
+   * Constructor. Sets the frequency parameters at the same time. 
+   *
+   * @param freq_start first frequency in the range
+   * @param freq_stop last frequency in the range
+   * @param num_freqs total number of frequencies to report data for
+   */
   PowerResult(field_t freq_start, field_t freq_stop, 
               unsigned int num_freqs);
   ~PowerResult();

@@ -33,10 +33,27 @@ class DFTResult : public Result
 public:
   DFTResult();
 
+  /**
+   * Constructor. Sets the frequency parameters for this result.
+   *
+   * @param freq_start first frequency in the range
+   * @param freq_stop last frequency in the range
+   * @param num_freqs total number of frequencies to report data for
+   */
   DFTResult(field_t freq_start, field_t freq_stop, 
             unsigned int num_freqs);
 
   virtual ~DFTResult();
+
+  /**
+   * Set the frequency parameters for this result.
+   *
+   * @param freq_start first frequency in the range
+   * @param freq_stop last frequency in the range
+   * @param num_freqs total number of frequencies to report data for
+   */ 
+  void set_freq(field_t freq_start, field_t freq_stop, 
+                unsigned int num_freqs);
 
   /**
    * Set the start frequency of the range

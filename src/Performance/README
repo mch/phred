@@ -2,3 +2,97 @@ This directory contains all high performance code. This is code that
 can potentially be vectorized. All grid updates and dispersions go
 here. 
 
+
+NOTES:
+
+High performance Phred:
+ - GridInfo stays because it defines the grid without memory; copying
+   is well defined. 
+ - Grid manages memory for the six principle field components. It
+   cannot be copied. 
+ - GridUpdate is a templatable or preprocessor metaprogrammable object
+   which copies grid pointers into restricted pointers on it's own
+   stack and has a loop to update those pointers within a certain
+   Block of grid cells. 
+ - UpdateAlg is an object defining update equations that can be used
+   by GridUpdate to update the grid. This object may also manage
+   additional memory which may be required for it's updates. 
+
+Goals: 
+ - Reduce code duplication, especially multiple loops where parallel
+   constructs such as OpenMP #pragmas are used.
+ - Improve maintainability
+ - Improve the chances of the code being vectorized in all relevent places
+ - Reduce code duplication by not requiring dispersions to be placed
+   in multiple update loops. Currenlty a dispersion must be placed in
+   the main update loop, and it any PML update loops
+ - Simplify the expression of update algorithms by making them
+   independent of loops
+ - Make it possible to use different sets of updates in different
+   regions. For example, it is only necessary to use Plasma updates
+   where there is actually plasma, and in the rest of the space free space
+   updates can be used. 
+   - Need an algorithm for dividing the space up into regions where
+     only the "right" updates are applied, but without making the
+     regions so small that the gain of using only the needed updates
+     is overpowered by the overhead of switching update equations. 
+ - Make GridUpdates that include dispersions that are commonly used
+   together. Have one for free space propagation, one for lossy
+   dielectrics, one for plasmas, one for all, etc. Then have PML
+   updates with the same update sets as above, plus the PML update.
+
+#define UPDATE_EX(ex, hy1, hz1, hy2, hz2, Ca, Cb1, Cb2, idx) \
+ex[idx] = Ca[idx] * ex[idx] \
+  + Cb1[idx] * (hy1[idx] - hy2[idx]) \
+  + Cb2[idx] * (hz1[idx] - hz2[idx]) \
+
+Or, more generically, for freespace propagation for example:
+
+#define UPDATE_E_FIELD(e, ht1a, ht1b, ht2a, ht2b, idx) \
+e[idx] = e[idx] \
+  + 195.754822 * (ht1a[idx] - ht1b[idx]) \
+  + 195.754822 * (ht2a[idx] - ht2b[idx]);
+
+#define UPDATE_H_FIELD(h, et1a, et1b, et2a, et2b, idx) \
+h[idx] = h[idx] \
+  + 0.00137927616 * (et1a[idx] - et1b[idx]) \
+  + 0.00137927616 * (et2a[idx] - et2b[idx]);
+
+
+The update object for lossy dielectrics would manage it's own Ca, Cb,
+etc. They could do this by using a #define to place pointers in the
+GridUpdate's local scope:
+
+/* Put pointers in the local scope of the update loop function for
+   fast access. Copy pointers from a local object that manage them to
+   avoid an additional de-reference, and declare local vector pointers
+   or values that may be used later. */ 
+#define DECLATE_POINTERS() \
+float * __restricted__ Ca = Ca_; \
+float non_contig;
+
+/* Used inside a loop to copy data to a local buffer for a better
+   chance at vectorization by enabling cache streaming. idx is an
+   index into the local pre-allocated cache buffer, and mid is a
+   material id which can be used to do non-contigouos memory access
+   based on material type. */ 
+#define SETUP_VECTOR_POINTERS(idx, mid) \
+Ca[idx] = &Ca[mid];
+
+/* Used inside the inner update loop to perform non-contigouos memory
+   access. */
+#define NONCONTIGUOUS_ACCESS(i,j,k) \
+non_contig = Ca_[mid];
+
+The UPDATE_{E,H}_FIELD macros would then be able to access those
+pointers. 
+
+To increase the poential vectorization, it may be useful to copy
+non-contiguous chunks of data into contiguous buffers before it is
+needed, so that it can be cache streamed and so that vector operators
+can be applied. 
+
+It may be helpful to do some sort of benchmarking test during
+configure to decide if making copies to enable vectorization is work
+the trouble. The GridUpdate object could use #ifdefs to check whether
+or not to attempt vectorization. 

@@ -33,3 +33,8 @@ DFTResult::DFTResult(field_t freq_start, field_t freq_stop,
 DFTResult::~DFTResult()
 {}
 
+void DFTResult::set_freq(field_t freq_start, field_t freq_stop, 
+                         unsigned int num_freqs)
+{
+
+}

@@ -116,6 +116,10 @@ public:
     return field_comp_;
   }
 
+  friend ostream& operator<< (ostream& os, BlockResult &pr);
+
 };
+
+ostream& operator<< (ostream& os, BlockResult &pr);
 
 #endif // BLOCK_RESULT_H

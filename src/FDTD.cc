@@ -326,6 +326,8 @@ void FDTD::run()
     if ((*riter).second->get_time_stop() == ~0)
       (*riter).second->set_time_stop(time_steps_);
 
+    cout << (*(*riter).second) << endl;
+
     ++riter;
   }
 
