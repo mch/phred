@@ -137,6 +137,12 @@ public:
   void set_grid_deltas(field_t dx, field_t dy, field_t dz);
 
   /**
+   * Set a time delta different from the one computed by
+   * set_grid_deltas(). 
+   */
+  void set_time_delta(field_t dt);
+
+  /**
    * Set a boundary condition object. A pointer to the object is
    * stored, so don't, for the love of god and all that is holy,
    * delete the object or allow it go go out of scope before this

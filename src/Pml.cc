@@ -90,17 +90,157 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
     throw exception();
   
   region_t r = find_face(face, grid);
+
   pml_r_.xmin = pml_r_.ymin = pml_r_.zmin = 0;
 
   pml_r_.xmax = r.xmax - r.xmin;
   pml_r_.ymax = r.ymax - r.ymin;
   pml_r_.zmax = r.zmax - r.zmin;
 
+  grid_ex_r_ = grid_ey_r_ = grid_ez_r_ = r;
+  grid_hx_r_ = grid_hy_r_ = grid_hz_r_ = r;
+
+  grid_ex_r_.ymin++;
+  grid_ex_r_.zmin++;
+  
+  grid_ey_r_.xmin++;
+  grid_ey_r_.zmin++;
+  
+  grid_ez_r_.xmin++;
+  grid_ez_r_.ymin++;
+  
+  grid_hx_r_.ymax--;
+  grid_hx_r_.zmax--;
+  
+  grid_hy_r_.xmax--;
+  grid_hy_r_.zmax--;
+  
+  grid_hz_r_.xmax--;
+  grid_hz_r_.ymax--;
+
+  // Don't allow external face E field updates (electric walls)
+  // Make sure that the PML computes all components at internal faces. 
+  if (thickness_ > 0) 
+  {
+    switch (face) {
+    case FRONT:
+      grid_ey_r_.xmin--;
+      grid_ez_r_.xmin--;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ex_r_.ymax--;
+      grid_ez_r_.ymax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+      break;
+
+    case BACK:
+      grid_hz_r_.xmax++;
+      grid_hy_r_.xmax++;
+
+      grid_ex_r_.ymax--;
+      grid_ez_r_.ymax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+      break;
+
+    case TOP:
+      grid_ex_r_.zmin--;
+      grid_ey_r_.zmin--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ez_r_.ymax--;
+      grid_ex_r_.ymax--;
+      break;
+
+    case BOTTOM:
+      grid_hy_r_.zmax++;
+      grid_hx_r_.zmax++;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ez_r_.ymax--;
+      grid_ex_r_.ymax--;
+      break;
+
+    case LEFT:
+      grid_hz_r_.ymax++;
+      grid_hx_r_.ymax++;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+      break;
+
+    case RIGHT:
+      grid_ez_r_.ymin--;
+      grid_ex_r_.ymin--;
+
+      grid_ez_r_.ymax--;
+      grid_ex_r_.ymax--;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+      break;
+    }
+  }
+
+  cout << "PML Update region for face " << face << ":"
+       << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
+       << grid_ex_r_.xmax
+       << ", y: " << grid_ex_r_.ymin << " -> " 
+       << grid_ex_r_.ymax
+       << ", z: " << grid_ex_r_.zmin << " -> " 
+       << grid_ex_r_.zmax
+       << "\n\tEy, x: " << grid_ey_r_.xmin << " -> " 
+       << grid_ey_r_.xmax
+       << ", y: " << grid_ey_r_.ymin << " -> " 
+       << grid_ey_r_.ymax
+       << ", z: " << grid_ey_r_.zmin << " -> " 
+       << grid_ey_r_.zmax
+       << "\n\tEz, x: " << grid_ez_r_.xmin << " -> " 
+       << grid_ez_r_.xmax
+       << ", y: " << grid_ez_r_.ymin << " -> " 
+       << grid_ez_r_.ymax
+       << ", z: " << grid_ez_r_.zmin << " -> " 
+       << grid_ez_r_.zmax 
+       << "\n\tHx, x: " << grid_hx_r_.xmin << " -> " 
+       << grid_hx_r_.xmax
+       << ", y: " << grid_hx_r_.ymin << " -> " 
+       << grid_hx_r_.ymax
+       << ", z: " << grid_hx_r_.zmin << " -> " 
+       << grid_hx_r_.zmax
+       << "\n\tHy, x: " << grid_hy_r_.xmin << " -> " 
+       << grid_hy_r_.xmax
+       << ", y: " << grid_hy_r_.ymin << " -> " 
+       << grid_hy_r_.ymax
+       << ", z: " << grid_hy_r_.zmin << " -> " 
+       << grid_hy_r_.zmax
+       << "\n\tHz, x: " << grid_hz_r_.xmin << " -> " 
+       << grid_hz_r_.xmax
+       << ", y: " << grid_hz_r_.ymin << " -> " 
+       << grid_hz_r_.ymax
+       << ", z: " << grid_hz_r_.zmin << " -> " 
+       << grid_hz_r_.zmax << endl;
+
   unsigned int sz = (r.xmax - r.xmin) * (r.ymax - r.ymin) 
     * (r.zmax - r.zmin);
   
-  sz_ = sz;
-
   exy_ = new field_t[sz];
   exz_ = new field_t[sz];
 
@@ -267,59 +407,18 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
 
   region_t grid_r = find_face(face, grid);
 
-  if (type == E) {
-
-    region_t e_grid_r = grid_r; 
-    region_t e_pml_r = pml_r_;
-    
-    // Modify the grid region so that the outer walls are not
-    // computed; that they be electric walls.
-    if (e_grid_r.xmin == 0)
-    {
-      e_grid_r.xmin++;
-      e_pml_r.xmin++;
-    }
-
-    if (e_grid_r.ymin == 0)
-    {
-      e_grid_r.ymin++;
-      e_pml_r.ymin++;
-    }
-
-    if (e_grid_r.zmin == 0)
-    {
-      e_grid_r.zmin++;
-      e_pml_r.zmin++;
-    }
-
-    if (e_grid_r.xmax == grid.get_ldx())
-    {
-      e_grid_r.xmax--;
-      e_pml_r.xmax--;
-    }
-
-    if (e_grid_r.ymax == grid.get_ldy())
-    {
-      e_grid_r.ymax--;
-      e_pml_r.ymax--;
-    }
-
-    if (e_grid_r.zmax == grid.get_ldz())
-    {
-      e_grid_r.zmax--;
-      e_pml_r.zmax--;
-    }
-    
-    pml_update_ex(e_pml_r, e_grid_r, grid_r, grid);   
-    pml_update_ey(e_pml_r, e_grid_r, grid_r, grid);
-    pml_update_ez(e_pml_r, e_grid_r, grid_r, grid);
+  if (type == E)
+  {
+    pml_update_ex(grid);   
+    pml_update_ey(grid);
+    pml_update_ez(grid);
 
   }
   else if (type == H)
   {
-    pml_update_hx(grid_r, grid);
-    pml_update_hy(grid_r, grid);
-    pml_update_hz(grid_r, grid);
+    pml_update_hx(grid);
+    pml_update_hy(grid);
+    pml_update_hz(grid);
   } 
   else
   {
@@ -328,21 +427,26 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
   
 }
 
-void Pml::pml_update_ex(const region_t &e_pml_r, 
-                        const region_t &e_grid_r, 
-                        const region_t &grid_r, 
-                        Grid &grid)
+void Pml::pml_update_ex(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
   unsigned int i,j,k; 	/* indices in PML-layer */
   unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
 
+  region_t pml_r; // Region in the PML to update
+
+  pml_r.xmin = pml_r.ymin = pml_r.zmin = 0;
+
+  pml_r.xmax = grid_ex_r_.xmax - grid_ex_r_.xmin;
+  pml_r.ymax = grid_ex_r_.ymax - grid_ex_r_.ymin;
+  pml_r.zmax = grid_ex_r_.zmax - grid_ex_r_.zmin;
+
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r_.xmin, it = grid_r.xmin; it < grid_r.xmax; i++, it++)
-    for(j = e_pml_r.ymin, jt = e_grid_r.ymin; jt < e_grid_r.ymax; j++, jt++)
-      for(k = e_pml_r.zmin, kt = e_grid_r.zmin; kt < e_grid_r.zmax; k++, kt++)
+  for(i = pml_r.xmin, it = grid_ex_r_.xmin; it < grid_ex_r_.xmax; i++, it++)
+    for(j = pml_r.ymin, jt = grid_ex_r_.ymin; jt < grid_ex_r_.ymax; j++, jt++)
+      for(k = pml_r.zmin, kt = grid_ex_r_.zmin; kt < grid_ex_r_.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
@@ -365,21 +469,26 @@ void Pml::pml_update_ex(const region_t &e_pml_r,
       }
 }
 
-void Pml::pml_update_ey(const region_t &e_pml_r, 
-                        const region_t &e_grid_r, 
-                        const region_t &grid_r, 
-                        Grid &grid)
+void Pml::pml_update_ey(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
   unsigned int i,j,k; 	/* indices in PML-layer */
   unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
 
+  region_t pml_r; // Region in the PML to update
+
+  pml_r.xmin = pml_r.ymin = pml_r.zmin = 0;
+
+  pml_r.xmax = grid_ey_r_.xmax - grid_ey_r_.xmin;
+  pml_r.ymax = grid_ey_r_.ymax - grid_ey_r_.ymin;
+  pml_r.zmax = grid_ey_r_.zmax - grid_ey_r_.zmin;
+
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = e_pml_r.xmin, it = e_grid_r.xmin; it < e_grid_r.xmax; i++, it++)
-    for(j = pml_r_.ymin, jt = grid_r.ymin; jt < grid_r.ymax; j++, jt++)
-      for(k = e_pml_r.zmin, kt = e_grid_r.zmin; kt < e_grid_r.zmax; k++, kt++)
+  for(i = pml_r.xmin, it = grid_ey_r_.xmin; it < grid_ey_r_.xmax; i++, it++)
+    for(j = pml_r.ymin, jt = grid_ey_r_.ymin; jt < grid_ey_r_.ymax; j++, jt++)
+      for(k = pml_r.zmin, kt = grid_ey_r_.zmin; kt < grid_ey_r_.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
@@ -402,21 +511,26 @@ void Pml::pml_update_ey(const region_t &e_pml_r,
       }
 }
 
-void Pml::pml_update_ez(const region_t &e_pml_r, 
-                        const region_t &e_grid_r, 
-                        const region_t &grid_r, 
-                        Grid &grid)
+void Pml::pml_update_ez(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
   unsigned int i,j,k; 	/* indices in PML-layer */
   unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
 
+  region_t pml_r; // Region in the PML to update
+
+  pml_r.xmin = pml_r.ymin = pml_r.zmin = 0;
+
+  pml_r.xmax = grid_ez_r_.xmax - grid_ez_r_.xmin;
+  pml_r.ymax = grid_ez_r_.ymax - grid_ez_r_.ymin;
+  pml_r.zmax = grid_ez_r_.zmax - grid_ez_r_.zmin;
+
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = e_pml_r.xmin, it = e_grid_r.xmin; it < e_grid_r.xmax; i++, it++)
-    for(j = e_pml_r.ymin, jt = e_grid_r.ymin; jt < e_grid_r.ymax; j++, jt++)
-      for(k = pml_r_.zmin, kt = grid_r.zmin; kt < grid_r.zmax; k++, kt++)
+  for(i = pml_r.xmin, it = grid_ez_r_.xmin; it < grid_ez_r_.xmax; i++, it++)
+    for(j = pml_r.ymin, jt = grid_ez_r_.ymin; jt < grid_ez_r_.ymax; j++, jt++)
+      for(k = pml_r.zmin, kt = grid_ez_r_.zmin; kt < grid_ez_r_.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
@@ -439,18 +553,26 @@ void Pml::pml_update_ez(const region_t &e_pml_r,
       }
 }
 
-void Pml::pml_update_hx(const region_t &grid_r, Grid &grid)
+void Pml::pml_update_hx(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
   unsigned int i,j,k; 	/* indices in PML-layer */
   unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
 
+  region_t pml_r; // Region in the PML to update
+
+  pml_r.xmin = pml_r.ymin = pml_r.zmin = 0;
+
+  pml_r.xmax = grid_hx_r_.xmax - grid_hx_r_.xmin;
+  pml_r.ymax = grid_hx_r_.ymax - grid_hx_r_.ymin;
+  pml_r.zmax = grid_hx_r_.zmax - grid_hx_r_.zmin;
+
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r_.xmin, it = grid_r.xmin; it < grid_r.xmax; i++, it++)
-    for(j = pml_r_.ymin, jt = grid_r.ymin; jt < grid_r.ymax-1; j++, jt++)
-      for(k = pml_r_.zmin, kt = grid_r.zmin; kt < grid_r.zmax-1; k++, kt++)
+  for(i = pml_r.xmin, it = grid_hx_r_.xmin; it < grid_hx_r_.xmax; i++, it++)
+    for(j = pml_r.ymin, jt = grid_hx_r_.ymin; jt < grid_hx_r_.ymax; j++, jt++)
+      for(k = pml_r.zmin, kt = grid_hx_r_.zmin; kt < grid_hx_r_.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
@@ -473,18 +595,26 @@ void Pml::pml_update_hx(const region_t &grid_r, Grid &grid)
       }
 }
 
-void Pml::pml_update_hy(const region_t &grid_r, Grid &grid)
+void Pml::pml_update_hy(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
   unsigned int i,j,k; 	/* indices in PML-layer */
   unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
 
+  region_t pml_r; // Region in the PML to update
+
+  pml_r.xmin = pml_r.ymin = pml_r.zmin = 0;
+
+  pml_r.xmax = grid_hy_r_.xmax - grid_hy_r_.xmin;
+  pml_r.ymax = grid_hy_r_.ymax - grid_hy_r_.ymin;
+  pml_r.zmax = grid_hy_r_.zmax - grid_hy_r_.zmin;
+
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r_.xmin, it = grid_r.xmin; it < grid_r.xmax - 1; i++, it++)
-    for(j = pml_r_.ymin, jt = grid_r.ymin; jt < grid_r.ymax; j++, jt++)
-      for(k = pml_r_.zmin, kt = grid_r.zmin; kt < grid_r.zmax-1; k++, kt++)
+  for(i = pml_r.xmin, it = grid_hy_r_.xmin; it < grid_hy_r_.xmax; i++, it++)
+    for(j = pml_r.ymin, jt = grid_hy_r_.ymin; jt < grid_hy_r_.ymax; j++, jt++)
+      for(k = pml_r.zmin, kt = grid_hy_r_.zmin; kt < grid_hy_r_.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
@@ -507,18 +637,26 @@ void Pml::pml_update_hy(const region_t &grid_r, Grid &grid)
       }
 }
 
-void Pml::pml_update_hz(const region_t &grid_r, Grid &grid)
+void Pml::pml_update_hz(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
   unsigned int i,j,k; 	/* indices in PML-layer */
   unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
 
+  region_t pml_r; // Region in the PML to update
+
+  pml_r.xmin = pml_r.ymin = pml_r.zmin = 0;
+
+  pml_r.xmax = grid_hz_r_.xmax - grid_hz_r_.xmin;
+  pml_r.ymax = grid_hz_r_.ymax - grid_hz_r_.ymin;
+  pml_r.zmax = grid_hz_r_.zmax - grid_hz_r_.zmin;
+
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r_.xmin, it = grid_r.xmin; it < grid_r.xmax-1; i++, it++)
-    for(j = pml_r_.ymin, jt = grid_r.ymin; jt < grid_r.ymax-1; j++, jt++)
-      for(k = pml_r_.zmin, kt = grid_r.zmin; kt < grid_r.zmax; k++, kt++)
+  for(i = pml_r.xmin, it = grid_hz_r_.xmin; it < grid_hz_r_.xmax; i++, it++)
+    for(j = pml_r.ymin, jt = grid_hz_r_.ymin; jt < grid_hz_r_.ymax; j++, jt++)
+      for(k = pml_r.zmin, kt = grid_hz_r_.zmin; kt < grid_hz_r_.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);

@@ -399,8 +399,9 @@ static void pml_test(int rank, int size)
 {
   FDTD fdtd;
   
-  fdtd.set_grid_size(75, 20, 20);
+  fdtd.set_grid_size(75, 21, 21);
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
+  fdtd.set_time_delta(3.1250e-17);
 
   Pml front(VP, 1.0), back(VP, 1.0), left(VP, 1.0), right(VP, 1.0),
     top(VP, 1.0), bottom(VP, 1.0);
@@ -447,14 +448,16 @@ static void pml_test(int rank, int size)
 
   // Global coordinates. 
   Box all;
-  all.set_region(0, 75, 0, 20, 0, 20);
+  all.set_region(0, 75, 0, 21, 0, 21);
   all.set_material_id(1);
 
   Box metal1;
-  //metal1.set_region(45, 55, 5, 46, 5, 56); // UNSTABLE
-  //metal1.set_region(45, 75, 15, 37, 14, 47); // UNSTABLE
-  metal1.set_region(30, 35, 8, 13, 8, 13); // UNSTABLE
-  //metal1.set_region(45, 55, 23, 27, 28, 33); // STABLE!?!
+  //metal1.set_region(45, 55, 6, 13, 7, 12); // UNSTABLE
+  //metal1.set_region(45, 55, 6, 12, 7, 12); // UNSTABLE
+  //metal1.set_region(45, 55, 7, 13, 7, 12); // UNSTABLE, but slower than above
+  //metal1.set_region(45, 55, 7, 12, 7, 12); // STABLE
+  metal1.set_region(40, 65, 6, 13, 6, 13); // UNSTABLE
+  //metal1.set_region(40, 52, 7, 12, 7, 12); // UNSTABLE, but low intensity at 500
   metal1.set_material_id(2);
 
   //Box metal2;
@@ -467,12 +470,13 @@ static void pml_test(int rank, int size)
 
   // Excitation
   Gaussm gm;
-  gm.set_parameters(1, 200e12, 100e12);
+  gm.set_parameters(10, 200e12, 100e12);
 
   Excitation ex(&gm);
   //BartlettExcitation ex(gm);
   ex.set_soft(true);
-  ex.set_region(15, 15, 5, 15, 5, 15);
+  //ex.set_region(20, 20, 10, 10, 10, 10);
+  ex.set_region(20, 20, 6, 13, 6, 13);
   ex.set_polarization(0.0, 1.0, 0.0);
 
   fdtd.add_excitation("modgauss", &ex);
@@ -480,25 +484,43 @@ static void pml_test(int rank, int size)
   // Results
   point_t p;
   p.x = 40;
-  p.y = 10;
-  p.z = 10;
+  p.y = 9;
+  p.z = 9;
   PointResult res1(p);
-  PointDFTResult pdft(100e12, 600e12, 50);
+  PointDFTResult pdft(5e12, 600e12, 120);
   pdft.set_point(p);
 
   fdtd.add_result("res1", &res1);
   fdtd.add_result("pdft", &pdft);
   
   AsciiDataWriter adw1(rank, size);
-  adw1.set_filename("t_field_20.txt");
+  adw1.set_filename("t_field_40.txt");
 
   AsciiDataWriter adw2(rank, size);
-  adw2.set_filename("t_field_dft_20.txt");
+  adw2.set_filename("t_field_dft_40.txt");
 
   fdtd.add_datawriter("adw1", &adw1);
   fdtd.add_datawriter("adw2", &adw2);
   fdtd.map_result_to_datawriter("res1", "adw1");
   fdtd.map_result_to_datawriter("pdft", "adw2");
+
+  point_t p3(60, 9, 9);
+  PointResult pres60(p3);
+  PointDFTResult pdft60(5e12, 600e12, 120);  
+
+  fdtd.add_result("pres60", &pres60);
+  fdtd.add_result("pdft60", &pdft60);
+
+  AsciiDataWriter adwp60(rank, size);
+  adwp60.set_filename("t_field_60.txt");
+
+  AsciiDataWriter adwp60dft(rank, size);
+  adwp60dft.set_filename("t_field_dft_60.txt");
+
+  fdtd.add_datawriter("adwp60", &adwp60);
+  fdtd.add_datawriter("adwp60dft", &adwp60dft);
+  fdtd.map_result_to_datawriter("pres60", "adwp60");
+  fdtd.map_result_to_datawriter("pdft60", "adwp60dft");
 
   point_t p2;
   p2.x = 4;
@@ -584,6 +606,6 @@ static void pml_test(int rank, int size)
 
    fdtd.map_result_to_datawriter("srctr", "adw8");
 
-   fdtd.run(rank, size, 500);
+   fdtd.run(rank, size, 1000);
 }
 

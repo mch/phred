@@ -88,10 +88,18 @@ class Grid {
   // Grid size information
   GridInfo info_;
 
-  // The region over which the Grid update equations are
-  // applied. Just the size given in info_ minus the offsets. This is
-  // calculated when we leave define mode. 
-  region_t update_r_;
+  // These help simply things when dealing with non-zero thickness
+  // boundary conditions (PML), and help simplify update equations by
+  // removing the need to do math with regard to what can be
+  // updated. Set up in set_define_mode(false).
+
+  region_t update_ex_r_; /**< Region over which ex update is applied. */
+  region_t update_ey_r_; /**< Region over which ey update is applied. */
+  region_t update_ez_r_; /**< Region over which ez update is applied. */
+
+  region_t update_hx_r_; /**< Region over which hx update is applied. */
+  region_t update_hy_r_; /**< Region over which hy update is applied. */
+  region_t update_hz_r_; /**< Region over which hz update is applied. */
 
   // Number of materials we know about (0 is PEC)
   unsigned int num_materials_;

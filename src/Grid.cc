@@ -50,7 +50,15 @@ Grid::Grid(const Grid &rhs)
 const Grid &Grid::operator=(const Grid &rhs)
 {
   info_ = rhs.info_;
-  update_r_ = rhs.update_r_;
+
+  update_ex_r_ = rhs.update_ex_r_;
+  update_ey_r_ = rhs.update_ey_r_;
+  update_ez_r_ = rhs.update_ez_r_;
+
+  update_hx_r_ = rhs.update_hx_r_;
+  update_hy_r_ = rhs.update_hy_r_;
+  update_hz_r_ = rhs.update_hz_r_;
+
   num_materials_ = rhs.num_materials_;
   Ca_ = Cbx_ = Cby_ = Cbz_ = Da_ = Dbx_ = Dby_ = Dbz_ = 0;
   ex_ = ey_ = ez_ = hx_ = hy_ = hz_ = 0;
@@ -96,12 +104,34 @@ void Grid::set_define_mode(bool d)
     init_datatypes();
 
     // Calculate update region_t by considering the thickness of the PML's. 
-    update_r_.xmin = 0;
-    update_r_.xmax = info_.dimx_;
-    update_r_.ymin = 0;
-    update_r_.ymax = info_.dimy_;
-    update_r_.zmin = 0;
-    update_r_.zmax = info_.dimz_;
+    region_t update_r;
+    update_r.xmin = 0;
+    update_r.xmax = info_.dimx_;
+    update_r.ymin = 0;
+    update_r.ymax = info_.dimy_;
+    update_r.zmin = 0;
+    update_r.zmax = info_.dimz_;
+
+    update_ex_r_ = update_ey_r_ = update_ez_r_ = update_r;
+    update_hx_r_ = update_hy_r_ = update_hz_r_ = update_r;
+
+    update_ex_r_.ymin++;
+    update_ex_r_.zmin++;
+
+    update_ey_r_.xmin++;
+    update_ey_r_.zmin++;
+
+    update_ez_r_.xmin++;
+    update_ez_r_.ymin++;
+
+    update_hx_r_.ymax--;
+    update_hx_r_.zmax--;
+
+    update_hy_r_.xmax--;
+    update_hy_r_.zmax--;
+
+    update_hz_r_.xmax--;
+    update_hz_r_.ymax--;
 
     // The domain decomp algorithm will take care of assigning the
     // boundary conditions sensibly, so we don't have to worry about
@@ -112,27 +142,70 @@ void Grid::set_define_mode(bool d)
     {
       thickness = info_.get_face_thickness(static_cast<Face>(i));
 
-      switch (i) {
-      case FRONT:
-        update_r_.xmax -= thickness;
-        break;
-      case BACK:
-        update_r_.xmin += thickness;
-        break;
-      case TOP:
-        update_r_.zmax -= thickness;
-        break;
-      case BOTTOM:
-        update_r_.zmin += thickness;
-        break;
-      case LEFT:
-        update_r_.ymin += thickness;
-        break;
-      case RIGHT:
-        update_r_.ymax -= thickness;
-        break;
-      }
+      if (thickness > 0) 
+      {
+        switch (i) {
+        case FRONT:
+          update_ex_r_.xmax -= thickness;
+          update_ey_r_.xmax -= thickness;
+          update_ez_r_.xmax -= thickness;
 
+          update_hx_r_.xmax -= thickness;
+          update_hy_r_.xmax -= (thickness - 1);
+          update_hz_r_.xmax -= (thickness - 1);
+          break;
+
+        case BACK:
+          update_ex_r_.xmin += thickness;
+          update_ey_r_.xmin += (thickness - 1);
+          update_ez_r_.xmin += (thickness - 1);
+
+          update_hx_r_.xmin += thickness;
+          update_hy_r_.xmin += thickness;
+          update_hz_r_.xmin += thickness;
+          break;
+
+        case TOP:
+          update_ex_r_.zmax -= thickness;
+          update_ey_r_.zmax -= thickness;
+          update_ez_r_.zmax -= thickness;
+
+          update_hx_r_.zmax -= (thickness - 1);
+          update_hy_r_.zmax -= (thickness - 1);
+          update_hz_r_.zmax -= thickness;
+          break;
+
+        case BOTTOM:
+          update_ex_r_.zmin += (thickness - 1);
+          update_ey_r_.zmin += (thickness - 1);
+          update_ez_r_.zmin += thickness;
+
+          update_hx_r_.zmin += thickness;
+          update_hy_r_.zmin += thickness;
+          update_hz_r_.zmin += thickness;
+          break;
+
+        case LEFT:
+          update_ex_r_.ymin += (thickness - 1);
+          update_ey_r_.ymin += thickness;
+          update_ez_r_.ymin += (thickness - 1);
+
+          update_hx_r_.ymin += thickness;
+          update_hy_r_.ymin += thickness;
+          update_hz_r_.ymin += thickness;
+          break;
+
+        case RIGHT:
+          update_ex_r_.ymax -= thickness;
+          update_ey_r_.ymax -= thickness;
+          update_ez_r_.ymax -= thickness;
+
+          update_hx_r_.ymax -= (thickness - 1);
+          update_hy_r_.ymax -= thickness;
+          update_hz_r_.ymax -= (thickness - 1);
+          break;
+        }
+      }
       // Initialize the PML's
       Pml *p = dynamic_cast<Pml *>(&info_.get_boundary(static_cast<Face>(i)));
       if (p) {
@@ -166,10 +239,44 @@ void Grid::set_define_mode(bool d)
       }
     }
     
-//     cout << "Grid update region: x={" << update_r_.xmin << "," 
-//          << update_r_.xmax << "}, y={" << update_r_.ymin << "," 
-//          << update_r_.ymax << "}, z={" << update_r_.zmin << ","
-//          << update_r_.zmax << "}.\n";
+//   cout << "Grid Update region:"
+//        << "\n\tEx, x: " << update_ex_r_.xmin << " -> " 
+//        << update_ex_r_.xmax
+//        << ", y: " << update_ex_r_.ymin << " -> " 
+//        << update_ex_r_.ymax
+//        << ", z: " << update_ex_r_.zmin << " -> " 
+//        << update_ex_r_.zmax
+//        << "\n\tEy, x: " << update_ey_r_.xmin << " -> " 
+//        << update_ey_r_.xmax
+//        << ", y: " << update_ey_r_.ymin << " -> " 
+//        << update_ey_r_.ymax
+//        << ", z: " << update_ey_r_.zmin << " -> " 
+//        << update_ey_r_.zmax
+//        << "\n\tEz, x: " << update_ez_r_.xmin << " -> " 
+//        << update_ez_r_.xmax
+//        << ", y: " << update_ez_r_.ymin << " -> " 
+//        << update_ez_r_.ymax
+//        << ", z: " << update_ez_r_.zmin << " -> " 
+//        << update_ez_r_.zmax 
+//        << "\n\tHx, x: " << update_hx_r_.xmin << " -> " 
+//        << update_hx_r_.xmax
+//        << ", y: " << update_hx_r_.ymin << " -> " 
+//        << update_hx_r_.ymax
+//        << ", z: " << update_hx_r_.zmin << " -> " 
+//        << update_hx_r_.zmax
+//        << "\n\tHy, x: " << update_hy_r_.xmin << " -> " 
+//        << update_hy_r_.xmax
+//        << ", y: " << update_hy_r_.ymin << " -> " 
+//        << update_hy_r_.ymax
+//        << ", z: " << update_hy_r_.zmin << " -> " 
+//        << update_hy_r_.zmax
+//        << "\n\tHz, x: " << update_hz_r_.xmin << " -> " 
+//        << update_hz_r_.xmax
+//        << ", y: " << update_hz_r_.ymin << " -> " 
+//        << update_hz_r_.ymax
+//        << ", z: " << update_hz_r_.zmin << " -> " 
+//        << update_hz_r_.zmax << endl;
+
 
     // Calculate common PML coefficients. 
     pml_common_.init_coeffs(*this);
@@ -543,11 +650,11 @@ void Grid::update_ex()
   field_t *ex, *hz1, *hz2, *hy;
 
   // Inner part
-  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-    for (j = update_r_.ymin + 1; j < update_r_.ymax; j++) {
+  for (i = update_ex_r_.xmin; i < update_ex_r_.xmax; i++) {
+    for (j = update_ex_r_.ymin; j < update_ex_r_.ymax; j++) {
       
-      idx = pi(i, j, update_r_.zmin + 1);
-      idx2 = pi(i, j-1, update_r_.zmin + 1);
+      idx = pi(i, j, update_ex_r_.zmin);
+      idx2 = pi(i, j-1, update_ex_r_.zmin);
       ex = &(ex_[idx]);
       hz1 = &(hz_[idx]);
       hz2 = &(hz_[idx2]);
@@ -556,7 +663,7 @@ void Grid::update_ex()
 #ifdef USE_OPENMP
 #pragma omp parallel for
 #endif
-      for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
+      for (k = update_ex_r_.zmin; k < update_ex_r_.zmax; k++) {
         mid = material_[idx];
         
         *ex = Ca_[mid] * *ex
@@ -572,19 +679,6 @@ void Grid::update_ex()
     }
   }
 
-//   j = update_r_.ymin;
-//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-//       ex_[pi(i, j, k)] = ex_[pi(i, j + 1, k)];
-//     }
-//   }
-
-//   k = update_r_.zmin;
-//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-//     for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-//       ex_[pi(i, j, k)] = ex_[pi(i, j, k+1)];
-//     }
-//   }
 }
 
 // Straight out of Taflove.
@@ -595,19 +689,19 @@ void Grid::update_ey()
   field_t *ey, *hx, *hz1, *hz2;
 
   // Inner part
-  for (i = update_r_.xmin + 1; i < update_r_.xmax; i++) {
-    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+  for (i = update_ey_r_.xmin; i < update_ey_r_.xmax; i++) {
+    for (j = update_ey_r_.ymin; j < update_ey_r_.ymax; j++) {
 
-      idx = pi(i, j, update_r_.zmin + 1);
+      idx = pi(i, j, update_ey_r_.zmin);
       ey = &(ey_[idx]);
       hx = &(hx_[idx]);
-      hz1 = &(hz_[pi(i-1, j, update_r_.zmin + 1)]);
+      hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
       hz2 = &(hz_[idx]);
 
 #ifdef USE_OPENMP
 #pragma omp parallel for
 #endif
-      for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
+      for (k = update_ey_r_.zmin; k < update_ey_r_.zmax; k++) {
         mid = material_[idx];
 
         *ey = Ca_[mid] * *ey
@@ -622,22 +716,6 @@ void Grid::update_ey()
       }
     }
   }
-
-  // Apply Neumann condition at the edges where the field can't be
-  // calculated from curl.
-//   i = update_r_.xmin;
-//   for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-//       ey_[pi(i, j, k)] = ey_[pi(i + 1, j, k)];
-//     }
-//   }
-
-//   k = update_r_.zmin;
-//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-//     for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-//       ey_[pi(i, j, k)] = ey_[pi(i, j, k+1)];
-//     }
-//   }
 }
 
 // Straight out of Taflove.
@@ -648,20 +726,20 @@ void Grid::update_ez()
   field_t *ez, *hy1, *hy2, *hx1, *hx2;
   
   // Inner part
-  for (i = update_r_.xmin + 1; i < update_r_.xmax; i++) {
-    for (j = update_r_.ymin + 1; j < update_r_.ymax; j++) {
+  for (i = update_ez_r_.xmin; i < update_ez_r_.xmax; i++) {
+    for (j = update_ez_r_.ymin; j < update_ez_r_.ymax; j++) {
 
-      idx = pi(i, j, update_r_.zmin);
+      idx = pi(i, j, update_ez_r_.zmin);
       ez = &(ez_[idx]);
       hy1 = &(hy_[idx]);
-      hy2 = &(hy_[pi(i-1, j, update_r_.zmin)]);
-      hx1 = &(hx_[pi(i, j-1, update_r_.zmin)]);
+      hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin)]);
+      hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin)]);
       hx2 = &(hx_[idx]);
 
 #ifdef USE_OPENMP
 #pragma omp parallel for
 #endif
-      for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+      for (k = update_ez_r_.zmin; k < update_ez_r_.zmax; k++) {
         mid = material_[idx];
 
         *ez = Ca_[mid] * *ez
@@ -674,22 +752,6 @@ void Grid::update_ez()
       }
     }
   }
-
-  // Apply Neumann condition at the edges where the field can't be
-  // calculated from curl.
-//   i = update_r_.xmin;
-//   for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-//       ez_[pi(i, j, k)] = ez_[pi(i + 1, j, k)];
-//     }
-//   }
-
-//   j = update_r_.ymin;
-//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-//       ez_[pi(i, j, k)] = ez_[pi(i, j + 1, k)];
-//     }
-//   }
 }
 
 // Straight out of Taflove.
@@ -699,19 +761,19 @@ void Grid::update_hx()
   int i, j, k;
   field_t *hx, *ez1, *ez2, *ey;
 
-  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-    for (j = update_r_.ymin; j < update_r_.ymax - 1; j++) {
+  for (i = update_hx_r_.xmin; i < update_hx_r_.xmax; i++) {
+    for (j = update_hx_r_.ymin; j < update_hx_r_.ymax; j++) {
 
-      idx = pi(i, j, update_r_.zmin);
+      idx = pi(i, j, update_hx_r_.zmin);
       hx = &(hx_[idx]);
       ez1 = &(ez_[idx]);
-      ez2 = &(ez_[pi(i, j+1, update_r_.zmin)]);
+      ez2 = &(ez_[pi(i, j+1, update_hx_r_.zmin)]);
       ey = &(ey_[idx]);
 
 #ifdef USE_OPENMP
 #pragma omp parallel for
 #endif
-      for (k = update_r_.zmin; k < update_r_.zmax - 1; k++) {
+      for (k = update_hx_r_.zmin; k < update_hx_r_.zmax; k++) {
         mid = material_[idx];
 
         *hx = Da_[mid] * *hx
@@ -723,20 +785,6 @@ void Grid::update_hx()
       }
     }
   }
-
-//   j = update_r_.ymax - 1;
-//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-//       hx_[pi(i, j, k)] = hx_[pi(i, j - 1, k)];
-//     }
-//   }
-
-//   k = update_r_.zmax - 1;
-//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-//     for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-//       hx_[pi(i, j, k)] = hx_[pi(i, j, k-1)];
-//     }
-//   }
 }
 
 // Straight out of Taflove.
@@ -746,19 +794,19 @@ void Grid::update_hy()
   int i, j, k;
   field_t *hy, *ex, *ez1, *ez2;
 
-  for (i = update_r_.xmin; i < update_r_.xmax - 1; i++) {
-    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+  for (i = update_hy_r_.xmin; i < update_hy_r_.xmax; i++) {
+    for (j = update_hy_r_.ymin; j < update_hy_r_.ymax; j++) {
 
-      idx = pi(i, j, update_r_.zmin);
+      idx = pi(i, j, update_hy_r_.zmin);
       hy = &(hy_[idx]);
       ex = &(ex_[idx]);
-      ez1 = &(ez_[pi(i+1, j, update_r_.zmin)]);
+      ez1 = &(ez_[pi(i+1, j, update_hy_r_.zmin)]);
       ez2 = &(ez_[idx]);
 
 #ifdef USE_OPENMP
 #pragma omp parallel for
 #endif
-      for (k = update_r_.zmin; k < update_r_.zmax - 1; k++) {
+      for (k = update_hy_r_.zmin; k < update_hy_r_.zmax; k++) {
         mid = material_[idx];
 
         *hy = Da_[mid] * *hy
@@ -770,20 +818,6 @@ void Grid::update_hy()
       }
     }
   }
-
-//   i = update_r_.xmax - 1;
-//   for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-//       hy_[pi(i, j, k)] = hy_[pi(i - 1, j, k)];
-//     }
-//   }
-
-//   k = update_r_.zmax - 1;
-//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-//     for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-//       hy_[pi(i, j, k)] = hy_[pi(i, j, k-1)];
-//     }
-//   }
 }
 
 // Straight out of Taflove.
@@ -793,20 +827,20 @@ void Grid::update_hz()
   int i, j, k;
   field_t *hz1, *ey1, *ey2, *ex1, *ex2;
 
-  for (i = update_r_.xmin; i < update_r_.xmax - 1; i++) {
-    for (j = update_r_.ymin; j < update_r_.ymax - 1; j++) {
+  for (i = update_hz_r_.xmin; i < update_hz_r_.xmax; i++) {
+    for (j = update_hz_r_.ymin; j < update_hz_r_.ymax; j++) {
 
-      idx = pi(i, j, update_r_.zmin);
+      idx = pi(i, j, update_hz_r_.zmin);
       hz1 = &(hz_[idx]);
       ey1 = &(ey_[idx]);
-      ey2 = &(ey_[pi(i+1, j, update_r_.zmin)]);
-      ex1 = &(ex_[pi(i, j+1, update_r_.zmin)]);
+      ey2 = &(ey_[pi(i+1, j, update_hz_r_.zmin)]);
+      ex1 = &(ex_[pi(i, j+1, update_hz_r_.zmin)]);
       ex2 = &(ex_[idx]);
 
 #ifdef USE_OPENMP
 #pragma omp parallel for
 #endif
-      for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+      for (k = update_hz_r_.zmin; k < update_hz_r_.zmax; k++) {
         mid = material_[idx];
 
         *hz1 = Da_[mid] * *hz1
@@ -819,20 +853,6 @@ void Grid::update_hz()
       }
     }
   }
-
-//   i = update_r_.xmax - 1;
-//   for (j = update_r_.ymin; j < update_r_.ymax; j++) {
-//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-//       hz_[pi(i, j, k)] = hz_[pi(i - 1, j, k)];
-//     }
-//   }
-
-//   j = update_r_.ymax - 1;
-//   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-//     for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-//       hz_[pi(i, j, k)] = hz_[pi(i, j - 1, k)];
-//     }
-//   }
 }
 
 void Grid::apply_boundaries(FieldType type)

@@ -52,6 +52,11 @@ void FDTD::set_grid_deltas(field_t dx, field_t dy, field_t dz)
     - 0.01 * global_ginfo_.deltat_;
 }
 
+void FDTD::set_time_delta(field_t dt)
+{
+  global_ginfo_.deltat_ = dt;
+}
+
 void FDTD::set_boundary(Face face, BoundaryCond *bc)
 {
   global_ginfo_.set_boundary(face, bc);

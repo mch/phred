@@ -25,17 +25,6 @@
 #include <string.h> // for memset()
 #include <math.h>
 
-static void print_error(char *fc_name, field_t fc, field_t d, 
-                        field_t s, field_t s1, 
-                        field_t s2, unsigned int i, unsigned int j,
-                        unsigned int k)
-{
-//   cout << "WARNING: new " << fc_name << " larger than old "
-//        << fc_name << "at " << i << ", " << j << ", " << k << "!" << endl;
-//   cout << "\t " << fc_name << " = " << fc << ", d = " << d << endl;
-//   cout << "\t s = " << s << ", s1 = " << s1 << ", s2 = " << s2 << endl;
-}
-
 FreqGrid::FreqGrid()
   : vcdt_(0), omegapsq_(0), dx_(0), sx_(0), sxm1_(0), sxm2_(0),
     dy_(0), sy_(0), sym1_(0), sym2_(0),
@@ -199,10 +188,16 @@ void FreqGrid::free_material()
   Grid::free_material();
 
   if (vcdt_)
+  {
     delete[] vcdt_;
+    vcdt_ = 0;
+  }
 
   if (omegapsq_)
+  {
     delete[] omegapsq_;
+    omegapsq_ = 0;
+  }
 }
 
 void FreqGrid::update_ex()
@@ -212,11 +207,11 @@ void FreqGrid::update_ex()
   field_t *ex, *hz1, *hz2, *hy;
 
   // Inner part
-  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
-    for (j = update_r_.ymin + 1; j < update_r_.ymax; j++) {
+  for (i = update_ex_r_.xmin; i < update_ex_r_.xmax; i++) {
+    for (j = update_ex_r_.ymin; j < update_ex_r_.ymax; j++) {
       
-      idx = pi(i, j, update_r_.zmin + 1);
-      idx2 = pi(i, j-1, update_r_.zmin + 1);
+      idx = pi(i, j, update_ex_r_.zmin);
+      idx2 = pi(i, j-1, update_ex_r_.zmin);
       ex = &(ex_[idx]);
       hz1 = &(hz_[idx]);
       hz2 = &(hz_[idx2]);
@@ -225,7 +220,7 @@ void FreqGrid::update_ex()
 #ifdef USE_OPENMP
 #pragma omp parallel for
 #endif
-      for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
+      for (k = update_ex_r_.zmin; k < update_ex_r_.zmax; k++) {
         mid = material_[idx];
 
         // Is this a plasma?
@@ -245,10 +240,6 @@ void FreqGrid::update_ex()
 
           *ex = dx_[idx] - sx_[idx];
           
-          if (abs(*ex) > abs(dx_[idx]))
-            print_error("ex", *ex, dx_[idx], sx_[idx], sxm1_[idx], sxm2_[idx],
-                        i, j, k);
-            
           sx_[idx] = (1 + vcdt_[mid]) * sxm1_[idx]
             - (vcdt_[mid] * sxm2_[idx])
             + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ex;
@@ -276,19 +267,19 @@ void FreqGrid::update_ey()
   field_t *ey, *hx, *hz1, *hz2;
 
   // Inner part
-  for (i = update_r_.xmin + 1; i < update_r_.xmax; i++) {
-    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+  for (i = update_ey_r_.xmin; i < update_ey_r_.xmax; i++) {
+    for (j = update_ey_r_.ymin; j < update_ey_r_.ymax; j++) {
 
-      idx = pi(i, j, update_r_.zmin + 1);
+      idx = pi(i, j, update_ey_r_.zmin);
       ey = &(ey_[idx]);
       hx = &(hx_[idx]);
-      hz1 = &(hz_[pi(i-1, j, update_r_.zmin + 1)]);
+      hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
       hz2 = &(hz_[idx]);
 
 #ifdef USE_OPENMP
 #pragma omp parallel for
 #endif
-      for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
+      for (k = update_ey_r_.zmin; k < update_ey_r_.zmax; k++) {
         mid = material_[idx];
 
         // Is this a plasma?
@@ -308,10 +299,6 @@ void FreqGrid::update_ey()
 
           *ey = dy_[idx] - sy_[idx];
           
-          if (abs(*ey) > abs(dy_[idx]))
-            print_error("ey", *ey, dy_[idx], sy_[idx], sym1_[idx], sym2_[idx],
-                        i, j, k);
-
           sy_[idx] = (1 + vcdt_[mid]) * sym1_[idx]
             - (vcdt_[mid] * sym2_[idx])
             + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ey;
@@ -340,20 +327,20 @@ void FreqGrid::update_ez()
   field_t *ez, *hy1, *hy2, *hx1, *hx2;
   
   // Inner part
-  for (i = update_r_.xmin + 1; i < update_r_.xmax; i++) {
-    for (j = update_r_.ymin + 1; j < update_r_.ymax; j++) {
+  for (i = update_ez_r_.xmin; i < update_ez_r_.xmax; i++) {
+    for (j = update_ez_r_.ymin; j < update_ez_r_.ymax; j++) {
 
-      idx = pi(i, j, update_r_.zmin);
+      idx = pi(i, j, update_ez_r_.zmin);
       ez = &(ez_[idx]);
       hy1 = &(hy_[idx]);
-      hy2 = &(hy_[pi(i-1, j, update_r_.zmin)]);
-      hx1 = &(hx_[pi(i, j-1, update_r_.zmin)]);
+      hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin)]);
+      hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin)]);
       hx2 = &(hx_[idx]);
 
 #ifdef USE_OPENMP
 #pragma omp parallel for
 #endif
-      for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+      for (k = update_ez_r_.zmin; k < update_ez_r_.zmax; k++) {
         mid = material_[idx];
 
         // Is this a plasma?
@@ -373,10 +360,6 @@ void FreqGrid::update_ez()
 
           *ez = dz_[idx] - sz_[idx];
           
-          if (abs(*ez) > abs(dz_[idx]))
-            print_error("ez", *ez, dz_[idx], sz_[idx], szm1_[idx], szm2_[idx],
-                        i, j, k);
-
           sz_[idx] = (1 + vcdt_[mid]) * szm1_[idx]
             - (vcdt_[mid] * szm2_[idx])
             + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ez;
