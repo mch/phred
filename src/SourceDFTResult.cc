@@ -85,8 +85,10 @@ void SourceDFTResult::init(const Grid &grid)
 
 void SourceDFTResult::deinit(const Grid &grid)
 {
-  if (result_)
+  if (result_) {
     delete[] result_;
+    result_ = 0;
+  }
 }
 
 void SourceDFTResult::set_excitation(const SourceFunction &te)

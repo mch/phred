@@ -20,37 +20,39 @@
 */
 
 #include "PowerResult.hh"
+#include "Constants.hh"
+
 #include <string.h> // for memset
 
 PowerResult::PowerResult()
-  : power_(0), step_x_(0), step_y_(0), step_z_(0), 
+  : power_real_(0), power_imag_(0), step_x_(0), step_y_(0), step_z_(0), 
     plane_(0), normal_(X_AXIS)
 {
-  var_.has_time_dimension(false);
+  real_var_.has_time_dimension(false);
+  imag_var_.has_time_dimension(false);
   freq_var_.has_time_dimension(false);
-  var_.set_name("power");
-  freq_var_.set_name("freqs");
 
-  variables_["power"] = &var_;
+  variables_["real_power"] = &real_var_;
+  variables_["imag_power"] = &imag_var_;
   variables_["freqs"] = &freq_var_;
 }
 
 PowerResult::PowerResult(field_t freq_start, field_t freq_stop, 
                          unsigned int num_freqs)
   : DFTResult(freq_start, freq_stop, num_freqs), 
-    power_(0), step_x_(0), step_y_(0), step_z_(0), 
+    power_real_(0), power_imag_(0), step_x_(0), step_y_(0), step_z_(0), 
     plane_(0), normal_(X_AXIS)
 {
-  var_.has_time_dimension(false);
+  real_var_.has_time_dimension(false);
+  imag_var_.has_time_dimension(false);
   freq_var_.has_time_dimension(false);
-  var_.set_name("power");
-  freq_var_.set_name("freqs");
 
-  variables_["power"] = &var_;
+  variables_["real_power"] = &real_var_;
+  variables_["imag_power"] = &imag_var_;
   variables_["freqs"] = &freq_var_;
 }
 
-~PowerResult::PowerResult()
+PowerResult::~PowerResult()
 {
   if (plane_)
     delete plane_;
@@ -58,8 +60,11 @@ PowerResult::PowerResult(field_t freq_start, field_t freq_stop,
   if (freqs_)
     delete[] freqs_;
 
-  if (power_)
-    delete[] power_;
+  if (power_real_)
+    delete[] power_real_;
+
+  if (power_imag_)
+    delete[] power_imag_;
 }
 
 void PowerResult::init(const Grid &grid)
@@ -71,19 +76,19 @@ void PowerResult::init(const Grid &grid)
   if (region_.xmax - region_.xmin == 1)
   {
     normal_ = X_AXIS;
-    plane_ = new YZPlane();
+    plane_ = new YZPlane(const_cast<Grid&>(grid));
     step_x_ = 1;
     cell_area_ = grid.get_deltay() * grid.get_deltaz();
 
   } else if (region_.ymax - region_.ymin == 1) {
     normal_ = Y_AXIS;
-    plane_ = new XZPlane();
+    plane_ = new XZPlane(const_cast<Grid&>(grid));
     step_y_ = -1;
     cell_area_ = grid.get_deltax() * grid.get_deltaz();
 
   } else if (region_.zmax - region_.zmin == 1) {
     normal_ = Z_AXIS;
-    plane_ = new XYPlane();
+    plane_ = new XYPlane(const_cast<Grid&>(grid));
     step_z_ = -1;
     cell_area_ = grid.get_deltax() * grid.get_deltay();
 
@@ -95,26 +100,39 @@ void PowerResult::init(const Grid &grid)
      because we need to average the H field with the next cell. */
  
   /* Set up the frequencies */ 
-  freqs_ = new field_t[num_freqs_];
-  power_ = new field_t[num_freqs_];
+  freqs_ = new field_t[num_freqs_ + 1];
+  power_real_ = new field_t[num_freqs_ + 1];
+  power_imag_ = new field_t[num_freqs_ + 1];
 
-  memset(power_, 0, sizeof(field_t) * num_freqs_);
+  if (!freqs_ || !power_real_ || !power_imag_)
+    throw MemoryException();
 
-  freq_space = (freq_stop_ - freq_start_) / num_freqs_;
+  memset(power_imag_, 0, sizeof(field_t) * (num_freqs_ + 1));
+  memset(power_real_, 0, sizeof(field_t) * (num_freqs_ + 1));
 
-  for (int idx = 0; idx < num_freqs_; idx++)
+  freq_space_ = (freq_stop_ - freq_start_) / num_freqs_;
+
+  for (int idx = 0; idx <= num_freqs_; idx++)
     freqs_[idx] = freq_start_ + idx * freq_space_;
 
   /* Set up output variables. */
-  var_.reset();
+  real_var_.reset();
+  imag_var_.reset();
   freq_var_.reset();
 
-  var_.add_dimension("Frequency", num_freqs_);
+  real_var_.set_name(base_name_ + "_power_real");
+  imag_var_.set_name(base_name_ + "_power_imag");
+  freq_var_.set_name(base_name_ + "_freqs");
+
+  real_var_.add_dimension("Frequency", num_freqs_);
+  imag_var_.add_dimension("Frequency", num_freqs_);
   freq_var_.add_dimension("Frequency", num_freqs_);
-  var_.set_ptr(static_cast<void *>(power_));
-  freq_var_.set_ptr(static_cast<void *>(freqs_));
-  var_.set_num(1);
-  freq_var_.set_num(1);
+  imag_var_.set_ptr(power_imag_);
+  real_var_.set_ptr(power_real_);  
+  freq_var_.set_ptr(freqs_);
+  real_var_.set_num(num_freqs_);
+  imag_var_.set_num(num_freqs_);
+  freq_var_.set_num(num_freqs_);
 }
 
 void PowerResult::deinit(const Grid &grid)
@@ -131,10 +149,16 @@ void PowerResult::deinit(const Grid &grid)
     freqs_ = 0;
   }
 
-  if (power_)
+  if (power_real_)
   {
-    delete[] power_;
-    power_ = 0;
+    delete[] power_real_;
+    power_real_ = 0;
+  }
+
+  if (power_imag_)
+  {
+    delete[] power_imag_;
+    power_imag_ = 0;
   }
 }
 
@@ -146,7 +170,7 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
   field_t et2_real, et2_imag;
   field_t ht1_real, ht1_imag;
   field_t ht2_real, ht2_imag;
-  field_t p_real;
+  field_t p_real, p_imag;
 
   delta_t dt = grid.get_deltat();
   delta_t time = dt * time_step;
@@ -154,22 +178,26 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
   field_t cos_temp, sin_temp;
 
 #ifdef DEBUG
-  cerr << "Computing power through a surface which is " 
-       << region_.xmax - region_.xmin << "x" << 
-       << region_.xmax - region_.xmin << "x" << 
-       << region_.xmax - region_.xmin << " in size." << endl;
-  cerr << "Frequency range: " << freq_start_ << " to " 
-       << freq_stop_ << ", spacing: " << freq_space_ << ", number: "
-       << num_freqs_ << endl;
-  cerr << "Cell area is " << cell_area_ << endl;
+  if (time_step == 10 || time_step == 15)
+  {
+    cerr << "Computing power through a surface which is "
+         << region_.xmax - region_.xmin << "x"
+         << region_.ymax - region_.ymin << "x"
+         << region_.zmax - region_.zmin << " in size." << endl;
+    cerr << "Frequency range: " << freq_start_ << " to " 
+         << freq_stop_ << ", spacing: " << freq_space_ << ", number: "
+         << num_freqs_ << endl;
+    cerr << "Cell area is " << cell_area_ << endl;
+  }
 #endif 
 
   for (unsigned int i = 0; i <= num_freqs_; i++)
   {
     cos_temp = cos(2 * PI * freqs_[i] * time);
     sin_temp = sin(2 * PI * freqs_[i] * time);
-    
+
     p_real = 0;
+    p_imag = 0;
 
     for (unsigned int x = region_.xmin; x < region_.xmax; x++) 
     {
@@ -188,24 +216,29 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
                                     z + step_z_)) / 2;
           
           et1_real = et1 * cos_temp;
-          et1_imag = et1 * sin_temp;
+          et1_imag = (-1) * et1 * sin_temp;
           
           et2_real = et2 * cos_temp;
-          et2_imag = et2 * sin_temp;
+          et2_imag = (-1) * et2 * sin_temp;
           
           ht1_real = ht1 * cos_temp;
-          ht1_imag = ht1 * sin_temp;
+          ht1_imag = (-1) * ht1 * sin_temp;
           
           ht2_real = ht2 * cos_temp;
-          ht2_imag = ht2 * sin_temp;
+          ht2_imag = (-1) * ht2 * sin_temp;
 
           p_real += (et1_real * ht2_real + et1_imag * ht2_imag)
             - (et2_real * ht1_real + et2_imag * ht1_imag);
+
+          p_imag += et1_imag * ht2_real - ht2_imag * et1_real 
+            + ht1_imag * et2_real - et2_imag * ht1_real;
         }
       }
     }
    
-    power_[i] += 0.5 * p_real * cell_area_;
+    power_real_[i] += 0.5 * p_real * cell_area_;
+    power_imag_[i] += 0.5 * p_imag * cell_area_;
+
   }
 
   return variables_;

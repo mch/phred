@@ -29,6 +29,7 @@
 #include "../SourceTimeResult.hh"
 #include "../BlockResult.hh"
 #include "../FarfieldResult.hh"
+#include "../PowerResult.hh"
 
 using namespace boost::python;
 
@@ -72,6 +73,23 @@ void export_results()
                   &PointDFTResult::set_num_freq)
     .add_property("point", &PointDFTResult::get_point, 
                   &PointDFTResult::set_point)
+    ;
+
+  class_<PowerResult, bases<Result> >("PowerResult")
+    .def(init<field_t, field_t, unsigned int>())
+    .def("set_region", &PowerResult::set_region)
+    .def("set_freq_start", &PowerResult::set_freq_start)
+    .def("get_freq_start", &PowerResult::get_freq_start)
+    .def("set_freq_stop", &PowerResult::set_freq_stop)
+    .def("get_freq_stop", &PowerResult::get_freq_stop)
+    .def("set_num_freq", &PowerResult::set_num_freq)
+    .def("get_num_freq", &PowerResult::get_num_freq)
+    .add_property("freq_start", &PowerResult::get_freq_start,
+                  &PowerResult::set_freq_start)
+    .add_property("freq_stop", &PowerResult::get_freq_stop,
+                  &PowerResult::set_freq_stop)
+    .add_property("num_freqs", &PowerResult::get_num_freq,
+                  &PowerResult::set_num_freq)
     ;
 
   class_<SourceDFTResult, bases<Result> >("SourceDFTResult", init<SourceFunction &>())

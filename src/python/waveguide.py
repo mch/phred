@@ -14,7 +14,7 @@ centre_f = 15e9 # Hz
 wl = 2.997925e8 / centre_f
 
 # Extent of region
-xlen = 500
+xlen = 200
 ylen = 317
 zlen = 79
 
@@ -117,7 +117,7 @@ gm.set_parameters(1, 3e9, 15e9)
 #exps = ExpSine(centre_f)
 ex = WaveguideExcitation(gm)
 ex.set_soft(1)
-ex.set_region(15, 15, 0, ylen/2, 0, zlen)
+ex.set_region(7, 7, 0, ylen/2, 0, zlen)
 ex.set_mode(0, 0, 1)
 ex.set_polarization(0.0, 0.0, 1.0)
 
@@ -139,24 +139,24 @@ p.x = xlen / 2
 p.y = ylen / 2
 p.z = zlen / 2
 
-pr2 = PlaneResult()
-#pr2.set_name("ey-xzplane")
-pr2.set_plane(p, TOP)
-pr2.set_field(EY)
-fdtd.add_result("ey_xyplane", pr2)
-fdtd.map_result_to_datawriter("ey_xyplane", "ncdw")
+# pr2 = PlaneResult()
+# #pr2.set_name("ey-xzplane")
+# pr2.set_plane(p, TOP)
+# pr2.set_field(EY)
+# fdtd.add_result("ey_xyplane", pr2)
+# fdtd.map_result_to_datawriter("ey_xyplane", "ncdw")
 
-pr3 = PlaneResult()
-pr3.set_plane(p, TOP)
-pr3.set_field(HX)
-fdtd.add_result("hx_xyplane", pr3)
-fdtd.map_result_to_datawriter("hx_xyplane", "ncdw")
+# pr3 = PlaneResult()
+# pr3.set_plane(p, TOP)
+# pr3.set_field(HX)
+# fdtd.add_result("hx_xyplane", pr3)
+# fdtd.map_result_to_datawriter("hx_xyplane", "ncdw")
 
-pr4 = PlaneResult()
-pr4.set_plane(p, TOP)
-pr4.set_field(HZ)
-fdtd.add_result("hz_xyplane", pr4)
-fdtd.map_result_to_datawriter("hz_xyplane", "ncdw")
+# pr4 = PlaneResult()
+# pr4.set_plane(p, TOP)
+# pr4.set_field(HZ)
+# fdtd.add_result("hz_xyplane", pr4)
+# fdtd.map_result_to_datawriter("hz_xyplane", "ncdw")
 
 pdft = PointDFTResult()
 pdft.freq_start = 12e9
@@ -202,6 +202,48 @@ srcdft = SourceDFTResult(gm, 12e9, 18e9, 120)
 fdtd.add_result("srcdft", srcdft)
 fdtd.map_result_to_datawriter("srcdft", "mdw")
 fdtd.map_result_to_datawriter("srcdft", "adw")
+
+# ex.set_region(7, 7, 0, ylen/2, 0, zlen)
+# Power output for S parameter measurement
+s11_r = region()
+s12_r = region()
+s13_r = region()
+s14_r = region()
+
+s11_r.xmin = 10; s11_r.xmax = 10;
+s11_r.ymin = 0; s11_r.ymax = ylen/2;
+s11_r.zmin = 0; s11_r.zmax = zlen;
+
+s12_r.xmin = xlen-10; s12_r.xmax = xlen-10;
+s12_r.ymin = 0; s12_r.ymax = ylen/2;
+s12_r.zmin = 0; s12_r.zmax = zlen;
+
+s13_r.xmin = 10; s13_r.xmax = 10;
+s13_r.ymin = ylen/2; s13_r.ymax = ylen;
+s13_r.zmin = 0; s13_r.zmax = zlen;
+
+s14_r.xmin = xlen-10; s14_r.xmax = xlen-10;
+s14_r.ymin = ylen/2; s14_r.ymax = ylen;
+s14_r.zmin = 0; s14_r.zmax = zlen;
+
+s11 = PowerResult(12e9, 18e9, 12)
+s11.set_region(s11_r)
+s12 = PowerResult(12e9, 18e9, 12)
+s12.set_region(s12_r)
+s13 = PowerResult(12e9, 18e9, 12)
+s13.set_region(s13_r)
+s14 = PowerResult(12e9, 18e9, 12)
+s14.set_region(s14_r)
+
+fdtd.add_result("s11", s11)
+fdtd.add_result("s12", s12)
+fdtd.add_result("s13", s13)
+fdtd.add_result("s14", s14)
+
+fdtd.map_result_to_datawriter("s11", "mdw")
+fdtd.map_result_to_datawriter("s12", "mdw")
+fdtd.map_result_to_datawriter("s13", "mdw")
+fdtd.map_result_to_datawriter("s14", "mdw")
 
 # Execute
 fdtd.set_time_steps(num_time_steps)

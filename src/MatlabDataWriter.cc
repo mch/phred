@@ -153,6 +153,8 @@ void MatlabElement::overwrite_buffer(unsigned int num_bytes, const void *ptr)
     
     if (!buffer_)
       throw MemoryException();
+
+    memset(buffer_, 0, sizeof(char) * buffer_size_);
   }
 
   if (num_bytes != buffer_size_)
@@ -173,6 +175,8 @@ void MatlabElement::append_buffer(unsigned int num_bytes, const void *ptr)
     
     if (!buffer_)
       throw MemoryException();
+
+    memset(buffer_, 0, sizeof(char) * buffer_size_);
   }
 
   if (buffer_pos_ + num_bytes > buffer_size_)
@@ -181,6 +185,7 @@ void MatlabElement::append_buffer(unsigned int num_bytes, const void *ptr)
     char *new_buf = new char[buffer_size_];
     if (!new_buf)
       throw MemoryException();
+    memset(new_buf, 0, sizeof(char) * buffer_size_);
 
     memmove(new_buf, buffer_, tag_.num_bytes);
     delete[] buffer_;
@@ -238,6 +243,12 @@ void MatlabElement::reshape_buffer(int N, int M, MPI_Datatype type)
   MPI_Status status;
 
   char *new_buf = new char[buffer_size_];
+
+  if (!new_buf)
+    throw MemoryException();
+
+  memset(new_buf, 0, sizeof(char) * buffer_size_);
+
   int type_size;
   MPI_Type_size(type, &type_size);
 
@@ -315,6 +326,9 @@ MatlabArray::MatlabArray(const char *name,
   }
 
   dim_lengths_ = new int32_t[num_dims_];
+
+  if (!dim_lengths_)
+    throw MemoryException();
 
   if (i > 0)
     dim_lengths_[0] = 1;
@@ -574,6 +588,9 @@ void MatlabDataWriter::test()
 
   MatlabArray *ma = new MatlabArray("test2", dims, true, MPI_SHORT, false);
   MatlabArray *ma2 = new MatlabArray("abc", dims2, false, MPI_DOUBLE, false);
+
+  if (!ma || !ma2)
+    throw MemoryException();
 
   short int data[] = {2, 3, 4, 5};
   ma->append_buffer(2 * sizeof(short int), reinterpret_cast<void *>(data));

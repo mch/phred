@@ -76,7 +76,8 @@ public:
 
 protected:
   field_t *freqs_; /**< Frequencies */ 
-  field_t *power_; /**< Power at each frequency */ 
+  field_t *power_real_; /**< Power at each frequency */ 
+  field_t *power_imag_; /**< Power at each frequency */ 
   region_t region_; /**< The region to get the power through, should
                        be a plane, so the min and max on one axis
                        should be the same. */
@@ -88,7 +89,8 @@ protected:
   GridPlane *plane_; /**< The GridPlane we can use to access Grid data */
   Axis normal_; /**< The axis the plane is normal to */ 
 
-  Variable var_; /**< Power data */
+  Variable real_var_; /**< Power data */
+  Variable imag_var_; /**< Power data */
   Variable freq_var_; /**< Frequency data */
 
 private:
