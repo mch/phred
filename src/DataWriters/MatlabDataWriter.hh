@@ -182,6 +182,14 @@ protected:
   template<class T>
   void compress_helper();
 
+  /**
+   * Helper which takes care of increasing the buffer size. Or
+   * initially allocating it. Whatever.
+   *
+   * @param bytes number of bytes to expand the buffer by. 
+   */ 
+  void expand_buffer(unsigned int bytes);
+
 public:
   virtual ~MatlabElement();
 
@@ -263,6 +271,9 @@ protected:
 
   unsigned int num_dims_; /**< Number of dimensions */ 
   int32_t *dim_lengths_; /**< Dimension lengths */ 
+  unsigned int approx_tlen_; /**< Approximate number of time
+                                steps. For doing memory preallocation
+                                only. */
 
   MPI_Datatype mpi_type_;
 
@@ -274,6 +285,14 @@ protected:
    */ 
   MATLAB_array_type get_array_class(MATLAB_data_type type);
   
+  /**
+   * Set an approximate time dimension length, so that memory for all
+   * timesteps can be pre-allocated. Not treated as difinitive; if
+   * there are more steps than this, that's ok.
+   */
+  inline void set_approx_time_len(unsigned int tlen)
+  { approx_tlen_ = tlen; }
+
 public:
   MatlabArray(const char *name, 
               const vector<int> &dim_lens, 

@@ -419,29 +419,7 @@ void MatlabElement::overwrite_buffer(unsigned int num_bytes, const void *ptr)
 
 void MatlabElement::append_buffer(unsigned int num_bytes, const void *ptr)
 {
-  if (!buffer_) 
-  {
-    buffer_size_ = num_bytes;
-    buffer_ = new char[buffer_size_];
-    
-    if (!buffer_)
-      throw MemoryException();
-
-    memset(buffer_, 0, sizeof(char) * buffer_size_);
-  }
-
-  if (buffer_pos_ + num_bytes > buffer_size_)
-  {
-    buffer_size_ = buffer_pos_ + num_bytes + 1024;
-    char *new_buf = new char[buffer_size_];
-    if (!new_buf)
-      throw MemoryException();
-    memset(new_buf, 0, sizeof(char) * buffer_size_);
-
-    memmove(new_buf, buffer_, tag_.num_bytes);
-    delete[] buffer_;
-    buffer_ = new_buf;
-  }
+  expand_buffer(num_bytes);
 
   memmove(buffer_ + buffer_pos_, ptr, num_bytes);
   buffer_pos_ += num_bytes;
@@ -452,6 +430,34 @@ void MatlabElement::append_buffer(unsigned int num_bytes, const void *ptr)
 //     cerr << "\t" << reinterpret_cast<float*>(buffer_)[i];
 //   cerr << endl;
   
+}
+
+void MatlabElement::expand_buffer(unsigned int bytes)
+{
+  if (!buffer_)
+  {
+    buffer_size_ = bytes;
+    buffer_ = new char[buffer_size_];
+    
+    if (!buffer_)
+      throw MemoryException();
+
+    memset(buffer_, 0, sizeof(char) * buffer_size_);
+  }
+
+  if (buffer_pos_ + bytes > buffer_size_)
+  {
+    buffer_size_ = buffer_pos_ + bytes + 65536;
+    char *new_buf = new char[buffer_size_];
+    if (!new_buf)
+      throw MemoryException();
+    memset(new_buf, 0, sizeof(char) * buffer_size_);
+
+    memmove(new_buf, buffer_, tag_.num_bytes);
+    delete[] buffer_;
+    buffer_ = new_buf;
+  }
+
 }
 
 void MatlabElement::write_buffer(ostream &stream)
@@ -505,6 +511,7 @@ MatlabArray::MatlabArray(const char *name,
                          const vector<int> &dim_lens, bool time_dim, 
                          MPI_Datatype type,
                          bool complex)
+  : approx_tlen_(0)
 {
   vector<int>::const_iterator iter;
   vector<int>::const_iterator iter_e = dim_lens.end();
@@ -550,6 +557,7 @@ MatlabArray::MatlabArray(const char *name,
   me_flags_.append_buffer(8, reinterpret_cast<void *>(&flags_));
 
   // Dimension lengths
+  unsigned int block_size = 1;
   me_dim_lens_.set_type(miINT32);
   num_dims_ = dim_lens.size();
 
@@ -579,10 +587,15 @@ MatlabArray::MatlabArray(const char *name,
   {
     sz += *iter;
     dim_lengths_[i] = *iter;
+    block_size *= dim_lengths_[i];
   }
 
   me_dim_lens_.append_buffer(sizeof(int32_t) * num_dims_,
                              static_cast<const void *>(dim_lengths_));
+
+  // Pre-allocate some buffer space for the output. 
+  if (time_dim && approx_tlen_ > 0)
+    me_data_.expand_buffer(approx_tlen_ * block_size);
 
   // Setup our tag...
   tag_.datatype = miMATRIX;
@@ -758,11 +771,15 @@ void MatlabDataWriter::add_variable(Result &result)
     for(int idx = dimensions.size() - 1; idx >= 0; idx--)
       dim_lens.push_back(dimensions[idx].global_len_);
 
-    vars_[var->get_name()] = 
+    MatlabArray *arr = 
       new MatlabArray(var->get_name().c_str(), 
                       dim_lens, var->has_time_dimension(), 
                       var->get_element_type(),
                       false);
+    
+    arr->set_approx_time_len(result.get_time_stop());
+
+    vars_[var->get_name()] = arr;
 
 //     cerr << "MatlabDataWriter: Added a variable with " 
 //          << dimensions.size() << " dimensions: \n";

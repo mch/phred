@@ -381,6 +381,25 @@ public:
     time_space_ = space; 
   }
 
+  inline void set_time_start(unsigned int start)
+  { time_start_ = start; }
+
+  inline void set_time_stop(unsigned int stop)
+  { time_stop_ = stop; }
+
+  inline void set_time_space(unsigned int space)
+  { time_space_ = space; }
+
+  inline unsigned int get_time_start()
+  { return time_start_; }
+
+  inline unsigned int get_time_stop()
+  { return time_stop_; }
+
+  inline unsigned int get_time_space()
+  { return time_space_; }
+
+
   /**
    * Set the data writer name (intended where we read that from a
    * config file and set the actual data writer later). 

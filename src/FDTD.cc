@@ -308,6 +308,10 @@ void FDTD::run()
   while (riter != riter_e) 
   {
     (*riter).second->init(*grid_);
+
+    if ((*riter).second->get_time_stop() == ~0)
+      (*riter).second->set_time_stop(time_steps_);
+
     ++riter;
   }
 
