@@ -39,13 +39,13 @@ field_t WaveguideExcitation::window(float x, float y, float z)
   {
     point size = (*box_).get_size();
   
-    if (dx > 0 && mode_x_ > 0)
+    if (size.x > 0 && mode_x_ > 0)
       ret = ret * sin(mode_x_ * PI * (x - xmin_) / size.x);
     
-    if (dy > 0 && mode_y_ > 0)
+    if (size.y > 0 && mode_y_ > 0)
       ret = ret * sin(mode_y_ * PI * (y - ymin_) / size.y);
     
-    if (dz > 0 && mode_z_ > 0)
+    if (size.z > 0 && mode_z_ > 0)
       ret = ret * sin(mode_z_ * PI * (z - zmin_) / size.z);
     
     // if (y == 10)

@@ -75,6 +75,9 @@ void omp_h_update2();
 void e_update();
 void h_update();
 
+void restricted_e_update();
+void restricted_h_update();
+
 unsigned int pi(unsigned int x, unsigned int y, 
                 unsigned int z);
 

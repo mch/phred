@@ -24,18 +24,16 @@
 
 MaterialLib::MaterialLib()
 {
-  Material temp;
+  Material temp, temp2;
   temp.set_epsilon(0);
   temp.set_sigma(INFINITY);
   temp.set_mu(0);
-
   add_material("PEC", temp);
 
-  temp.set_epsilon(1);
-  temp.set_sigma(0);
-  temp.set_mu(1);
-  
-  add_material("FreeSpace", temp);
+  temp2.set_epsilon(1);
+  temp2.set_sigma(0);
+  temp2.set_mu(1);
+  add_material("freespace", temp2);
 }
 
 MaterialLib::~MaterialLib()

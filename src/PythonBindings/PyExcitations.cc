@@ -134,10 +134,7 @@ void export_excitations()
     .def("set_type", &Excitation::set_type)
     .def("set_soft", &Excitation::set_soft)
     .def("get_soft", &Excitation::get_soft)
-    .def("set_region", (void(Excitation::*)(region_t))&Excitation::set_region)
-    .def("set_region", (void(Excitation::*)(unsigned int, unsigned int, 
-                                            unsigned int, unsigned int,
-                                            unsigned int, unsigned int))&Excitation::set_region)
+    .def("set_region", &Excitation::set_region)
     ;
 
   class_<WindowedExcitation, WindowedExcitationWrap, bases<Excitation>,

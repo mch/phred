@@ -33,8 +33,13 @@ class WindowedExcitation : public Excitation
 private:
 protected:
 
-  // Box ranges in real global coordinates. 
+  // Box ranges in real global coordinates. For help in calculating
+  // the window.
   float xmin_, xmax_, ymin_, ymax_, zmin_, zmax_;
+
+  // The part of the box that is in the local domain. For looping
+  // across the cells contained in the box.
+  float lxmin_, lymin_, lzmin_;
 
 public:
   WindowedExcitation(SourceFunction *sf) 
@@ -64,7 +69,19 @@ public:
       xmax_ = centre.x + size.x / 2;
       ymax_ = centre.y + size.y / 2;
       zmax_ = centre.z + size.z / 2;
+
+      lxmin_ = xmin_ + grid.get_deltax() * grid.get_lsx_ol();
+      lymin_ = ymin_ + grid.get_deltay() * grid.get_lsy_ol();
+      lzmin_ = zmin_ + grid.get_deltaz() * grid.get_lsz_ol();
+
     }
+
+    cerr << "WindowedExcitation::init, xmin_ = " << xmin_
+         << ", ymin_ = " << ymin_ << ", zmin_ = " << zmin_
+         << ", xmax_ = " << xmax_ << ", ymax_ = " << ymax_
+         << ", zmax_ = " << zmax_ << endl;
+    cerr << "Local region starts at " << lxmin_ << ", " 
+         << lymin_ << ", " << lzmin_ << endl;
   }
 
   /**
@@ -111,20 +128,20 @@ public:
     //     << ": ---------------------" << endl;
     if (!soft_) 
     {
-      fx = grid.get_deltax() * (grid.get_lsx_ol() + region_.xmin);
+      fx = lxmin_;
       for(unsigned int i = region_.xmin; i < region_.xmax; i++, 
             fx += grid.get_deltax())
       {
-        fy = grid.get_deltay() * (grid.get_lsy_ol() + region_.ymin);
+        fy = lymin_;
         for (unsigned int j = region_.ymin; j < region_.ymax; j++,
                fy += grid.get_deltay())
         {
-          fz = grid.get_deltaz() * (grid.get_lsz_ol() + region_.zmin);
+          fz = lzmin_;
           for (unsigned int k = region_.zmin; k < region_.zmax; k++,
                  fz += grid.get_deltaz())
           {
             w = window(fx, fy, fz);
-            //cout << gi << " " << gj << " " << gk << " " << w << endl;
+            //cout << fx << " " << fy << " " << fz << " " << w << endl;
 
             switch (type_) 
             {
@@ -148,20 +165,20 @@ public:
         }
       }
     } else {
-      fx = grid.get_deltax() * (grid.get_lsx_ol() + region_.xmin);
+      fx = lxmin_;
       for(unsigned int i = region_.xmin; i < region_.xmax; i++,
             fx += grid.get_deltax())
       {
-        fy = grid.get_deltay() * (grid.get_lsy_ol() + region_.ymin);
+        fy = lymin_;
         for (unsigned int j = region_.ymin; j < region_.ymax; j++,
                fy += grid.get_deltay())
         {
-          fz = grid.get_deltaz() * (grid.get_lsz_ol() + region_.zmin);
+          fz = lzmin_;
           for (unsigned int k = region_.zmin; k < region_.zmax; k++,
                  fz += grid.get_deltaz())
           {
             w = window(fx, fy, fz);
-            //cout << gi << " " << gj << " " << gk << " " << w << endl;
+            //cout << fx << " " << fy << " " << fz << " " << w << endl;
 
             switch (type_) 
             {

@@ -351,7 +351,7 @@ protected:
   {
     if (time_step >= time_start_ && time_step <= time_stop_
         && (time_space_ == 0 
-            || (time_step - time_start_) % time_space_) == 0)
+            || (time_step - time_start_) % time_space_ == 0))
       return true;
     else 
       return false; 

@@ -24,7 +24,7 @@
 #include "CSG/CSGSphere.hh"
 
 ProblemGeometry::ProblemGeometry()
-  : unit_(1), grid_box_(string("FreeSpace"), 
+  : unit_(1), grid_box_(string("freespace"), 
                         shared_ptr<CSGObject>(new CSGBox()))
 {}
 
@@ -139,7 +139,7 @@ void ProblemGeometry::init(const Grid &grid)
 
   } catch (const UnknownMaterialException &e) {
     cout << "WARNING! The grid is using the material '"
-         << (*iter).material_ << "' which does not exist!" << endl;
+         << grid_box_.material_ << "' which does not exist!" << endl;
     throw e;
   }
 

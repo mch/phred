@@ -130,10 +130,6 @@ void Grid::set_define_mode(bool d)
           {
             material_[pi(i,j,k)] = pg_->get_material_id(x, y, z);
 
-//             cerr << "Point at (" << x << ", " << y << ", " << z << ") is... ";
-//             cerr << material_[pi(i,j,k)] << endl;
-  
-
             z += info_.deltax_;
           }
           y += info_.deltay_;
@@ -297,43 +293,43 @@ void Grid::set_define_mode(bool d)
       }
     }
     
-//   cout << "Grid Update region:"
-//        << "\n\tEx, x: " << update_ex_r_.xmin << " -> " 
-//        << update_ex_r_.xmax
-//        << ", y: " << update_ex_r_.ymin << " -> " 
-//        << update_ex_r_.ymax
-//        << ", z: " << update_ex_r_.zmin << " -> " 
-//        << update_ex_r_.zmax
-//        << "\n\tEy, x: " << update_ey_r_.xmin << " -> " 
-//        << update_ey_r_.xmax
-//        << ", y: " << update_ey_r_.ymin << " -> " 
-//        << update_ey_r_.ymax
-//        << ", z: " << update_ey_r_.zmin << " -> " 
-//        << update_ey_r_.zmax
-//        << "\n\tEz, x: " << update_ez_r_.xmin << " -> " 
-//        << update_ez_r_.xmax
-//        << ", y: " << update_ez_r_.ymin << " -> " 
-//        << update_ez_r_.ymax
-//        << ", z: " << update_ez_r_.zmin << " -> " 
-//        << update_ez_r_.zmax 
-//        << "\n\tHx, x: " << update_hx_r_.xmin << " -> " 
-//        << update_hx_r_.xmax
-//        << ", y: " << update_hx_r_.ymin << " -> " 
-//        << update_hx_r_.ymax
-//        << ", z: " << update_hx_r_.zmin << " -> " 
-//        << update_hx_r_.zmax
-//        << "\n\tHy, x: " << update_hy_r_.xmin << " -> " 
-//        << update_hy_r_.xmax
-//        << ", y: " << update_hy_r_.ymin << " -> " 
-//        << update_hy_r_.ymax
-//        << ", z: " << update_hy_r_.zmin << " -> " 
-//        << update_hy_r_.zmax
-//        << "\n\tHz, x: " << update_hz_r_.xmin << " -> " 
-//        << update_hz_r_.xmax
-//        << ", y: " << update_hz_r_.ymin << " -> " 
-//        << update_hz_r_.ymax
-//        << ", z: " << update_hz_r_.zmin << " -> " 
-//        << update_hz_r_.zmax << endl;
+  cout << "Grid Update region:"
+       << "\n\tEx, x: " << update_ex_r_.xmin << " -> " 
+       << update_ex_r_.xmax
+       << ", y: " << update_ex_r_.ymin << " -> " 
+       << update_ex_r_.ymax
+       << ", z: " << update_ex_r_.zmin << " -> " 
+       << update_ex_r_.zmax
+       << "\n\tEy, x: " << update_ey_r_.xmin << " -> " 
+       << update_ey_r_.xmax
+       << ", y: " << update_ey_r_.ymin << " -> " 
+       << update_ey_r_.ymax
+       << ", z: " << update_ey_r_.zmin << " -> " 
+       << update_ey_r_.zmax
+       << "\n\tEz, x: " << update_ez_r_.xmin << " -> " 
+       << update_ez_r_.xmax
+       << ", y: " << update_ez_r_.ymin << " -> " 
+       << update_ez_r_.ymax
+       << ", z: " << update_ez_r_.zmin << " -> " 
+       << update_ez_r_.zmax 
+       << "\n\tHx, x: " << update_hx_r_.xmin << " -> " 
+       << update_hx_r_.xmax
+       << ", y: " << update_hx_r_.ymin << " -> " 
+       << update_hx_r_.ymax
+       << ", z: " << update_hx_r_.zmin << " -> " 
+       << update_hx_r_.zmax
+       << "\n\tHy, x: " << update_hy_r_.xmin << " -> " 
+       << update_hy_r_.xmax
+       << ", y: " << update_hy_r_.ymin << " -> " 
+       << update_hy_r_.ymax
+       << ", z: " << update_hy_r_.zmin << " -> " 
+       << update_hy_r_.zmax
+       << "\n\tHz, x: " << update_hz_r_.xmin << " -> " 
+       << update_hz_r_.xmax
+       << ", y: " << update_hz_r_.ymin << " -> " 
+       << update_hz_r_.ymax
+       << ", z: " << update_hz_r_.zmin << " -> " 
+       << update_hz_r_.zmax << endl;
 
     if (ok)
       define_ = d;
@@ -1280,6 +1276,8 @@ void Grid::setup_subdomain_data(SubdomainBc *sd, Face face)
 
 grid_point Grid::get_global_cell(float x, float y, float z) const
 {
+  grid_point ret; 
+
   if (pg_)
   {
     point size = (*pg_).get_grid_size();
@@ -1314,14 +1312,34 @@ grid_point Grid::get_global_cell(float x, float y, float z) const
       if (k > get_ldz_sd())
         k = get_ldz_sd() - 1;
     }
+
+    ret.x = i;
+    ret.y = j; 
+    ret.z = k;
+
+  } else {
+    cerr << "Grid::get_global_cell: NO PROBLEM GEOMETRY IS LOADED INTO THE GRID!" << endl;
   }
+
+  return ret;
 }
 
 region_t Grid::get_local_region(CSGBox &box) const
 {
   region_t hmm = get_global_region(box);
+  region_t ret = global_to_local(hmm);
 
-  return global_to_local(hmm);
+  point sz = box.get_size();
+  point c = box.get_centre();
+
+  cerr << "Box with centre at " << c.x << ", " << c.y << ", "
+       << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
+       << " is a local region (" << ret.xmin << ", " << ret.ymin
+       << ", " << ret.zmin << ") -> (" << ret.xmax << ", " 
+       << ret.ymax << ", " << ret.zmax << ")"
+       << endl;
+
+  return ret;
 }
 
 region_t Grid::get_global_region(CSGBox &box) const
@@ -1344,6 +1362,16 @@ region_t Grid::get_global_region(CSGBox &box) const
   ret.xmin = start.x; ret.xmax = end.x;
   ret.ymin = start.y; ret.ymax = end.y;
   ret.zmin = start.z; ret.zmax = end.z;
+
+  point sz = box.get_size();
+  point c = box.get_centre();
+
+  cerr << "Box with centre at " << c.x << ", " << c.y << ", "
+       << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
+       << " is a global region (" << ret.xmin << ", " << ret.ymin
+       << ", " << ret.zmin << ") -> (" << ret.xmax << ", " 
+       << ret.ymax << ", " << ret.zmax << ")"
+       << endl;
 
   return ret;
 }
