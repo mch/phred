@@ -184,49 +184,18 @@ if test "x$build_vendor" = "xdec"; then
   LIBS="$LIBS -lm -lmpi";
 fi
 
-dnl Blitz++, required for optimization
-AC_CXX_LIB_BLITZ
+dnl Checks for header files.
+AC_HEADER_STDC
+dnl AC_CHECK_HEADERS(unistd.h sys/param.h sys/time.h time.h sys/mkdev.h sys/sysmacros.h string.h memory.h fcntl.h dirent.h sys/ndir.h ndir.h alloca.h locale.h )
+AC_CHECK_HEADERS(string map vector ctime ostream iostream cmath cstring fstream cassert utility)
 
-dnl Python, for scripting
-AC_CXX_PYTHON
+AC_CHECK_HEADER([boost/shared_ptr.hpp], [], [AC_MSG_ERROR([*** Can't find boost/shared_ptr.hpp!])])
 
-dnl Setup scripting
-USE_PY_BINDINGS=0
-if [[ "$ac_cxx_python" = "yes" ]]; then
-
-        AC_CXX_LIB_BOOST_PYTHON("required")
-
-        USE_PY_BINDINGS=1
-        AC_DEFINE([USE_PY_BINDINGS], [1], [Use Python bindings])
-
-dnl Use readline? 
-        if test ! "$with_readline" = "no"; then
-        AC_CHECK_LIB(readline, readline, [], [])
-        AC_CHECK_HEADER([readline/readline.h], [], [])
-        fi
-
-dnl Is Numeric or numarray available? 
-        HAVE_NUMERIC=0
-        AC_CHECK_HEADER([Numeric/arrayobject.h], [HAVE_NUMERIC=1], [], [
-#if HAVE_PYTHON
-#include <Python.h>
-#endif
-])
-        if [[ x$HAVE_NUMERIC = "x1" ]]; then
-            AC_DEFINE([HAVE_NUMERIC], [1], [Use Numeric for arrays in Python])
-        fi
-
-        HAVE_NUMARRAY=0
-        AC_CHECK_HEADER([libnumarray.h], [HAVE_NUMARRAY=1], [], [
-#if HAVE_PYTHON
-#include <Python.h>
-#endif
-])
-        if [[ x$HAVE_NUMARRY = "x1" ]]; then
-            AC_DEFINE([HAVE_NUMARRAY], [1], [Use numarray for arrays in Python])
-        fi
-fi
-AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
+AC_HEADER_MAJOR
+AC_FUNC_ALLOCA
+AC_STRUCT_TM
+AC_STRUCT_ST_BLOCKS
+AC_FUNC_CLOSEDIR_VOID
 
 dnl MPI header files? The mpi compiler script should take care of this
 AC_CHECK_HEADER(mpi.h, [], [
@@ -352,18 +321,49 @@ void test()
         fi
 fi
 
-dnl Checks for header files.
-AC_HEADER_STDC
-dnl AC_CHECK_HEADERS(unistd.h sys/param.h sys/time.h time.h sys/mkdev.h sys/sysmacros.h string.h memory.h fcntl.h dirent.h sys/ndir.h ndir.h alloca.h locale.h )
-AC_CHECK_HEADERS(string map vector ctime ostream iostream cmath cstring fstream cassert)
+dnl Blitz++, required for optimization
+AC_CXX_LIB_BLITZ
 
-AC_CHECK_HEADER([boost/shared_ptr.hpp], [], [AC_MSG_ERROR([*** Can't find boost/shared_ptr.hpp!])])
+dnl Python, for scripting
+AC_CXX_PYTHON
 
-AC_HEADER_MAJOR
-AC_FUNC_ALLOCA
-AC_STRUCT_TM
-AC_STRUCT_ST_BLOCKS
-AC_FUNC_CLOSEDIR_VOID
+dnl Setup scripting
+USE_PY_BINDINGS=0
+if [[ "$ac_cxx_python" = "yes" ]]; then
+
+        AC_CXX_LIB_BOOST_PYTHON("required")
+
+        USE_PY_BINDINGS=1
+        AC_DEFINE([USE_PY_BINDINGS], [1], [Use Python bindings])
+
+dnl Use readline? 
+        if test ! "$with_readline" = "no"; then
+        AC_CHECK_LIB(readline, readline, [], [])
+        AC_CHECK_HEADER([readline/readline.h], [], [])
+        fi
+
+dnl Is Numeric or numarray available? 
+        HAVE_NUMERIC=0
+        AC_CHECK_HEADER([Numeric/arrayobject.h], [HAVE_NUMERIC=1], [], [
+#if HAVE_PYTHON
+#include <Python.h>
+#endif
+])
+        if [[ x$HAVE_NUMERIC = "x1" ]]; then
+            AC_DEFINE([HAVE_NUMERIC], [1], [Use Numeric for arrays in Python])
+        fi
+
+        HAVE_NUMARRAY=0
+        AC_CHECK_HEADER([libnumarray.h], [HAVE_NUMARRAY=1], [], [
+#if HAVE_PYTHON
+#include <Python.h>
+#endif
+])
+        if [[ x$HAVE_NUMARRY = "x1" ]]; then
+            AC_DEFINE([HAVE_NUMARRAY], [1], [Use numarray for arrays in Python])
+        fi
+fi
+AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
 
 AC_SUBST(LIBS, $LIBS)
 AC_SUBST(PYTHON_LDFLAGS, $PYTHON_LDFLAGS)

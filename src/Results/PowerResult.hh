@@ -115,6 +115,10 @@ protected:
   unsigned int y_size_;
   unsigned int z_size_;
 
+  // Need to time average E field to get the right power.
+  field_t *prev_et1_; /**< Previous value of 1st tangential E component */ 
+  field_t *prev_et2_; /**< Previous value of 2nd tangential E component */ 
+
   /**
    * Print a string representation to an ostream.
    */

@@ -256,8 +256,12 @@ public:
     field_t area_;
     field_t tp_; 
 
-    Data(field_t area)
-      : area_(area), tp_(0)
+    const field_t *prev_et1_, *prev_et2_;
+
+    int idx;
+
+    Data(field_t area, const field_t *pet1, const field_t *pet2)
+      : area_(area), tp_(0), prev_et1_(pet1), prev_et2_(pet2), idx(0)
     {}
   };
 
@@ -267,9 +271,13 @@ public:
     // It is necessary to store the old value of E so that the average
     // of two time steps can be calculated, otherwise the result will
     // be incorrect.
-    
-    data.tp_ += (f.et1_avg * f.ht2_avg - f.et2_avg * f.ht1_avg) 
+    field_t et1_tavg = (f.et1_avg + data.prev_et1_[data.idx]) / 2;
+    field_t et2_tavg = (f.et2_avg + data.prev_et2_[data.idx]) / 2;
+
+    data.tp_ += (et1_tavg * f.ht2_avg - et2_tavg * f.ht1_avg) 
       * data.area_;
+
+    ++data.idx;
   }
 };
 
@@ -293,6 +301,8 @@ public:
 
     complex<field_t> *et1_, *et2_, *ht1_, *ht2_;
 
+    const field_t *prev_et1_, *prev_et2_;
+
     field_t p_real;
     field_t p_imag;
 
@@ -305,10 +315,12 @@ public:
     // It is necessary to store the old value of E so that the average
     // of two time steps can be calculated, otherwise the result will
     // be incorrect.
+    field_t et1_tavg = (f.et1_avg + data.prev_et1_[data.idx]) / 2;
+    field_t et2_tavg = (f.et2_avg + data.prev_et2_[data.idx]) / 2;
 
-    data.et1_[data.idx] += complex<field_t>(f.et1_avg * data.e_cos_temp, 
+    data.et1_[data.idx] += complex<field_t>(et1_tavg * data.e_cos_temp, 
                                             -1 * f.et1_avg * data.e_sin_temp);
-    data.et2_[data.idx] += complex<field_t>(f.et2_avg * data.e_cos_temp, 
+    data.et2_[data.idx] += complex<field_t>(et2_tavg * data.e_cos_temp, 
                                             -1 * f.et2_avg * data.e_sin_temp);
     data.ht1_[data.idx] += complex<field_t>(f.ht1_avg * data.h_cos_temp,
                                             -1 * f.ht1_avg * data.h_sin_temp);
@@ -326,6 +338,35 @@ public:
   }
 };
 
+/**
+ * This class updates the stored value of the E tangential components 
+ */
+class PrevEupdate
+{
+public:
+  class Data 
+  {
+  public:
+    field_t *prev_et1_;
+    field_t *prev_et2_;
+    
+    int idx;
+
+    Data(field_t *pet1, field_t *pet2)
+      : prev_et1_(pet1), prev_et2_(pet2), idx(0)
+    {}
+  };
+
+  static inline void alg(const int &x, const int &y, const int &z,
+                         Fields_t &f, Data &data)
+  {
+    data.prev_et1_[data.idx] = f.et1_avg;
+    data.prev_et2_[data.idx] = f.et2_avg;
+
+    ++data.idx;
+  }
+};
+
 void PowerResult::calculate_result(const Grid &grid, 
                                    unsigned int time_step)
 {
@@ -333,7 +374,7 @@ void PowerResult::calculate_result(const Grid &grid,
 
   if (has_data_)
   {
-    TimePowerAlg::Data data(cell_area_);
+    TimePowerAlg::Data data(cell_area_, prev_et1_, prev_et2_);
     
     PlaneTiling<TimePowerAlg, TimePowerAlg::Data>::loop(grid, (*region_),
                                                         face_, data);
@@ -356,6 +397,9 @@ void PowerResult::calculate_result(const Grid &grid,
 
   dftdata.ht1_ = ht1_;
   dftdata.ht2_ = ht2_;
+
+  dftdata.prev_et1_ = prev_et1_;
+  dftdata.prev_et2_ = prev_et2_;
 
   for (unsigned int i = 0; i < frequencies_.length(); i++)
   {
@@ -390,5 +434,10 @@ void PowerResult::calculate_result(const Grid &grid,
     power_real_[i] = dftdata.p_real;
     power_imag_[i] = dftdata.p_imag;
   }
+
+  // Store the current value of Et1, Et2
+  PrevEupdate::Data pedata(prev_et1_, prev_et2_);
+  PlaneTiling<PrevEupdate, PrevEupdate::Data>::loop(grid, (*region_),
+                                                    face_, pedata);
 
 }
