@@ -36,5 +36,13 @@ DFTResult::~DFTResult()
 void DFTResult::set_freq(field_t freq_start, field_t freq_stop, 
                          unsigned int num_freqs)
 {
+  if (freq_start > freq_stop)
+    throw ResultException("Starting frequency must be less than stop frequency for DFTResults.");
 
+  if (num_freqs < 2)
+    throw ResultException("DFTResults must return at least two frequencies.");
+
+  freq_start_ = freq_start;
+  freq_stop_ = freq_stop;
+  num_freqs_ = num_freqs;
 }

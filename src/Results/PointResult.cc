@@ -21,6 +21,7 @@
 
 #include "PointResult.hh"
 #include "../Globals.hh"
+#include "../Types.hh"
 
 PointResult::PointResult()
 {
@@ -104,10 +105,9 @@ void PointResult::init(const Grid &grid)
 void PointResult::deinit()
 {}
 
-
-ostream& operator<< (ostream& os, PointResult &pr)
+ostream& PointResult::to_string(ostream &os) const
 {
   return os << "PointResult: sampling data at point "
-            << pr.space_point_ << "\n"
-            << "sampling data at grid cell " << pr.point_ << "\n";
+            << space_point_ << "\n"
+            << "sampling data at grid cell " << point_ << "\n";
 }

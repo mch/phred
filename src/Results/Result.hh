@@ -463,7 +463,7 @@ public:
   /**
    * Print a string representation to an ostream.
    */
-  ostream& to_string(ostream &os) const
+  virtual ostream& to_string(ostream &os) const
   {
     return os << "A Result of indeterminate type.";
   }

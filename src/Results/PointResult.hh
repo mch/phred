@@ -94,12 +94,11 @@ public:
   virtual void init(const Grid &grid);
   virtual void deinit();
 
-  friend ostream& operator<< (ostream& , PointResult &);
-};
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
 
-/**
- * An external ostream helper function that writes a description of
- * the object to an ostream. */
-ostream& operator<< (ostream& os, PointResult &pr);
+};
 
 #endif // POINT_RESULT_H
