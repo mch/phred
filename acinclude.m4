@@ -512,23 +512,27 @@ AC_ARG_WITH(python_includes, AC_HELP_STRING([--with-python-includes],
 
 if test "$with_python" != no ; then
 
-PYTHON_LDFLAGS=""
-if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
+PYTHON_LDFLAGS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LINKFORSHARED')" | python -`
+PYTHON_INCLUDES=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('INCLUDEPY')" | python -`
+PYTHON_VERSION=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('VERSION')" | python -`
 
         saveCPPFLAGS=$CPPFLAGS
         saveCXXFLAGS=$CXXFLAGS
         saveLDFLAGS=$LDFLAGS
         saveLIBS=$LIBS
 
-        AC_CHECK_HEADER([Python.h], [], [AC_MSG_ERROR([*** Can't find the Python header files])])
-
-        PYTHON_LDFLAGS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LINKFORSHARED')" | python -`
-
-        # ONLY FOR APPLE!
-        CXXFLAGS="$CXXFLAGS $PYTHON_LDFLAGS -framework Python"
+        CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDES"
 
         if [[ ! -z "$with_python_includes" ]]; then 
           CPPFLAGS="$CPPFLAGS -I$with_python_includes"
+        fi
+
+        AC_CHECK_HEADER([Python.h], [], [AC_MSG_ERROR([*** Can't find the Python header files])])
+
+        if [[ "$target_vendor" = "apple" ]]; then       
+                LIBS="$LIBS -framework Python"
+        else
+                LIBS="$LIBS -lpython$PYTHON_VERSION"
         fi
 
         AC_CACHE_CHECK([whether Python is installed],ac_cxx_python,
@@ -547,12 +551,17 @@ if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with
         LDFLAGS=$saveLDFLAGS
         LIBS=$saveLIBS
 
+        echo "Have python? $ac_cxx_python"
+
         if test "$ac_cxx_python" = yes ; then
                 AC_DEFINE([HAVE_PYTHON], [1], [Using Python])
                 CXXFLAGS="$CXXFLAGS $PYTHON_LDFLAGS"
+                CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDES"
+                if [[ ! -z "$with_python_includes" ]]; then 
+                        CPPFLAGS="$CPPFLAGS -I$with_python_includes"
+                fi
         fi
         
-fi
 fi
 
 ])
@@ -597,8 +606,9 @@ if test "$withval" != no ; then
         saveLDFLAGS=$LDFLAGS
         saveLIBS=$LIBS
 
-        # ONLY FOR APPLE!
-        LIBS="$LIBS -framework Python"
+        if [[ "$target_vendor" = "apple" ]]; then       
+                LIBS="$LIBS -framework Python"
+        fi
 
         if test "$withval" != 'yes'; then
                 CPPFLAGS="-I$withval/include"

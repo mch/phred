@@ -80,10 +80,11 @@ AC_CXX_LIB_BLITZ
 
 dnl Python, for scripting
 AC_CXX_PYTHON
+echo "Have python? $HAVE_PYTHON"
 
 dnl Setup scripting
 USE_PY_BINDINGS=0
-if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
+if [[ "x$HAVE_PYTHON" = "x1" ]]; then
 
         AC_CXX_LIB_BOOST_PYTHON("required")
 

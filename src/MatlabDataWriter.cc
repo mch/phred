@@ -495,6 +495,9 @@ void MatlabArray::append_buffer(unsigned int num_bytes, const void *ptr)
 
 void MatlabArray::write_buffer(ostream &stream)
 {
+  // Find the smallest data type that can be used to store the data on
+  // disk. This is matlab's "compressed" format. 
+
   get_num_bytes();
   stream.write(reinterpret_cast<char *>(&tag_), sizeof(data_tag_t));
   stream.flush();
