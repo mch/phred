@@ -106,14 +106,24 @@ typedef struct region_str {
 } region_t;
 
 /**
- * Represents a single point in space
+ * Represents a single point in space. The class constructor makes it
+ * easy to construct temporary objects for more terse syntax
  */
-typedef struct point_str {
+class point_t
+{
+public:
   unsigned int x;
   unsigned int y;
   unsigned int z;
-} point_t;
 
+  point_t()
+    : x(0), y(0), z(0)
+  {}
+
+  point_t(unsigned int xn, unsigned int yn, unsigned int zn)
+    : x(xn), y(yn), z(zn)
+  {}
+};
 
 #endif
 
