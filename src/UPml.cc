@@ -128,46 +128,39 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
 
 void UPml::update_ex(Grid &grid) 
 {
-  unsigned int mid, idx, idx2;
-  int i, j, k;
-  field_t *ex, *hz1, *hz2, *hy;
+  unsigned int grid_idx, pml_idx, mid; 
 
-  // Inner part
+  unsigned int i,j,k; 	/* indices in PML-layer */
+  unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+
+  // Region in the PML to update
+  region_t pml_r = find_local_region(grid_ex_r_); 
+
 #ifdef USE_OPENMP
-#pragma omp parallel  private(mid, i, j, k, idx, idx2, ex, hz1, hz2, hy)
-#endif
+#pragam omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt)
   {
-#ifdef USE_OPENMP
-#pragma omp for
+#pragam omp for
 #endif
-    for (i = grid_ex_r_.xmin; i < grid_ex_r_.xmax; i++) {
-      for (j = grid_ex_r_.ymin; j < grid_ex_r_.ymax; j++) {
-        
-        idx = pi(i, j, grid_ex_r_.zmin);
-        idx2 = pi(i, j-1, grid_ex_r_.zmin);
+    for(i = pml_r.xmin, it = grid_ex_r_.xmin; it < grid_ex_r_.xmax; i++, it++)
+      for(j = pml_r.ymin, jt = grid_ex_r_.ymin; jt < grid_ex_r_.ymax; j++, jt++)
+        for(k = pml_r.zmin, kt = grid_ex_r_.zmin; kt < grid_ex_r_.zmax; k++, kt++)
+        {
+          grid_idx = grid.pi(it, jt, kt);
+          pml_idx = pi(i, j, k);
+          
+          mid = grid.material_[grid_idx];
+          
+          d_[pml_idx] = d_[pml_idx] + grid.get_dt() 
+            * ((grid.hy_[grid.pi(it, jt, kt-1)] 
+                - grid.hy_[grid_idx]) / grid.get_dz() 
+               - (grid.hz_[grid_idx] 
+                  - grid.hz_[grid.pi(it, jt-1, kt)]) / grid.get_dy());
 
-        ex = &(grid.ex_[idx]);
-        hz1 = &(grid.hz_[idx]);
-        hz2 = &(grid.hz_[idx2]);
-        hy = &(grid.hy_[idx]);
-        
-        for (k = grid_ex_r_.zmin; k < grid_ex_r_.zmax; k++) {
-          mid = grid.material_[idx];
-          
-          *ex = grid.Ca_[mid] * *ex
-            + grid.Cby_[mid] * (*hz1 - *hz2)
-            + grid.Cbz_[mid] * (*(hy - 1) - *hy);
-          
-          ex++;
-          hz1++;
-          hz2++;
-          hy++;
-          idx++;
+          grid.ex_[grid_idx] = grid.ex_[grid_idx] + 1/(EPS_0 * 
         }
-      }
-    }
+#ifdef USE_OPENMP
   }
-
+#endif
 }
 
 void UPml::update_ey(Grid &grid) 
