@@ -116,10 +116,11 @@ public:
     return field_comp_;
   }
 
-  friend ostream& operator<< (ostream& os, BlockResult &pr);
+  /**
+   * Print a string representation to an ostream.
+   */
+  ostream& to_string(ostream &os) const;
 
 };
-
-ostream& operator<< (ostream& os, BlockResult &pr);
 
 #endif // BLOCK_RESULT_H

@@ -230,10 +230,10 @@ map<string, Variable *> &BlockResult::get_result(const Grid &grid,
   return variables_;
 }
 
-ostream& operator<< (ostream& os, BlockResult &r)
+ostream& BlockResult::to_string(ostream &os) const
 {
   os << "BlockResult: returning the ";
-  switch(r.field_comp_)
+  switch(field_comp_)
   {
   case FC_E:
     os << "magnitude of the electric field";

@@ -460,12 +460,26 @@ public:
   virtual map<string, Variable *> &get_result(const Grid &grid, 
                                               unsigned int time_step) = 0;
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  ostream& to_string(ostream &os) const
+  {
+    return os << "A Result of indeterminate type.";
+  }
+
+  friend ostream& operator<< (ostream& os, const Result &r);
   friend ostream& operator<< (ostream& os, Result &r);
 };
 
+inline ostream& operator<< (ostream& os, const Result &r)
+{
+  return r.to_string(os);
+}
+
 inline ostream& operator<< (ostream& os, Result &r)
 {
-  return os << "A Result of indeterminate type.";
+  return r.to_string(os);
 }
 
 #endif // RESULT_H
