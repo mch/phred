@@ -6,7 +6,8 @@ phred_LDADD=
 
 # Conditional on having Python and boost.python
 if PY_BINDINGS
-phred_cond += python-bindings/PyExcitations.cc \
+phred_cond += python-bindings/PyExcitations.hh \
+	python-bindings/PyGrid.hh \
 	python-bindings/PyInterpreter.hh \
 	python-bindings/PyInterpreter.cc
 #	python-bindings/PyGrid.cc \
@@ -41,6 +42,7 @@ phred_SOURCES=phred.cc \
 	Gaussm.cc \
 	Gaussm.hh \
 	SourceFunction.hh \
+	AltiVec.hh \
 	Excitation.hh \
 	BoundaryCondition.hh \
 	BoundaryCondition.cc \
@@ -61,6 +63,8 @@ phred_SOURCES=phred.cc \
 	SimpleSDAlg.cc \
 	SimpleSDAlg.hh \
 	Result.hh \
+	BlockResult.hh \
+	BlockResult.cc \
 	PointResult.hh \
 	PointResult.cc \
 	PlaneResult.hh \

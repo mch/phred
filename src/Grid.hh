@@ -177,7 +177,7 @@ class Grid {
    * @param an index into the field component and material arrays. 
    */
   inline unsigned int pi(unsigned int x, unsigned int y, 
-                         unsigned int z)
+                         unsigned int z) const
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     return z + (y + x*info_.dimy_) * info_.dimz_;
@@ -296,7 +296,7 @@ class Grid {
    * @param r the global region to convert.
    * @return region in local coordinate. 
    */
-  region_t global_to_local(region_t r);
+  region_t global_to_local(region_t r) const;
 
   /**
    * Convert global coordinate to local grid coordinates. Generally
@@ -316,7 +316,7 @@ class Grid {
    */
   region_t global_to_local(unsigned int x_start, unsigned int x_stop, 
                          unsigned int y_start, unsigned int y_stop, 
-                         unsigned int z_start, unsigned int z_stop);
+                         unsigned int z_start, unsigned int z_stop) const;
 
   /**
    * Define geometry in the grid (i.e. assign material indicies to
@@ -346,7 +346,7 @@ class Grid {
    *
    * @return global grid x size
    */
-  inline unsigned int get_gdx()
+  inline unsigned int get_gdx() const
   {
     return info_.global_dimx_;
   }
@@ -356,7 +356,7 @@ class Grid {
    *
    * @return global grid y size
    */
-  inline unsigned int get_gdy()
+  inline unsigned int get_gdy() const
   {
     return info_.global_dimy_;
   }
@@ -366,7 +366,7 @@ class Grid {
    *
    * @return global grid z size
    */
-  inline unsigned int get_gdz()
+  inline unsigned int get_gdz() const
   {
     return info_.global_dimz_;
   }
@@ -376,7 +376,7 @@ class Grid {
    *
    * @return local grid x start
    */
-  inline unsigned int get_lsx()
+  inline unsigned int get_lsx() const
   {
     return info_.start_x_;
   }
@@ -386,7 +386,7 @@ class Grid {
    *
    * @return local grid y start
    */
-  inline unsigned int get_lsy()
+  inline unsigned int get_lsy() const
   {
     return info_.start_y_;
   }
@@ -396,7 +396,7 @@ class Grid {
    *
    * @return local grid z start
    */
-  inline unsigned int get_lsz()
+  inline unsigned int get_lsz() const
   {
     return info_.start_z_;
   }
@@ -408,7 +408,7 @@ class Grid {
    *
    * @return local grid x size
    */
-  inline unsigned int get_ldx()
+  inline unsigned int get_ldx() const 
   {
     return info_.dimx_;
   }
@@ -418,7 +418,7 @@ class Grid {
    *
    * @return local grid y size
    */
-  inline unsigned int get_ldy()
+  inline unsigned int get_ldy() const 
   {
     return info_.dimy_;
   }
@@ -428,7 +428,7 @@ class Grid {
    *
    * @return local grid z size
    */
-  inline unsigned int get_ldz()
+  inline unsigned int get_ldz() const
   {
     return info_.dimz_;
   }
@@ -571,7 +571,7 @@ class Grid {
    * @return the value of ex
    */
   inline field_t get_ex(unsigned int x, unsigned int y, 
-                        unsigned int z)
+                        unsigned int z) const
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     return ex_[pi(x, y, z)];
@@ -585,7 +585,7 @@ class Grid {
    * @return the value of ey
    */
   inline field_t get_ey(unsigned int x, unsigned int y, 
-                        unsigned int z)
+                        unsigned int z) const
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     return ey_[pi(x, y, z)];
@@ -600,7 +600,7 @@ class Grid {
    * @return the value of ez
    */
   inline field_t get_ez(unsigned int x, unsigned int y, 
-                        unsigned int z)
+                        unsigned int z) const
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     return ez_[pi(x, y, z)];
@@ -615,7 +615,7 @@ class Grid {
    * @return the value of hx
    */
   inline field_t get_hx(unsigned int x, unsigned int y, 
-                        unsigned int z)
+                        unsigned int z) const
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     return hx_[pi(x, y, z)];
@@ -629,7 +629,7 @@ class Grid {
    * @return the value of hy
    */
   inline field_t get_hy(unsigned int x, unsigned int y, 
-                        unsigned int z)
+                        unsigned int z) const
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     return hy_[pi(x, y, z)];
@@ -643,7 +643,7 @@ class Grid {
    * @return the value of hz
    */
   inline field_t get_hz(unsigned int x, unsigned int y, 
-                        unsigned int z)
+                        unsigned int z) const
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     return hz_[pi(x, y, z)];
@@ -655,13 +655,13 @@ class Grid {
    * @param face the face to return the data type for
    * @return MPI_Datatype
    */
-  MPI_Datatype get_plane_dt(Face face);
+  MPI_Datatype get_plane_dt(Face face) const;
 
   /**
    * Return the MPI Derived data type for an X vector
    * @return MPI_Datatype
    */
-  inline MPI_Datatype get_x_vector_dt()
+  inline MPI_Datatype get_x_vector_dt() const
   {
     return x_vector_;
   }
@@ -670,7 +670,7 @@ class Grid {
    * Return the MPI Derived data type for an Y vector
    * @return MPI_Datatype
    */
-  inline MPI_Datatype get_y_vector_dt()
+  inline MPI_Datatype get_y_vector_dt() const
   {
     return y_vector_;
   }
@@ -679,7 +679,7 @@ class Grid {
    * Return the MPI Derived data type for an Z vector
    * @return MPI_Datatype
    */
-  inline MPI_Datatype get_z_vector_dt()
+  inline MPI_Datatype get_z_vector_dt() const
   {
     return z_vector_;
   }
@@ -699,7 +699,7 @@ class Grid {
    * @return a pointer to the field component at the specified face
    */
   field_t *get_face_start(Face face, FieldComponent comp,
-                          unsigned int offset = 0);
+                                unsigned int offset = 0);
 
   /**
    * Return a pointer to the start of a face. DANGER!! Clients must
@@ -714,6 +714,18 @@ class Grid {
    */
   field_t *get_face_start(Face face, FieldComponent comp,
                           point_t p);
+
+  /**
+   * Return a pointer to a point in the grid for a particular field
+   * component. DANGER!! Clients must take care when using this
+   * pointer!
+   *
+   * @param point the point in the grid to get the pointer at
+   * @param field_comp the field component to return the pointer for
+   * @return a pointer, which may be null if something went wrong. 
+   */
+  const field_t *get_pointer(point_t point, 
+                             FieldComponent field_comp) const;
 
 };
 

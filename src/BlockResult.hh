@@ -14,10 +14,12 @@ class BlockResult : public Result
 private:
 protected:
   region_t region_;
+  FieldComponent field_comp_;
+
   bool init_; /**< Set to true after init() has been called. */
 public:
   BlockResult();
-  BlockResult(region_t r);
+  BlockResult(region_t r, FieldComponent field_comp = FC_EY);
   ~BlockResult();
 
   /**
@@ -55,6 +57,26 @@ public:
   inline region_t get_region()
   {
     return region_;
+  }
+
+  /**
+   * Set the field compoment to operate on
+   *
+   * @param field_comp field component
+   */
+  inline void set_field_component(FieldComponent field_comp)
+  {
+    field_comp_ = field_comp;
+  }
+
+  /**
+   * Returns the field component we are returning
+   *
+   * @return a field component name
+   */
+  inline FieldComponent get_field_component()
+  {
+    return field_comp_;
   }
 
 };

@@ -171,6 +171,21 @@ void Pml::setup(Face face, Grid &grid)
 //        << "\n\tgeomtric_profile_ = " << geometric_profile_ << endl;
 
   alloc_pml_fields(face, grid);
+
+  MPI_Datatype y_vec;
+
+  MPI_Type_vector(pml_r_.ymax, 1, pml_r_.zmax, GRID_MPI_TYPE, &y_vec);
+
+  MPI_Type_contiguous(pml_r_.zmax * pml_r_.ymax, GRID_MPI_TYPE, &yz_plane_);
+  MPI_Type_commit(&yz_plane_);
+
+  MPI_Type_vector(pml_r_.xmax, pml_r_.zmax, pml_r_.ymax * pml_r_.zmax, 
+                  GRID_MPI_TYPE, &xz_plane_);
+  MPI_Type_commit(&xz_plane_);
+
+  MPI_Type_hvector(pml_r_.xmax, 1, sizeof(field_t) * pml_r_.ymax 
+                   * pml_r_.zmax, y_vec, &xy_plane_);
+  MPI_Type_commit(&xy_plane_);
 }
 
 void Pml::free_pml_fields()

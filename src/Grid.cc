@@ -714,7 +714,7 @@ void Grid::apply_boundaries(FieldType type)
 }
 
 
-region_t Grid::global_to_local(region_t in)
+region_t Grid::global_to_local(region_t in) const
 {
   region_t r;
 
@@ -745,7 +745,7 @@ region_t Grid::global_to_local(region_t in)
 
 region_t Grid::global_to_local(unsigned int x_start, unsigned int x_stop, 
                              unsigned int y_start, unsigned int y_stop, 
-                             unsigned int z_start, unsigned int z_stop)
+                             unsigned int z_start, unsigned int z_stop) const
 {
   region_t result;
   
@@ -812,7 +812,7 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp,
 }
 
 field_t *Grid::get_face_start(Face face, FieldComponent comp,
-                              point_t p)
+                              point_t p) 
 {
   unsigned int idx = 0;
   field_t *ptr = 0;
@@ -860,7 +860,7 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp,
   return ptr;
 }
 
-MPI_Datatype Grid::get_plane_dt(Face face)
+MPI_Datatype Grid::get_plane_dt(Face face) const
 {
   MPI_Datatype t;
 
@@ -883,4 +883,41 @@ MPI_Datatype Grid::get_plane_dt(Face face)
   }
 
   return t;
+}
+
+const field_t *Grid::get_pointer(point_t point, 
+                                 FieldComponent field_comp) const
+{
+  field_t *ret = 0;
+  unsigned int idx = pi(point.x, point.y, point.z);
+
+  switch(field_comp)
+  {
+  case FC_EX:
+    if (ex_)
+      ret = &(ex_[idx]);
+    break;
+  case FC_EY:
+    if (ey_)
+      ret = &(ey_[idx]);
+    break;
+  case FC_EZ:
+    if (ez_)
+      ret = &(ez_[idx]);
+    break;
+  case FC_HX:
+    if (hx_)
+      ret = &(hx_[idx]);
+    break;
+  case FC_HY:
+    if (hy_)
+      ret = &(hy_[idx]);
+    break;
+  case FC_HZ:
+    if (hz_)
+      ret = &(hz_[idx]);
+    break;
+  }
+
+  return ret;
 }

@@ -65,16 +65,21 @@ void PyInterpreter::slave()
   
   while (size > 0) 
   {
-    MPI_Recv(static_cast<void *>(size), 1, MPI_INT, 
-             0, 0, MPI_COMM_WORLD);
+    MPI_Bcast(static_cast<void *>(&size), 1, MPI_INT, 
+              0, MPI_COMM_WORLD);
 
     if (size == -1)
       throw PyInterpException("Standard input and standard output must be bound to a terminal to use interactive mode.");
 
+    // A wasty memory management policy. But it's simple and should
+    // always work, barring lack of memory.
     buffer = new char[size + 1];
 
-    MPI_Recv(static_cast<void *>(buffer), size, MPI_CHAR, 
-             0, 0, MPI_COMM_WORLD);
+    if (!buffer)
+      throw MemoryException();
+
+    MPI_Bcast(static_cast<void *>(buffer), size, MPI_CHAR, 
+              0, MPI_COMM_WORLD);
     buffer[size] = 0;
 
     try {
@@ -86,6 +91,8 @@ void PyInterpreter::slave()
     {
       PyErr_Print();
     }
+
+    delete[] buffer;
   }
 }
 
