@@ -19,8 +19,8 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef SIGNAL_FUNCTION_H
-#define SIGNAL_FUNCTION_H
+#ifndef SIGNAL_H
+#define SIGNAL_H
 
 #include "../Types.hh"
 #include "../Grid.hh"
@@ -32,14 +32,14 @@
  * Subclassess of this are intended to be template parameters to
  * TimeExcitation and SpaceTimeExcitation. 
  */
-class SignalFunction
+class Signal
 {
 private:
 protected:
 public:
-  SignalFunction() 
+  Signal() 
   {}
-  virtual ~SignalFunction() 
+  virtual ~Signal() 
   {}
 
   /**
@@ -55,12 +55,12 @@ public:
    * Print a string representation to an ostream.
    */
   virtual ostream& to_string(ostream &os) const
-  { return os << "SignalFunction of indeterminate type."; }
+  { return os << "Signal of indeterminate type."; }
 
-  friend ostream& operator<< (ostream& os, const SignalFunction &sf);
+  friend ostream& operator<< (ostream& os, const Signal &sf);
 };
 
-inline ostream& operator<< (ostream& os, const SignalFunction &sf)
+inline ostream& operator<< (ostream& os, const Signal &sf)
 {
   return sf.to_string(os);
 }
