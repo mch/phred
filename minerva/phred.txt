@@ -2,14 +2,14 @@
 # @ job_type = parallel
 # @ executable = /usr/bin/poe
 # @ arguments = /bin/time /home1m/bioelec/mhughe/Work/fdtd/phred/src/phred
-# @ input = /dev/null
-# @ output = /home1m/bioelec/mhughe/Work/fdtd/phred/minerva/1n_8t/stdout.txt
-# @ error = /home1m/bioelec/mhughe/Work/fdtd/phred/minerva/1n_8t/stderr.txt
-# @ initialdir = /home1m/bioelec/mhughe/Work/fdtd/phred/minerva/1n_8t
+#  input = /dev/null
+# @ output = /home1m/bioelec/mhughe/Work/fdtd/phred/minerva/phred/stdout.txt
+# @ error = /home1m/bioelec/mhughe/Work/fdtd/phred/minerva/phred/stderr.txt
+# @ initialdir = /home1m/bioelec/mhughe/Work/fdtd/phred/minerva/phred
 # @ notify_user = mhughe@minerva8.uvic.ca
 # @ class = p2
 #  environment = COPY_ALL
-# @ environment = OMP_NUM_THREADS=8 ; MP_EUIDEVELOP=yes ; MP_LABELIO=yes
+# @ environment = OMP_NUM_THREADS=5; MP_EUIDEVELOP=yes ; MP_LABELIO=yes
 # @ group = bioelec
 # @ notification = complete
 # @ checkpoint = no

@@ -1,15 +1,15 @@
 #!/bin/ksh
 # @ job_type = parallel
 # @ executable = /usr/bin/poe
-# @ arguments = /bin/time /home1m/bioelec/mhughe/Work/fdtd/phred/src/phred
+# @ arguments = /bin/time /home1m/bioelec/mhughe/Work/fdtd/phred/tests/high_speed_c/hscfdtd
 #  input = /dev/null
 # @ output = /home1m/bioelec/mhughe/Work/fdtd/phred/minerva/1n_1t/stdout.txt
 # @ error = /home1m/bioelec/mhughe/Work/fdtd/phred/minerva/1n_1t/stderr.txt
 # @ initialdir = /home1m/bioelec/mhughe/Work/fdtd/phred/minerva/1n_1t
 # @ notify_user = mhughe@minerva8.uvic.ca
-# @ class = p2
+# @ class = p1
 #  environment = COPY_ALL
-# @ environment = OMP_NUM_THREADS=1 ; MP_EUIDEVELOP=yes ; MP_LABELIO=yes
+# @ environment = OMP_NUM_THREADS=16; MP_EUIDEVELOP=yes ; MP_LABELIO=yes
 # @ group = bioelec
 # @ notification = complete
 # @ checkpoint = no
