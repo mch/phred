@@ -41,8 +41,8 @@ public:
 
 class MemoryException : public std::exception {
 public:
-  const char *what() const throw() { return "Out of memory. \
-We wish to hold the whole sky, \
+  const char *what() const throw() { return "Out of memory. 
+We wish to hold the whole sky, 
 But we never will."; }
 };
 
@@ -51,6 +51,14 @@ private:
   const char *buf_; 
 public:
   DataWriterException(const char *buf) : buf_(buf) {}
+  virtual const char *what() const throw() { return buf_; }
+};
+
+class ResultException : public std::exception {
+private:
+  const char *buf_; 
+public:
+  ResultException(const char *buf) : buf_(buf) {}
   virtual const char *what() const throw() { return buf_; }
 };
 

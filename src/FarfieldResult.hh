@@ -25,7 +25,12 @@
 #include "Result.hh"
 
 /**
- * Computes near field to far field transformation
+ * Computes near field to far field transformation. This result must
+ * collect data from other ranks using MPI communication. This might
+ * be refactored later...
+ *
+ * \bug Support for more than one rank (parallel communication) is
+ * not yet implemented
  */
 class FarfieldResult : public Result
 {
@@ -35,16 +40,22 @@ protected:
   float theta_stop_;
   float phi_start_;
   float phi_stop_;
+  unsigned int num_pts_; /**< Number of points on arc */
 
-  int axis_; /**< Axis to rotate around if it can't be deduced from
-                theta and phi start/stop */
+  Axis axis_; /**< Axis to rotate around if it can't be deduced from
+                 theta and phi start/stop */
 
   field_t freq_start_; /**< First frequency in the range */
   field_t freq_stop_; /**< Last frequency in the range */
   unsigned int num_freqs_; /**< Number of frequencies in range */
   field_t freq_space_;
   
-  region_t r_; /**< Region specifying surface of Huygen's box */
+  region_t global_r_; /**< Region specifying surface of Huygen's box in
+                         the global grid (this result only deals in
+                         the global grid) */
+
+  float *theta_;
+  float *phi_;
 
   float **e_theta_re_;
   float **e_theta_im_;
@@ -52,6 +63,12 @@ protected:
   float **e_phi_im_;
   float ***jff_mom_;
   float ***mff_mom_;
+
+  int t_cross_; /**< ?? */
+  
+  int rank_; /**< The rank of this process */
+  int size_; /**< Number of ranks in the MPI communicator */
+
 public:
   FarfieldResult();
   ~FarfieldResult();
@@ -105,6 +122,39 @@ public:
   }
 
   /**
+   * Set the rank and size of the MPI communicator. This is required
+   * for this Resault, because it needs to fetch data from other
+   * ranks to do the computation. 
+   */ 
+  void set_mpi_rank_size(int rank, int size);
+
+  /**
+   * Set the angles that define the arc on which the transformation
+   * will be calculated. If the arc cannot be uniquely determined
+   * from these angles, also set the axis of rotation (which defaults
+   * to X_AXIS). 
+   */ 
+  inline void set_angles(float theta_start, float theta_stop, 
+                         float phi_start, float phi_stop, 
+                         unsigned int num_pts)
+  {
+    theta_start_ = theta_start;
+    theta_stop_ = theta_stop;
+    phi_start_ = phi_start;
+    phi_stop_ = phi_stop;
+    num_pts_ = num_pts;
+  }
+
+  /**
+   * Set the axis of rotation, which is only used if the arc cannot
+   * be uniquely determined from the angles. Defaults to X_AXIS. 
+   */
+  inline void set_axis(Axis a)
+  {
+    axis_ = a;
+  }
+
+  /**
    * Compute the near to farfield transformation. 
    *
    * @param grid a reference to a Grid object
@@ -125,6 +175,23 @@ public:
    * Deallocates memory. 
    */
   void deinit(const Grid &grid);
+
+protected:
+  /**
+   * Computes arc angles
+   */ 
+  void arc_connect();
+
+  /**
+   * Determines if the theta and phi values lead to a well defined
+   * arc. If not, the axis of rotation must be relied upon.
+   */
+  int is_parallel(float th1, float ph1, float th2, float ph2);
+
+  /**
+   * Avoids singularities in atan.
+   */
+  float atan2_local(float y, float x);
 
 };
 
