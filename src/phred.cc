@@ -19,6 +19,54 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
+
+/** \mainpage Phred Documentation
+ *
+ * \section Introduction
+ *
+ * Phred is a parallel finite difference time domain electromagnetics
+ * simulator. It is written in C and C++, and uses MPI (Message
+ * passing interface) for parallelism. It runs best on a cluster of
+ * homogenous nodes, where the number of nodes is an even number. 
+ *
+ * \section addtocode Adding to the code
+ * 
+ * Phred is designed to be an extensible and flexible research
+ * code. As such, it is hopefully easy for other programmers to add
+ * boundary conditions, excitations, output formats, and other cool
+ * things. This section summarizes how to add such items to Phred.
+ *
+ * \subsection addbc Adding a boundary condition
+ *
+ * \subsection adde Adding an excitation
+ *
+ * Phred has built in support for excitations which vary only with
+ * time and for excitations which vary with time and
+ * space. Excitations, by default, are defined over some rectangular
+ * region of space. It's possible to change this by overriding the
+ * Excite::excite() method of the Excitation class. 
+ *
+ * The classes TimeExcitation and SpaceExcitation take care of looping
+ * over the default block of space by implementing the excite()
+ * method. Sources which need to be applied to some other shape of
+ * space can override Excitation::excite() to do so. 
+ *
+ * Any new excitation which is content to be applied to a block of the
+ * grid needs to only override the source_function() method of
+ * TimeExcitation or SpaceExcitation. 
+ *
+ * The source_function() method is public, so that other things, such
+ * as the total/scattered thing can use the same excitation objects. 
+ *
+ *
+ * \subsection addoutput Adding a output method
+ *
+ * Phred supports MATLAB friendly ASCII and binary, netCDF, and HDF
+ * output formats. To add support for you favorite file format, make a
+ * class which inherits from ... and implement the methods of the
+ * interface. 
+ */
+
 /*#include <stdio.h>
 #include <sys/types.h>
 #include "system.h"*/
@@ -142,7 +190,7 @@ main (int argc, char **argv)
                   18.75e-9, 18.75e-9, 18.75e-9, 36e-18);
 
   MaterialLib mats; 
-  Material mat;
+  Material mat; // defaults to free space
   mats.add_material(mat);
   
   // The library stores copies. 
