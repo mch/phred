@@ -34,7 +34,8 @@
 FreqGrid::FreqGrid()
   : vcdt_(0), omegapsq_(0), dx_(0), sx_(0), sxm1_(0), sxm2_(0),
     dy_(0), sy_(0), sym1_(0), sym2_(0),
-    dz_(0), sz_(0), szm1_(0), szm2_(0)
+    dz_(0), sz_(0), szm1_(0), szm2_(0),
+    mtype_(0)
 {}
 
 FreqGrid::~FreqGrid()
@@ -159,10 +160,15 @@ void FreqGrid::load_materials(shared_ptr<MaterialLib> matlib)
   memset(vcdt_, 0, sizeof(mat_coef_t) * num_mat);
   memset(omegapsq_, 0, sizeof(mat_coef_t) * num_mat);
 
+  mtype_ = new MaterialType[num_mat];
+  memset(mtype_, 0, sizeof(MaterialType) * num_mat);
+
   int index = 0;
 
-  map<string, Material>::const_iterator iter = (*matlib).get_material_iter_begin();
-  map<string, Material>::const_iterator iter_e = (*matlib).get_material_iter_end();
+  map<string, Material>::const_iterator iter
+    = (*matlib).get_material_iter_begin();
+  map<string, Material>::const_iterator iter_e
+    = (*matlib).get_material_iter_end();
 
 //   vcdt_[0] = 0;
 //   omegapsq_[0] = 0;
@@ -170,12 +176,39 @@ void FreqGrid::load_materials(shared_ptr<MaterialLib> matlib)
 
   while(iter != iter_e)
   {
-    if (((*iter).second).get_collision_freq() > 0)
+    mtype_[index] = (*iter).second.type();
+
+    //if (((*iter).second).get_collision_freq() > 0)
+    if (mtype_[index] == DRUDE)
     {
       vcdt_[index] = exp(-1.0 * ((*iter).second).get_collision_freq() * get_deltat());
       omegapsq_[index] = ((*iter).second).get_plasma_freq()
         * ((*iter).second).get_plasma_freq()
         * (get_deltat() / ((*iter).second).get_collision_freq());
+
+    } else if (mtype_[index] == DEBYE) {
+      if (!debyeA_)
+      {
+        debyeA_ = new field_t[num_mat];
+        debyeB_ = new field_t[num_mat];
+        debyeC_ = new field_t[num_mat];
+        memset(debyeA_, 0, sizeof(field_t) * num_mat);
+        memset(debyeB_, 0, sizeof(field_t) * num_mat);
+        memset(debyeC_, 0, sizeof(field_t) * num_mat);
+      }
+
+      mat_prop_t eps_inf = (*iter).second.get_property("debye_eps_inf");
+      mat_prop_t eps_s = (*iter).second.get_property("debye_eps_s");
+      mat_prop_t tau = (*iter).second.get_property("debye_tau");
+      
+      debyeA_[index] = (2 * eps_inf * tau 
+                        - eps_s * get_deltat())
+        / (2 * eps_inf * tau 
+           + eps_s * get_deltat());
+
+      debyeB_[index] = tau / get_deltat() + 0.5;
+      debyeC_[index] = tau / get_deltat() - 0.5;
+
     } else {
       vcdt_[index] = 0.0;
       omegapsq_[index] = 0.0;
@@ -231,14 +264,8 @@ void FreqGrid::update_ex(region_t update_r)
           mid = material_[idx];
 
           // Is this a plasma?
-          if (vcdt_[mid] == 0.0) // bad floating point compare... also, slow. 
+          if (mtype_[mid] == DRUDE)
           {        
-            *ex = Ca_[mid] * *ex
-              + Cby_[mid] * (*hz1 - *hz2)
-              + Cbz_[mid] * (*(hy - 1) - *hy);
-          }
-          else
-          {
             *ex = Ca_[mid] * dx_[idx]
               + Cby_[mid] * (*hz1 - *hz2)
               + Cbz_[mid] * (*(hy - 1) - *hy);
@@ -255,6 +282,23 @@ void FreqGrid::update_ex(region_t update_r)
             sxm1_[idx] = sx_[idx];
 
             //++plasma_idx;
+          }
+          else if (mtype_[mid] == DEBYE)
+          {
+            field_t d_temp = Ca_[mid] * dx_[idx]
+              + Cby_[mid] * (*hz1 - *hz2)
+              + Cbz_[mid] * (*(hy-1) - *hy);
+
+            *ex = *ex * debyeA_[mid] + d_temp * debyeB_[mid]
+              - dx_[idx] * debyeC_[mid];
+
+            dx_[idx] = d_temp;
+          }
+          else
+          {
+            *ex = Ca_[mid] * *ex
+              + Cby_[mid] * (*hz1 - *hz2)
+              + Cbz_[mid] * (*(hy - 1) - *hy);
           }
           
           ex++;
@@ -296,13 +340,7 @@ void FreqGrid::update_ey(region_t update_r)
           mid = material_[idx];
           
           // Is this a plasma?
-          if (vcdt_[mid] == 0.0) 
-          {
-            *ey = Ca_[mid] * *ey
-              + Cbz_[mid] * (*hx - *(hx-1))
-              + Cbx_[mid] * (*hz1 - *hz2);
-          }
-          else
+          if (mtype_[mid] == DRUDE)
           {
             *ey = Ca_[mid] * dy_[idx]
               + Cbz_[mid] * (*hx - *(hx-1))
@@ -320,6 +358,23 @@ void FreqGrid::update_ey(region_t update_r)
             sym1_[idx] = sy_[idx];
             
             //++plasma_idx;
+          }
+          else if (mtype_[mid] == DEBYE)
+          {
+            field_t d_temp = Ca_[mid] * dy_[idx]
+              + Cbz_[mid] * (*hx - *(hx-1))
+              + Cbx_[mid] * (*hz1 - *hz2);
+
+            *ey = *ey * debyeA_[mid] + d_temp * debyeB_[mid]
+              - dy_[idx] * debyeC_[mid];
+
+            dy_[idx] = d_temp;
+          }
+          else
+          {
+            *ey = Ca_[mid] * *ey
+              + Cbz_[mid] * (*hx - *(hx-1))
+              + Cbx_[mid] * (*hz1 - *hz2);
           }
           
           ey++;
@@ -362,13 +417,7 @@ void FreqGrid::update_ez(region_t update_r)
           mid = material_[idx];
           
           // Is this a plasma?
-          if (vcdt_[mid] == 0.0) 
-          {
-            *ez = Ca_[mid] * *ez
-              + Cbx_[mid] * (*hy1 - *hy2)
-              + Cby_[mid] * (*hx1 - *hx2);
-          }
-          else
+          if (mtype_[mid] == DRUDE) 
           {
             *ez = Ca_[mid] * dz_[idx]
               + Cbx_[mid] * (*hy1 - *hy2)
@@ -386,6 +435,23 @@ void FreqGrid::update_ez(region_t update_r)
             szm1_[idx] = sz_[idx];
             
             //++plasma_idx;
+          }
+          else if (mtype_[mid] == DEBYE)
+          {
+            field_t d_temp = Ca_[mid] * dz_[idx]
+              + Cbx_[mid] * (*hy1 - *hy2)
+              + Cby_[mid] * (*hx1 - *hx2);
+
+            *ez = *ez * debyeA_[mid] + d_temp * debyeB_[mid]
+              - dz_[idx] * debyeC_[mid];
+
+            dz_[idx] = d_temp;
+          }
+          else
+          {
+            *ez = Ca_[mid] * *ez
+              + Cbx_[mid] * (*hy1 - *hy2)
+              + Cby_[mid] * (*hx1 - *hx2);
           }
           
           ez++;

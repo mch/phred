@@ -25,10 +25,19 @@
  *
  * It's the go-between from input to grid coefficients. 
  *
- * The following properties are used as a tell for these dispersions:
- * Debye: NONE YET
+ * The following properties are used to define materials for these
+ * dispersions:
+ *
+ * Debye: 
+ *   debye_tau - relaxation time (sec)
+ *   debye_eps_inf - permittivity as frequency goes to infinity
+ *   debye_eps_s - Permittivity as frequency goes to zero
+ *
+ * Drude: 
+ *   drude_plasma_freq - Plasma frequency (rad/sec)
+ *   drude_vc - Collision frequency (rad/sec)
+ *
  * Lorentz: NONE YET
- * Drude: plasma_freq
  */
 
 #ifndef MATERIAL
@@ -128,13 +137,6 @@ private:
   }
 
   /**
-   * Returns the material type
-   *
-   * @return material type
-   */
-  MaterialType get_type() const;
-
-  /**
    * Returns the permittivity
    *
    * @return epsilon
@@ -168,12 +170,6 @@ private:
    * @return name
    */
   string get_name() const;
-
-  /**
-   * Set the material type
-   * @param type MaterialType to set
-   */
-  void set_type(MaterialType type);
 
   /**
    * Set the permitivity

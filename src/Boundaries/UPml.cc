@@ -262,6 +262,8 @@ void UPml::init(const Grid &grid, Face face)
   
   bool need_lossy = false;
   bool need_drude = false;
+  bool need_debye = false;
+
   while (iter != iter_e) 
   {
     if ((*iter).second.type() == LOSSY)
@@ -270,10 +272,13 @@ void UPml::init(const Grid &grid, Face face)
     if ((*iter).second.type() == DRUDE)
       need_drude = true;
 
+    if ((*iter).second.type() == DEBYE)
+      need_debye = true;
+
     ++iter;
   }
 
-  if (need_lossy || need_drude)
+  if (need_lossy || need_drude || need_debye)
   {
     aux1_x_ = new field_t[sz];
     aux1_y_ = new field_t[sz];
@@ -583,6 +588,24 @@ void UPml::update_ex(Grid &grid)
             // Advance storage locations. 
             aux1_x_[pml_idx] = p_temp;
           }
+          else if (common_->mtype(mid) == DEBYE) 
+          {
+            field_t p_temp; 
+            p_temp = aux1_x_[pml_idx] * common_->Ay(jt) 
+              + common_->By(jt) 
+              * ( idy*(*hz1 - *hz2) - idz*(*hy - *(hy - 1)) );
+
+            d_temp = *dx * common_->Az(kt) 
+            + common_->Bz(kt)
+            * (p_temp * common_->Cx(it) - aux1_x_[pml_idx] * common_->Dx(it));
+
+            *ex = *ex * common_->debyeA(mid) 
+              + d_temp * common_->debyeB(mid)
+              - *dx * common_->debyeC(mid);
+
+            *dx = d_temp;
+            aux1_x_[pml_idx] = p_temp;
+          }
           else 
           { // DIELECTRIC
             d_temp = *dx * common_->Ay(jt) 
@@ -749,6 +772,24 @@ void UPml::update_ey(Grid &grid)
             // Advance storage locations. 
             aux1_y_[pml_idx] = p_temp;
 
+          }
+          else if (common_->mtype(mid) == DEBYE) 
+          {
+            field_t p_temp; 
+            p_temp = aux1_y_[pml_idx] * common_->Az(kt) 
+              + common_->Bz(kt) 
+              * ( idz*(*hx - *(hx-1)) - idx*(*hz2 - *hz1));
+
+            d_temp = *dy * common_->Ax(it) 
+            + common_->Bx(it)
+            * (p_temp * common_->Cy(jt) - aux1_y_[pml_idx] * common_->Dy(jt));
+
+            *ey = *ey * common_->debyeA(mid) 
+              + d_temp * common_->debyeB(mid)
+              - *dy * common_->debyeC(mid);
+
+            *dy = d_temp;
+            aux1_y_[pml_idx] = p_temp;
           }
           else 
           { // DIELECTRIC
@@ -917,6 +958,24 @@ void UPml::update_ez(Grid &grid)
             // Advance storage locations. 
             aux1_z_[pml_idx] = p_temp;
 
+          }
+          else if (common_->mtype(mid) == DEBYE) 
+          {
+            field_t p_temp; 
+            p_temp = aux1_z_[pml_idx] * common_->Ax(it) 
+              + common_->Bx(it) 
+              * ( idx*(*hy1 - *hy2) - idy*(*hx2 - *hx1) );
+
+            d_temp = *dz * common_->Ay(jt) 
+            + common_->By(jt)
+            * (p_temp * common_->Cz(kt) - aux1_y_[pml_idx] * common_->Dz(kt));
+
+            *ez = *ez * common_->debyeA(mid) 
+              + d_temp * common_->debyeB(mid)
+              - *dz * common_->debyeC(mid);
+
+            *dz = d_temp;
+            aux1_z_[pml_idx] = p_temp;
           }
           else 
           { // DIELECTRIC

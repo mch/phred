@@ -25,7 +25,7 @@ Comments are welcome.
 
 COMPILERS:
 
-* GCC 3.3.3 is known to work well
+* GCC 3.3.3 is known to work well. Other versions also work fine. 
 
 
 * ICC 8.1

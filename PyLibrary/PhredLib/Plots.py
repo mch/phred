@@ -4,7 +4,7 @@ import biggles
 import Numeric
 
 def plot_signal(signal, tsteps, dt):
-    """Plot an input signal. Use this to see how your input signal looks.
+    """Plot an input signal. Use this to see what your input signal looks.
 
 signal is the SouceFunction object to plot
 tsteps is the number of time steps

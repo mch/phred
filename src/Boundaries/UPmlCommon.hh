@@ -142,6 +142,11 @@ protected:
   float *vcdt_, *omegasq_;
 #endif
 
+  /**
+   * Debye material constants, one for each material
+   */ 
+  field_t *debyeA_, *debyeB_, *debyeC_;
+
   void init_constants();
 
   void free_sigmas();
@@ -265,6 +270,16 @@ public:
   inline float get_omegasq(mat_idx_t mid) const
   { return omegasq_[mid]; }
 #endif
+
+  // Debye constants
+  inline field_t debyeA(mat_idx_t mid) const
+  { return debyeA_[mid]; }
+
+  inline field_t debyeB(mat_idx_t mid) const
+  { return debyeB_[mid]; }
+
+  inline field_t debyeC(mat_idx_t mid) const
+  { return debyeC_[mid]; }
 
   // Parameters set by the UPml object set by the user
   inline unsigned int get_poly_order() const

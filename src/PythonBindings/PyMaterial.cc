@@ -28,7 +28,7 @@ using namespace boost::python;
 void export_materials()
 {
   class_<Material>("Material", "Material class")
-    .def("get_type", &Material::get_type)
+    .def("get_type", &Material::type)
     .add_property("epsilon", &Material::get_epsilon, &Material::set_epsilon)
     .add_property("sigma", &Material::get_sigma, &Material::set_sigma)
     .add_property("sigma_star", &Material::get_sigma_star, 

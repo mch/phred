@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,9 +44,11 @@ CSGStatus CSGCylinder::is_point_inside(float x, float y, float z) const
   {
     float temp1 = centre_[0] - x;
     float temp2 = centre_[1] - y;
-    float r = sqrt(temp1*temp1 + temp2*temp2);
+    //float r = sqrt(temp1*temp1 + temp2*temp2);
+    float r_sq = temp1*temp1 + temp2*temp2;
 
-    if (r < radius_)
+    //if (r < radius_)
+    if (r_sq < (radius_ * radius_))
       ret = INSIDE;
   }
 

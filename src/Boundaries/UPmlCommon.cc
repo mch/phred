@@ -21,10 +21,11 @@ UPmlCommon::UPmlCommon(const Grid &grid)
     er_(0), ur_(0), mtype_(0),
     lossyA_(0), lossyB_(0),
 #ifdef ADE_DRUDE
-    drudeC1_(0), drudeC2_(0), drudeC3_(0), drudeC4_(0), drudeC5_(0)
+    drudeC1_(0), drudeC2_(0), drudeC3_(0), drudeC4_(0), drudeC5_(0),
 #else
-    vcdt_(0), omegasq_(0)
+    vcdt_(0), omegasq_(0),
 #endif
+    debyeA_(0), debyeB_(0), debyeC_(0)
 {
 
 }
@@ -195,6 +196,8 @@ void UPmlCommon::init_sigmas()
   // Check if despersion constants and aux variables should be allocated
   bool need_lossy = false;
   bool need_drude = false;
+  bool need_debye = false;
+
   while (iter != iter_e) 
   {
     mat_idx_t mid = (*iter).second.get_id();
@@ -204,6 +207,9 @@ void UPmlCommon::init_sigmas()
 
     if ((*iter).second.type() == DRUDE)
       need_drude = true;
+    
+    if ((*iter).second.type() == DEBYE)
+      need_debye = true;
 
     ++iter;
   }
@@ -235,6 +241,16 @@ void UPmlCommon::init_sigmas()
     vcdt_ = new float[nm];
     omegasq_ = new float[nm];
 #endif
+  }
+
+  if (need_debye)
+  {
+    debyeA_ = new field_t[nm];
+    debyeB_ = new field_t[nm];
+    debyeC_ = new field_t[nm];
+    memset(debyeA_, 0, sizeof(field_t) * nm);
+    memset(debyeB_, 0, sizeof(field_t) * nm);
+    memset(debyeC_, 0, sizeof(field_t) * nm);
   }
 
   // Loop over the materials
@@ -289,6 +305,22 @@ void UPmlCommon::init_sigmas()
       vcdt_[mid] = exp(-1.0 * vc * dt);
       omegasq_[mid] = omega_p * omega_p * (dt / vc);
 #endif
+    }
+
+    if (mtype_[mid] == DEBYE) 
+    {
+      delta_t dt = grid_.get_deltat();
+      mat_prop_t eps_inf = (*iter).second.get_property("debye_eps_inf");
+      mat_prop_t eps_s = (*iter).second.get_property("debye_eps_s");
+      mat_prop_t tau = (*iter).second.get_property("debye_tau");
+      
+      debyeA_[mid] = (2 * eps_inf * tau 
+                        - eps_s * dt)
+        / (2 * eps_inf * tau 
+           + eps_s * dt);
+
+      debyeB_[mid] = tau / dt + 0.5;
+      debyeC_[mid] = tau / dt - 0.5;      
     }
 
     ++iter;
@@ -541,6 +573,16 @@ void UPmlCommon::deinit()
     omegasq_ = 0;
   }
 #endif
+
+  if (debyeA_)
+  {
+    delete[] debyeA_;
+    debyeA_ = 0;
+    delete[] debyeB_;
+    debyeB_ = 0;
+    delete[] debyeC_;
+    debyeC_ = 0;
+  }
 
   inited_ = false;
 }

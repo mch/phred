@@ -1,8 +1,8 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -74,6 +74,14 @@ protected:
   field_t *sz_; /**< Auxillary term */
   field_t *szm1_; /**< Previous sz_ */
   field_t *szm2_; /**< Previous szm1_ */
+
+  // Material type, i.e. the dispersion to invoke
+  MaterialType *mtype_;
+
+  /**
+   * Debye material constants, one for each material
+   */ 
+  field_t *debyeA_, *debyeB_, *debyeC_;
 
   /**
    * Free the memory allocated for the grid. Calls Grid::free_grid(),

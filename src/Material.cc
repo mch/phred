@@ -34,11 +34,6 @@ Material::~Material()
   
 }
 
-MaterialType Material::get_type() const
-{
-  return type_;
-}
-
 mat_prop_t Material::get_epsilon() const
 {
   return epsilon_;
@@ -62,11 +57,6 @@ mat_prop_t Material::get_sigma_star() const
 string Material::get_name() const
 {
   return name_;
-}
-
-void Material::set_type(MaterialType type)
-{
-  type_ = type;
 }
 
 void Material::set_epsilon(mat_prop_t eps)
@@ -126,7 +116,7 @@ MaterialType Material::type() const
   map<string, mat_prop_t>::const_iterator iter_e = properties_.end();
 
   map<string, mat_prop_t>::const_iterator debye 
-    = properties_.find("debye_param");
+    = properties_.find("debye_tau");
 
   map<string, mat_prop_t>::const_iterator lorentz
     = properties_.find("lorentz_param");
