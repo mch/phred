@@ -22,8 +22,8 @@
 #ifndef BOUNDARY_CONDITION_H
 #define BOUNDARY_CONDITION_H
 
-#include "Types.hh"
-#include "config.h"
+#include "../Types.hh"
+#include "../config.h"
 #include <assert.h>
 
 // Trust me, there is one, but #include "Grid.hh" is a circular include

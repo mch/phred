@@ -22,13 +22,13 @@
 #ifndef DATA_WRITER_H
 #define DATA_WRITER_H
 
-#include "Types.hh"
 #include <mpi.h>
-#include "Data.hh"
 
 #include <map>
 #include <vector>
 
+#include "../Data.hh"
+#include "../Types.hh"
 #include "../Results/Result.hh"
 #include "../LifeCycle.hh"
 
@@ -54,18 +54,6 @@ protected:
                  (defaults to 0) */
 
   string filename_; /**< File to write data to */
-
-  vector<MPI_Datatype> node_types_; /**< A list of MPI derieved
-                                            data types that describe
-                                            how data recieved from
-                                            each node fits into the
-                                            output buffer. */ 
-
-  bool have_node_dtypes_; /**< True if we've collected
-                             node_data_types_ already. Used because
-                             some data writers may choose not to use
-                             the default handle_data function, and use
-                             MPI-IO instead (for example). */ 
 
   /** 
    * A helper function to gather data from all ranks onto rank 0 so

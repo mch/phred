@@ -22,7 +22,7 @@
 #ifndef PML_COMMON_H
 #define PML_COMMON_H
 
-#include "Types.hh"
+#include "../Types.hh"
 #include "config.h"
 
 #include <assert.h>

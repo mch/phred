@@ -23,9 +23,9 @@
 #define NETCDF_DATA_WRITER_H
 
 #include "DataWriter.hh"
-#include "Exceptions.hh"
+#include "../Exceptions.hh"
 
-#include "config.h"
+#include "../config.h"
 
 #ifdef USE_NETCDF
 #include <netcdf.h>

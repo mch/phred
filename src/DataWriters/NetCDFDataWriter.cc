@@ -20,8 +20,10 @@
 */
 
 #include "NetCDFDataWriter.hh"
+
 #include <sstream>
-#include "Exceptions.hh"
+
+#include "../Exceptions.hh"
 
 using namespace std;
 
@@ -268,7 +270,7 @@ unsigned int NetCDFDataWriter::write_data(unsigned int time_step,
   if (var.time_dim_)
   {
     count[0] = 1;
-    start[0] = time_step;
+    start[0] = variable.get_output_time();
   }
 
   return write_data(var.var_id_, start, count, data.get_datatype(), 

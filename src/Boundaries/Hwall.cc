@@ -20,7 +20,7 @@
 */
 
 #include "Hwall.hh"
-#include "GridPlane.hh"
+#include "../GridPlane.hh"
 
 Hwall::Hwall()
 {}

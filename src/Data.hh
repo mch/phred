@@ -27,6 +27,8 @@
 
 #include <mpi.h>
 
+#include "Types.hh"
+
 using namespace std;
 
 /**

@@ -20,8 +20,8 @@
 */
 
 #include "SourceDFTResult.hh"
-#include "Constants.hh"
-#include "Globals.hh"
+#include "../Constants.hh"
+#include "../Globals.hh"
 
 #include <math.h>
 

@@ -20,7 +20,7 @@
 */
 
 #include "AsciiDataWriter.hh"
-#include "Exceptions.hh"
+#include "../Exceptions.hh"
 
 #include <string.h>
 #include <mpi.h>

@@ -22,7 +22,7 @@
 #ifndef UPML_COMMON_H
 #define UPML_COMMON_H
 
-#include "Grid.hh"
+#include "../Grid.hh"
 
 /**
  * A class that contains data that is needed for all Uniaxial PML's on

@@ -20,11 +20,11 @@
 */
 
 #include "UPml.hh"
-#include "Exceptions.hh"
-#include "Grid.hh"
-#include "Constants.hh"
+#include "../Exceptions.hh"
+#include "../Grid.hh"
+#include "../Constants.hh"
 
-#include "config.h"
+#include "../config.h"
 
 /** TEMP **/
 /*#undef USE_OPENMP*/

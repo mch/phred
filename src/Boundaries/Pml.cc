@@ -20,10 +20,10 @@
 */
 
 #include "Pml.hh"
-#include "Grid.hh"
-#include "Exceptions.hh"
-#include "Constants.hh"
-#include "config.h"
+#include "../Grid.hh"
+#include "../Exceptions.hh"
+#include "../Constants.hh"
+#include "../config.h"
 
 /** TEMP **/
 /* #undef USE_OPENMP */

@@ -22,8 +22,8 @@
 #ifndef SOURCE_FUNCTION_H
 #define SOURCE_FUNCTION_H
 
-#include "Types.hh"
-#include "Grid.hh"
+#include "../Types.hh"
+#include "../Grid.hh"
 
 /**
  * This class defines a source_function which can be computed at some

@@ -21,7 +21,7 @@
 
 
 #include "SubdomainBc.hh"
-#include "Grid.hh"
+#include "../Grid.hh"
 
 void SubdomainBc::apply(Face face, Grid &grid, FieldType type)
 {

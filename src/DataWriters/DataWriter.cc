@@ -23,7 +23,7 @@
 #include "../Globals.hh"
 
 DataWriter::DataWriter() 
-  : rank_(0), have_node_dtypes_(false)
+  : rank_(0)
 { }
 
 DataWriter::~DataWriter()
@@ -57,11 +57,14 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
   // How much data will we recieve? 
   vector<unsigned int> rcv_bytes = get_recieve_sizes(data);
 
-  //if (!have_node_dtypes_)
-  //{
-  node_types_ = gather_types(var);
-  //have_node_dtypes_ = true;
-  //}
+  if (!var.have_node_dtypes_)
+  {
+    var.node_types_ = gather_types(var);
+    var.have_node_dtypes_ = true;
+  }
+
+//   cerr << "Rank " << MPI_RANK << " has " << data.get_num() 
+//        << " items to contribute to variable " << var.get_name() << endl;
 
   if (MPI_RANK != rank_)
   {
@@ -153,14 +156,14 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
                        MPI_COMM_WORLD, &status);
         } else {
           int sz = 0;
-          MPI_Type_size(node_types_[0], &sz);
+          MPI_Type_size(var.node_types_[0], &sz);
 
 //           cerr << "MPI type is " << sz << " bytes..." << endl;
 
           MPI_Sendrecv(data.get_ptr(), data.get_num(), 
                        data.get_datatype(), 0, 1, 
                        static_cast<void *>(ptr), 
-                       1, node_types_[0], 0, 1,
+                       1, var.node_types_[0], 0, 1,
                        MPI_COMM_WORLD, &status);
 
 //           cerr << "Buffered " << rcv_bytes[0] << " from rank 0. " 
@@ -175,11 +178,11 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
           // Construct a derived data type that places the recieved
           // data in the correct location inside the buffer. 
           int sz = 0;
-          MPI_Type_size(node_types_[i], &sz);
+          MPI_Type_size(var.node_types_[i], &sz);
 //           cerr << "Rank 0 is recieving " << rcv_bytes[i] 
 //                << " (" << sz << "?) bytes from rank " << i << endl;
 
-          MPI_Recv(static_cast<void *>(ptr), 1, node_types_[i], 
+          MPI_Recv(static_cast<void *>(ptr), 1, var.node_types_[i], 
                    i, 1, MPI_COMM_WORLD, &status);
 
 //           cerr << "Rank 0 recieved " << rcv_bytes[i] 
@@ -198,6 +201,7 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 //       cout << "-------------------\n";
       
       write_data(time_step, var, global_type, ptr_head, buffer_size);
+      var.output_time_++;
 
       MPI_Type_free(&global_type);
 
@@ -205,14 +209,6 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
     }
   }
 
-  vector<MPI_Datatype>::iterator iter = node_types_.begin();
-  vector<MPI_Datatype>::iterator iter_e = node_types_.end();
-
-  for(; iter != iter_e; ++iter)
-  {
-    if (*iter != MPI_DATATYPE_NULL)
-      MPI_Type_free(&(*iter));
-  }
 }
 
 vector<unsigned int> DataWriter::get_recieve_sizes(const Data &data)

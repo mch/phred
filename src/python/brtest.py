@@ -100,7 +100,7 @@ def pml_test(pml_thickness, xlen):
     ex = WaveguideExcitation(gm)
     ex.set_soft(1)
     ex.set_region(xlen/2, xlen/2, 0, ylen, 0, zlen)
-    ex.set_mode(0, 1, 0)
+    ex.set_mode(0, 2, 0)
     ex.set_polarization(0.0, 0.0, 1.0)
     
     fdtd.add_excitation("modgauss", ex)
@@ -111,41 +111,13 @@ def pml_test(pml_thickness, xlen):
     p.y = ylen / 2
     p.z = zlen / 2
     
-    p1 = point();
-    p1.x = (xlen / 2) - 40;
-    p1.y = ylen / 2
-    p1.z = zlen / 2
-    
-    p2 = point();
-    p2.x = (xlen / 2) - 40
-    p2.y = ylen / 2 - ylen / 4
-    p2.z = zlen / 2
-
-    p3 = point();
-    p3.x = (xlen / 2) - 5;
-    p3.y = ylen / 2
-    p3.z = zlen / 2
-
-    p4 = point();
-    p4.x = xlen / 2
-    p4.y = ylen / 2
-    p4.z = 5;
-
-    p5 = point();
-    p5.x = xlen / 2
-    p5.y = ylen / 2
-    p5.z = zlen / 2 + 10;
-    
-    print "Measurement point 1: %ix%ix%i, point 2: %ix%ix%i. " % (p1.x, p1.y, p1.z, p2.x, p2.y, p2.z)
-    
     try:
         ncdw = NetCDFDataWriter()
         ncdw.set_filename(output_prefix + "plane_data.nc")
         fdtd.add_datawriter("ncdw", ncdw)
         
         pr1 = BlockResult()
-        # #pr1.set_name("ey-xzplane")
-        pr1.set_field(EZ)
+        pr1.set_field(FC_E)
         pr1.set_time_param(10, 300, 5)
         fdtd.add_result("block", pr1)
         fdtd.map_result_to_datawriter("block", "ncdw")

@@ -20,7 +20,7 @@
 */
 
 #include "Ewall.hh"
-#include "GridPlane.hh"
+#include "../GridPlane.hh"
 
 Ewall::Ewall()
 {}

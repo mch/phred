@@ -23,7 +23,7 @@
 #define POINT_RESULT_H
 
 #include "Result.hh"
-#include "Types.hh"
+#include "../Types.hh"
 
 #include <mpi.h>
 

@@ -23,8 +23,8 @@
 #define POWER_RESULT_H
 
 #include "DFTResult.hh"
-#include "GridPlane.hh"
-#include "Region.hh"
+#include "../GridPlane.hh"
+#include "../Region.hh"
 
 /**
  * Calculates the power flowing through a surface at specific

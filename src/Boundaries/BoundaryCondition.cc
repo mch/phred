@@ -20,7 +20,7 @@
 */
 
 #include "BoundaryCondition.hh"
-#include "Grid.hh" // Flesh out the forward declaration
+#include "../Grid.hh" // Flesh out the forward declaration
 
 BoundaryCond::BoundaryCond() 
   : thickness_(0) 

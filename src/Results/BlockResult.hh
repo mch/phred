@@ -23,7 +23,7 @@
 #define BLOCK_RESULT_H
 
 #include "Result.hh"
-#include "Types.hh"
+#include "../Types.hh"
 
 #include <mpi.h>
 
@@ -44,6 +44,9 @@ protected:
   Variable var_; /**< Our variable */
 
   MPI_Datatype datatype_;
+
+  field_t *field_data_; /**< Used if we have to calculate the E or H
+                           field intensity. */ 
 
 public:
   BlockResult();

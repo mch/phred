@@ -20,7 +20,7 @@
 */
 
 #include "WaveguideExcitation.hh"
-#include "Constants.hh"
+#include "../Constants.hh"
 #include <math.h>
 
 WaveguideExcitation::WaveguideExcitation(SourceFunction *sf)

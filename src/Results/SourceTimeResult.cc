@@ -20,7 +20,7 @@
 */
 
 #include "SourceTimeResult.hh"
-#include "Globals.hh"
+#include "../Globals.hh"
 
 SourceTimeResult::SourceTimeResult(SourceFunction &te)
   : te_(te)

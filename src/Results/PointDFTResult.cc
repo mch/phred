@@ -20,8 +20,8 @@
 */
 
 #include "PointDFTResult.hh"
-#include "Constants.hh"
-#include "Exceptions.hh"
+#include "../Constants.hh"
+#include "../Exceptions.hh"
 
 #include <math.h>
 

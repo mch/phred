@@ -20,8 +20,8 @@
 */
 
 #include "PmlCommon.hh"
-#include "Grid.hh"
-#include "Exceptions.hh"
+#include "../Grid.hh"
+#include "../Exceptions.hh"
 
 #include <math.h>
 

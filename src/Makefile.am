@@ -2,6 +2,9 @@ SUBDIRS=PythonBindings Results Excitations DataWriters Boundaries Sources
 
 bin_PROGRAMS=phred
 
+AM_CPPFLAGS=-I./Results -I./PythonBindings -I./Excitations\
+	 -I./DataWriters -I./Boundaries -I./Sources
+
 phred_cond = 
 phred_LDFLAGS=
 phred_LDADD=

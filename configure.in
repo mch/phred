@@ -34,7 +34,7 @@ dnl options
 WANT_DEBUG=
 AC_ARG_ENABLE(debug, AC_HELP_STRING([--enable-debug], [Enable debugging messages, turn on assertions and array bounds checking]), WANT_DEBUG=1)
 
-AC_ARG_WITH(efence, AC_HELP_STRING([--with-efence], [Enable memory debugging using Electric Fence]))
+AC_ARG_WITH(efence, AC_HELP_STRING([--with-efence], [Enable memory debugging using Electric Fence (default: no)]))
 
 AC_ARG_WITH(cxx, AC_HELP_STRING([--with-cxx=CXX], [C++ compiler to use]), 
 		 [CXX="$withval"])
@@ -48,9 +48,9 @@ AC_ARG_ENABLE(openmp, AC_HELP_STRING([--enable-openmp], [Use OpenMP directives f
 WANT_ALTIVEC=0
 AC_ARG_ENABLE(altivec, AC_HELP_STRING([--enable-altivec], [Use AltiVec instructions on G4 and G5 processors]), [WANT_ALTIVEC=1], [WANT_ALTIVEC=0])
 
-WANT_TIMING_TESTS=0
-AC_ARG_ENABLE(ctests, AC_HELP_STRING([--enable-ctests], [Build C timing tests]), [WANT_TIMING_TESTS=1], [WANT_TIMING_TESTS=0])
-AM_CONDITIONAL(WANT_TIMING_TESTS, test "x$WANT_TIMING_TESTS" = "x1")
+WANT_TESTS=0
+AC_ARG_ENABLE(tests, AC_HELP_STRING([--enable-tests], [Build various little test programs]), [WANT_TESTS=1], [WANT_TESTS=0])
+AM_CONDITIONAL(WANT_TESTS, test "x$WANT_TESTS" = "x1")
 
 AC_ARG_WITH(readline, AC_HELP_STRING([--without-readline], [Don't use readline for Python interactive mode. Interactive mode will be restricted to single node execution.]))
 
@@ -125,9 +125,6 @@ DX_INIT_DOXYGEN([Phred], [doc/Doxyfile], [doc/generated_docs])
 
 AC_LANG(C++)
 
-dnl Use popt? 
-AC_ARG_WITH(popt, AC_HELP_STRING([--without-popt], [Don't use popt for handling command line arguments]))
-
 dnl Debug?
 dnl CFLAGS=
 dnl CXXFLAGS=
@@ -147,13 +144,13 @@ else
 fi
 
 dnl Profile?
-if test "x$WANT_PROFILE" = "x1"; then
+if [[ "x$WANT_PROFILE" = "x1" ]]; then
         AC_DEFINE([PROFILE], [1], [Using profiling (-pg)])
         CXXFLAGS="$CXXFLAGS -pg"
         CFLAGS="$CFLAGS -pg"
 fi
 
-if [[ ! "$with_efence" = "no" ]]; then 
+if [[ "$with_efence" == "yes" ]]; then 
         AC_CHECK_LIB(efence, malloc, [], [])
 fi
 
@@ -306,8 +303,6 @@ AC_FUNC_ALLOCA
 AC_STRUCT_TM
 AC_STRUCT_ST_BLOCKS
 AC_FUNC_CLOSEDIR_VOID
-
-dnl Checks for typedefs, structures, and compiler characteristics.
 
 AC_SUBST(CFLAGS, $CFLAGS)
 AC_SUBST(CXXFLAGS, $CXXFLAGS)

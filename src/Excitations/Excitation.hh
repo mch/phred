@@ -31,12 +31,12 @@
 #ifndef EXCITE_H
 #define EXCITE_H
 
-#include "config.h"
+#include "../config.h"
 
-#include "Types.hh"
-#include "Grid.hh"
+#include "../Types.hh"
+#include "../Grid.hh"
 #include "../Sources/SourceFunction.hh"
-#include "LifeCycle.hh"
+#include "../LifeCycle.hh"
 
 class Excitation : public LifeCycle
 {

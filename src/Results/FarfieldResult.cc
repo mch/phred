@@ -20,12 +20,12 @@
 */
 
 #include "FarfieldResult.hh"
-#include "Exceptions.hh"
-#include "Constants.hh"
+#include "../Exceptions.hh"
+#include "../Constants.hh"
 #include <math.h>
 
 /* Jan's complex number and vector helper functions */
-#include "fdtd_complex.hh"
+#include "../fdtd_complex.hh"
 
 FarfieldResult::FarfieldResult()
   : theta_start_(0), theta_stop_(0), phi_start_(90), phi_stop_(90),

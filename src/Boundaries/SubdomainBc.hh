@@ -23,7 +23,7 @@
 #define SUBDOMAIN_BC_H
 
 #include "BoundaryCondition.hh"
-#include "Data.hh"
+#include "../Data.hh"
 
 #include <vector>
 

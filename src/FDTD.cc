@@ -386,6 +386,7 @@ void FDTD::run(int rank, int size)
     cout << "Average millions of nodes per second, w.r.t. CPU time: " 
          << num_mnodes / (avg_cpu_time / static_cast<double>(CLOCKS_PER_SEC)) 
          << endl;
+    cout << "NOTE: These numbers only account for the time required to do node updates.\nIt does not include time required for applying boundary conditions or\nexcitations, or for generating output data.\n";
   }
 
   // life cycle de init

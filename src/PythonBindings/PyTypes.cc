@@ -58,18 +58,20 @@ void export_types()
     ;
 
   enum_<FieldComponent>("FieldComponent")
-    .value("EX", FC_EX)
-    .value("EY", FC_EY)
-    .value("EZ", FC_EZ)
-    .value("HX", FC_HX)
-    .value("HY", FC_HY)
-    .value("HZ", FC_HZ)
+    .value("FC_EX", FC_EX)
+    .value("FC_EY", FC_EY)
+    .value("FC_EZ", FC_EZ)
+    .value("FC_HX", FC_HX)
+    .value("FC_HY", FC_HY)
+    .value("FC_HZ", FC_HZ)
+    .value("FC_E", FC_E)
+    .value("FC_H", FC_H)
     .export_values()
     ;
 
   enum_<FieldType>("FieldType")
-    .value("E", E)
-    .value("H", H)
+    .value("E_FIELD", E)
+    .value("H_FIELD", H)
     .value("BOTH", BOTH)
     .export_values()
     ;

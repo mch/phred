@@ -25,10 +25,10 @@
 #include "BoundaryCondition.hh"
 #include "SubdomainBc.hh"
 #include "PmlCommon.hh"
-#include "Data.hh"
+#include "../Data.hh"
 #include <mpi.h>
 
-#include "config.h"
+#include "../config.h"
 #include <assert.h>
 
 /**

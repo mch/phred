@@ -1,9 +1,9 @@
 
 #include "UPmlCommon.hh"
 #include "UPml.hh"
-#include "Types.hh"
-#include "Constants.hh"
-#include "Exceptions.hh"
+#include "../Types.hh"
+#include "../Constants.hh"
+#include "../Exceptions.hh"
 
 #include <math.h>
 

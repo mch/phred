@@ -22,16 +22,16 @@
 #ifndef PY_DATA_WRITER_H
 #define PY_DATA_WRITER_H
 
-#include "config.h"
+#include "DataWriter.hh"
+
+#include "../config.h"
+#include "../Exceptions.hh"
 
 #ifdef USE_PY_BINDINGS
 #include <Python.h>
 #include <boost/python/numeric.hpp>
 #include <boost/python/tuple.hpp>
 #endif
-
-#include "DataWriter.hh"
-#include "Exceptions.hh"
 
 #include <map>
 #include <vector>

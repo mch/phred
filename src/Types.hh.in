@@ -101,7 +101,9 @@ enum FieldComponent {
   FC_EZ,
   FC_HX, 
   FC_HY, 
-  FC_HZ
+  FC_HZ, 
+  FC_E, /* E field intensity */
+  FC_H /* H field intensity */ 
 };
 
 /**

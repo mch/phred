@@ -29,7 +29,7 @@
 #define EXCITE_GAUSSM_H
 
 #include "SourceFunction.hh"
-#include "Constants.hh"
+#include "../Constants.hh"
 
 #include <math.h>
 

@@ -20,8 +20,8 @@
 */
 
 #include "PowerResult.hh"
-#include "Constants.hh"
-#include "Globals.hh"
+#include "../Constants.hh"
+#include "../Globals.hh"
 
 #include <string.h> // for memset
 #include <math.h>

@@ -20,7 +20,7 @@
 */
 
 #include "FakeResult.hh"
-#include "Globals.hh"
+#include "../Globals.hh"
 
 FakeResult::FakeResult() 
   : data_(0)
