@@ -30,6 +30,15 @@
 #define TYPES_H
 
 /**
+ * Axis of rotation
+ */
+enum Axis {
+  X_AXIS,
+  Y_AXIS, 
+  Z_AXIS
+};
+
+/**
  * Boundary conditions. These can be appled to faces of the grid or to
  * the surfaces of materials. But normally just to the faces of the
  * grid.
