@@ -84,13 +84,13 @@ typedef float mat_prop_t;
  */
 /* typedef float field_t; */
 /* #define GRID_MPI_TYPE MPI_FLOAT */
-typedef float field_t;
-#define GRID_MPI_TYPE MPI_FLOAT
+typedef @FIELD_TYPE@ field_t;
+#define GRID_MPI_TYPE @MPIFIELD_TYPE@
 
 /**
  * The type used for grid spacings
  */
-typedef float delta_t;
+typedef @FIELD_TYPE@ delta_t;
 
 /** \struct region
  * \brief min and max coordinates that can be used to define a
