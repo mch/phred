@@ -114,24 +114,29 @@ if test "x$WANT_DEBUG" = "x1"; then
         AC_DEFINE([DEBUG], [1], [Turn on debugging messages])
         AC_LANG_WERROR
         CXXFLAGS="-g"
+        CFLAGS="-g"
 else
         AC_DEFINE([NDEBUG], [1], [Turn off assertions])
         CXXFLAGS="-O2"
+        CFLAGS="-O2"
 fi
 
 dnl Profile?
 if test "x$WANT_PROFILE" = "x1"; then
         AC_DEFINE([PROFILE], [1], [Using profiling (-pg)])
         CXXFLAGS="$CXXFLAGS -pg"
+        CFLAGS="$CFLAGS -pg"
 fi
 
 dnl Set up compiler flags, so that libraries will be tested with these
 dnl (so that 64 bit tests will fail to work against 32 bit libs for
 dnl instance).
+echo "Testing compiler, it is: $CXX"
 if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then
 dnl Turn on inlining, template registry, RTTI, 2 GB memory access
+   echo "Turning on inline etc for AIX compiler"
    CXXFLAGS="$CXXFLAGS -Q -qtemplateregistry -qrtti=all"
-   if test "$WANT_64BIT" = "1"; then
+   if test "x$WANT_64BIT" = "x1"; then
       CXXFLAGS="-q64 -qwarn64 $CXXFLAGS"
    else
       CXXFLAGS="-bmaxdata:0x80000000 $CXXFLAGS"
