@@ -18,7 +18,8 @@ protected:
   /**
    * Returns the min and max coordinates along each axis for a given
    * face. Each boundary condition implements it's own loops, but
-   * this factors out some of the tedious work in anycase. 
+   * this factors out some of the tedious work in anycase. If the
+   * thickness is nonzero, the returned region is thick.
    *
    * @param face the Face to work on, as defined in Types.hh
    * @param grid the Grid object that we are looking at

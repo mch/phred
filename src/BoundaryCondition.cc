@@ -9,14 +9,14 @@ region BoundaryCond::find_face(Face face, Grid &grid)
   {
   case FRONT:
     r.xmax = grid.get_ldx();
-    r.xmin = r.xmax - 1;
+    r.xmin = r.xmax - 1 - thickness_;
     r.ymin = r.zmin = 0;
     r.ymax = grid.get_ldy();
     r.zmax = grid.get_ldz();
     break;
 
   case BACK:
-    r.xmax = 1;
+    r.xmax = 1 + thickness_;
     r.xmin = 0;
     r.ymin = r.zmin = 0;
     r.ymax = grid.get_ldy();
@@ -24,7 +24,7 @@ region BoundaryCond::find_face(Face face, Grid &grid)
     break;
 
   case TOP:
-    r.zmin = grid.get_ldz() - 1;
+    r.zmin = grid.get_ldz() - 1 - thickness_;
     r.zmax = grid.get_ldz();
     r.ymin = r.xmin = 0;
     r.xmax = grid.get_ldx();
@@ -33,7 +33,7 @@ region BoundaryCond::find_face(Face face, Grid &grid)
 
   case BOTTOM:
     r.zmin = 0;
-    r.zmax = 1;
+    r.zmax = 1 + thickness_;
     r.ymin = r.xmin = 0;
     r.xmax = grid.get_ldx();
     r.ymax = grid.get_ldy();
@@ -41,14 +41,14 @@ region BoundaryCond::find_face(Face face, Grid &grid)
 
   case LEFT:
     r.ymin = 0;
-    r.ymax = 1;
+    r.ymax = 1 + thickness_;
     r.zmin = r.xmin = 0;
     r.xmax = grid.get_ldx();
     r.zmax = grid.get_ldz();
     break;
 
   case RIGHT:
-    r.ymin = grid.get_ldy() - 1;
+    r.ymin = grid.get_ldy() - 1 - thickness_;
     r.ymax = grid.get_ldy();
     r.zmin = r.xmin = 0;
     r.xmax = grid.get_ldx();
