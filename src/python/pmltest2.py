@@ -1,4 +1,4 @@
-from Phred import *
+from Numeric import *
 
 PI = 3.14159;
 
@@ -6,9 +6,9 @@ class ExpSource(SourceFunction):
     ampl_ = 1
     omega_ = 15e9 * 2 * PI;
     period_ = 1 / 15e9;
-    def source_function(this, grid, time_step):
+    def source_function(self, grid, time_step):
         t = grid.get_deltat() * time_step
-        return ampl_ * (1 - exp(-1 * t / period_)) * sin(omega_ * t)
+        return self.ampl_ * (1 - exp(-1 * t / self.period_)) * sin(self.omega_ * t)
 
 
 def pml_test(pml_thickness, xlen):

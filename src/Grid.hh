@@ -869,6 +869,7 @@ class Grid {
 
   /**
    * Assign a material index a some point in space
+   *
    * @param x the x coordinate
    * @param y the y coordinate
    * @param z the z coordinate
@@ -879,6 +880,21 @@ class Grid {
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     material_[pi(x, y, z)] = mid;
+  }
+
+  /**
+   * Return a material index a some point in space
+   *
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * @param z the z coordinate
+   * @return the material id
+   */
+  inline unsigned int get_material(unsigned int x, unsigned int y, 
+                                   unsigned int z)
+  {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
+    return material_[pi(x, y, z)];
   }
 
   /**

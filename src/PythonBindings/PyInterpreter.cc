@@ -220,7 +220,7 @@ void PyInterpreter::master()
     }
     cout << endl;
 #else
-    throw PyInterpException("Only one process can be used in interactive mode.");
+    throw PyInterpException("Only one process can be used in interactive mode, and readline is required.");
 #endif
     //}  
   // else

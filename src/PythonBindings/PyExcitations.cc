@@ -92,7 +92,8 @@ public:
 
   void excite(Grid &grid, unsigned int time_step,
               FieldType type) 
-  { return call_method<void>(self_, "excite", time_step, type); }
+  { return call_method<void>(self_, "excite", boost::ref(grid),
+                             time_step, type); }
 
   void default_excite(Grid &grid, unsigned int time_step,
                       FieldType type) 
@@ -100,7 +101,7 @@ public:
 
   field_t window(region_t r, unsigned int x, unsigned int y, 
                  unsigned int z)
-  { return call_method<field_t>(self_, "window", x, y, z); }
+  { return call_method<field_t>(self_, "window", r, x, y, z); }
 };
 
 /**
@@ -118,7 +119,8 @@ public:
   {}
 
   field_t source_function(const Grid &grid, unsigned int time_step)
-  { return call_method<field_t>(self_, "source_function", grid, time_step); }
+  { return call_method<field_t>(self_, "source_function", 
+                                boost::ref(grid), time_step); }
 };
 
 void export_excitations()
