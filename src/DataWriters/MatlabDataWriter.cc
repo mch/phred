@@ -510,8 +510,8 @@ void MatlabElement::write_buffer(ostream &stream)
 MatlabArray::MatlabArray(const char *name, 
                          const vector<int> &dim_lens, bool time_dim, 
                          MPI_Datatype type,
-                         bool complex)
-  : approx_tlen_(0)
+                         bool complex, unsigned int approx_tlen)
+  : approx_tlen_(approx_tlen)
 {
   vector<int>::const_iterator iter;
   vector<int>::const_iterator iter_e = dim_lens.end();
@@ -594,8 +594,9 @@ MatlabArray::MatlabArray(const char *name,
                              static_cast<const void *>(dim_lengths_));
 
   // Pre-allocate some buffer space for the output. 
-  if (time_dim && approx_tlen_ > 0)
-    me_data_.expand_buffer(approx_tlen_ * block_size);
+  if (time_dim && approx_tlen_ > 0 && approx_tlen != ~0)
+    me_data_.expand_buffer(approx_tlen_ * block_size 
+                           * sizeof_matlab(me_data_.source_datatype_));
 
   // Setup our tag...
   tag_.datatype = miMATRIX;
@@ -668,7 +669,7 @@ MATLAB_array_type MatlabArray::get_array_class(MATLAB_data_type type)
       ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
     else
       ret = static_cast<MATLAB_array_type>(mxSINGLE_CLASS);
-  //ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
+
   else if (type == miDOUBLE)
     ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
   else
@@ -775,10 +776,8 @@ void MatlabDataWriter::add_variable(Result &result)
       new MatlabArray(var->get_name().c_str(), 
                       dim_lens, var->has_time_dimension(), 
                       var->get_element_type(),
-                      false);
+                      false, result.get_time_stop());
     
-    arr->set_approx_time_len(result.get_time_stop());
-
     vars_[var->get_name()] = arr;
 
 //     cerr << "MatlabDataWriter: Added a variable with " 
@@ -857,16 +856,16 @@ void MatlabDataWriter::test()
                    8.87, 9.76, 5.65, 7.54, 8.43, 9.32, 5.21};
   short data3[] = {1, 2, 3, 12, 43, 45, 87, 102, 123};
 
-  MatlabArray *ma = new MatlabArray("test2", dims, true, MPI_DOUBLE, false);
-  MatlabArray *ma2 = new MatlabArray("abc", dims2, false, MPI_FLOAT, false);
-  MatlabArray *ma3 = new MatlabArray("shortdata", dims, false, MPI_SHORT, false);
+  MatlabArray *ma = new MatlabArray("test2", dims, true, MPI_FLOAT, false, 3);
+  MatlabArray *ma2 = new MatlabArray("abc", dims2, false, MPI_FLOAT);
+  MatlabArray *ma3 = new MatlabArray("shortdata", dims, false, MPI_SHORT);
   if (!ma || !ma3 || !ma2)
     throw MemoryException();
 
   double data[] = {2.2, 3.6, 4.34, 5.354};
-  ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data));
-  ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data + 2));
-  ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data));
+  ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data2));
+  ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data2 + 2));
+  ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data2));
 
   ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
   ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));

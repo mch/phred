@@ -82,6 +82,9 @@ PyInterpreter::PyInterpreter(int rank, int size)
   
   Py_Initialize();
 
+  // Setup command line arguments
+  //PySys_SetArgv(argc, argv);
+
 #ifdef HAVE_LIBREADLINE
   rl_bind_key ('\t', rl_insert);
 #endif
@@ -103,12 +106,12 @@ void PyInterpreter::run_script(const char *filename)
 
   add_modules();
 
-  handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
-  handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
+  object main_module = extract<object>( PyImport_AddModule("__main__") );
+  object main_namespace = main_module.attr("__dict__");
 
   PyObject *result = PyRun_File(fp, filename, Py_file_input, 
-                                main_namespace.get(), 
-                                main_namespace.get());
+                                main_namespace.ptr(), 
+                                main_namespace.ptr());
   
   if (!result) {
     PyObject *err = PyErr_Occurred();
@@ -255,19 +258,24 @@ void PyInterpreter::master()
 
 void PyInterpreter::add_modules()
 {
-  handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
-  handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
+  //handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
+  //handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
+
+  object main_module = extract<object>( PyImport_AddModule("__main__") );
+  object main_namespace = main_module.attr("__dict__");
+
 
   // MPI Data
-  PyDict_SetItemString(main_namespace.get(), "MPI_RANK", 
-                       PyInt_FromLong(rank_));
-  PyDict_SetItemString(main_namespace.get(), "MPI_SIZE", 
-                       PyInt_FromLong(size_));
+  main_namespace["MPI_RANK"] = rank_;
+  main_namespace["MPI_SIZE"] = size_;
 
   // Import the contents of the Phred module
+//   object phred_mod = extract<object>( PyImport_ImportModule("Phred") );
+//   object phred_namespace = phred_mod.attr("__dict__");
+//   main_namespace....
   handle<> res( PyRun_String("from Phred import *", Py_single_input, 
-                             main_namespace.get(),
-                             main_namespace.get()));
+                             main_namespace.ptr(),
+                             main_namespace.ptr()));
 
   // Warrenty text
   str warranty("			    NO WARRANTY\n\
@@ -292,7 +300,7 @@ YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER\n\
 PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE\n\
 POSSIBILITY OF SUCH DAMAGES.\n\
 ");
-  PyDict_SetItemString(main_namespace.get(), "warranty", warranty.ptr());
+  PyDict_SetItemString(main_namespace.ptr(), "warranty", warranty.ptr());
                        
   // Conditions text
   str conditions("		    GNU GENERAL PUBLIC LICENSE\n\
@@ -495,7 +503,7 @@ of preserving the free status of all derivatives of our free software and\n\
 of promoting the sharing and reuse of software generally.\n\
 ");
 
-  PyDict_SetItemString(main_namespace.get(), "conditions", conditions.ptr());
+  PyDict_SetItemString(main_namespace.ptr(), "conditions", conditions.ptr());
 }
 
 char *PyInterpreter::rl()

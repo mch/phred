@@ -1464,15 +1464,15 @@ shared_ptr<Block> Grid::get_global_region(CSGBox &box) const
   // I made in specifying min and max ranges... all of the loops treat
   // the minimum as inclusive, and the maximum as exclusive. 
   // I.e. The interval is closed at the minimum and open at the maximum. 
-//   ret.xmin_ = start.x; ret.xmax_ = end.x + 1;
-//   ret.ymin_ = start.y; ret.ymax_ = end.y + 1;
-//   ret.zmin_ = start.z; ret.zmax_ = end.z + 1;
+  ret.xmin_ = start.x; ret.xmax_ = end.x + 1;
+  ret.ymin_ = start.y; ret.ymax_ = end.y + 1;
+  ret.zmin_ = start.z; ret.zmax_ = end.z + 1;
 
   // The above causes problems because it changes what get_global_cell
   // means.... badness.
-  ret.xmin_ = start.x; ret.xmax_ = end.x;
-  ret.ymin_ = start.y; ret.ymax_ = end.y;
-  ret.zmin_ = start.z; ret.zmax_ = end.z;
+//   ret.xmin_ = start.x; ret.xmax_ = end.x;
+//   ret.ymin_ = start.y; ret.ymax_ = end.y;
+//   ret.zmin_ = start.z; ret.zmax_ = end.z;
 
 
   ret.start_x_ = ret.xmin_;

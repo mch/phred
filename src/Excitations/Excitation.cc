@@ -55,6 +55,13 @@ void Excitation::init(const Grid &grid)
   if (box_.get())
   {
     region_ = grid.get_local_region(*(box_.get()));
+
+#ifdef DEBUG
+    cout << "Excitation local region: (" << (*region_).xmin() << ", "
+         << (*region_).ymin() << ", " << (*region_).zmin() << ") -> ("
+         << (*region_).xmax() << ", " << (*region_).ymax() << ", " 
+         << (*region_).zmax() << ")." << endl;
+#endif
   }
 }
 

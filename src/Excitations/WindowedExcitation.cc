@@ -52,12 +52,14 @@ void WindowedExcitation::init(const Grid &grid)
 
   }
 
-  //     cerr << "WindowedExcitation::init, xmin_ = " << xmin_
-  //          << ", ymin_ = " << ymin_ << ", zmin_ = " << zmin_
-  //          << ", xmax_ = " << xmax_ << ", ymax_ = " << ymax_
-  //          << ", zmax_ = " << zmax_ << endl;
-  //     cerr << "Local region starts at " << lxmin_ << ", " 
-  //          << lymin_ << ", " << lzmin_ << endl;
+#ifdef DEBUG
+      cerr << "WindowedExcitation::init, xmin_ = " << xmin_
+           << ", ymin_ = " << ymin_ << ", zmin_ = " << zmin_
+           << ", xmax_ = " << xmax_ << ", ymax_ = " << ymax_
+           << ", zmax_ = " << zmax_ << endl;
+      cerr << "Local region starts at " << lxmin_ << ", " 
+           << lymin_ << ", " << lzmin_ << endl;
+#endif
 }
 
 void WindowedExcitation::excite(Grid &grid, unsigned int time_step, 

@@ -285,20 +285,13 @@ protected:
    */ 
   MATLAB_array_type get_array_class(MATLAB_data_type type);
   
-  /**
-   * Set an approximate time dimension length, so that memory for all
-   * timesteps can be pre-allocated. Not treated as difinitive; if
-   * there are more steps than this, that's ok.
-   */
-  inline void set_approx_time_len(unsigned int tlen)
-  { approx_tlen_ = tlen; }
-
 public:
   MatlabArray(const char *name, 
               const vector<int> &dim_lens, 
               bool time_dim,
               MPI_Datatype type,
-              bool complex); 
+              bool complex = false,
+              unsigned int approx_tlen = 0); 
 
   virtual ~MatlabArray();
 
