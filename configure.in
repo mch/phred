@@ -107,6 +107,24 @@ AC_ARG_WITH(mpi_libs, AC_HELP_STRING([--with-mpi-libs], [Location of MPI librari
 
 AC_ARG_WITH(mpi_includes, AC_HELP_STRING([--with-mpi-includes], [Location of MPI include files]), [MPI_INCLUDES=$withval])
 
+dnl Debug?
+dnl CFLAGS=
+dnl CXXFLAGS=
+if test "x$WANT_DEBUG" = "x1"; then
+        AC_DEFINE([DEBUG], [1], [Turn on debugging messages])
+        AC_LANG_WERROR
+        CXXFLAGS="-g"
+else
+        AC_DEFINE([NDEBUG], [1], [Turn off assertions])
+        CXXFLAGS="-O2"
+fi
+
+dnl Profile?
+if test "x$WANT_PROFILE" = "x1"; then
+        AC_DEFINE([PROFILE], [1], [Using profiling (-pg)])
+        CXXFLAGS="$CXXFLAGS -pg"
+fi
+
 dnl Set up compiler flags, so that libraries will be tested with these
 dnl (so that 64 bit tests will fail to work against 32 bit libs for
 dnl instance).
@@ -268,24 +286,6 @@ dnl Use readline?
         fi
 fi
 AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
-
-dnl Debug?
-dnl CFLAGS=
-dnl CXXFLAGS=
-if test "x$WANT_DEBUG" = "x1"; then
-        AC_DEFINE([DEBUG], [1], [Turn on debugging messages])
-        AC_LANG_WERROR
-        CXXFLAGS="-g"
-else
-        AC_DEFINE([NDEBUG], [1], [Turn off assertions])
-        CXXFLAGS="-O2"
-fi
-
-dnl Profile?
-if test "x$WANT_PROFILE" = "x1"; then
-        AC_DEFINE([PROFILE], [1], [Using profiling (-pg)])
-        CXXFLAGS="$CXXFLAGS -pg"
-fi
 
 dnl Use OpenMP parallism? Does the compiler support it? Are the 
 dnl libraries available? 
