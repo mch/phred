@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -21,6 +21,7 @@
 
 #include "DataWriter.hh"
 #include "../Globals.hh"
+#include "../Contiguous.hh"
 
 DataWriter::DataWriter() 
   : rank_(0)
@@ -291,12 +292,13 @@ vector<MPI_Datatype> DataWriter::gather_types(const Variable &var)
   if (MPI_RANK == rank_)
   {
     // Construct data types for each node's incoming data. 
-    int *dim_sizes, *dim_sub_sizes, *starts, *displacements;
-    int num_displacements = 0;
+    unsigned int *dim_sizes, *dim_sub_sizes, *starts;
+    int *displacements = 0;
+    unsigned int num_displacements = 0;
 
-    dim_sizes = new int[num_dimensions];
-    dim_sub_sizes = new int[num_dimensions];
-    starts = new int[num_dimensions];
+    dim_sizes = new unsigned int[num_dimensions];
+    dim_sub_sizes = new unsigned int[num_dimensions];
+    starts = new unsigned int[num_dimensions];
 
 //     cerr << "Total N-dimensional array size:" << endl;
     for (dim_idx = 0; dim_idx < num_dimensions; dim_idx++)
@@ -328,9 +330,9 @@ vector<MPI_Datatype> DataWriter::gather_types(const Variable &var)
 //              << dim_sub_sizes[node_dim_idx] << " long." << endl;
       }
 
-      compute_displacements(num_dimensions, dim_sizes, starts, 
-                            dim_sub_sizes, &num_displacements, 
-                            &displacements);
+      Contiguous::compute_displacements(num_dimensions, dim_sizes, starts, 
+                                        dim_sub_sizes, &num_displacements, 
+                                        &displacements);
 
 //       cout << "Computed displacements, got " 
 //            << num_displacements << " back, each has a length of "
@@ -382,89 +384,3 @@ vector<MPI_Datatype> DataWriter::gather_types(const Variable &var)
   return ret;
 }
 
-// Calculate the index of a point at coord in a contiguous array
-// representing an N dimensional matrix of size size. Assumes data is
-// contiguous along the last dimension.
-int DataWriter::idx(int N, int *size, int *coord)
-{
-  int idx = coord[0];
-
-  for (int i = 0; i < N - 1; i++)
-    idx = coord[i + 1] + idx * size[i + 1];
-
-  return idx;
-}
-
-// Displacement computation recursion helper
-int DataWriter::displ_helper(int N, int *dsize, 
-                             int *lens,
-                             int curr_dim, 
-                             int disp_idx, 
-                             int *disps, 
-                             int *offset,
-                             int *negoffset, bool first)
-{
-  // Base case
-  if (curr_dim == N)
-  {
-    return disp_idx;
-  }
-
-  int j = 0;
-
-  if (first) {
-    j = 1;
-
-    disp_idx = displ_helper(N, dsize, lens, curr_dim + 1, disp_idx, disps, 
-                            offset, negoffset, true);
-  }
-
-  for (; j < lens[curr_dim - 1]; j++)
-  {
-    if (curr_dim == N - 1)
-    {
-      disps[disp_idx] = disps[disp_idx - *negoffset] + *offset;
-      disp_idx++;
-    } else {
-      disp_idx = displ_helper(N, dsize, lens, curr_dim + 1, disp_idx, disps, 
-                              offset, negoffset, false);
-    }
-  }
-
-  if (first)
-  {
-    *negoffset = lens[curr_dim - 1];
-    *offset *= dsize[curr_dim - 1];
-  }
-
-  return disp_idx;
-}                          
-
-// Compute displacements for an indexed data type that pulls out a
-// chunk of a larger N dimensional matrix. This assumes that the data
-// varies fastest (is contiguous along) the last dimension specified.
-void DataWriter::compute_displacements(int N, int *dsize, 
-                                       int *coord, int *lens,
-                                       int *num_displacements,
-                                       int **displacements)
-{
-  int num_disps = 1;
-  int disp_idx = 1;
-  int offset = dsize[N - 1];
-  int negoffset = 1;
-
-  for (int i = 0; i < N - 1; i++)
-  {
-    num_disps *= lens[i];
-  }
-
-  int *disps = new int [num_disps];
-
-  disps[0] = idx(N, dsize, coord);
-
-  disp_idx = displ_helper(N, dsize, lens, 1, disp_idx, disps, &offset, 
-                          &negoffset, true);
-
-  *displacements = disps;
-  *num_displacements = num_disps;
-}

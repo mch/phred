@@ -138,14 +138,23 @@ map<string, Variable *> &BlockResult::get_result(const Grid &grid,
       const field_t *ez = grid.get_pointer(grid_point(0,0,0), FC_EZ);
 
       for (unsigned int i = 0; i < grid.get_ldx(); i++)
+      {
         for (unsigned int j = 0; j < grid.get_ldy(); j++)
+        {
+          ex = grid.get_pointer(grid_point(i, j, 0), FC_EX);
+          ey = grid.get_pointer(grid_point(i, j, 0), FC_EY);
+          ez = grid.get_pointer(grid_point(i, j, 0), FC_EZ);
           for (unsigned int k = 0; k < grid.get_ldz(); 
                k++, f++, ex++, ey++, ez++)
+          {
             *f = sqrt(pow(*ex, 2) + pow(*ey, 2) + pow(*ez, 2));
 //             field_data_[grid.pi(i,j,k)] 
 //               = sqrt(pow(grid.get_ex(i,j,k), 2) 
 //                      + pow(grid.get_ey(i,j,k), 2) 
 //                      + pow(grid.get_ez(i,j,k), 2) );
+          }
+        }
+      }
     }
     else if (field_comp_ == FC_H)
     {
