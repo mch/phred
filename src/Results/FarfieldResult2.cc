@@ -41,7 +41,8 @@ void FarfieldResult2::export_dfts()
 
   for (int face_idx = 0; face_idx < 6; face_idx++)
   {
-    if (!(*region_).has_face_data(static_cast<Face>(face_idx)))
+    if (!(*region_).has_face_data(static_cast<Face>(face_idx))
+        || !use_face_[face_idx])
       continue;
 
     region_t cells;
@@ -125,6 +126,9 @@ FarfieldResult2::FarfieldResult2()
   : r_(100), e_theta_data_(0), e_phi_data_(0), h_theta_data_(0),
     h_phi_data_(0), rcs_data_(0)
 {
+  for (int i = 0; i < 6; i++)
+    use_face_[i] = true;
+
 #ifdef HAVE_COMPLEX
   for (int i = 0; i < 6; i++)
   {
@@ -507,7 +511,8 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
 
   for (int face_idx = 0; face_idx < 6; face_idx++)
   {
-    if (!(*region_).has_face_data(static_cast<Face>(face_idx)))
+    if (!(*region_).has_face_data(static_cast<Face>(face_idx)) 
+        || !use_face_[face_idx])
       continue;
 
     region_t cells;
@@ -783,7 +788,8 @@ FarfieldResult2::get_result(const Grid &grid,
   // Just calculate data but return nothing until the end.
   for (int face_idx = 0; face_idx < 6; face_idx++)
   {
-    if (!(*region_).has_face_data(static_cast<Face>(face_idx)))
+    if (!(*region_).has_face_data(static_cast<Face>(face_idx))
+        || !use_face_[face_idx])
       continue;
 
     region_t cells;

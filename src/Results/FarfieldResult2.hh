@@ -160,6 +160,18 @@ public:
   { return r_; }
 
   /**
+   * Exclude a particular face from the Huygen's surface. This
+   * slightly breaks the surface equivalence threom, use with
+   * caution. All faces are included by default.
+   *
+   * @param face the face to exclude or include
+   * @param use true if the face should be included, false to exclude
+   * the face.
+   */
+  inline void use_face(Face face, bool use)
+  { use_face_[face] = use; }
+
+  /**
    * Print a string representation to an ostream.
    */
   ostream& to_string(ostream &os) const;
@@ -233,6 +245,10 @@ private:
   Variable theta_;
   Variable phi_;
 
+  // Allow the user to exclude faces from the Huygen's box... slightly
+  // breaks the suface equivalence theorm, but...
+  bool use_face_[6];
+  
   void export_dfts();
 };
 
