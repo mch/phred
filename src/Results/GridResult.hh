@@ -62,6 +62,11 @@ public:
    */
   void deinit();
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 private:
   Variable material_ids_; /**< Material id at each cell */ 
   Variable deltaxs_; /**< Cell sizes along the x axis */ 

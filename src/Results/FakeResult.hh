@@ -47,6 +47,11 @@ public:
   void init(const Grid &grid);
   void deinit();
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 protected:
   Variable var_;
   field_t *data_;

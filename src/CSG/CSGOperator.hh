@@ -66,6 +66,11 @@ public:
     return shared_ptr<CSGOperator>(op);
   }
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 protected:
   shared_ptr<CSGObject> left_;
   shared_ptr<CSGObject> right_;

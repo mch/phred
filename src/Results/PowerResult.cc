@@ -558,3 +558,9 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
 
   return variables_;
 }
+
+ostream& PowerResult::to_string(ostream &os) const
+{
+  os << "PowerResult returning power passing through the "
+     << face_string(face_) << " of a "; // << box_->get();
+}

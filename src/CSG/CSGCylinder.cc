@@ -76,3 +76,10 @@ float CSGCylinder::get_height() const
 {
   return height_;
 }
+
+std::ostream& CSGCylinder::to_string(std::ostream &os) const
+{
+  return os << "CSGCylinder, centred at (" << centre_[0] << ", " << centre_[1]
+            << ", " << centre_[2] << "), with a radius of " << radius_
+            << " and a height of " << height_;
+}

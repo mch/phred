@@ -73,6 +73,29 @@ public:
    * Returns a list of verticies for this object. The
    */ 
   //virtual const vector<float[3]> &get_verticies() const = 0;
+
+
+  /**
+   * Print a string representation to an std::ostream.
+   */
+  virtual std::ostream& to_string(std::ostream &os) const
+  {
+    return os << "A CSGObject of indeterminate type.";
+  }
+
+  friend std::ostream& operator<< (std::ostream& os, const CSGObject &c);
+  friend std::ostream& operator<< (std::ostream& os, CSGObject &c);
 };
+
+inline std::ostream& operator<< (std::ostream& os, const CSGObject &c)
+{
+  return c.to_string(os);
+}
+
+inline std::ostream& operator<< (std::ostream& os, CSGObject &c)
+{
+  return c.to_string(os);
+}
+
 
 #endif // CSG_OBJECT_H

@@ -48,3 +48,15 @@ CSGStatus CSGDifference::is_point_inside(float x, float y, float z) const
 
   return ret;
 }
+
+ostream& CSGDifference::to_string(ostream &os) const
+{
+  if (*right_ && *left_)
+  {
+    os << "CSGDifference, subtracting a " << (*right_) << " from " 
+       << " a " << (*left_);
+  } else {
+    os << "CSGDifference, missing objects!";
+  }
+  return os;
+}

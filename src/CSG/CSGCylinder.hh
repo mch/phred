@@ -73,6 +73,11 @@ public:
    */ 
   float get_height() const;
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 protected:
   float radius_;
   float height_;

@@ -111,6 +111,11 @@ public:
     return num_freqs_;
   }
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 private:
   shared_ptr<CSGBox> box_; /**< The box to use as the surface to
                               integrate currents over. */

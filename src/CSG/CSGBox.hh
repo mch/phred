@@ -77,6 +77,11 @@ public:
    */ 
   //const vector<float[3]> &get_verticies() const;
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual std::ostream& to_string(std::ostream &os) const;
+
 private:
   float lengths_[3];
   float half_lengths_[3];

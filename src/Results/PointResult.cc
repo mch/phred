@@ -107,7 +107,8 @@ void PointResult::deinit()
 
 ostream& PointResult::to_string(ostream &os) const
 {
-  return os << "PointResult: sampling data at point "
-            << space_point_ << "\n"
-            << "sampling data at grid cell " << point_ << "\n";
+  os << "PointResult: sampling data at point " << space_point_
+     << "\nsampling data at grid cell " << point_ << "\n";
+
+  return os;
 }

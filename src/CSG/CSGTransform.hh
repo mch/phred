@@ -70,6 +70,11 @@ public:
    */ 
   void set_translation(float tx, float ty, float tz);
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 protected:
   // The child being transformed
   shared_ptr<CSGObject> child_; 

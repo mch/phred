@@ -152,6 +152,11 @@ protected:
   Variable dfts_[8]; /**< DFT's for et1_r, et1_i, et2_r, et2_i, 
                         ht1_r, ht1_i, ht2_r, ht2_i. */ 
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 private:
 };
 

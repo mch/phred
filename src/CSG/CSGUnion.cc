@@ -41,3 +41,15 @@ CSGStatus CSGUnion::is_point_inside(float x, float y, float z) const
 
   return ret;
 }
+
+std::ostream& CSGUnion::to_string(std::ostream &os) const
+{
+  if (*left_ && *right_)
+  {
+    os << "CSGUnion, taking the union of " << *left_ << " and "
+       << *right_;
+  } else {
+    os << "CSGUnion, missing objects";
+  }
+  return os;
+}

@@ -145,3 +145,6 @@ FDTD stuff:
 
 
 
+
+Computing the number of lines of code:
+find . -name "*.cc" -or -name "*.hh" -exec wc -l "{}" ";" | gawk '{nlines = nlines + $1} END {print nlines}'

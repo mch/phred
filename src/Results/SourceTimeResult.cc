@@ -69,3 +69,8 @@ map<string, Variable *> &SourceTimeResult::get_result(const Grid &grid,
 
   return variables_;
 }
+
+ostream& SourceTimeResult::to_string(ostream &os) const
+{
+  os << "SourceTimeResult";
+}

@@ -46,3 +46,10 @@ void DFTResult::set_freq(field_t freq_start, field_t freq_stop,
   freq_stop_ = freq_stop;
   num_freqs_ = num_freqs;
 }
+
+ostream& DFTResult::to_string(ostream &os) const
+{
+  os << "Generic DFTResult outputting " << num_freqs_ 
+     << ", starting at " << freq_start_ << " and ending at "
+     << freq_stop_;
+}

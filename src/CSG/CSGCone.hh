@@ -28,6 +28,11 @@ class CSGCone : public CSGPrimitive
 {
 public:
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual std::ostream& to_string(std::ostream &os) const;
+
 protected:
 
 }

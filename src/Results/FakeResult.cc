@@ -76,3 +76,8 @@ FakeResult::get_result(const Grid &grid,
   
   return variables_;
 }
+
+ostream& FakeResult::to_string(ostream &os) const
+{
+  os << "Fake result for DataWriter testing.";
+}

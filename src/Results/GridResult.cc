@@ -121,3 +121,7 @@ GridResult::get_result(const Grid &grid, unsigned int time_step)
   return variables_;
 }
 
+ostream& GridResult::to_string(ostream &os) const
+{
+  os << "GridResult; exports material information in the grid.";
+}

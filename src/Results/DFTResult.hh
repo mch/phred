@@ -103,6 +103,11 @@ public:
     return num_freqs_;
   }
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 protected:
   field_t freq_start_; /**< First frequency in the range */
   field_t freq_stop_; /**< Last frequency in the range */

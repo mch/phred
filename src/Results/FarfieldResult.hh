@@ -286,6 +286,11 @@ protected:
    */
   float atan2_local(float y, float x);
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 };
 
 #endif // FARFIELD_RESULT_H

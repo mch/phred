@@ -103,3 +103,10 @@ void CSGArray::set_spacing(float x, float y, float z)
   yspace_ = y;
   zspace_ = z;
 }
+
+std::ostream& CSGArray::to_string(std::ostream &os) const
+{
+  return os << "CSGArray, array is " << xlen_ << " x " << ylen_ << " x "
+            << xlen_ << ", with array factors of " << xspace_ 
+            << " by " << yspace_ << " by " << zspace_;
+}

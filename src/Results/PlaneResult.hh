@@ -122,6 +122,12 @@ public:
   {
     var_.set_name(name);
   }
+
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 };
 
 #endif // PLANE_RESULT_H

@@ -66,3 +66,10 @@ float CSGSphere::get_radius() const
 {
   return radius_;
 }
+
+ostream& CSGSphere::to_string(ostream &os) const
+{
+  return os << "CSGSphere, centred at (" << centre_[0] << ", " << centre_[1]
+            << ", " << centre_[2] << "), with a radius of " 
+            << radius_;
+}

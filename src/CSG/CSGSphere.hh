@@ -62,6 +62,11 @@ public:
    */ 
   float get_radius() const;
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 protected:
   float radius_;
 };

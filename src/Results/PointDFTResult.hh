@@ -93,6 +93,11 @@ public:
    */
   void deinit();
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 };
 
 #endif // POINT_DFT_RESULT_H

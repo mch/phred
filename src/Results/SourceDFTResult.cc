@@ -119,3 +119,12 @@ map<string, Variable *> &SourceDFTResult::get_result(const Grid &grid,
 
   return variables_;
 }
+
+ostream& SourceDFTResult::to_string(ostream &os) const
+{
+  os << "SourceDFTResult outputting " << num_freqs_ 
+     << ", starting at " << freq_start_ << " and ending at "
+     << freq_stop_;
+
+  return os;
+}

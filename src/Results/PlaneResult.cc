@@ -162,3 +162,12 @@ void PlaneResult::deinit()
 {
   MPI_Type_free(&datatype_);
 }
+
+ostream& PlaneResult::to_string(ostream &os) const
+{
+  //FieldComponent f = field_;
+  //Face face = face_;
+  os << "PlaneResult returning " << field_component_string(field_)
+     << " data on a face parallel to the " 
+     << face_string(face_);
+}

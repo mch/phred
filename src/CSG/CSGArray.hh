@@ -79,6 +79,11 @@ public:
    */ 
   void set_spacing(float x, float y, float z);
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual std::ostream& to_string(std::ostream &os) const;
+
 private:
   // Spacing between the elements in each direction
   float xspace_, yspace_, zspace_;

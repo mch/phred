@@ -168,3 +168,14 @@ map<string, Variable *> &PointDFTResult::get_result(const Grid &grid,
 
   return variables_;
 }
+
+ostream& PointDFTResult::to_string(ostream &os) const
+{
+  point sp = space_point_;
+  grid_point p = point_;
+
+  os << "PointDFTResult outputting " << num_freqs_ 
+     << ", starting at " << freq_start_ << " and ending at "
+     << freq_stop_ << "\nData is sampled at point " 
+     << sp << ", grid cell " << p;
+}

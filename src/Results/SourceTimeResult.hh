@@ -64,6 +64,11 @@ public:
   virtual map<string, Variable *> &get_result(const Grid &grid, 
                                               unsigned int time_step);
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 };
 
 #endif // SOURCE_TIME_RESULT_H

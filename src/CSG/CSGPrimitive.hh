@@ -54,6 +54,11 @@ public:
    */ 
   point get_centre();
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 protected:
   float centre_[3];
 };

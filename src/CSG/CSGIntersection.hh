@@ -45,6 +45,11 @@ public:
    */
   virtual CSGStatus is_point_inside(float x, float y, float z) const;
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 protected:
   
 };

@@ -114,6 +114,11 @@ enum Face {
 };
 
 /**
+ * Converts a Face value to a human readable string
+ */
+const char *face_string(const Face &f);
+
+/**
  * Field components. Electric and magnetic
  */
 enum FieldComponent {
@@ -126,6 +131,11 @@ enum FieldComponent {
   FC_E, /* E field intensity */
   FC_H /* H field intensity */ 
 };
+
+/**
+ * Converts a FieldComponent value to a human readable string
+ */
+const char *field_component_string(const FieldComponent &f);
 
 /**
  * Field types, E and H
@@ -229,8 +239,8 @@ public:
 };
 
 #include <ostream>
-std::ostream& operator<< (std::ostream& os, point &p);
-std::ostream& operator<< (std::ostream& os, grid_point &p);
+std::ostream& operator<< (std::ostream& os, const point &p);
+std::ostream& operator<< (std::ostream& os, const grid_point &p);
 
 #else
 typedef struct {

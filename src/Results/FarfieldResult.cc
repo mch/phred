@@ -1054,3 +1054,8 @@ void FarfieldResult::ffpu_moment_update(const Grid &grid)
   }
   return;
 }
+
+ostream& FarfieldResult::to_string(ostream &os) const
+{
+  os << "Jan's Farfield result. DOES NOT WORK PROPERLY (my fault, not Jan's).";
+}
