@@ -18,6 +18,13 @@ protected:
   int neighbour_;
   int rank_;
 
+  /**
+   * A helper function that sends arrays of data between two ranks. 
+   * @param ptr pointer to data to send
+   * @param dt MPI Derived data type describing the data
+   */
+  void send_recv(void *ptr, MPI_Datatype &t);
+
 public:
   SubdomainBc() 
   {}

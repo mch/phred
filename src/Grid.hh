@@ -78,17 +78,23 @@ class Grid {
   mat_coef_t *Dby_;
   mat_coef_t *Dbz_;
 
-  // Field data
-  field_t ***ex_;
-  field_t ***ey_;
-  field_t ***ez_;
-  field_t ***hx_;
-  field_t ***hy_;
-  field_t ***hz_;
+  /**
+   * Field data: one big vector, where a 3d coordinate is indexed
+   * using idx = z + (y + x*dimy) * dimz. This is done this way so
+   * that is is easy to use MPI derived data types to move data
+   * around. It should also allow for a increase in speed, since data
+   * access requires only one pointer dereference. 
+   */
+  field_t *ex_;
+  field_t *ey_;
+  field_t *ez_;
+  field_t *hx_;
+  field_t *hy_;
+  field_t *hz_;
 
   // The material for each point in the grid. This is an index into
   // the material arrays, Ca, Cbx, etc. 
-  unsigned int ***material_;
+  unsigned int *material_;
 
   // Derived MPI data types for sending data around. 
   MPI_Datatype xy_plane_;
@@ -108,6 +114,23 @@ class Grid {
    * equations cannot be run in define mode. 
    */
   bool define_;
+
+  /**
+   * Point Index: Calculate the index in the arrays of a 3d
+   * coordinate. ALWAYS USE THIS FUNCTION, in case I change the way
+   * things are organized for some reason. It's inline, so it should
+   * compile out.
+   *
+   * @param x
+   * @param y
+   * @param z
+   * @param an index into the field component and material arrays. 
+   */
+  inline unsigned int pi(unsigned int x, unsigned int y, 
+                         unsigned int z)
+  {
+    return z + (y + x*info_.dimy_) * info_.dimz_;
+  }
 
   /**
    * Compute the update equatations for the Ex field component. 
@@ -432,7 +455,7 @@ class Grid {
                      unsigned int z, field_t val)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    ex_[x][y][z] = val;
+    ex_[pi(x, y, z)] = val;
   }
 
   /**
@@ -446,7 +469,7 @@ class Grid {
                      unsigned int z, field_t val)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    ey_[x][y][z] = val;
+    ey_[pi(x, y, z)] = val;
   }
 
 
@@ -461,7 +484,7 @@ class Grid {
                      unsigned int z, field_t val)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    ez_[x][y][z] = val;
+    ez_[pi(x, y, z)] = val;
   }
 
 
@@ -476,7 +499,7 @@ class Grid {
                      unsigned int z, field_t val)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    hx_[x][y][z] = val;
+    hx_[pi(x, y, z)] = val;
   }
 
   /**
@@ -490,7 +513,7 @@ class Grid {
                      unsigned int z, field_t val)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    hy_[x][y][z] = val;
+    hy_[pi(x, y, z)] = val;
   }
 
   /**
@@ -504,7 +527,7 @@ class Grid {
                      unsigned int z, field_t val)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    hz_[x][y][z] = val;
+    hz_[pi(x, y, z)] = val;
   }
 
 
@@ -519,7 +542,7 @@ class Grid {
                         unsigned int z)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    return ex_[x][y][z];
+    return ex_[pi(x, y, z)];
   }
 
   /**
@@ -533,7 +556,7 @@ class Grid {
                         unsigned int z)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    return ey_[x][y][z];
+    return ey_[pi(x, y, z)];
   }
 
 
@@ -548,7 +571,7 @@ class Grid {
                         unsigned int z)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    return ez_[x][y][z];
+    return ez_[pi(x, y, z)];
   }
 
 
@@ -563,7 +586,7 @@ class Grid {
                         unsigned int z)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    return hx_[x][y][z];
+    return hx_[pi(x, y, z)];
   }
 
   /**
@@ -577,7 +600,7 @@ class Grid {
                         unsigned int z)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    return hy_[x][y][z];
+    return hy_[pi(x, y, z)];
   }
 
   /**
@@ -591,7 +614,7 @@ class Grid {
                         unsigned int z)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
-    return hz_[x][y][z];
+    return hz_[pi(x, y, z)];
   }
 
   /**
@@ -647,6 +670,19 @@ class Grid {
   {
     return z_vector_;
   }
+
+  /**
+   * Return a pointer to the start of a face. DANGER!! Clients must
+   * take care when using this pointer! 
+   *
+   * This is intended to be used by SubdomainBc for sending and
+   * recieving data between ranks where the grids overlap. 
+   *
+   * @param face The face of interest
+   * @param comp The component of interest
+   * @return a pointer to the field component at the specified face
+   */
+  field_t *get_face_start(Face face, FieldComponent comp);
 
 };
 

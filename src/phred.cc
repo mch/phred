@@ -274,7 +274,7 @@ main (int argc, char **argv)
   grid.set_define_mode(false);
   
   // Main loop
-  unsigned int num_time_steps = 100;
+  unsigned int num_time_steps = 7;
   unsigned int ts = 0;
 
   //ex.excite(grid, ts, BOTH);

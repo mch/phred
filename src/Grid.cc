@@ -112,25 +112,6 @@ void Grid::free_grid()
   // Slightly dangerous, but if one is allocated then all should 
   // be allocated. 
   if (ex_ || ey_ || ez_ || hx_ || hy_ || hz_) {
-    for (unsigned int i = 0; i < get_ldx(); i++) {
-      for (unsigned int j = 0; j < get_ldy(); j++) {
-	delete[] ex_[i][j];
-	delete[] ey_[i][j];
-	delete[] ez_[i][j];
-
-	delete[] hx_[i][j];
-	delete[] hy_[i][j];
-	delete[] hz_[i][j];
-      }
-      delete[] ex_[i];
-      delete[] ey_[i];
-      delete[] ez_[i];
-      
-      delete[] hx_[i];
-      delete[] hy_[i];
-      delete[] hz_[i];
-    }
-
     delete[] ex_;
     delete[] ey_;
     delete[] ez_;
@@ -197,51 +178,21 @@ void Grid::alloc_grid()
     return;
   }
 
-  ex_ = new field_t **[get_ldx()];
-  ey_ = new field_t **[get_ldx()];
-  ez_ = new field_t **[get_ldx()];
+  unsigned int sz = 0;
 
-  hx_ = new field_t **[get_ldx()];
-  hy_ = new field_t **[get_ldx()];
-  hz_ = new field_t **[get_ldx()];
+  sz = get_ldx() * get_ldy() * get_ldz();
 
-  material_ = new unsigned int **[get_ldx()];
-
-  for (unsigned int i = 0; i < get_ldx(); i++) {
-    ex_[i] = new field_t *[get_ldy()];
-    ey_[i] = new field_t *[get_ldy()];
-    ez_[i] = new field_t *[get_ldy()];
-
-    hx_[i] = new field_t *[get_ldy()];
-    hy_[i] = new field_t *[get_ldy()];
-    hz_[i] = new field_t *[get_ldy()];
-
-    material_[i] = new unsigned int *[get_ldy()];
-
-    for (unsigned int j = 0; j < get_ldy(); j++) {
-      ex_[i][j] = new field_t[get_ldz()];
-      ey_[i][j] = new field_t[get_ldz()];
-      ez_[i][j] = new field_t[get_ldz()];
-
-      hx_[i][j] = new field_t[get_ldz()];
-      hy_[i][j] = new field_t[get_ldz()];
-      hz_[i][j] = new field_t[get_ldz()];
-
-      material_[i][j] = new unsigned int[get_ldz()];
-
-      for (unsigned int k = 0; k < get_ldz(); k++)
-      {
-        ex_[i][j][k] = 0;
-        ey_[i][j][k] = 0;
-        ez_[i][j][k] = 0;
-
-        hx_[i][j][k] = 0;
-        hy_[i][j][k] = 0;
-        hz_[i][j][k] = 0;
-
-        material_[i][j][k] = 0; // PEC
-      }
-    }
+  if (sz > 0) 
+  {
+    ex_ = new field_t[sz];
+    ey_ = new field_t[sz];
+    ez_ = new field_t[sz];
+    
+    hx_ = new field_t[sz];
+    hy_ = new field_t[sz];
+    hz_ = new field_t[sz];
+    
+    material_ = new unsigned int[sz];
   }
 }
 
@@ -390,7 +341,7 @@ void Grid::define_box(unsigned int x_start, unsigned int x_stop,
     {
       for (unsigned int k = r.zmin; k < r.zmax; k++)
       {
-        material_[i][j][k] = mat_index;
+        material_[pi(i, j, k)] = mat_index;
       }
     }
   }
@@ -417,17 +368,24 @@ void Grid::update_fields()
 // Straight out of Taflove.
 void Grid::update_ex() 
 {
-  unsigned int mid, i, j, k;
+  unsigned int mid, idx, idx2, i, j, k;
   
   // Inner part
   for (i = 0; i < get_ldx(); i++) {
     for (j = 1; j < get_ldy(); j++) {
-      for (k = 1; k < get_ldz(); k++) {
-        mid = material_[i][j][k];
 
-        ex_[i][j][k] = Ca_[mid] * ex_[i][j][k]
-          + Cby_[mid] * (hz_[i][j][k] - hz_[i][j-1][k])
-          + Cbz_[mid] * (hy_[i][j][k-1] - hy_[i][j][k]);
+      idx = pi(i, j, 1);
+      idx2 = pi(i, j-1, 1);
+
+      for (k = 1; k < get_ldz(); k++) {
+        mid = material_[idx];
+
+        ex_[idx] = Ca_[mid] * ex_[idx]
+          + Cby_[mid] * (hz_[idx] - hz_[idx2])
+          + Cbz_[mid] * (hy_[idx-1] - hy_[idx]);
+        
+        idx++;
+        idx2++;
       }
     }
   }
@@ -436,36 +394,64 @@ void Grid::update_ex()
 // Straight out of Taflove.
 void Grid::update_ey() 
 {
-  unsigned int mid, i, j, k;
-  
+  unsigned int mid, i, j, k, idx;
+  field_t *ey, *hx, *hz1, *hz2;
+
   // Inner part
   for (i = 1; i < get_ldx(); i++) {
     for (j = 0; j < get_ldy(); j++) {
-      for (k = 1; k < get_ldz(); k++) {
-        mid = material_[i][j][k];
 
-        ey_[i][j][k] = Ca_[mid] * ey_[i][j][k]
-          + Cbz_[mid] * (hx_[i][j][k] - hx_[i][j][k-1])
-          + Cbx_[mid] * (hz_[i-1][j][k] - hz_[i][j][k]);
+      idx = pi(i, j, 1);
+      ey = &(ey_[idx]);
+      hx = &(hx_[idx]);
+      hz1 = &(hz_[pi(i-1, j, 1)]);
+      hz2 = &(hz_[idx]);
+
+      for (k = 1; k < get_ldz(); k++) {
+        mid = material_[idx];
+
+        *ey = Ca_[mid] * *ey
+          + Cbz_[mid] * (*hx - *(hx-1))
+          + Cbx_[mid] * (*hz1 - *hz2);
+
+        ey++;
+        hx++;
+        hz1++;
+        hz2++;
+        idx++;
       }
     }
   }
+
 }
 
 // Straight out of Taflove.
 void Grid::update_ez() 
 {
-  unsigned int mid, i, j, k;
+  unsigned int mid, i, j, k, idx;
+  field_t *ez, *hy1, *hy2, *hx1, *hx2;
   
   // Inner part
   for (i = 1; i < get_ldx(); i++) {
     for (j = 1; j < get_ldy(); j++) {
-      for (k = 0; k < get_ldz(); k++) {
-        mid = material_[i][j][k];
 
-        ez_[i][j][k] = Ca_[mid] * ez_[i][j][k]
-          + Cbx_[mid] * (hy_[i][j][k] - hy_[i-1][j][k])
-          + Cby_[mid] * (hx_[i][j-1][k] - hx_[i][j][k]);
+      idx = pi(i, j, 0);
+      ez = &(ez_[idx]);
+      hy1 = &(hy_[idx]);
+      hy2 = &(hy_[pi(i-1, j, 0)]);
+      hx1 = &(hx_[pi(i, j-1, 0)]);
+      hx2 = &(hx_[idx]);
+
+      for (k = 0; k < get_ldz(); k++) {
+        mid = material_[pi(i, j, k)];
+
+        *ez = Ca_[mid] * *ez
+          + Cbx_[mid] * (*hy1 - *hy2)
+          + Cby_[mid] * (*hx1 - *hx2);
+
+        ez++;
+        hy1++; hy2++; hx1++; hx2++;
+        idx++;
       }
     }
   }
@@ -474,16 +460,27 @@ void Grid::update_ez()
 // Straight out of Taflove.
 void Grid::update_hx()
 {
-  unsigned int mid, i, j, k;
+  unsigned int mid, i, j, k, idx;
+  float_t *hx, *ez1, *ez2, *ey;
 
   for (i = 0; i < get_ldx(); i++) {
     for (j = 0; j < get_ldy() - 1; j++) {
-      for (k = 0; k < get_ldz() - 1; k++) {
-        mid = material_[i][j][k];
 
-        hx_[i][j][k] = Da_[mid] * hx_[i][j][k]
-          + Dby_[mid] * (ez_[i][j][k] - ez_[i][j+1][k])
-          + Dbz_[mid] * (ey_[i][j][k+1] - ey_[i][j][k]);        
+      idx = pi(i, j, 0);
+      hx = &(hx_[idx]);
+      ez1 = &(ez_[idx]);
+      ez2 = &(ez_[pi(i, j+1, 0)]);
+      ey = &(ey_[idx]);
+
+      for (k = 0; k < get_ldz() - 1; k++) {
+        mid = material_[idx];
+
+        *hx = Da_[mid] * *hx
+          + Dby_[mid] * (*ez1 - *ez2)
+          + Dbz_[mid] * (*(ey+1) - *ey);
+
+        hx++; idx++;
+        ez1++; ez2++; ey++;
       }
     }
   }
@@ -492,16 +489,27 @@ void Grid::update_hx()
 // Straight out of Taflove.
 void Grid::update_hy()
 {
-  unsigned int mid, i, j, k;
+  unsigned int mid, i, j, k, idx;
+  float_t *hy, *ex, *ez1, *ez2;
 
   for (i = 0; i < get_ldx() - 1; i++) {
     for (j = 0; j < get_ldy(); j++) {
-      for (k = 0; k < get_ldz() - 1; k++) {
-        mid = material_[i][j][k];
 
-        hy_[i][j][k] = Da_[mid] * hy_[i][j][k]
-          + Dbz_[mid] * (ex_[i][j][k] - ex_[i][j][k+1])
-          + Dbx_[mid] * (ez_[i+1][j][k] - ez_[i][j][k]);        
+      idx = pi(i, j, 0);
+      hy = &(hy_[idx]);
+      ex = &(ex_[idx]);
+      ez1 = &(ez_[pi(i+1, j, 0)]);
+      ez2 = &(ez_[idx]);
+
+      for (k = 0; k < get_ldz() - 1; k++) {
+        mid = material_[idx];
+
+        *hy = Da_[mid] * *hy
+          + Dbz_[mid] * (*ex - *(ex + 1))
+          + Dbx_[mid] * (*ez1 - *ez2);        
+        
+        hy++; idx++;
+        ex++; ez1++; ez2++;
       }
     }
   }
@@ -510,16 +518,29 @@ void Grid::update_hy()
 // Straight out of Taflove.
 void Grid::update_hz()
 {
-  unsigned int mid, i, j, k;
+  unsigned int mid, i, j, k, idx;
+  float_t *hz, *ey1, *ey2, *ex1, *ex2;
 
   for (i = 0; i < get_ldx() - 1; i++) {
     for (j = 0; j < get_ldy() - 1; j++) {
-      for (k = 0; k < get_ldz(); k++) {
-        mid = material_[i][j][k];
 
-        hz_[i][j][k] = Da_[mid] * hz_[i][j][k]
-          + Dbx_[mid] * (ey_[i][j][k] - ey_[i+1][j][k])
-          + Dby_[mid] * (ex_[i][j+1][k] - ex_[i][j][k]);        
+      idx = pi(i, j, 0);
+      hz = &(hz_[idx]);
+      ey1 = &(ey_[idx]);
+      ey2 = &(ey_[pi(i+1, j, 0)]);
+      ex1 = &(ex_[pi(i, j+1, 0)]);
+      ex2 = &(ex_[idx]);
+
+      for (k = 0; k < get_ldz(); k++) {
+        mid = material_[idx];
+
+        *hz = Da_[mid] * *hz
+          + Dbx_[mid] * (*ey1 - *ey2)
+          + Dby_[mid] * (*ex1 - *ex2);
+
+        hz++; idx++;
+        ey1++; ey2++;
+        ex1++; ex2++;
       }
     }
   }
@@ -576,3 +597,49 @@ region_t Grid::global_to_local(unsigned int x_start, unsigned int x_stop,
   return global_to_local(result);
 }
 
+field_t *Grid::get_face_start(Face face, FieldComponent comp)
+{
+  unsigned int idx = 0;
+  field_t *ptr = 0;
+  
+  switch (face)
+  {
+  case FRONT: // x=dimx...
+    idx = pi(get_ldx() - 1, 0, 0);
+    break;
+  case TOP: // z=dimz
+    idx = pi(0, 0, get_ldz() - 1);
+  case RIGHT: // y=dimy
+    idx = pi(0, get_ldy() - 1, 0);
+    break;
+  case BACK: // x=0
+  case BOTTOM: // z=0
+  case LEFT: // y=0
+    idx = 0;
+    break;
+  }
+
+  switch(comp)
+  {
+  case EX:
+    ptr = &ex_[idx];
+    break;
+  case EY:
+    ptr = &ey_[idx];
+    break;
+  case EZ:
+    ptr = &ez_[idx];
+    break;
+  case HX:
+    ptr = &hx_[idx];
+    break;
+  case HY:
+    ptr = &hy_[idx];
+    break;
+  case HZ:
+    ptr = &hz_[idx];
+    break;
+  }
+
+  return ptr;
+}

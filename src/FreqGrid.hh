@@ -17,9 +17,9 @@ protected:
   // Running sums of field data, for dispersive or conductive material
   // Most materials of interest are non-magnetic, so we won't bother
   // with the H components for now.
-  field_t ***ex_sum_;
-  field_t ***ey_sum_;
-  field_t ***ez_sum_;
+  field_t *ex_sum_;
+  field_t *ey_sum_;
+  field_t *ez_sum_;
 
   /** 
    * Allocate memory for the grid. Called by setup_grid(). Calls

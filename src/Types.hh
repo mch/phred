@@ -74,18 +74,18 @@ typedef float mat_coef_t;
 /**
  * The type used for material properties
  */
-typedef double mat_prop_t;
+typedef float mat_prop_t;
 
 /**
  * The type used for grid field components, THE MPI DATATYPE MUST MATCH!
  */
-typedef double field_t;
-#define GRID_MPI_TYPE MPI_DOUBLE
+typedef float field_t;
+#define GRID_MPI_TYPE MPI_FLOAT
 
 /**
  * The type used for grid spacings
  */
-typedef double delta_t;
+typedef float delta_t;
 
 /** \struct region
  * \brief min and max coordinates that can be used to define a
