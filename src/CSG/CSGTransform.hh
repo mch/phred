@@ -26,16 +26,16 @@
 
 /**
  * This class transforms a child object by rotation, translation,
- * and scaling.
+ * and scaling. x_t = A * x_0 + t
+ *
+ * \bug Scaling is not implemented
+ * \bug rotation about an arbitrary point is not implemented. 
  */ 
 class CSGTransform : public CSGObject {
 public:
   CSGTransform(shared_ptr<CGSObject> child);
-  CSGTransform(const CSGTransform &rhs);
   ~CSGTransform();
   
-  const CSGTransform &operator= (const CSGTransform &rhs);
-
   /**
    * Tell us if a point is inside or outside the solid.
    *
@@ -49,20 +49,54 @@ public:
   /**
    * Create a copy of this object. 
    */ 
-  virtual shared_ptr<CSGObject> copy() const
-  {
-    return shared_ptr<CSGObject> (new CSGTransform(*this));
-  }
-  
+  virtual shared_ptr<CSGObject> copy() const;
+
+  /**
+   * Set up rotation
+   *
+   * @param The point to rotate about
+   * @param The axis to rotate around
+   * @param The angle to rotate
+   */ 
+  void set_rotation(point p, point vector, float angle);
+
+  /**
+   * Set up scaling
+   */ 
+  void set_scaling(float sx, float sy, float sz);
+
+  /**
+   * Set up translation
+   */ 
+  void set_translation(float tx, float ty, float tz);
+
 protected:
   // The child being transformed
   shared_ptr<CSGObject> child_; 
 
   // Translation
-
-  // Rotation about a point
+  float tx_, ty_, tz_;
+  
+  // Rotation about a point using quaternions
+  point vector_;
+  float angle_;
+  point rotation_point_;
 
   // Scaling about a point
+  float sx_, sy_, sz_;
+
+  // Precalculated transformation matrix for scaling and rotation
+  float A[3][3];
+
+  // Precalculated inverse transformation 
+  float Ainv[3][3];
+
+  /**
+   * Calculate a rotation matrix. A must be a 3x3 array. 
+   */ 
+  void calc_rotation_matrix(const point &p, const point &v, 
+                            const float &angle, 
+                            float **A) const;
 };
 
 #endif // CSG_TRANSFORM_H
