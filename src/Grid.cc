@@ -124,15 +124,15 @@ void Grid::alloc_grid()
     material_[i] = new unsigned int *[dimy_];
 
     for (unsigned int j = 0; j < dimy_; j++) {
-      ex_[i][j] = new field_t(dimz_);
-      ey_[i][j] = new field_t(dimz_);
-      ez_[i][j] = new field_t(dimz_);
+      ex_[i][j] = new field_t[dimz_];
+      ey_[i][j] = new field_t[dimz_];
+      ez_[i][j] = new field_t[dimz_];
 
-      hx_[i][j] = new field_t(dimz_);
-      hy_[i][j] = new field_t(dimz_);
-      hz_[i][j] = new field_t(dimz_);
+      hx_[i][j] = new field_t[dimz_];
+      hy_[i][j] = new field_t[dimz_];
+      hz_[i][j] = new field_t[dimz_];
 
-      material_[i][j] = new unsigned int(dimz_);
+      material_[i][j] = new unsigned int[dimz_];
 
       for (unsigned int k = 0; k < dimz_; k++)
       {
@@ -246,7 +246,8 @@ void Grid::load_materials(MaterialLib &matlib)
       Dbz_[index] = (deltat_ / (mu * deltaz_)) / 
                     (1 + (sigs * deltat_ * 0.5)/mu);
     }
-    
+
+    ++iter;
   }
 }
 

@@ -23,9 +23,9 @@ void FreqGrid::alloc_grid()
     ez_sum_[i] = new field_t *[dimy_];
 
     for (unsigned int j = 0; j < dimy_; j++) {  
-      ex_sum_[i][j] = new field_t(dimz_);
-      ey_sum_[i][j] = new field_t(dimz_);
-      ez_sum_[i][j] = new field_t(dimz_);
+      ex_sum_[i][j] = new field_t[dimz_];
+      ey_sum_[i][j] = new field_t[dimz_];
+      ez_sum_[i][j] = new field_t[dimz_];
 
     }
   }
