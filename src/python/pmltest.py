@@ -14,7 +14,7 @@ zlen = 10
 # Prefix for output files
 output_prefix = "bpml_"
 
-num_time_steps = 500
+num_time_steps = 10
 
 fdtd = FDTD()
 fdtd.set_grid_size(xlen, ylen, zlen)
@@ -75,62 +75,69 @@ mdw.set_filename(output_prefix + "point_data_" + str(MPI_SIZE) + ".mat")
 
 fdtd.add_datawriter("mdw", mdw)
 
-ncdw = NetCDFDataWriter(MPI_RANK, MPI_SIZE)
-ncdw.set_filename(output_prefix + "plane_data_" + str(MPI_SIZE) + ".nc")
-fdtd.add_datawriter("ncdw", ncdw)
-
 # Results!
 p = point();
 p.x = xlen / 2
 p.y = ylen / 2
 p.z = zlen / 2
 
-pr = PlaneResult()
-pr.set_plane(p, TOP)
-pr.set_field(EY)
-fdtd.add_result("xey", pr)
-fdtd.map_result_to_datawriter("xey", "ncdw")
+try:
+    ncdw = NetCDFDataWriter(MPI_RANK, MPI_SIZE)
+    ncdw.set_filename(output_prefix + "plane_data_" + str(MPI_SIZE) + ".nc")
+    fdtd.add_datawriter("ncdw", ncdw)
 
-pr1 = PlaneResult()
-pr1.set_plane(p, FRONT)
-pr1.set_field(EX)
-fdtd.add_result("ex", pr1)
-fdtd.map_result_to_datawriter("ex", "ncdw")
-
-pr2 = PlaneResult()
-pr2.set_plane(p, FRONT)
-pr2.set_field(EY)
-fdtd.add_result("ey", pr2)
-fdtd.map_result_to_datawriter("ey", "ncdw")
-
-pr3 = PlaneResult()
-pr3.set_plane(p, FRONT)
-pr3.set_field(EZ)
-fdtd.add_result("ez", pr3)
-fdtd.map_result_to_datawriter("ez", "ncdw")
-
-pr1h = PlaneResult()
-pr1h.set_plane(p, FRONT)
-pr1h.set_field(HX)
-fdtd.add_result("hx", pr1h)
-fdtd.map_result_to_datawriter("hx", "ncdw")
-
-pr2h = PlaneResult()
-pr2h.set_plane(p, FRONT)
-pr2h.set_field(HY)
-fdtd.add_result("hy", pr2h)
-fdtd.map_result_to_datawriter("hy", "ncdw")
-
-pr3h = PlaneResult()
-pr3h.set_plane(p, FRONT)
-pr3h.set_field(HZ)
-fdtd.add_result("hz", pr3h)
-fdtd.map_result_to_datawriter("hz", "ncdw")
+    pr = PlaneResult()
+    pr.set_plane(p, TOP)
+    pr.set_field(EY)
+    fdtd.add_result("xey", pr)
+    fdtd.map_result_to_datawriter("xey", "ncdw")
+    
+    pr1 = PlaneResult()
+    pr1.set_plane(p, FRONT)
+    pr1.set_field(EX)
+    fdtd.add_result("ex", pr1)
+    fdtd.map_result_to_datawriter("ex", "ncdw")
+    
+    pr2 = PlaneResult()
+    pr2.set_plane(p, FRONT)
+    pr2.set_field(EY)
+    fdtd.add_result("ey", pr2)
+    fdtd.map_result_to_datawriter("ey", "ncdw")
+    
+    pr3 = PlaneResult()
+    pr3.set_plane(p, FRONT)
+    pr3.set_field(EZ)
+    fdtd.add_result("ez", pr3)
+    fdtd.map_result_to_datawriter("ez", "ncdw")
+    
+    pr1h = PlaneResult()
+    pr1h.set_plane(p, FRONT)
+    pr1h.set_field(HX)
+    fdtd.add_result("hx", pr1h)
+    fdtd.map_result_to_datawriter("hx", "ncdw")
+    
+    pr2h = PlaneResult()
+    pr2h.set_plane(p, FRONT)
+    pr2h.set_field(HY)
+    fdtd.add_result("hy", pr2h)
+    fdtd.map_result_to_datawriter("hy", "ncdw")
+    
+    pr3h = PlaneResult()
+    pr3h.set_plane(p, FRONT)
+    pr3h.set_field(HZ)
+    fdtd.add_result("hz", pr3h)
+    fdtd.map_result_to_datawriter("hz", "ncdw")
+except:
+    pass
 
 pntr = PointResult()
 pntr.set_point(p);
 fdtd.add_result("pnt", pntr)
 fdtd.map_result_to_datawriter("pnt", "mdw")
+
+srcoutput = SourceTimeResult(gm)
+fdtd.add_result("src", srcoutput)
+fdtd.map_result_to_datawriter("src", "mdw")
 
 print "p: (%i, %i, %i)" % (p.x, p.y, p.z)
 
