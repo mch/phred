@@ -175,7 +175,7 @@ protected:
       return;
     }
    
-    if (num_pts_ > 0)
+    if (num_pts_ > 1)
       space_ = (end_ - start_) / (num_pts_ - 1);
     else 
       space_ = 0;

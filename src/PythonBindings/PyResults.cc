@@ -128,6 +128,9 @@ void export_results()
          "Set the radius of the sphere where observations are being done.")
     .def("get_radius", &FarfieldResult2::get_radius,
          "Get the radius of the sphere where observations are being done.")
+    .def("set_region", &FarfieldResult2::set_region, 
+         "Set the CSGBox which defines the surface over which "
+         "currents should be calculated.")
     ;
 
 //   class_<FarfieldResult, bases<Result> >("FarfieldResult")

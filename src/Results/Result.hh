@@ -457,9 +457,31 @@ public:
    * Returns the map of variables. They are not expected to have any
    * output available at this point.
    */
-  inline const map<string, Variable *> &get_variables() const
+  inline const map<string, Variable *> get_variables() const
   {
-    return variables_;
+    map<string, Variable *> all;
+
+    map<string, Variable *>::const_iterator iter, iter_e;
+
+    iter = variables_.begin();
+    iter_e = variables_.end();
+    
+    for (; iter != iter_e; ++iter)
+      all[(*iter).first] = (*iter).second;
+
+    iter = pre_vars_.begin();
+    iter_e = pre_vars_.end();
+    
+    for (; iter != iter_e; ++iter)
+      all[(*iter).first] = (*iter).second;
+
+    iter = post_vars_.begin();
+    iter_e = post_vars_.end();
+    
+    for (; iter != iter_e; ++iter)
+      all[(*iter).first] = (*iter).second;
+
+    return all;
   }
 
   /**

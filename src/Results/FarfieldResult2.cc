@@ -440,15 +440,15 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
       index = f_idx * (*region_).ylen() * (*region_).zlen();
 
       // Jt1 == Jy, Jt2 == Jz. Jx == 0
-      for (unsigned int idx = cells.xmin; idx < cells.xmax; idx++)
+      for (int idx = cells.xmin; idx < cells.xmax; idx++)
       {
-        for (unsigned int jdx = cells.ymin; jdx < cells.ymax; jdx++)
+        for (int jdx = cells.ymin; jdx < cells.ymax; jdx++)
         {
-          for (unsigned int kdx = cells.zmin; kdx < cells.zmax; kdx++, index++)
+          for (int kdx = cells.zmin; kdx < cells.zmax; kdx++, index++)
           {
-            field_t xt = (idx - grid_centre.x) * dx;
-            field_t yt = (jdx - grid_centre.y) * dy;
-            field_t zt = (kdx - grid_centre.z) * dz;
+            field_t xt = (idx - static_cast<int>(grid_centre.x)) * dx;
+            field_t yt = (jdx - static_cast<int>(grid_centre.y)) * dy;
+            field_t zt = (kdx - static_cast<int>(grid_centre.z)) * dz;
 
             // Distance to source point
             field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
@@ -497,15 +497,15 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
       index = f_idx * (*region_).xlen() * (*region_).zlen();
 
       // Jt1 == Jz, Jt2 == Jx. Jy == 0
-      for (unsigned int idx = cells.xmin; idx < cells.xmax; idx++)
+      for (int idx = cells.xmin; idx < cells.xmax; idx++)
       {
-        for (unsigned int jdx = cells.ymin; jdx < cells.ymax; jdx++)
+        for (int jdx = cells.ymin; jdx < cells.ymax; jdx++)
         {
-          for (unsigned int kdx = cells.zmin; kdx < cells.zmax; kdx++, index++)
+          for (int kdx = cells.zmin; kdx < cells.zmax; kdx++, index++)
           {
-            field_t xt = (idx - grid_centre.x) * dx;
-            field_t yt = (jdx - grid_centre.y) * dy;
-            field_t zt = (kdx - grid_centre.z) * dz;
+            field_t xt = (idx - static_cast<int>(grid_centre.x)) * dx;
+            field_t yt = (jdx - static_cast<int>(grid_centre.y)) * dy;
+            field_t zt = (kdx - static_cast<int>(grid_centre.z)) * dz;
 
             // Distance to source point
             field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
@@ -554,15 +554,15 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
       index = f_idx * (*region_).ylen() * (*region_).xlen();
 
       // Jt1 == Jx, Jt2 == Jy. Jz == 0
-      for (unsigned int idx = cells.xmin; idx < cells.xmax; idx++)
+      for (int idx = cells.xmin; idx < cells.xmax; idx++)
       {
-        for (unsigned int jdx = cells.ymin; jdx < cells.ymax; jdx++)
+        for (int jdx = cells.ymin; jdx < cells.ymax; jdx++)
         {
-          for (unsigned int kdx = cells.zmin; kdx < cells.zmax; kdx++, index++)
+          for (int kdx = cells.zmin; kdx < cells.zmax; kdx++, index++)
           {
-            field_t xt = (idx - grid_centre.x) * dx;
-            field_t yt = (jdx - grid_centre.y) * dy;
-            field_t zt = (kdx - grid_centre.z) * dz;
+            field_t xt = (idx - static_cast<int>(grid_centre.x)) * dx;
+            field_t yt = (jdx - static_cast<int>(grid_centre.y)) * dy;
+            field_t zt = (kdx - static_cast<int>(grid_centre.z)) * dz;
 
             // Distance to source point
             field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
