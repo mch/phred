@@ -957,3 +957,52 @@ AC_DEFUN([AC_C_RESTRICT],
    *)  AC_DEFINE_UNQUOTED(restrict, $ac_cv_c_restrict) ;;
  esac
 ])# AC_C_RESTRICT
+
+dnl -------------------------------------------------------------------------
+dnl @synopsis AC_CXX_OPENMP([optional-string "required"])
+dnl
+dnl Check whether OpenMP is supported for this compiler.
+dnl
+dnl Parameter is a set of command line switches to use to compile 
+dnl the test code. 
+dnl
+AC_DEFUN([AC_CXX_OPENMP],[
+
+WANT_OPENMP=0
+AC_ARG_ENABLE(openmp, AC_HELP_STRING([--enable-openmp], [Use OpenMP directives for SMP shared memory parallism]), [WANT_OPENMP=1])
+
+if test "x$WANT_OPENMP" == "x1" ; then
+
+        saveCPPFLAGS=$CPPFLAGS
+        saveLDFLAGS=$LDFLAGS
+        saveLIBS=$LIBS
+
+
+        AC_MSG_CHECKING([for OpenMP support])
+        CXXFLAGSTEMP="$CXXFLAGS"
+        AC_LANG_PUSH(C++)
+        CXXFLAGS="$CXXFLAGS $1"
+
+        AC_COMPILE_IFELSE([
+void test() {
+int i = 0, j = 0;
+#pragma omp parallel
+#pragma omp for reduction(+:j)
+for (i = 0; i < 100; i++)
+  j += i;
+}], [
+        AC_MSG_RESULT([yes])
+
+	CFLAGS="$CFLAGS $1"
+
+        USE_OPENMP="1"
+        AC_DEFINE([USE_OPENMP], [1], [Using OpenMP])
+    ], [
+	AC_MSG_RESULT([no])
+        CXXFLAGS="$CXXFLAGSTEMP"
+    ])
+        AC_LANG_POP(C++)
+
+fi
+
+])

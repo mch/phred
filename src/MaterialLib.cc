@@ -31,8 +31,9 @@ MaterialLib::MaterialLib()
 {
   Material temp, temp2;
   temp.set_epsilon(0);
-  temp.set_sigma(1.0 / 0.0);
+  temp.set_sigma(0.0);
   temp.set_mu(0);
+  temp.pec_ = true;
   add_material("PEC", temp);
 
   temp2.set_epsilon(1);

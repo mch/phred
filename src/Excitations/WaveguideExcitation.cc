@@ -32,7 +32,6 @@ WaveguideExcitation::~WaveguideExcitation()
 
 field_t WaveguideExcitation::window(float x, float y, float z)
 {
-  unsigned int dx, dy, dz;
   field_t ret = 1.0;
 
   if (box_.get())

@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -40,6 +40,7 @@ using namespace std;
 class Material 
 {
 private:
+  friend class MaterialLib;
   MaterialType type_;
   unsigned int material_id_; /**< id used to reference constants in
                                 the grid. */
@@ -53,7 +54,8 @@ private:
    * Conductivity
    */
   mat_prop_t sigma_;
-  
+  bool pec_;
+
   mat_prop_t mu_; /**< Magentic permeability */
   mat_prop_t sigma_star_; /**< Magnetic loss */
 
@@ -217,6 +219,12 @@ private:
    * Get the plasma frequency
    */
   mat_prop_t get_plasma_freq() const;
+
+  /**
+   * Determine if this material is PEC
+   */ 
+  inline bool is_pec() const
+  { return pec_; }
 
 };
 

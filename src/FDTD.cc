@@ -67,15 +67,15 @@ void FDTD::set_grid_size(float x, float y, float z)
 
   if (global_ginfo_.deltax_ > 0)
     global_ginfo_.global_dimx_ = global_ginfo_.dimx_ = 
-      static_cast<unsigned int>(ceil(x / global_ginfo_.deltax_));
+      static_cast<unsigned int>(floor(x / global_ginfo_.deltax_));
 
   if (global_ginfo_.deltay_ > 0)
     global_ginfo_.global_dimy_ = global_ginfo_.dimy_ = 
-      static_cast<unsigned int>(ceil(y / global_ginfo_.deltay_));
+      static_cast<unsigned int>(floor(y / global_ginfo_.deltay_));
 
   if (global_ginfo_.deltaz_ > 0)
     global_ginfo_.global_dimz_ = global_ginfo_.dimz_ = 
-      static_cast<unsigned int>(ceil(z / global_ginfo_.deltaz_));
+      static_cast<unsigned int>(floor(z / global_ginfo_.deltaz_));
 }
 
 void FDTD::set_grid_centre(float x, float y, float z)
@@ -380,7 +380,7 @@ void FDTD::run()
   MPI_Barrier(MPI_COMM_WORLD);
 
   if (!quiet)
-    cout << "Starting FDTD time stepping." << endl;
+    cout << "\nStarting FDTD time stepping." << endl;
 
   // Run
   unsigned int ts = 0;

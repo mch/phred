@@ -95,7 +95,6 @@
 using namespace std; // Too lazy to type namespaces all the time. 
 
 #include "config.h"
-#include "JanFDTD.hh"
 
 #ifdef USE_PY_BINDINGS
 #include <Python.h>
@@ -217,10 +216,11 @@ decode_switches (int argc, char **argv)
   }
 
   poptFreeContext(ctx);
-
+#else
+  mnps = true;
+  test_run = true;
 #endif
 
-  
   return 0;
 }
 
@@ -278,7 +278,6 @@ string get_extension(string filename)
 int main (int argc, char **argv)
 {
   time_t start, now;
-  double time_total = 0.0;
   clock_t start_cpu, now_cpu;
   double time_total_cpu = 0.0;
   
@@ -288,9 +287,8 @@ int main (int argc, char **argv)
   start=time(NULL);
   start_cpu = clock();
 
-  int i, len;
   string prog_name;
-  char *temp;
+
   interactive = false;
   estimate_memory = false;
   mnps = false;
@@ -305,12 +303,11 @@ int main (int argc, char **argv)
   //if (MPI_RANK == 0)
   {
     prog_name = argv[0];
-    len = prog_name.size();
     program_name = prog_name.c_str();
     
     // MPI implementations are not required to distribute command line
     // args, although MPICH does.
-    i = decode_switches (argc, argv);
+    decode_switches (argc, argv);
   } 
   // else { // rank 0 passes appropriate args
   
@@ -372,11 +369,8 @@ int main (int argc, char **argv)
           cout << "Python support is not compiled into this version." << endl;
 #endif
         } else {
-          //cout << "Unknown input file given.\n\n";
-          //usage(0);
-	  //pml_test(rank, size);
-          //coupler_test(rank,size);
-          mn_benchmark();
+          cout << "Unknown input file given.\n\n";
+          usage(0);
 	}
 
       } else {
@@ -414,8 +408,6 @@ int main (int argc, char **argv)
   now = time(NULL);
   now_cpu = clock();
 
-  time_total = static_cast<double>(now) 
-    - static_cast<double>(start);
   time_total_cpu = (static_cast<double>(now_cpu) 
     - static_cast<double>(start_cpu)) 
     / static_cast<double>(CLOCKS_PER_SEC);

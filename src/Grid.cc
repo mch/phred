@@ -602,7 +602,7 @@ void Grid::load_materials(shared_ptr<MaterialLib> matlib)
     mat_prop_t mu = ((*iter).second).get_mu() * MU_0;
     mat_prop_t sigs = ((*iter).second).get_sigma_star();
 
-    if (isinf(sig))
+    if (((*iter).second).is_pec())
     {
       Ca_[index] = 1;
       Cbx_[index] = Cby_[index] = Cbz_[index] = 0;
@@ -1104,28 +1104,6 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in,
     r.zmax_ = 0;
     r.faces_[TOP] = false;
   }
-
-  // r.xmin_ = (info_.start_x_ > (*in).xmin_) ? 0
-//     : (*in).xmin_ - info_.start_x_;
-//   r.ymin_ = (info_.start_y_ > (*in).ymin_) ? 0
-//     : (*in).ymin_ - info_.start_y_;
-//   r.zmin_ = (info_.start_z_ > (*in).zmin_) ? 0
-//     : (*in).zmin_ - info_.start_z_;
-
-//   r.xmax_ = ((*in).xmax_ >= info_.start_x_) ? 
-//     (((*in).xmax_ >= info_.start_x_ + info_.dimx_) 
-//      ? info_.dimx_ : (*in).xmax_ - info_.start_x_ + 1)
-//     : 0;
-
-//   r.ymax_ = ((*in).ymax_ >= info_.start_y_) ? 
-//     (((*in).ymax_ >= info_.start_y_ + info_.dimy_) 
-//      ? info_.dimy_ : (*in).ymax_ - info_.start_y_ + 1)
-//     : 0;
-
-//   r.zmax_ = ((*in).zmax_ >= info_.start_z_) ? 
-//     (((*in).zmax_ >= info_.start_z_ + info_.dimz_) 
-//      ? info_.dimz_ : (*in).zmax_ - info_.start_z_ + 1)
-//     : 0;
 
   r.len_x_ = r.xmax_ - r.xmin_;
   r.len_y_ = r.ymax_ - r.ymin_;

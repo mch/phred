@@ -68,11 +68,6 @@ void PowerResult::init(const Grid &grid)
 {
   const GridInfo &gi = grid.get_grid_info();
 
-  /* For setting up dimensions when exporting DFT's */ 
-  unsigned int global_t1_len, global_t2_len;
-  unsigned int local_t1_len, local_t2_len;
-  unsigned int t1_start, t2_start;
-
   /* Region must be in out local sub-domain */ 
   region_ = grid.get_local_region(*box_);
   shared_ptr<Block> global_b_ = grid.get_global_region(*box_);
@@ -96,14 +91,6 @@ void PowerResult::init(const Grid &grid)
     {
       has_data_ = true;
     }
-
-    local_t1_len = y_size_;
-    global_t1_len = (*global_b_).ylen();
-    t1_start = (*region_).ystart() - (*global_b_).ystart();
-
-    local_t2_len = z_size_;
-    global_t2_len = (*global_b_).zlen();
-    t2_start = (*region_).zstart() - (*global_b_).zstart();
   } 
   else if (face_ == LEFT || face_ == RIGHT) 
   {
@@ -119,14 +106,6 @@ void PowerResult::init(const Grid &grid)
     {
       has_data_ = true;
     }
-
-    local_t1_len = z_size_;
-    global_t1_len = (*global_b_).zlen();
-    t1_start = (*region_).zstart() - (*global_b_).zstart();
-
-    local_t2_len = x_size_;
-    global_t2_len = (*global_b_).xlen();
-    t2_start = (*region_).xstart() - (*global_b_).xstart();
   } 
   else if (face_ == TOP || face_ == BOTTOM)
   {
@@ -142,15 +121,6 @@ void PowerResult::init(const Grid &grid)
     {
       has_data_ = true;
     }
-
-    local_t1_len = x_size_;
-    global_t1_len = (*global_b_).xlen();
-    t1_start = (*region_).xstart() - (*global_b_).xstart();
-
-    local_t2_len = y_size_;
-    global_t2_len = (*global_b_).ylen();
-    t2_start = (*region_).ystart() - (*global_b_).ystart();
-
   } else {
     throw ResultException("Region must be limited to a plane "
                           "for a PowerResult.");
@@ -344,8 +314,6 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
                                                  unsigned int time_step)
 {
   time_power_ = 0;
-  field_t p_real = 0;
-  field_t p_imag = 0;
 
   if (has_data_)
   {

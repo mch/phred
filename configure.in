@@ -45,9 +45,6 @@ AC_ARG_WITH(cxx, AC_HELP_STRING([--with-cxx=CXX], [C++ compiler to use]),
 WANT_PROFILE=
 AC_ARG_ENABLE(profile, AC_HELP_STRING([--enable-profile], [Compile with -pg flag for gprof support.]), [WANT_PROFILE=1])
 
-WANT_OPENMP=
-AC_ARG_ENABLE(openmp, AC_HELP_STRING([--enable-openmp], [Use OpenMP directives for SMP shared memory parallism]), [WANT_OPENMP=1])
-
 WANT_ALTIVEC=0
 AC_ARG_ENABLE(altivec, AC_HELP_STRING([--enable-altivec], [Use AltiVec instructions on G4 and G5 processors]), [WANT_ALTIVEC=1], [WANT_ALTIVEC=0])
 
@@ -71,7 +68,7 @@ CPPFLAGS_SAVE="$CPPFLAGS"
 dnl Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_CC
-AC_PROG_CXX(mpic++ mpiCC, g++, CC)
+AC_PROG_CXX(mpic++ mpiCC, g++, CC, xlC_r)
 AC_PROG_CXXCPP
 dnl AC_PROG_YACC
 dnl AM_PROG_LEX
@@ -132,10 +129,29 @@ dnl Is Numeric or numarray available?
 fi
 AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
 
-
+dnl Doxygen for generating documentation
 DX_INIT_DOXYGEN([Phred], [doc/Doxyfile], [doc/generated_docs])
 
 AC_LANG(C++)
+
+dnl OpenMP support?
+INTEL_OMP="-openmp"
+SGI_OMP="-MP:open_mp=ON -mp"
+AIX_OMP="-qSMP=omp:noauto"
+OMP_FLAGS=""
+if [[ $target_vendor == pc ]]; then
+        OMP_FLAGS=$INTEL_OMP
+fi
+
+if [[ $target_vendor == sgi ]]; then
+        OMP_FLAGS=$SGI_OMP
+fi
+
+if [[ $target_vendor == ibm ]]; then
+        OMP_FLAGS=$AIX_OMP
+fi
+
+AC_CXX_OPENMP([$OMP_FLAGS])
 
 dnl Debug?
 if test "x$WANT_DEBUG" = "x1"; then
@@ -145,8 +161,8 @@ dnl        AC_LANG_WERROR
         CFLAGS="$CFLAGS -g"
 else
         AC_DEFINE([NDEBUG], [1], [Turn off assertions])
-        CXXFLAGS="$CXXFLAGS -O3"
-        CFLAGS="$CFLAGS -O3"
+        CXXFLAGS="$CXXFLAGS -O2"
+        CFLAGS="$CFLAGS -O2"
 
         if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then        
                CXXFLAGS="$CXXFLAGS -qstrict -Q -qansialias -qhot"
@@ -181,10 +197,10 @@ dnl Turn on inlining, template registry, RTTI, 2 GB memory access
    fi
 fi
 
-dnl If we are on IRIX, add -LANG:std to CXXFLAGS
+dnl SGI IRIX  and MIPSPro C++ stuff
 if test "$build_vendor" = "sgi"; then
-  CXXFLAGS="$CXXFLAGS -LANG:std"
-  LIBS="$LIBS -lm"
+  CXXFLAGS="$CXXFLAGS -LANG:std -ptused -prelink"
+  LIBS="$LIBS -lm -n32 -lmpi++ -lmpi"
 
   if test "$WANT_64BIT" = "1"; then
     CXXFLAGS="$CXXFLAGS -64"
@@ -241,14 +257,14 @@ dnl available from http://www.gingerall.cz/charlie/ga/xml/p_sab.xml
 dnl check for isnan etc...in the std. way and try link if not found
 dnl this is due HPUX, where isnan & Co. are defined as macros
 
-AC_CHECK_FUNC( isnan, [has_isnan=1; AC_DEFINE(HAVE_ISNAN, 1, isnan)], has_isnan=0)
-AC_CHECK_FUNC( isinf, [has_isinf=1; AC_DEFINE(HAVE_ISINF, 1, isinf)], has_isinf=0)
-AC_CHECK_FUNC( finite,[has_finite=1;AC_DEFINE(HAVE_FINITE, 1, finite)], has_finite=0)
+AC_CHECK_FUNC(isnan, [has_isnan=1; AC_DEFINE(HAVE_ISNAN, 1, isnan)], has_isnan=0)
+AC_CHECK_FUNC(isinf, [has_isinf=1; AC_DEFINE(HAVE_ISINF, 1, isinf)], has_isinf=0)
+AC_CHECK_FUNC(finite,[has_finite=1;AC_DEFINE(HAVE_FINITE, 1, finite)], has_finite=0)
 
 dnl check for macro isnan in math
 if test $has_isnan = 0; then
   AC_MSG_CHECKING(for macro isnan)
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]], [[{ int foo; foo = isnan(0); }]])],[has_isnan=1],[has_isnan=0 ])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cmath>]], [[{ int foo; foo = isnan(0); }]])],[has_isnan=1],[has_isnan=0 ])
   if test $has_isnan = 1; then
     AC_MSG_RESULT(yes)
     AC_DEFINE(HAVE_ISNAN, 1, isnan)
@@ -260,7 +276,7 @@ fi
 dnl check for macro isinf in math
 if test $has_isinf = 0; then
   AC_MSG_CHECKING(for macro isinf)
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]], [[{ int foo; foo = isinf(0); }]])],[has_isinf=1],[has_isinf=0 ])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cmath>]], [[{ int foo; foo = isinf(0); }]])],[has_isinf=1],[has_isinf=0 ])
   if test $has_isinf = 1; then
     AC_MSG_RESULT(yes)
     AC_DEFINE(HAVE_ISINF, 1, isinf)
@@ -272,49 +288,13 @@ fi
 dnl check for macro finite in math
 if test $has_finite = 0; then
   AC_MSG_CHECKING(for macro finite)
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]], [[{ int foo; foo = finite(0); }]])],[has_finite=1],[has_finite=0 ])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cmath>]], [[{ int foo; foo = finite(0); }]])],[has_finite=1],[has_finite=0 ])
   if test $has_finite = 1; then
     AC_MSG_RESULT(yes)
     AC_DEFINE(HAVE_FINITE, 1, finite)
   else
     AC_MSG_RESULT(no)
   fi
-fi
-
-dnl Use OpenMP parallism? Does the compiler support it? Are the 
-dnl libraries available? 
-if test "x$WANT_OPENMP" = "x1"; then
-dnl        AC_MSG_WARN([OpenMP support is not fully implemented yet. ])
-        AC_MSG_CHECKING([for OpenMP support])
-        CXXFLAGSTEMP="$CXXFLAGS"
-        AC_LANG_PUSH(C++)
-        CXXFLAGS="-qSMP=omp:noauto"        
-        AC_COMPILE_IFELSE([
-void test() {
-int i = 0, j = 0;
-#pragma omp parallel
-#pragma omp for reduction(+:j)
-for (i = 0; i < 100; i++)
-  j += i;
-}], [
-        AC_MSG_RESULT([yes])
-
-        if test "x$WANT_DEBUG" = "x1"; then
-            CXXFLAGSTEMP="$CXXFLAGSTEMP -qSMP=omp:noauto:noopt"
-        else 
-            CXXFLAGSTEMP="$CXXFLAGSTEMP -qSMP=omp:noauto"
-        fi
-
-	CFLAGS="-qSMP=omp:noauto"
-
-        USE_OPENMP="1"
-        AC_DEFINE([USE_OPENMP], [1], [Using OpenMP (-qSMP=omp on AIX)])
-    ], [
-	AC_MSG_RESULT([no])
-        AC_MSG_ERROR([OpenMP is not supported by the compiler.])
-    ])
-        AC_LANG_POP(C++)
-        CXXFLAGS="$CXXFLAGSTEMP"
 fi
 
 dnl Use double precision?
