@@ -32,7 +32,7 @@ public:
    * but which has not yet allocated any memory.
    */
   virtual GridInfo decompose_domain(int rank, int size, 
-                                    const GridInfo &info) = 0;
+                                    GridInfo &info) = 0;
 };
 
 #endif // SUBDOMAIN_ALG_H

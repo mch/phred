@@ -6,7 +6,7 @@ GridInfo::GridInfo()
     deltax_(0), deltay_(0), deltaz_(0), deltat_(0)
 {
   for (int i = 0; i < 6; i++) {
-    face_bc_[i] = 0;
+    face_bc_[i] = new UnknownBc();
     face_bc_type_[i] = UNKNOWN;
   }
 }
@@ -34,7 +34,7 @@ GridInfo::GridInfo(const GridInfo &info) {
       face_bc_[i] = copy_bc(info.face_bc_[i], info.face_bc_type_[i]);
       face_bc_type_[i] = info.face_bc_type_[i];
     } else {
-      face_bc_[i] = 0;
+      face_bc_[i] = new UnknownBc();
       face_bc_type_[i] = UNKNOWN;
     }
   }
@@ -51,6 +51,9 @@ GridInfo::~GridInfo()
 
 GridInfo& GridInfo::operator=(const GridInfo &info)
 {
+
+  if (this == &info) return *this;
+
   global_dimx_ = info.global_dimx_;
   global_dimy_ = info.global_dimy_;
   global_dimz_ = info.global_dimz_;
@@ -73,7 +76,7 @@ GridInfo& GridInfo::operator=(const GridInfo &info)
       face_bc_[i] = copy_bc(info.face_bc_[i], info.face_bc_type_[i]);
       face_bc_type_[i] = info.face_bc_type_[i];
     } else {
-      face_bc_[i] = 0;
+      face_bc_[i] = new UnknownBc();
       face_bc_type_[i] = UNKNOWN;
     }
   }
@@ -88,7 +91,6 @@ BoundaryCond &GridInfo::set_boundary(Face face,
 
   if (face_bc_[face]) {
     delete face_bc_[face];
-    face_bc_[face] = 0;
   }
 
   switch (bc) {
@@ -109,7 +111,7 @@ BoundaryCond &GridInfo::set_boundary(Face face,
     break;
 
   default:
-    face_bc_[face] = 0;
+    face_bc_[face] = new UnknownBc();
     face_bc_type_[face] = UNKNOWN;
   }
 
@@ -162,4 +164,14 @@ void GridInfo::apply_boundaries(Grid &grid)
       face_bc_[i]->apply(static_cast<Face>(i), grid);
     }
   }
+}
+
+const BoundaryCond& GridInfo::get_boundary(Face face)
+{
+  return *face_bc_[face];
+}
+
+const BoundaryCondition GridInfo::get_bc_type(Face face)
+{
+  return face_bc_type_[face];
 }

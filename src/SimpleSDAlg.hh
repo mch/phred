@@ -33,7 +33,7 @@ public:
    * @return a Grid object (class instance) which has its sizes set
    * but which has not yet allocated any memory.
    */
-  GridInfo decompose_domain(int rank, int size, const GridInfo &info);  
+  GridInfo decompose_domain(int rank, int size, GridInfo &info);  
 };
 
 #endif // SIMPLE_SD_ALG_H

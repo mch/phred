@@ -5,7 +5,6 @@ phred_SOURCES=phred.cc \
 	Grid.hh \
 	GridInfo.hh \
 	GridInfo.cc \
-	GridInfo_wrap.cxx \
 	GridPlane.hh \
 	FreqGrid.hh \
 	FreqGrid.cc \

@@ -50,11 +50,24 @@ public:
    */
   unsigned int get_thickness();
 
-  /**
-   * Creates a copy of the boundary condition object and returns a
-   * pointer to it. The callers is responsible for freeing it later. 
-   */
-  //virtual BoundaryCond *clone() = 0;
+};
+
+/**
+ * This class represents an unknown boundary condition. It's just here
+ * so I can return references without worrying about dereferencing
+ * null pointers in GridInfo.
+ */
+class UnknownBc : public BoundaryCond
+{
+public:
+  UnknownBc()
+  {}
+
+  ~UnknownBc()
+  {}
+
+  void apply(Face face, Grid &grid)
+  {}
 
 };
 

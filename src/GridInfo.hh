@@ -110,6 +110,20 @@ public:
   BoundaryCond& set_boundary(Face face, BoundaryCondition bc);
 
   /**
+   * Returns the type of boundary assigned to a face.
+   *
+   * @return BoundaryCondition from Types.hh
+   */
+  const BoundaryCondition get_bc_type(Face face);
+
+  /** 
+   * Returns a reference to the boundary condition object for a face. 
+   *
+   * @return ref to a BoundaryCond
+   */
+  const BoundaryCond& get_boundary(Face face);
+
+  /**
    * Returns the face thickness for a boundary condition
    *
    * @return an unsigned int, the thickness of the boundary condition.

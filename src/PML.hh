@@ -25,6 +25,16 @@ public:
    * @param grid the grid to apply the boundary condition to. 
    */
   void apply(Face face, Grid &grid);  
+
+  /**
+   * Set the thickness of the PML. I.e. the number of cells devoted to
+   * the PML along the normal to the face to which PML is being
+   * applied, and into the grid. 
+   *
+   * @param thickness yup
+   */
+  void set_thickness(unsigned int thickness);
+
 };
 
 #endif // PML_H

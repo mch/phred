@@ -7,7 +7,7 @@ SimpleSDAlg::~SimpleSDAlg()
 {}
 
 GridInfo SimpleSDAlg::decompose_domain(int rank, int size, 
-                                       const GridInfo &info)
+                                       GridInfo &info)
 {
   bool divided = false;
   
@@ -111,53 +111,53 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
   
   // Assign boundary conditions the ranks to talk to 
   if (x == 0) { // BACK
-    result.face_bc_[BACK] = info.face_bc_[BACK];
+    result.set_boundary(BACK, info.get_bc_type(BACK));
   } else {
-    result.face_bc_[BACK] = SUBDOMAIN;
-    result.face_rank_[BACK] = (z*m + y) * n + (x-1);
+    dynamic_cast<SubdomainBc &>(result.set_boundary(BACK, SUBDOMAIN))
+      .set_neighbour((z*m + y) * n + (x-1));
     result.dimx_++;
     result.start_x_--;
   }
 
   if (x == n - 1) { // FRONT
-    result.face_bc_[FRONT] = info.face_bc_[FRONT];    
+    result.set_boundary(FRONT, info.get_bc_type(FRONT));
   } else {
-    result.face_bc_[FRONT] = SUBDOMAIN;
-    result.face_rank_[FRONT] = (z*m + y) * n + (x+1);
+    dynamic_cast<SubdomainBc &>(result.set_boundary(FRONT, SUBDOMAIN))
+      .set_neighbour((z*m + y) * n + (x+1));
     result.dimx_++;
   } 
 
   if (y == 0) { // LEFT 
-    result.face_bc_[LEFT] = info.face_bc_[LEFT];
+    result.set_boundary(LEFT, info.get_bc_type(LEFT));
   } else {
-    result.face_bc_[LEFT] = SUBDOMAIN;
-    result.face_rank_[LEFT] = (z*m + (y-1)) * n + x;
+    dynamic_cast<SubdomainBc &>(result.set_boundary(LEFT, SUBDOMAIN))
+      .set_neighbour((z*m + (y-1)) * n + x);
     result.dimy_++;
     result.start_y_--;
   } 
 
   if (y == m - 1) { // RIGHT
-    result.face_bc_[RIGHT] = info.face_bc_[RIGHT];
+    result.set_boundary(RIGHT, info.get_bc_type(RIGHT));
   } else {
-    result.face_bc_[RIGHT] = SUBDOMAIN;
-    result.face_rank_[RIGHT] = (z*m + (y+1)) * n + x;
+    dynamic_cast<SubdomainBc &>(result.set_boundary(RIGHT, SUBDOMAIN))
+      .set_neighbour((z*m + (y+1)) * n + x);
     result.dimy_++;
   }
 
   if (z == 0) { // BOTTOM
-    result.face_bc_[BOTTOM] = info.face_bc_[BOTTOM];
+    result.set_boundary(BOTTOM, info.get_bc_type(BOTTOM));
   } else {
-    result.face_bc_[BOTTOM] = SUBDOMAIN;
-    result.face_rank_[BOTTOM] = ((z-1)*m + y) * n + x;
+    dynamic_cast<SubdomainBc &>(result.set_boundary(BOTTOM, SUBDOMAIN))
+      .set_neighbour(((z-1)*m + y) * n + x);
     result.dimz_++;
     result.start_z_--;
   }
 
   if (z == p - 1) { // TOP
-    result.face_bc_[TOP] = info.face_bc_[TOP];
+    result.set_boundary(TOP, info.get_bc_type(TOP));
   } else {
-    result.face_bc_[TOP] = SUBDOMAIN;
-    result.face_rank_[TOP] = ((z+1)*m + y) * n + x;
+    dynamic_cast<SubdomainBc &>(result.set_boundary(TOP, SUBDOMAIN))
+      .set_neighbour(((z+1)*m + y) * n + x);
     result.dimz_++;
   }
 
