@@ -37,7 +37,10 @@
 #include <vector>
 
 using namespace std;
+
+#ifdef USE_PY_BINDINGS
 using namespace boost::python; 
+#endif
 
 /**
  * This data writer makes data available to DataWriters written in
