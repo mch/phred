@@ -188,9 +188,9 @@ void FarfieldResult2::set_phi(field_t phi_start, field_t phi_stop,
     throw ResultException("FarfieldResult must return data at one "
                           "or more angles of phi");
   
-  if (abs(phi_stop - phi_start) > PI)
+  if (abs(phi_stop - phi_start) > 2 * PI)
     throw ResultException("FarfiedlResult phi angles must not span more "
-                          "than 180 degrees.");
+                          "than 360 degrees.");
 
   phi_data_.set_params(phi_start, phi_stop, num_phi);
 }
@@ -497,13 +497,6 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
   field_t dy = grid.get_deltay();
   field_t dz = grid.get_deltaz();
 
-  // Unit vector pointing to the observation point; used to find the
-  // angle between the observation point and the source point. 
-  field_t obs_vec[3];
-  obs_vec[0] = sin(phi) * cos(theta);
-  obs_vec[1] = sin(phi) * sin(theta);
-  obs_vec[2] = cos(phi);
-
   for (int face_idx = 0; face_idx < 6; face_idx++)
   {
     if (!(*region_).has_face_data(static_cast<Face>(face_idx)))
@@ -572,9 +565,12 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
 
             // Exponential phase term, r' cos \psi = \vec{r}' \cdot \hat{r}
             // CHECK THIS!
-            field_t exp_phase = xt * sin(theta) * cos(phi) 
-              + yt * sin(theta) * sin(phi)
-              + zt * cos(theta);
+             field_t exp_phase = xt * sin(theta) * cos(phi) 
+               + yt * sin(theta) * sin(phi)
+               + zt * cos(theta);
+//             field_t exp_phase = xt * sin(phi) * cos(theta)
+//               + yt * sin(phi) * sin(theta) 
+//               + zt * cos(phi);
 
             complex<field_t> temp(0, k * exp_phase);
             temp = exp(temp) * complex<field_t>(dy * dz, 0);
@@ -635,14 +631,6 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
             complex<field_t> sin_p(sin(sp_phi), 0);
             complex<field_t> cos_p(cos(sp_phi), 0);
 
-
-//             // Angle between the source vector and the observation
-//             // vector
-//             field_t psi = acos((obs_vec[0] * xt + obs_vec[1] * yt
-//                                + obs_vec[2] * zt) / r_prime);
-
-//             complex<field_t> temp(0, k * r_prime * cos(psi));
-
             // Exponential phase term, r' cos \psi = \vec{r}' \cdot \hat{r}
             // CHECK THIS!
             field_t exp_phase = xt * sin(theta) * cos(phi) 
@@ -693,7 +681,7 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
 
             // Angles to source point
             field_t sp_phi = acos(zt / r_prime);
-            field_t sp_theta = asin(yt / (r_prime * sin(sp_phi)));
+            field_t sp_theta = acos(xt / (r_prime * sin(sp_phi)));
             
             if (isnan(sp_theta)) // can happen if xt == 0 or yt == 0
             {
@@ -705,14 +693,6 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
             complex<field_t> sin_t(sin(sp_theta), 0);
             complex<field_t> sin_p(sin(sp_phi), 0);
             complex<field_t> cos_p(cos(sp_phi), 0);
-
-
-//             // Angle between the source vector and the observation
-//             // vector
-//             field_t psi = acos((obs_vec[0] * xt + obs_vec[1] * yt
-//                                + obs_vec[2] * zt) / r_prime);
-
-//             complex<field_t> temp(0, k * r_prime * cos(psi));
 
             // Exponential phase term, r' cos \psi = \vec{r}' \cdot \hat{r}
             // CHECK THIS!

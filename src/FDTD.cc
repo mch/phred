@@ -305,7 +305,7 @@ void FDTD::run()
     (*e_eiter).second->init(*grid_);
     
     if (!quiet)
-      cout << "\t -> " << (*e_eiter).second << "\n";
+      cout << "\t -> " << *((*e_eiter).second) << "\n";
 
     ++e_eiter;
   }
@@ -324,7 +324,7 @@ void FDTD::run()
     (*h_eiter).second->init(*grid_);
 
     if (!quiet)
-      cout << "\t -> " << (*h_eiter).second << "\n";
+      cout << "\t -> " << *((*h_eiter).second) << "\n";
 
     ++h_eiter;
   }

@@ -155,7 +155,7 @@ void Excitation::excite(Grid &grid, unsigned int time_step,
 ostream& Excitation::to_string(ostream &os) const
 {
   os << "In the local grid, this excitation is being applied to "
-     << region_ << ". The polarization vector is ("
+     << region_.get() << ". The polarization vector is ("
      << polarization_[0] << ", " << polarization_[1]
      << ", " << polarization_[2] << "). The excitation is ";
 
@@ -167,13 +167,13 @@ ostream& Excitation::to_string(ostream &os) const
   os << " and is being applied to the ";
 
   if (type_ == E)
-    os << "electric field";
+    os << "electric field. ";
   else if (type_ == H)
-    os << "magnetic field";
+    os << "magnetic field. ";
   else 
     os << "electric and magnetic fields.";
 
-  os << "The signal function being applied is " << sf_;
+  os << "The signal function being applied is " << sf_.get();
 
   return os;
 }
