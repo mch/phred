@@ -68,8 +68,8 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  virtual map<string, Variable *> &get_result(const Grid &grid, 
-                                              unsigned int time_step);
+  void calculate_result(const Grid &grid, 
+                        unsigned int time_step);
 
   /**
    * Set the point in global coordinates
@@ -91,13 +91,13 @@ public:
     return space_point_;
   }
   
-  virtual void init(const Grid &grid);
-  virtual void deinit();
+  void init(const Grid &grid);
+  void deinit();
 
   /**
    * Print a string representation to an ostream.
    */
-  virtual ostream& to_string(ostream &os) const;
+  ostream& to_string(ostream &os) const;
 
 };
 

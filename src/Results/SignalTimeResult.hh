@@ -57,12 +57,9 @@ public:
    * Produces output from the signal, considering only the time step. 
    *
    * @param grid a reference to a Grid object
-   * @return a reference to a data object, which contains an MPI
-   * derived data type, a pointer, and the number of items in the
-   * result.
    */
-  virtual map<string, Variable *> &get_result(const Grid &grid, 
-                                              unsigned int time_step);
+  void calculate_result(const Grid &grid, 
+                        unsigned int time_step);
 
   /**
    * Print a string representation to an ostream.

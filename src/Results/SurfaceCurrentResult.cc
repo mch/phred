@@ -344,9 +344,8 @@ void SurfaceCurrentResult::deinit()
   }
 }
 
-map<string, Variable *> &
-SurfaceCurrentResult::get_result(const Grid &grid, 
-                                 unsigned int time_step)
+void SurfaceCurrentResult::calculate_result(const Grid &grid, 
+                                            unsigned int time_step)
 {
 
   for (int face_idx = 0; face_idx < 6; face_idx++)
@@ -404,7 +403,6 @@ SurfaceCurrentResult::get_result(const Grid &grid,
 
   } // end for (int i = 0; i < 6; i++)
 
-  return variables_;
 }
 
 template<class T>

@@ -117,8 +117,8 @@ void PointDFTResult::deinit()
   }
 }
 
-map<string, Variable *> &PointDFTResult::get_result(const Grid &grid, 
-                                                     unsigned int time_step)
+void PointDFTResult::calculate_result(const Grid &grid, 
+                                      unsigned int time_step)
 {
   delta_t dt = grid.get_deltat();
   delta_t e_time = dt * time_step;
@@ -164,7 +164,6 @@ map<string, Variable *> &PointDFTResult::get_result(const Grid &grid,
     }
   }
 
-  return variables_;
 }
 
 ostream& PointDFTResult::to_string(ostream &os) const

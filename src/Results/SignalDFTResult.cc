@@ -94,8 +94,8 @@ void SignalDFTResult::set_excitation(const Signal &te)
   te_ = te;
 }
 
-map<string, Variable *> &SignalDFTResult::get_result(const Grid &grid, 
-                                                     unsigned int time_step)
+void SignalDFTResult::calculate_result(const Grid &grid, 
+                                       unsigned int time_step)
 {
   if (result_time(time_step) && MPI_RANK == 0) 
   {
@@ -114,7 +114,6 @@ map<string, Variable *> &SignalDFTResult::get_result(const Grid &grid,
     var_.set_num(0); 
   }
 
-  return variables_;
 }
 
 ostream& SignalDFTResult::to_string(ostream &os) const

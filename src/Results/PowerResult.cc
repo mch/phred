@@ -310,8 +310,8 @@ public:
   }
 };
 
-map<string, Variable *> &PowerResult::get_result(const Grid &grid, 
-                                                 unsigned int time_step)
+void PowerResult::calculate_result(const Grid &grid, 
+                                   unsigned int time_step)
 {
   time_power_ = 0;
 
@@ -374,7 +374,5 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
     power_real_[i] = dftdata.p_real;
     power_imag_[i] = dftdata.p_imag;
   }
-
-  return variables_;
 
 }

@@ -53,12 +53,9 @@ public:
    * Looks at the grid and produces output. 
    *
    * @param grid a reference to a Grid object
-   * @return a reference to a data object, which contains an MPI
-   * derived data type, a pointer, and the number of items in the
-   * result.
    */
-  map<string, Variable *> &get_result(const Grid &grid, 
-                                      unsigned int time_step);
+  void calculate_result(const Grid &grid, 
+                        unsigned int time_step);
 
   /**
    * Set the CSGBox to calculate the currents on

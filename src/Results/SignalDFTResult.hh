@@ -58,12 +58,9 @@ public:
    *
    * @param grid a reference to a Grid object
    * @param time_step current time step
-   * @return a reference to a data object, which contains an MPI
-   * derived data type, a pointer, and the number of items in the
-   * result.
    */
-  virtual map<string, Variable *> &get_result(const Grid &grid, 
-                                              unsigned int time_step);
+  virtual void calculate_result(const Grid &grid, 
+                                unsigned int time_step);
 
   /**
    * Setup the result, allocate memory, etc. Called just before the

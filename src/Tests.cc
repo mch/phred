@@ -57,13 +57,13 @@ using namespace std;
 
 // Grid cell size for square hole sims
 // For testing on tapir
-// float deltax = 20e-9;
-// float deltay = 20e-9;
-// float deltaz = 20e-9;
+float deltax = 20e-9;
+float deltay = 20e-9;
+float deltaz = 20e-9;
 
-float deltax = 5e-9;
-float deltay = 5e-9;
-float deltaz = 5e-9;
+// float deltax = 5e-9;
+// float deltay = 5e-9;
+// float deltaz = 5e-9;
 
 /**
  * Million node benchmark

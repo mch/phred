@@ -22,6 +22,51 @@
 #ifndef GRID_UPDATE_H
 #define GRID_UPDATE_H
 
+// All of the following updates use a form of flux density
+// formulation, to allow for superposition of two seperate updates. 
+
+/**
+ * Calculates the electric field intensity from the electric flux
+ * density 
+ */
+class IntensityUpdate
+{
+
+};
+
+/**
+ * Non-lossy dielectric update. Fast and simple. 
+ */ 
+class DielectricUpdate
+{
+  
+};
+
+/**
+ * Lossy dielectric update.
+ */ 
+class LossyDielectricUpdate
+{
+
+};
+
+/**
+ * Unmagnetized plasma update.
+ */
+class PlasmaUpdate
+{
+
+};
+
+/**
+ * PML Update
+ */ 
+class PmlUpdate
+{
+
+};
+
+
 /**
  * This class contains templatable loops for updating a region of the
  * grid. The idea to to pull as much of the looping constructs and set

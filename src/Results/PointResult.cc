@@ -37,8 +37,8 @@ PointResult::PointResult(grid_point p)
 PointResult::~PointResult()
 { }
 
-map<string, Variable *> &PointResult::get_result(const Grid &grid, 
-                                                 unsigned int time_step)
+void PointResult::calculate_result(const Grid &grid, 
+                                   unsigned int time_step)
 {
   if (ours_ && result_time(time_step)) 
   {
@@ -58,7 +58,6 @@ map<string, Variable *> &PointResult::get_result(const Grid &grid,
     var_.set_num(0);
   }
   
-  return variables_;
 }
 
 void PointResult::init(const Grid &grid)
@@ -85,12 +84,12 @@ void PointResult::init(const Grid &grid)
   else 
     l_.z = point_.z - grid.get_lsz();
 
-//   if (ours_)
-//     cerr << "PointResult at " << l_.x << "x" << l_.y
-//          << "x" << l_.z << " belongs to " << MPI_RANK << endl;
-//   else
-//     cerr << "PointResult at " << l_.x << "x" << l_.y
-//          << "x" << l_.z << " DOES NOT belong to " << MPI_RANK << endl;
+  if (ours_)
+    cerr << "PointResult at " << l_.x << "x" << l_.y
+         << "x" << l_.z << " belongs to " << MPI_RANK << endl;
+  else
+    cerr << "PointResult at " << l_.x << "x" << l_.y
+         << "x" << l_.z << " DOES NOT belong to " << MPI_RANK << endl;
 
   MPI_Datatype temp;
   MPI_Type_contiguous(7, GRID_MPI_TYPE, &temp);
