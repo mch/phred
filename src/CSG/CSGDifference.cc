@@ -49,9 +49,9 @@ CSGStatus CSGDifference::is_point_inside(float x, float y, float z) const
   return ret;
 }
 
-ostream& CSGDifference::to_string(ostream &os) const
+std::ostream& CSGDifference::to_string(std::ostream &os) const
 {
-  if (*right_ && *left_)
+  if (right_.get() && left_.get())
   {
     os << "CSGDifference, subtracting a " << (*right_) << " from " 
        << " a " << (*left_);

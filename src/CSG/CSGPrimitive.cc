@@ -49,7 +49,9 @@ point CSGPrimitive::get_centre()
   return point(centre_[0], centre_[1], centre_[2]);
 }
 
-ostream& CSGDifference::to_string(ostream &os) const
+std::ostream& CSGPrimitive::to_string(std::ostream &os) const
 {
-  return os << "A CSGPrimitive of indeterminate type"
+  return os << "A CSGPrimitive of indeterminate type";
 }
+
+

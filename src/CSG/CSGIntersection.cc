@@ -42,9 +42,9 @@ CSGStatus CSGIntersection::is_point_inside(float x, float y, float z) const
   return ret;
 }
 
-ostream& CSGIntersection::to_string(ostream &os) const
+std::ostream& CSGIntersection::to_string(std::ostream &os) const
 {
-  if (*right_ && *left_)
+  if (right_.get() && left_.get())
   {
     os << "CSGIntersection, taking the intersection of a " 
        << (*right_) << " and " << " a " << (*left_);

@@ -36,40 +36,24 @@ class CSGOperator : public CSGObject {
 public:
 
   CSGOperator(shared_ptr<CSGObject> left, 
-              shared_ptr<CSGObject> right)
-    : left_(left), right_(right)
-  {}
+              shared_ptr<CSGObject> right);
 
-  virtual ~CSGOperator()
-  {}
+  virtual ~CSGOperator();
 
-  CSGOperator(const CSGOperator &rhs)
-  {
-    *this = rhs;
-  }
+  CSGOperator(const CSGOperator &rhs);
 
   // This needs to be fixed. 
-  const CSGOperator &operator=(const CSGOperator &rhs)
-  {
-    left_ = (*rhs.left_).copy();
-    right_ = (*rhs.right_).copy();
-
-    return *this;
-  }
+  const CSGOperator &operator=(const CSGOperator &rhs);
 
   /**
    * Create a copy of this object. 
    */ 
-  virtual shared_ptr<CSGObject> copy() const
-  {
-    CSGOperator *op = new CSGOperator((*left_).copy(), (*right_).copy());
-    return shared_ptr<CSGOperator>(op);
-  }
+  virtual shared_ptr<CSGObject> copy() const;
 
   /**
    * Print a string representation to an ostream.
    */
-  virtual ostream& to_string(ostream &os) const;
+  virtual std::ostream& to_string(std::ostream &os) const;
 
 protected:
   shared_ptr<CSGObject> left_;

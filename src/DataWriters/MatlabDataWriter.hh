@@ -246,6 +246,9 @@ public:
  * changing fastest along the last dimension. This means that until
  * this class is fixed, users will have to transpose the resulting
  * data themselves. 
+ *
+ * \bug The array should not write corrupt data if the result sends
+ * too much or too little data to it.
  */ 
 class MatlabArray : public MatlabElement {
   friend class MatlabDataWriter; 

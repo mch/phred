@@ -84,6 +84,6 @@ point CSGBox::get_size() const
 std::ostream& CSGBox::to_string(std::ostream &os) const
 {
   return os << "CSGBox, centred at (" << centre_[0] << ", " << centre_[1]
-            << ", " << centre_[2] << "), " << length_[0] << " by " 
-            << length_[1] << " by " << length_[2] << " in size.";
+            << ", " << centre_[2] << "), " << lengths_[0] << " by " 
+            << lengths_[1] << " by " << lengths_[2] << " in size.";
 }

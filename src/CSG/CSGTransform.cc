@@ -118,11 +118,12 @@ void CSGTransform::set_translation(float tx, float ty, float tz)
 }
 
 
-ostream& CSGTransform::to_string(ostream &os) const
+std::ostream& CSGTransform::to_string(std::ostream &os) const
 {
-  if (*child_)
+  if (child_.get())
   {
-    os << "CSGTransform, rotating by " <<  angle_ " radians around point "
+    os << "CSGTransform, transforming a " << (*child_) 
+       << " by rotating it by " <<  angle_ << " radians around point "
        << rotation_point_ << ", scaling by " << sx_ << ", " << sy_
        << ", " << sz_ << ", and translating by " << tx_ << ", "
        << ty_ << ", " << tz_;

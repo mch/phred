@@ -73,7 +73,7 @@ public:
   /**
    * Print a string representation to an ostream.
    */
-  virtual ostream& to_string(ostream &os) const;
+  virtual std::ostream& to_string(std::ostream &os) const;
 
 protected:
   // The child being transformed

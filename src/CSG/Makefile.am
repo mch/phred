@@ -3,6 +3,7 @@ noinst_LIBRARIES=libcsg.a
 libcsg_a_SOURCES = CSGObject.hh \
 	CSGPrimitive.hh \
 	CSGOperator.hh \
+	CSGOperator.cc \
 	CSGBox.hh \
 	CSGSphere.hh \
 	CSGCylinder.hh \
