@@ -40,6 +40,8 @@ protected:
   FieldComponent field_comp_;
 
   bool init_; /**< Set to true after init() has been called. */
+
+  Variable var_; /**< Our variable */
 public:
   BlockResult();
   BlockResult(region_t r, FieldComponent field_comp = FC_EY);
@@ -53,7 +55,8 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  Data &get_result(const Grid &grid, unsigned int time_step);
+  map<string, Variable *> &get_result(const Grid &grid, 
+                                      unsigned int time_step);
 
   /**
    * Set the region to return. 
@@ -71,6 +74,11 @@ public:
    * MPI datatype.
    */
   virtual void init(const Grid &grid);
+
+  /**
+   * Called to perform any de-initialization that may be required.
+   */
+  virtual void deinit(const Grid &grid);
 
   /**
    * Returns the region this result deals with. 

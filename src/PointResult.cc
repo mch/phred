@@ -23,32 +23,21 @@
 
 PointResult::PointResult()
 {
-  MPI_Datatype temp;
-  MPI_Type_contiguous(7, GRID_MPI_TYPE, &temp);
-  MPI_Type_commit(&temp);
-  data_.set_datatype(temp);
-
-  dim_lens_.push_back(7);
+  variables_["Point result"] = &var_;
 }
 
 PointResult::PointResult(point_t p)
   : point_(p)
 {
-  MPI_Datatype temp;
-  MPI_Type_contiguous(7, GRID_MPI_TYPE, &temp);
-  MPI_Type_commit(&temp);
-  data_.set_datatype(temp);
-
-  dim_lens_.push_back(7);
+  variables_["Point result"] = &var_;
 }
 
 PointResult::~PointResult()
 { }
 
-Data &PointResult::get_result(const Grid &grid, unsigned int time_step)
+map<string, Variable *> &PointResult::get_result(const Grid &grid, 
+                                                 unsigned int time_step)
 {
-  bool ours = true;
-
   if (ours_ && result_time(time_step)) 
   {
     field_data_[0] = grid.get_deltat() * time_step;
@@ -60,16 +49,16 @@ Data &PointResult::get_result(const Grid &grid, unsigned int time_step)
     field_data_[5] = grid.get_hy(l_.x, l_.y, l_.z);
     field_data_[6] = grid.get_hz(l_.x, l_.y, l_.z);
     
-    data_.set_ptr(field_data_);
-    data_.set_num(1);
+    var_.set_ptr(field_data_);
+    var_.set_num(1);
   } 
   else
   {
-    data_.set_ptr(0);
-    data_.set_num(0);
+    var_.set_ptr(0);
+    var_.set_num(0);
   }
   
-  return data_;
+  return variables_;
 }
 
 void PointResult::init(const Grid &grid)
@@ -94,6 +83,12 @@ void PointResult::init(const Grid &grid)
   else 
     l_.z = point_.z - grid.get_lsz();
 
+  MPI_Datatype temp;
+  MPI_Type_contiguous(7, GRID_MPI_TYPE, &temp);
+  MPI_Type_commit(&temp);
+  var_.set_datatype(temp);
+
+  var_.add_dimension("field components", 7, 0);
 }
 
 void PointResult::deinit(const Grid &grid)

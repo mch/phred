@@ -27,14 +27,18 @@
 
 PointDFTResult::PointDFTResult()
   : freq_start_(0), freq_stop_(0), num_freqs_(0), result_(0)
-{}
+{
+  variables_["point DFT"] = &var_;
+}
 
 PointDFTResult::PointDFTResult(field_t freq_start,
                                field_t freq_stop, 
                                unsigned int num_freqs)
   : freq_start_(freq_start), freq_stop_(freq_stop),
     num_freqs_(num_freqs), result_(0)
-{}
+{
+  variables_["point DFT"] = &var_;
+}
 
 PointDFTResult::~PointDFTResult()
 { 
@@ -73,9 +77,9 @@ void PointDFTResult::init(const Grid &grid)
 
   time_dim_ = false; // We have only one output at the end. 
 
-  dim_lens_.push_back(13); // Rows of 1 col for freq, 2 cols each component
-  dim_lens_.push_back(num_freqs_); // num_freq rows
-  var_name_ = "Point DFT";
+  var_.add_dimension("results", 13, 0);
+  var_.add_dimension("freqs", num_freqs_, 0);
+  var_.set_name("Point DFT");
 
   freq_space_ = (freq_stop_ - freq_start_) / num_freqs_;
   result_ = new field_t[(num_freqs_ + 1) * 13];
@@ -93,15 +97,15 @@ void PointDFTResult::init(const Grid &grid)
   MPI_Datatype temp;
   MPI_Type_contiguous(13, GRID_MPI_TYPE, &temp);
   MPI_Type_commit(&temp);
-  data_.set_datatype(temp);
+  var_.set_datatype(temp);
 
   if (ours_)
   {
-    data_.set_num(num_freqs_);
-    data_.set_ptr(result_);
+    var_.set_num(num_freqs_);
+    var_.set_ptr(result_);
   } else {
-    data_.set_num(0);
-    data_.set_ptr(0);  
+    var_.set_num(0);
+    var_.set_ptr(0);  
   }
 }
 
@@ -114,7 +118,8 @@ void PointDFTResult::deinit(const Grid &grid)
   }
 }
 
-Data &PointDFTResult::get_result(const Grid &grid, unsigned int time_step)
+map<string, Variables *> &PointDFTResult::get_result(const Grid &grid, 
+                                                     unsigned int time_step)
 {
   delta_t dt = grid.get_deltat();
   delta_t time = dt * time_step;
@@ -162,5 +167,5 @@ Data &PointDFTResult::get_result(const Grid &grid, unsigned int time_step)
     }
   }
 
-  return data_;
+  return variables_;
 }

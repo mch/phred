@@ -24,18 +24,20 @@
 BlockResult::BlockResult()
   : field_comp_(FC_EY), init_(false)
 {
-  
+  variables_["block"] = &var_;
 }
 
 BlockResult::BlockResult(region_t r, FieldComponent field_comp)
   : region_(r), field_comp_(field_comp), init_(false)
 {
+  variables_["block"] = &var_;
 }
 
 BlockResult::~BlockResult()
-{
+{}
 
-}
+void BlockResult::deinit(const Grid &grid)
+{}
 
 void BlockResult::init(const Grid &grid)
 {
@@ -62,25 +64,31 @@ void BlockResult::init(const Grid &grid)
   MPI_Type_create_subarray(3, sizes, subsizes, starts, 1, 
                            GRID_MPI_TYPE, &temp);
   MPI_Type_commit(&temp);
-  data_.set_datatype(temp);
-  data_.set_num(0);
-  data_.set_ptr(const_cast<field_t *>(grid.get_pointer(point_t(region_.xmin, 
-                                                               region_.ymin, 
-                                                               region_.zmin), 
-                                                       field_comp_)));
+
+  var_.set_datatype(temp);
+  var_.set_num(0);
+  var_.set_ptr(const_cast<field_t *>(grid.get_pointer(point_t(region_.xmin, 
+                                                              region_.ymin, 
+                                                              region_.zmin), 
+                                                      field_comp_)));
+  var_.add_dimension("x", subsizes[0], starts[0]);
+  var_.add_dimension("y", subsizes[1], starts[1]);
+  var_.add_dimension("z", subsizes[2], starts[2]);
+  
   init_ = true; 
 }
 
-Data &BlockResult::get_result(const Grid &grid, unsigned int time_step)
+map<string, Variable *> &BlockResult::get_result(const Grid &grid, 
+                                         unsigned int time_step)
 {
   if (init_ && result_time(time_step))
   {
-    data_.set_num(1);
+    var_.set_num(1);
   } 
   else 
   {
-    data_.set_num(0);
+    var_.set_num(0);
   }
 
-  return data_;
+  return variables_;
 }

@@ -44,6 +44,8 @@ protected:
 
   bool ours_; /**< True if the point is in our part of the grid. */
 
+  Variable var_; /**< Our variable */
+
 public:
   PointDFTResult();
   PointDFTResult(field_t freq_start, field_t freq_stop, 

@@ -68,6 +68,7 @@ AC_PROG_LIBTOOL
 
 dnl Check for compiler things
 AC_C_INLINE
+AC_C_BIGENDIAN
 
 dnl Use SWIG to generate python scripting support?
 AC_ARG_WITH(python, AC_HELP_STRING([--with-python], [Generate Python scripting support]))

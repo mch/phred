@@ -45,18 +45,8 @@ protected:
   map<unsigned int, void *> ptrs_;
   unsigned int num_; /**< Number of items of type_ that can be
                         accessed by ptr_ */ 
-  string var_name_; /**< The name of the variable this data belongs
-                       to. */ 
 
 public:
-  Data(string var_name) 
-  {
-    // A single field_t by default. 
-    MPI_Type_contiguous(1, GRID_MPI_TYPE, &type_);
-    MPI_Type_commit(&type_);
-    var_name_ = var_name;
-  }
-
   Data()
   {
     MPI_Type_contiguous(1, GRID_MPI_TYPE, &type_);
@@ -65,22 +55,6 @@ public:
 
   ~Data()
   {}
-
-  /**
-   * Get the variable name for this data. 
-   */
-  inline string &get_var_name()
-  {
-    return var_name_;
-  }
-
-  /**
-   * Set the variable name for this data.
-   */
-  inline void set_var_name(const string &var_name)
-  {
-    var_name_ = var_name;
-  }
 
   /**
    * Used to set the data type.
@@ -110,7 +84,7 @@ public:
 
   /** 
    * Returns a pointer to some data. Data makes no guarantee about the
-   * state of the point, because it is set by some other object. 
+   * state of the pointer, because it is set by some other object. 
    *
    * @param ptr_num the pointer number to return, defaults to
    * zero. Must be less than the value returned by get_num_ptrs(). 

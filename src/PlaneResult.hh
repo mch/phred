@@ -45,6 +45,8 @@ protected:
   // The field component we are interested in. 
   FieldComponent field_;
 
+  Variable var_; /**< Our variable */
+
 public:
 
   PlaneResult();
@@ -58,7 +60,8 @@ public:
    * derived data type, a planeer, and the number of items in the
    * result.
    */
-  virtual Data &get_result(const Grid &grid, unsigned int time_step);
+  virtual map<string, Variable *> &get_result(const Grid &grid, 
+                                              unsigned int time_step);
 
   /**
    * Set the plane position in global coordinates

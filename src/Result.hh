@@ -33,6 +33,194 @@
 using namespace std;
 
 /**
+ * Contains all the data about a variable. 
+ */
+class Variable 
+{
+  friend class Result;
+private:
+protected:
+  string var_name_; /**< Variable name */
+  Data data_;
+
+  vector<int> dim_lens_; /**< Dimension lengths */
+  vector<string> dim_names_; /**< Dimension names */
+  vector<unsigned int> dim_starts_; /**< Starting positions for the
+                                       data in the final output. Used
+                                       when the data is collected to
+                                       one rank for writing, so it
+                                       knows where the data from each
+                                       rank goes. */
+
+  bool time_dim_; /**< True if this variable has a time dimension. If
+                     false, DataWriters except only one result from
+                     this Result, usually at time_stop_. */
+
+public:
+  Variable()
+    : var_name_("Result"), time_dim_(true)
+  {}
+
+  ~Variable()
+  {}
+
+  /**
+   * Add a dimension to this variable
+   *
+   * @param name the name of the dimension, or some identifying string
+   * @param length the *local* size of the dimention 
+   * @param start the starting point for the dimension in the global
+   * scheme of things.   
+   */
+  inline void add_dimension(const char *name, unsigned int length, 
+                            unsigned int start = 0)
+  {
+    dim_names_.push_back(name);
+    dim_lens_.push_back(length);
+    dim_starts_.push_back(start);
+  }
+
+  /**
+   * Return a const reference to the data object
+   */
+  inline const Data &get_data()
+  {
+    return data_;
+  }
+
+  /**
+   * Returns true if this result has a time dimension, that it,
+   * returns data at more than one time step. 
+   */
+  inline bool has_time_dimension() const
+  {
+    return time_dim_;
+  }
+
+  /**
+   * Used to set wether or not a variable has a dimension that is time. 
+   */
+  inline void has_time_dimension(bool t) const
+  {
+    time_dim_ = t;
+  }  
+
+  /**
+   * Set the name of the variable. 
+   * @param name a string with the name
+   */
+  inline void set_name(const string &name)
+  {
+    var_name_ = name;
+  }
+
+  /**
+   * Return the name of the variable. 
+   * @return a string with the name in it. 
+   */
+  inline const string &get_name() const
+  {
+    return var_name_;
+  }
+
+  /**
+   * Returns the lengths of the dimensions
+   * @return a reference to a vector of lengths of the dimensions
+   */
+  inline const vector<int> &get_dim_lengths() const
+  {
+    return dim_lens_;
+  }
+
+  /**
+   * Returns the names of the dimensions
+   * @return a reference to the names of the dimensions
+   */
+  inline const vector<string> &get_dim_names() const
+  {
+    return dim_names_;
+  }
+
+  /**
+   * Returns the starting points of the dimensions for this rank. 
+   */
+  inline const vector<unsigned int> &get_fim_starts() const
+  {
+    return dim_starts_;
+  }
+
+  // The following functions are just helpers that forward to the
+  // Data_ member...
+
+  /**
+   * Get the data type
+   */
+  inline MPI_Datatype &get_datatype()
+  {
+    return data_.get_datatype();
+  }
+
+  /**
+   * Used to set the data type.
+   * @param type MPI derived data type
+   */
+  inline void set_datatype(MPI_Datatype &type)
+  {
+    data_.set_datatype(type);
+  }
+
+  /**
+   * Returns the number of pointers contained in this data
+   * block. 
+   */
+  inline unsigned int get_num_ptrs()
+  {
+    return data_.get_num_ptrs();
+  }
+
+  /** 
+   * Returns a pointer to some data. We make no guarantee about the
+   * state of the pointer, because it is set by some other object. 
+   *
+   * @param ptr_num the pointer number to return, defaults to
+   * zero. Must be less than the value returned by get_num_ptrs(). 
+   */
+  inline void *get_ptr(unsigned int ptr_num = 0)
+  {
+    return data_.get_ptr(ptr_num);
+  }
+
+  /**
+   * Returns the number of items (MPI Datatype data blocks) contained
+   * in each pointer. 
+   */
+  inline unsigned int get_num()
+  {
+    return data_.get_num();
+  }
+
+  /**
+   * Sets a pointer. The optional parameter ptr_num determines which
+   * pointer number to set. 
+   *
+   * @param ptr_num optional parameter the specifies the pointer
+   * number to set. Defaults to zero. 
+   */
+  inline void set_ptr(void *ptr, unsigned int ptr_num = 0)
+  {
+    data_.set_ptr(ptr, ptr_num);
+  }
+
+  /**
+   * Set the number of items. Setting to zero indicates no result. 
+   */
+  inline void set_num(unsigned int num)
+  {
+    data_.set_num(0);
+  }
+};
+
+/**
  * An abstract base class used to implement results. This class
  * recieves a reference to a grid and a reference to a DataWriter. It
  * takes data from the grid, performs calculations, and then calls
@@ -41,10 +229,11 @@ using namespace std;
  * The method get_result() MUST be implemented. Is intended to be called
  * after every the updates for each time step have been computed. 
  *
- * get_result(), returns a structure containing an MPI derived
- * datatype describing the data, a pointer to the data, and the number
- * of elements in the result. If there is no data to be written, then
- * the number of elements is zero. 
+ * get_result(), returns a vector of structures containing an MPI
+ * derived datatype describing the data, a pointer to the data, and
+ * the number of elements in the result. If there is no data to be
+ * written, then the number of elements is zero. These structures
+ * represent variables.
  *
  * The dimensions defined by the subclasses is NOT to include
  * time. Since this request gets called on once every time step, time
@@ -65,17 +254,9 @@ class Result : public LifeCycle
 private:
 
 protected:
-  string var_name_; /**< Variable name */
-  Data data_;
-
-  vector<int> dim_lens_; /**< Dimension lengths */
-  vector<string> dim_names_; /**< Dimension names */
-  vector<unsigned int> dim_starts_; /**< Starting positions for the
-                                       data in the final output. Used
-                                       when the data is collected to
-                                       one rank for writing, so it
-                                       knows where the data from each
-                                       rank goes. */
+  map <string, Variable *> variables_; /**< Variables for this result. Most
+                                          results will only have one
+                                          variable. */  
 
   unsigned int time_start_; /**< Time step to start returning results at */
   unsigned int time_stop_; /**< Time step to stop returning results at */
@@ -83,10 +264,6 @@ protected:
                                results. */ 
 
   string dw_name_; /**< DataWriter name we intend our results for */
-
-  bool time_dim_; /**< True if this result has a time dimension. If
-                     false, DataWriters except only one result from
-                     this Result, usually at time_stop_. */
 
   /** 
    * Help subclasses know if they should return any results or not
@@ -102,21 +279,12 @@ protected:
 
 public:
   Result() 
-    : var_name_("Result"), time_start_(0), time_stop_(~0),
-      time_space_(0), time_dim_(true)//, dw_(0)
+    : time_start_(0), time_stop_(~0),
+      time_space_(0)//, dw_(0)
   {}
 
   virtual ~Result()
   {}
-
-  /**
-   * Returns true if this result has a time dimension, that it,
-   * returns data at more than one time step. 
-   */
-  inline bool has_time_dimension()
-  {
-    return time_dim_;
-  }
 
   /**
    * Set the time related parameters
@@ -157,60 +325,8 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  virtual Data &get_result(const Grid &grid, unsigned int time_step) = 0;
-
-  /**
-   * Set the name of the variable. 
-   * @param name a string with the name
-   */
-  inline void set_name(const string &name)
-  {
-    var_name_ = name;
-    data_.set_var_name(name);
-  }
-
-  /**
-   * Return the name of the variable. 
-   * @return a string with the name in it. 
-   */
-  inline const string &get_name()
-  {
-    return var_name_;
-  }
-
-  /**
-   * Returns the lengths of the dimensions
-   * @return a reference to a vector of lengths of the dimensions
-   */
-  inline const vector<int> &get_dim_lengths()
-  {
-    return dim_lens_;
-  }
-
-  /**
-   * Returns the names of the dimensions
-   * @return a reference to the names of the dimensions
-   */
-  inline const vector<string> &get_dim_names()
-  {
-    return dim_names_;
-  }
-
-  /**
-   * Subclasses can implement this to allocate memory or init
-   * constants or whatever. Called just before the simulation
-   * starts. The default implementation does nothing. 
-   */
-  //virtual void init(const Grid &grid)
-  //{}
-  
-  /**
-   * Subclasses can implement this to deallocate memory or
-   * whatever. Called just after the simulation ends. The default
-   * implementation does nothing. 
-   */
-  //virtual void deinit(const Grid &grid)
-  //{}
+  virtual map<string, Variable *> &get_result(const Grid &grid, 
+                                              unsigned int time_step) = 0;
 };
 
 #endif // RESULT_H

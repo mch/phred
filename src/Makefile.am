@@ -36,6 +36,8 @@ phred_SOURCES=\
 	Geometry.hh \
 	Box.hh \
 	Box.cc \
+	SphereGeom.hh \
+	SphereGeom.cc \
 	Grid.cc \
 	Grid.hh \
 	GridInfo.hh \

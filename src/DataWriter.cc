@@ -21,12 +21,17 @@
 
 #include "DataWriter.hh"
 
-void DataWriter::handle_data(unsigned int time_step, Data &data)
+void DataWriter::handle_data(unsigned int time_step, 
+                             map<string, Variable *> &data)
 {
-  gather_data(time_step, data);
+  map<string, Variable *>::iterator iter = data.begin();
+  map<string, Variable *>::iterator iter_e = data.end();
+
+  for (iter = data.begin(); iter != iter_e; ++iter)
+    gather_data(time_step, (*iter).second->get_data(););
 }
 
-void DataWriter::gather_data(unsigned int time_step, Data &data)
+void DataWriter::gather_data(unsigned int time_step, const Data &data)
 {
   // Is the data on the right rank? 
   unsigned int nums_snd[2], *nums_recv;

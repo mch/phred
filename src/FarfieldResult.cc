@@ -37,12 +37,17 @@ FarfieldResult::FarfieldResult()
     jff_mom_(0), mff_mom_(0),
     t_cross_(0), rank_(0), size_(0), 
     output_type_(ETHETAPHI), result_(0)
-{}
+{
+  variables_["angles"] = &angles_;
+  variables_["freqs"] = &freqs_;
+  variables_["ff data"] = &data_;
+}
 
 FarfieldResult::~FarfieldResult()
 {}
 
-Data & FarfieldResult::get_result(const Grid &grid, unsigned int time_step)
+map<string, Variable *> & FarfieldResult::get_result(const Grid &grid, 
+                                                     unsigned int time_step)
 {
   if (result_time(time_step))
   {
@@ -57,12 +62,11 @@ Data & FarfieldResult::get_result(const Grid &grid, unsigned int time_step)
   if (time_step == time_stop_)
   {
     // copy the data into the result_
-    field_t *r = result_;
+    field_t *p = result_;
     for (unsigned int j = 0; j < num_freqs_; j++)
     {
       for (unsigned int i = 0; i < num_pts_; i++)
       {
-        p += 2;
         switch (output_type_)
         {
         case ETHETA:
@@ -80,16 +84,16 @@ Data & FarfieldResult::get_result(const Grid &grid, unsigned int time_step)
           break;
 
         case HTHETA:
-          *p = h_theta_re_[i][j];
+          *p = e_theta_re_[i][j] / ETA_0;
           ++p;
-          *p = h_theta_im_[i][j];
+          *p = e_theta_im_[i][j] / ETA_0;
           ++p;
           break;
 
         case HPHI:
-          *p = h_phi_re_[i][j];
+          *p = e_phi_re_[i][j] / ETA_0;
           ++p;
-          *p = h_phi_im_[i][j];
+          *p = e_phi_im_[i][j] / ETA_0;
           ++p;
           break;
 
@@ -105,14 +109,14 @@ Data & FarfieldResult::get_result(const Grid &grid, unsigned int time_step)
           break;
 
         case HTHETAPHI:
-          *p = h_theta_re_[i][j];
+          *p = e_theta_re_[i][j] / ETA_0;
           ++p;
-          *p = h_theta_im_[i][j];
+          *p = e_theta_im_[i][j] / ETA_0;
           ++p;
-          *p = h_phi_re_[i][j];
+          *p = e_phi_re_[i][j] / ETA_0;
           ++p;
-          *p = h_phi_im_[i][j];
-          ++p;
+          *p = e_phi_im_[i][j] / ETA_0;
+          ++p; 
           break;
 
         case RCSNORM:
@@ -136,7 +140,7 @@ Data & FarfieldResult::get_result(const Grid &grid, unsigned int time_step)
     data_.set_ptr(result_);
   }
 
-  return data_;
+  return variables_;
 }
 
 void FarfieldResult::init(const Grid &grid)
@@ -162,8 +166,8 @@ void FarfieldResult::init(const Grid &grid)
                     static_cast<delta_t>(2.)))
          / (C * grid.get_deltat())));
   
-  theta_ = new float[num_pts_];
-  phi_ = new float[num_pts_];
+  theta_ = new float[num_pts_ * 2];
+  phi_ = theta_ + num_pts_;
   
   e_theta_re_ = new float*[num_pts_];
   e_theta_im_ = new float*[num_pts_];
@@ -212,7 +216,9 @@ void FarfieldResult::init(const Grid &grid)
   
   arc_connect();
 
-  time_dim_ = false; 
+  angles_.has_time_dimension(false);
+  freqs_.has_time_dimension(false);
+  data_.has_time_dimension(false);
 
   // Output will be a three dimensional result, with a 2d table for
   // each frequency, and each frequency on it's own page. It will look
@@ -225,49 +231,52 @@ void FarfieldResult::init(const Grid &grid)
   case ETHETA:
     var_name_ = "Electric field in theta";
     break;
-    num_cols = 4;
+    num_cols = 2;
     break;
 
   case EPHI:
     var_name_ = "Electric field in phi";
     break;
-    num_cols = 4;
+    num_cols = 2;
     break;
 
   case HTHETA:
     var_name_ = "Magnetic field in theta";
-    num_cols = 4;
+    num_cols = 2;
     break;
 
   case HPHI:
     var_name_ = "Magentic field in phi";
-    num_cols = 4;
+    num_cols = 2;
     break;
 
   case RCSNORM:
     var_name_ = "Normalized RADAR cross-section";
-    num_cols = 3;
+    num_cols = 2;
     break;
 
   case RCSDBPOL:
     var_name_ = "Normalized RADAR cross-section in dB";
-    num_cols = 3;
+    num_cols = 2;
     break;
 
   case ETHETAPHI:
     var_name_ = "Electric field in theta and phi";
-    num_cols = 6;
+    num_cols = 4;
     break;
 
   case HTHETAPHI:
     var_name_ = "Magentic field in theta and phi"; 
-    num_cols = 6;
+    num_cols = 4;
     break;
   }
   
-  dim_lens_.push_back(num_cols);
-  dim_lens_.push_back(num_pts_);
-  dim_lens_.push_back(num_freqs_);
+  freqs_.add_dimension("frequency", num_freqs_, 0);
+  angles_.add_dimension("theta and phi", 2, 0);
+  angles_.add_dimension("angles", num_pts_, 0);
+  data_.add_dimension("data", num_cols, 0);
+  data_.add_dimension("points", num_pts_, 0);
+  data_.add_dimension("frequencies", num_freqs_, 0);
 
   result_ = new field_t[num_cols * num_freqs_ * num_pts_];
   if (!result_)
@@ -276,19 +285,6 @@ void FarfieldResult::init(const Grid &grid)
     throw MemoryException();
   }
   memset(result_, 0, num_cols * num_freqs_ * num_ptrs_);
-  
-  field_t *r = result_;
-
-  for (int j = 0; j < num_freqs_; j++)
-  {
-    for (int i = 0; i < num_pts_; i++)
-    {
-      *p = theta_[i]; 
-      ++p;
-      *p = phi_[i];
-      p += num_cols;
-    }
-  }
   
   MPI_Datatype temp;
   MPI_Type_contiguous(num_cols * num_freqs_ * num_pts_, 

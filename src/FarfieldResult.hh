@@ -91,7 +91,14 @@ protected:
 
   FfType output_type_; /**< Type of result to produce */
 
-  field_t result_; /**< Data to output */
+  field_t *result_; /**< Data to output */
+
+  Variable freqs_; /**< Variable containing a list of frequencies we
+                       have nf->ff data for. */
+
+  Variable angles_; /**< N rows, two columns, theta and phi values. */ 
+
+  Variable data_; /**< ff data */ 
 
   /**
    * Helper function to calculate the result. 
@@ -216,7 +223,8 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  Data &get_result(const Grid &grid, unsigned int time_step);
+  map<string, Variable *> &get_result(const Grid &grid, 
+                                      unsigned int time_step);
 
   /**
    * Setup the result, allocate memory, etc. Called just before the

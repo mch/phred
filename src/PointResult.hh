@@ -49,6 +49,9 @@ protected:
   // True if the point is in our part of the grid
   bool ours_;
 
+  // Our variable
+  Variable var_;
+
 public:
 
   PointResult();
@@ -63,7 +66,8 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  virtual Data &get_result(const Grid &grid, unsigned int time_step);
+  virtual map<string, Variable *> &get_result(const Grid &grid, 
+                                              unsigned int time_step);
 
   /**
    * Set the point in global coordinates
