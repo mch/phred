@@ -335,7 +335,12 @@ if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test
 dnl Turn on inlining, template registry, RTTI, 2 GB memory access
    CXXFLAGS="$CXXFLAGS -Q -qtemplateregistry -qrtti=all -bmaxdata:0x80000000"
 fi
-dnl Checks for library functions.
+
+dnl If we are on IRIX, add -LANG:std to CXXFLAGS
+if test "$build_vendor" = "sgi"; then
+  CXXFLAGS="$CXXFLAGS -LANG:std"
+  LIBS="$LIBS -lm"
+fi
 
 AC_SUBST(CFLAGS, $CFLAGS)
 AC_SUBST(CXXFLAGS, $CXXFLAGS)

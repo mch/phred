@@ -62,12 +62,12 @@ public:
   /**
    * Init the PY writer, open file and stuff. 
    */
-  void init();
+  void init(const Grid &grid);
 
   /**
    * Clean up, but don't destruct. 
    */
-  void deinit();
+  void deinit(const Grid &grid);
 
   /**
    * Add a result that this data writer will have to know how to
@@ -95,10 +95,10 @@ public:
                           Data &data, MPI_Datatype t, 
                           void *ptr, unsigned int len);
 #else
-  inline void init()
+  inline void init(const Grid &grid)
   {}
 
-  inline void deinit()
+  inline void deinit(const Grid &grid)
   {}
 
   inline void add_variable(Result &result)

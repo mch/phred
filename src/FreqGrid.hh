@@ -84,17 +84,17 @@ protected:
   /**
    * Compute the update equatations for the Ex field component. 
    */
-  virtual void update_ex();
+  virtual void update_ex(region_t update_r);
 
   /**
    * Compute the update equatations for the Ey field component. 
    */
-  virtual void update_ey();
+  virtual void update_ey(region_t update_r);
 
   /**
    * Compute the update equatations for the Ez field component. 
    */
-  virtual void update_ez();
+  virtual void update_ez(region_t update_r);
 
   /**
    * This is called by set_define_mode(true), and it should add any

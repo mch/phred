@@ -40,7 +40,8 @@ public:
     : freq_start_(freq_start), freq_stop_(freq_stop), num_freqs_(num_freqs)
   {}
 
-  ~DFTResult() = 0;
+  virtual ~DFTResult()
+  {}
 
   /**
    * Set the start frequency of the range

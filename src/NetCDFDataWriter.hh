@@ -173,12 +173,6 @@ public:
 #else
 class NetCDFDataWriter : public DataWriter {
 private:
-  unsigned int write_data(unsigned int time_step, 
-                          Data &data, MPI_Datatype t, 
-                          void *ptr, unsigned int len)
-  {
-    return 0;
-  }
 
 public:
   NetCDFDataWriter(int rank, int size)

@@ -112,7 +112,7 @@ public:
   /**
    * Returns a BoundayCondition type so the grid knows this is a subdomain.
    */
-  virtual BoundaryCondition get_type();
+  virtual BoundaryCondition get_type() const;
 
 };
 #endif // SUBDOMAIN_BC_H

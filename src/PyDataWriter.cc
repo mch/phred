@@ -37,10 +37,10 @@ PyDataWriter::~PyDataWriter()
 }
 
 #ifdef USE_PY_BINDINGS
-void PyDataWriter::init()
+void PyDataWriter::init(const Grid &grid)
 {}
 
-void PyDataWriter::deinit()
+void PyDataWriter::deinit(const Grid &grid)
 {}
 
 void PyDataWriter::add_variable(Result &result)

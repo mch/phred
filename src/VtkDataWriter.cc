@@ -34,12 +34,12 @@ VtkDataWriter::~VtkDataWriter()
 
 }
 
-VtkDataWriter::init()
+VtkDataWriter::init(const Grid &grid)
 {
 
 }
 
-VtkDataWriter::deinit()
+VtkDataWriter::deinit(const Grid &grid)
 {
 
 }

@@ -102,12 +102,14 @@ phred_SOURCES=\
 	VtkDataWriter.cc \
 	PyDataWriter.hh \
 	PyDataWriter.cc \
+	DFTResult.hh \
 	PointDFTResult.hh \
 	PointDFTResult.cc \
 	SourceTimeResult.hh \
 	SourceTimeResult.cc \
 	SourceDFTResult.hh \
 	SourceDFTResult.cc \
+	counted_ptr.hh \
 	phred.cc $(phred_cond)
 
 #	SpaceExcitation.cc 

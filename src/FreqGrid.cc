@@ -202,7 +202,7 @@ void FreqGrid::free_material()
   }
 }
 
-void FreqGrid::update_ex()
+void FreqGrid::update_ex(region_t update_r)
 {
   unsigned int mid, idx, idx2, plasma_idx = 0;
   int i, j, k;
@@ -216,18 +216,18 @@ void FreqGrid::update_ex()
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_ex_r_.xmin; i < update_ex_r_.xmax; i++) {
-      for (j = update_ex_r_.ymin; j < update_ex_r_.ymax; j++) {
+    for (i = update_r.xmin; i < update_r.xmax; i++) {
+      for (j = update_r.ymin; j < update_r.ymax; j++) {
       
-        idx = pi(i, j, update_ex_r_.zmin);
-        idx2 = pi(i, j-1, update_ex_r_.zmin);
+        idx = pi(i, j, update_r.zmin);
+        idx2 = pi(i, j-1, update_r.zmin);
 
         ex = &(ex_[idx]);
         hz1 = &(hz_[idx]);
         hz2 = &(hz_[idx2]);
         hy = &(hy_[idx]);
         
-        for (k = update_ex_r_.zmin; k < update_ex_r_.zmax; k++) {
+        for (k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
 
           // Is this a plasma?
@@ -268,7 +268,7 @@ void FreqGrid::update_ex()
   }
 }
 
-void FreqGrid::update_ey()
+void FreqGrid::update_ey(region_t update_r)
 {
   unsigned int mid, idx, plasma_idx = 0;
   int i, j, k;
@@ -282,17 +282,17 @@ void FreqGrid::update_ey()
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_ey_r_.xmin; i < update_ey_r_.xmax; i++) {
-      for (j = update_ey_r_.ymin; j < update_ey_r_.ymax; j++) {
+    for (i = update_r.xmin; i < update_r.xmax; i++) {
+      for (j = update_r.ymin; j < update_r.ymax; j++) {
 
-        idx = pi(i, j, update_ey_r_.zmin);
-        hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
+        idx = pi(i, j, update_r.zmin);
+        hz1 = &(hz_[pi(i-1, j, update_r.zmin)]);
 
         ey = &(ey_[idx]);
         hx = &(hx_[idx]);
         hz2 = &(hz_[idx]);
 
-        for (k = update_ey_r_.zmin; k < update_ey_r_.zmax; k++) {
+        for (k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           // Is this a plasma?
@@ -334,7 +334,7 @@ void FreqGrid::update_ey()
 
 }
 
-void FreqGrid::update_ez()
+void FreqGrid::update_ez(region_t update_r)
 {
   unsigned int mid, idx, plasma_idx = 0;
   int i, j, k;
@@ -348,17 +348,17 @@ void FreqGrid::update_ez()
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_ez_r_.xmin; i < update_ez_r_.xmax; i++) {
-      for (j = update_ez_r_.ymin; j < update_ez_r_.ymax; j++) {
-        idx = pi(i, j, update_ez_r_.zmin);
-        hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin)]);
-        hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin)]);
+    for (i = update_r.xmin; i < update_r.xmax; i++) {
+      for (j = update_r.ymin; j < update_r.ymax; j++) {
+        idx = pi(i, j, update_r.zmin);
+        hy2 = &(hy_[pi(i-1, j, update_r.zmin)]);
+        hx1 = &(hx_[pi(i, j-1, update_r.zmin)]);
 
         ez = &(ez_[idx]);
         hy1 = &(hy_[idx]);
         hx2 = &(hx_[idx]);
 
-        for (k = update_ez_r_.zmin; k < update_ez_r_.zmax; k++) {
+        for (k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           // Is this a plasma?
