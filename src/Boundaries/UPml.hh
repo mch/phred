@@ -52,6 +52,8 @@ protected:
    * Additional auxiliary variables used by other dispersions
    */ 
   field_t *aux1_x_, *aux1_y_, *aux1_z_;
+  field_t *aux2_x_, *aux2_y_, *aux2_z_;
+  field_t *aux3_x_, *aux3_y_, *aux3_z_;
 
   /**
    * Sigma max, if the user choses to set it. When set to zero (the
@@ -79,6 +81,15 @@ protected:
    * of the UPML. Defaults to 1.0. 
    */ 
   mat_coef_t sigma_ratio_;
+
+  // MPI Derived data types for moving split field data across
+  // subdomain boundaries
+  MPI_Datatype z_vector_;
+  MPI_Datatype y_vector_;
+  MPI_Datatype x_vector_;
+  MPI_Datatype xy_plane_;
+  MPI_Datatype yz_plane_;
+  MPI_Datatype xz_plane_;
 
   // Update equations
   void update_ex(Grid &grid);

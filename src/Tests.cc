@@ -213,7 +213,7 @@ void hole()
   // BOUNDARIES
   for (int i = 0; i < 6; i++)
   {
-    shared_ptr<Pml> bound = shared_ptr<Pml>(new Pml());
+    shared_ptr<UPml> bound = shared_ptr<UPml>(new UPml());
     (*bound).set_thickness(8);
     fdtd.set_boundary(static_cast<Face>(i), bound);
   }
@@ -395,7 +395,7 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
   // BOUNDARIES
   for (int i = 0; i < 6; i++)
   {
-    shared_ptr<Pml> bound = shared_ptr<Pml>(new Pml());
+    shared_ptr<UPml> bound = shared_ptr<UPml>(new UPml());
     (*bound).set_thickness(8);
     fdtd.set_boundary(static_cast<Face>(i), bound);
   }

@@ -1,11 +1,11 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(Phred, 0.1.1)
+AC_INIT(Phred, 0.1.2)
 AC_PREREQ(2.57)
 AC_CANONICAL_SYSTEM
 
 dnl Every other copy of the package version number gets its value from here
-AM_INIT_AUTOMAKE(Phred, 0.1.1)
+AM_INIT_AUTOMAKE(Phred, 0.1.2)
 
 AM_MAINTAINER_MODE
 
@@ -233,11 +233,11 @@ AC_CHECK_HEADER(mpi.h, [], [
         AC_MSG_ERROR([*** Can't find any MPI header files. ])])
 
 
-if [[ ! "$with_popt" = "no" ]]; then
-        AC_DEFINE([USE_POPT], [1], [Use the popt library])
-        AC_CHECK_LIB(popt, poptGetContext, [], [])
-        AC_CHECK_HEADER([popt.h], [], [])
-fi
+dnl if [[ ! "$with_popt" = "no" ]]; then
+dnl         AC_DEFINE([USE_POPT], [1], [Use the popt library])
+dnl         AC_CHECK_LIB(popt, poptGetContext, [], [])
+dnl         AC_CHECK_HEADER([popt.h], [], [])
+dnl fi
 
 AC_CHECK_FUNC(getopt,[AC_DEFINE(HAVE_GETOPT, 1, [getopt option parser])])
 
@@ -405,9 +405,9 @@ echo "Preprocessor flags: $CPPFLAGS"
 echo "Linker flags: $LDFLAGS"
 echo "Library flags: $LIBS"
 echo
-echo $ECHO_N "Using popt to parse command line arguments? $ECHO_C"
-if test "x$HAVE_LIBPOPT" = "x1"; then echo "${ECHO_T}yes"; else echo "${ECHO_T}no"; fi
-echo
+dnl echo $ECHO_N "Using popt to parse command line arguments? $ECHO_C"
+dnl if test "x$HAVE_LIBPOPT" = "x1"; then echo "${ECHO_T}yes"; else echo "${ECHO_T}no"; fi
+dnl echo
 echo "DataWriters: " 
 echo $ECHO_N " - NetCDF? $ECHO_C" 
 if test "x$USE_NETCDF" = "x1"; then echo "${ECHO_T}yes"; else echo "${ECHO_T}no"; fi

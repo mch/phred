@@ -38,6 +38,8 @@ UPml::UPml()
   : common_(0), dx_(0), dy_(0), dz_(0), 
     bx_(0), by_(0), bz_(0), 
     aux1_x_(0), aux1_y_(0), aux1_z_(0),
+    aux2_x_(0), aux2_y_(0), aux2_z_(0),
+    aux3_x_(0), aux3_y_(0), aux3_z_(0),
     sigma_max_(0.0), 
     poly_order_(4), eps_opt_(1.0), sigma_ratio_(1.0)
 {
@@ -252,15 +254,56 @@ void UPml::init(const Grid &grid, Face face)
   memset(by_, 0, sizeof(field_t) * sz);
   memset(bz_, 0, sizeof(field_t) * sz);
 
-  // Waste!
-  aux1_x_ = new field_t[sz];
-  aux1_y_ = new field_t[sz];
-  aux1_z_ = new field_t[sz];
-
-  memset(aux1_x_, 0, sizeof(field_t) * sz);
-  memset(aux1_y_, 0, sizeof(field_t) * sz);
-  memset(aux1_z_, 0, sizeof(field_t) * sz);
+  shared_ptr<MaterialLib> mlib = grid.get_material_lib();
+  map<string, Material>::const_iterator iter 
+    = mlib->get_material_iter_begin();
+  map<string, Material>::const_iterator iter_e 
+    = mlib->get_material_iter_end();
   
+  bool need_lossy = false;
+  bool need_drude = false;
+  while (iter != iter_e) 
+  {
+    if ((*iter).second.type() == LOSSY)
+      need_lossy = true;
+
+    if ((*iter).second.type() == DRUDE)
+      need_drude = true;
+
+    ++iter;
+  }
+
+  if (need_lossy || need_drude)
+  {
+    aux1_x_ = new field_t[sz];
+    aux1_y_ = new field_t[sz];
+    aux1_z_ = new field_t[sz];
+    
+    memset(aux1_x_, 0, sizeof(field_t) * sz);
+    memset(aux1_y_, 0, sizeof(field_t) * sz);
+    memset(aux1_z_, 0, sizeof(field_t) * sz);
+  }
+
+  if (need_drude)
+  {
+    aux2_x_ = new field_t[sz];
+    aux2_y_ = new field_t[sz];
+    aux2_z_ = new field_t[sz];
+    
+    memset(aux2_x_, 0, sizeof(field_t) * sz);
+    memset(aux2_y_, 0, sizeof(field_t) * sz);
+    memset(aux2_z_, 0, sizeof(field_t) * sz);
+
+    aux3_x_ = new field_t[sz];
+    aux3_y_ = new field_t[sz];
+    aux3_z_ = new field_t[sz];
+    
+    memset(aux3_x_, 0, sizeof(field_t) * sz);
+    memset(aux3_y_, 0, sizeof(field_t) * sz);
+    memset(aux3_z_, 0, sizeof(field_t) * sz);
+
+  }
+
   cout << "UPML Update region for face " << face << ":"
        << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
        << grid_ex_r_.xmax
@@ -299,10 +342,33 @@ void UPml::init(const Grid &grid, Face face)
        << ", z: " << grid_hz_r_.zmin << " -> " 
        << grid_hz_r_.zmax << endl;
 
+  MPI_Type_contiguous(bc_r_.zmax, GRID_MPI_TYPE, &z_vector_);
+  MPI_Type_commit(&z_vector_);
+
+  MPI_Type_vector(bc_r_.ymax, 1, bc_r_.zmax, GRID_MPI_TYPE, &y_vector_);
+  MPI_Type_commit(&y_vector_);
+  
+  MPI_Type_vector(bc_r_.xmax, 1, bc_r_.ymax * bc_r_.zmax, 
+                  GRID_MPI_TYPE, &x_vector_);
+  MPI_Type_commit(&x_vector_);
+
+  MPI_Type_contiguous(bc_r_.zmax * bc_r_.ymax, GRID_MPI_TYPE, &yz_plane_);
+  MPI_Type_commit(&yz_plane_);
+
+  MPI_Type_vector(bc_r_.xmax, bc_r_.zmax, bc_r_.ymax * bc_r_.zmax, 
+                  GRID_MPI_TYPE, &xz_plane_);
+  MPI_Type_commit(&xz_plane_);
+
+  MPI_Type_hvector(bc_r_.xmax, 1, sizeof(field_t) * bc_r_.zmax * bc_r_.ymax, 
+                   y_vector_, &xy_plane_);
+  MPI_Type_commit(&xy_plane_);
 }
 
 void UPml::deinit(const Grid &grid, Face face)
 {
+  if (common_)
+    common_->deinit();
+
   if (dx_)
   {
     delete[] dx_;
@@ -317,6 +383,39 @@ void UPml::deinit(const Grid &grid, Face face)
     delete[] by_;
     delete[] bz_;
     bx_ = 0;
+  }
+
+  if (aux1_x_)
+  {
+    delete[] aux1_x_;
+    delete[] aux1_y_;
+    delete[] aux1_z_;
+
+    aux1_x_ = 0;
+    aux1_y_ = 0;
+    aux1_z_ = 0;
+  }
+
+  if (aux2_x_)
+  {
+    delete[] aux2_x_;
+    delete[] aux2_y_;
+    delete[] aux2_z_;
+
+    aux2_x_ = 0;
+    aux2_y_ = 0;
+    aux2_z_ = 0;
+  }
+
+  if (aux3_x_)
+  {
+    delete[] aux3_x_;
+    delete[] aux3_y_;
+    delete[] aux3_z_;
+
+    aux3_x_ = 0;
+    aux3_y_ = 0;
+    aux3_z_ = 0;
   }
 }
 
@@ -394,7 +493,7 @@ void UPml::update_ex(Grid &grid)
 
           // Update equations go here!
           if (common_->mtype(mid) == PERF_COND) {
-            d_temp = 0.0;
+            *ex = 0.0;
           } 
           else if (common_->mtype(mid) == LOSSY) 
           {
@@ -407,23 +506,92 @@ void UPml::update_ex(Grid &grid)
               + idt * common_->By(jt) * (q_temp - aux1_x_[pml_idx]);
 
             aux1_x_[pml_idx] = q_temp;
+
+            *ex = *ex * common_->Az(kt) 
+              + common_->Bz(kt) * common_->er(mid) 
+              * (d_temp * common_->Cx(it) - *dx * common_->Dx(it));
+            
+            *dx = d_temp;
           } 
-          else if (common_->mtype(mid) == DEBYE) 
+          else if (common_->mtype(mid) == DRUDE) 
           {
             // Unmagnatized plasma update
+
+            // ADE fields:
+            // p_temp: current value of P, P^n
+            // aux1: previous value of P, P^(n-1)
+
+            // d_temp: current value of D, D^n
+            // *d: previous value of D, D^(n-1)
+            // aux2: penultimate value of D, D^(n-2)
+
+            // e_temp: current value of E, E^n
+            // *e: previous value of E, E^(n-1)
+            // aux3: penultimate value of E, E^(n-2)
+
+            // Z transform fields:
+            // aux2: Previous value of S, S^(n-1)
+            // aux3: Penultimate value of S, S^(n-2)
+
+            field_t p_temp; 
+            p_temp = aux1_x_[pml_idx] * common_->Ay(jt) 
+              + common_->By(jt) 
+              * ( idy*(*hz1 - *hz2) - idz*(*hy - *(hy - 1)) );
+
+            d_temp = *dx * common_->Az(kt) 
+            + common_->Bz(kt)
+            * (p_temp * common_->Cx(it) - aux1_x_[pml_idx] * common_->Dx(it));
+
+            // E field update using ADE method
+#ifdef ADE_DRUDE
+            field_t e_temp;
+            e_temp = common_->drude_c1(mid) * *ex 
+              + common_->drude_c2(mid) * aux3_x_[pml_idx]
+              + common_->drude_c3(mid) * d_temp
+              + common_->drude_c4(mid) * *dx
+              + common_->drude_c5(mid) * aux2_x_[pml_idx]
+              ;
+
+            // Advance storage locations. 
+            aux2_x_[pml_idx] = *dx;
+            *dx = d_temp;
+
+            aux3_x_[pml_idx] = *ex;
+            *ex = e_temp;
+#else
+            // E field update using Z transform method... Have to use
+            // the same as the Grid does, which is Z transform. Using
+            // ADE in UPML results in instability due to the small
+            // error.
+            float s_temp;
+            *ex = d_temp - aux2_x_[pml_idx];
+            
+            s_temp = 
+              (1 + common_->get_vcdt(mid)) * aux2_x_[pml_idx]
+              - (common_->get_vcdt(mid) * aux3_x_[pml_idx])
+              + (common_->get_omegasq(mid) * (1 - common_->get_vcdt(mid)))
+              * *ex;
+
+            // Advance storage locations. 
+            aux3_x_[pml_idx] = aux2_x_[pml_idx];
+            aux2_x_[pml_idx] = s_temp;
+#endif
+
+            // Advance storage locations. 
+            aux1_x_[pml_idx] = p_temp;
           }
           else 
           { // DIELECTRIC
             d_temp = *dx * common_->Ay(jt) 
               + common_->By(jt) 
               * ( idy*(*hz1 - *hz2) - idz*(*hy - *(hy - 1)) );
+
+            *ex = *ex * common_->Az(kt) 
+              + common_->Bz(kt) * common_->er(mid) 
+              * (d_temp * common_->Cx(it) - *dx * common_->Dx(it));
+
+            *dx = d_temp;
           }
-
-          *ex = *ex * common_->Az(kt) 
-            + common_->Bz(kt) * common_->er(mid) 
-            * (d_temp * common_->Cx(it) - *dx * common_->Dx(it));
-
-          *dx = d_temp;
 
           dx++;
           ex++;
@@ -490,7 +658,7 @@ void UPml::update_ey(Grid &grid)
 
           // Update equations go here!
           if (common_->mtype(mid) == PERF_COND) {
-            d_temp = 0.0;
+            *ey = 0.0;
           } 
           else if (common_->mtype(mid) == LOSSY) 
           {
@@ -503,23 +671,91 @@ void UPml::update_ey(Grid &grid)
               + idt * common_->Bz(kt) * (q_temp - aux1_y_[pml_idx]);
 
             aux1_y_[pml_idx] = q_temp;
+
+            *ey = *ey * common_->Ax(it) 
+              + common_->Bx(it) * common_->er(mid)
+              * ( d_temp * common_->Cy(jt) - *dy * common_->Dy(jt) );
+            
+            *dy = d_temp;
           } 
-          else if (common_->mtype(mid) == DEBYE) 
+          else if (common_->mtype(mid) == DRUDE) 
           {
             // Unmagnatized plasma update
+
+            // ADE fields:
+            // p_temp: current value of P, P^n
+            // aux1: previous value of P, P^(n-1)
+
+            // d_temp: current value of D, D^n
+            // *d: previous value of D, D^(n-1)
+            // aux2: penultimate value of D, D^(n-2)
+
+            // e_temp: current value of E, E^n
+            // *e: previous value of E, E^(n-1)
+            // aux3: penultimate value of E, E^(n-2)
+
+            // Z transform fields:
+            // aux2: Previous value of S, S^(n-1)
+            // aux3: Penultimate value of S, S^(n-2)
+
+            field_t p_temp; 
+            p_temp = aux1_y_[pml_idx] * common_->Az(jt) 
+              + common_->Bz(jt) 
+              * ( idz*(*hx - *(hx-1)) - idx*(*hz2 - *hz1));
+
+            d_temp = *dy * common_->Ax(kt) 
+            + common_->Bx(kt)
+            * (p_temp * common_->Cy(it) - aux1_y_[pml_idx] * common_->Dy(it));
+
+#ifdef ADE_DRUDE
+            field_t e_temp;
+            e_temp = common_->drude_c1(mid) * *ey 
+              + common_->drude_c2(mid) * aux3_y_[pml_idx]
+              + common_->drude_c3(mid) * d_temp
+              + common_->drude_c4(mid) * *dy
+              + common_->drude_c5(mid) * aux2_y_[pml_idx]
+              ;
+
+            aux2_y_[pml_idx] = *dy;
+            *dy = d_temp;
+
+            aux3_y_[pml_idx] = *ey;
+            *ey = e_temp;
+#else
+            // E field update using Z transform method... Have to use
+            // the same as the Grid does, which is Z transform. Using
+            // ADE in UPML results in instability due to the small
+            // error.
+            float s_temp;
+            *ey = d_temp - aux2_y_[pml_idx];
+            
+            s_temp = 
+              (1 + common_->get_vcdt(mid)) * aux2_y_[pml_idx]
+              - (common_->get_vcdt(mid) * aux3_y_[pml_idx])
+              + (common_->get_omegasq(mid) * (1 - common_->get_vcdt(mid)))
+              * *ey;
+
+            // Advance storage locations. 
+            aux3_y_[pml_idx] = aux2_y_[pml_idx];
+            aux2_y_[pml_idx] = s_temp;
+#endif
+
+            // Advance storage locations. 
+            aux1_y_[pml_idx] = p_temp;
+
           }
           else 
           { // DIELECTRIC
             d_temp = *dy * common_->Az(kt) 
               + common_->Bz(kt) 
               * ( idz*(*hx - *(hx-1)) - idx*(*hz2 - *hz1));
+
+            *ey = *ey * common_->Ax(it) 
+              + common_->Bx(it) * common_->er(mid)
+              * ( d_temp * common_->Cy(jt) - *dy * common_->Dy(jt) );
+
+            *dy = d_temp;
           }
-
-          *ey = *ey * common_->Ax(it) 
-            + common_->Bx(it) * common_->er(mid)
-            * ( d_temp * common_->Cy(jt) - *dy * common_->Dy(jt) );
-
-          *dy = d_temp;
 
           // Increment
           ey++;
@@ -589,7 +825,7 @@ void UPml::update_ez(Grid &grid)
           
           // Update equations go here!
           if (common_->mtype(mid) == PERF_COND) {
-            d_temp = 0.0;
+            *ez = 0.0;
           } 
           else if (common_->mtype(mid) == LOSSY) 
           {
@@ -602,23 +838,89 @@ void UPml::update_ez(Grid &grid)
               + idt * common_->Bx(it) * (q_temp - aux1_z_[pml_idx]);
 
             aux1_z_[pml_idx] = q_temp;
+
+            *ez = *ez * common_->Ay(jt)
+              + common_->By(jt) * common_->er(mid) 
+              * (d_temp * common_->Cz(kt) - *dz * common_->Dz(kt));
+
+            *dz = d_temp;
           } 
-          else if (common_->mtype(mid) == DEBYE) 
+          else if (common_->mtype(mid) == DRUDE) 
           {
             // Unmagnatized plasma update
+
+            // ADE fields:
+            // p_temp: current value of P, P^n
+            // aux1: previous value of P, P^(n-1)
+
+            // d_temp: current value of D, D^n
+            // *d: previous value of D, D^(n-1)
+            // aux2: penultimate value of D, D^(n-2)
+
+            // e_temp: current value of E, E^n
+            // *e: previous value of E, E^(n-1)
+            // aux3: penultimate value of E, E^(n-2)
+
+            // Z transform fields:
+            // aux2: Previous value of S, S^(n-1)
+            // aux3: Penultimate value of S, S^(n-2)
+
+            field_t p_temp; 
+            p_temp = aux1_z_[pml_idx] * common_->Ax(jt) 
+              + common_->Bx(jt) 
+              * ( idx*(*hy1 - *hy2) - idy*(*hx2 - *hx1) );
+
+            d_temp = *dz * common_->Ay(kt) 
+            + common_->By(kt)
+            * (p_temp * common_->Cz(it) - aux1_z_[pml_idx] * common_->Dz(it));
+
+#ifdef ADE_DRUDE
+            e_temp = common_->drude_c1(mid) * *ez 
+              + common_->drude_c2(mid) * aux3_z_[pml_idx]
+              + common_->drude_c3(mid) * d_temp
+              + common_->drude_c4(mid) * *dz
+              + common_->drude_c5(mid) * aux2_z_[pml_idx]
+              ;
+
+            aux2_z_[pml_idx] = *dz;
+            *dz = d_temp;
+
+            aux3_z_[pml_idx] = *ez;
+            *ez = e_temp;
+#else
+            // E field update using Z transform method... Have to use
+            // the same as the Grid does, which is Z transform. Using
+            // ADE in UPML results in instability due to the small
+            // error.
+            float s_temp;
+            *ez = d_temp - aux2_z_[pml_idx];
+            
+            s_temp = 
+              (1 + common_->get_vcdt(mid)) * aux2_z_[pml_idx]
+              - (common_->get_vcdt(mid) * aux3_z_[pml_idx])
+              + (common_->get_omegasq(mid) * (1 - common_->get_vcdt(mid)))
+              * *ez;
+
+            // Advance storage locations. 
+            aux3_z_[pml_idx] = aux2_z_[pml_idx];
+            aux2_z_[pml_idx] = s_temp;
+#endif
+            // Advance storage locations. 
+            aux1_z_[pml_idx] = p_temp;
+
           }
           else 
           { // DIELECTRIC
             d_temp = *dz * common_->Ax(it)
               + common_->Bx(it) 
               * ( idx*(*hy1 - *hy2) - idy*(*hx2 - *hx1) );
+
+            *ez = *ez * common_->Ay(jt)
+              + common_->By(jt) * common_->er(mid) 
+              * (d_temp * common_->Cz(kt) - *dz * common_->Dz(kt));
+
+            *dz = d_temp;
           }
-
-          *ez = *ez * common_->Ay(jt)
-            + common_->By(jt) * common_->er(mid) 
-            * (d_temp * common_->Cz(kt) - *dz * common_->Dz(kt));
-
-          *dz = d_temp;
 
           ez++;
           hy1++;
@@ -857,5 +1159,111 @@ void UPml::update_hz(Grid &grid)
 
 void UPml::add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface)
 {
+  RxTxData ret;
+  unsigned int s_idx = 0, r_idx = 0;
+
+  switch (sdface) {
+  case BACK:
+    s_idx = pi(1, 0, 0);
+    r_idx = pi(0, 0, 0);
+    ret.set_datatype(yz_plane_);
+    break;
+  case FRONT:
+    s_idx = pi(bc_r_.xmax - 2, 0, 0);
+    r_idx = pi(bc_r_.xmax - 1, 0, 0);
+    ret.set_datatype(yz_plane_);
+    break;
+  case LEFT:
+    s_idx = pi(0, 1, 0);
+    r_idx = pi(0, 0, 0);
+    ret.set_datatype(xz_plane_);
+    break;
+  case RIGHT:
+    s_idx = pi(0, bc_r_.ymax - 2, 0);
+    r_idx = pi(0, bc_r_.ymax - 1, 0);
+    ret.set_datatype(xz_plane_);
+    break;
+  case BOTTOM:
+    s_idx = pi(0, 0, 1);
+    r_idx = pi(0, 0, 0);
+    ret.set_datatype(xy_plane_);
+    break;
+  case TOP:
+    s_idx = pi(0, 0, bc_r_.zmax - 2);
+    r_idx = pi(0, 0, bc_r_.zmax - 1);
+    ret.set_datatype(xy_plane_);
+    break;
+  }
+
+  ret.set_field_type(E);
+
+  ret.set_rx_ptr(&(dx_[r_idx]));
+  ret.set_tx_ptr(&(dx_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(dy_[r_idx]));
+  ret.set_tx_ptr(&(dy_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(dz_[r_idx]));
+  ret.set_tx_ptr(&(dz_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(bx_[r_idx]));
+  ret.set_tx_ptr(&(bx_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(by_[r_idx]));
+  ret.set_tx_ptr(&(by_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(bz_[r_idx]));
+  ret.set_tx_ptr(&(bz_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  if (aux1_x_)
+  {
+    ret.set_rx_ptr(&(aux1_x_[r_idx]));
+    ret.set_tx_ptr(&(aux1_x_[s_idx]));
+    sd->add_tx_rx_data(ret);
+
+    ret.set_rx_ptr(&(aux1_y_[r_idx]));
+    ret.set_tx_ptr(&(aux1_y_[s_idx]));
+    sd->add_tx_rx_data(ret);
+
+    ret.set_rx_ptr(&(aux1_z_[r_idx]));
+    ret.set_tx_ptr(&(aux1_z_[s_idx]));
+    sd->add_tx_rx_data(ret);
+  }
+
+  if (aux2_x_)
+  {
+    ret.set_rx_ptr(&(aux2_x_[r_idx]));
+    ret.set_tx_ptr(&(aux2_x_[s_idx]));
+    sd->add_tx_rx_data(ret);
+
+    ret.set_rx_ptr(&(aux2_y_[r_idx]));
+    ret.set_tx_ptr(&(aux2_y_[s_idx]));
+    sd->add_tx_rx_data(ret);
+
+    ret.set_rx_ptr(&(aux2_z_[r_idx]));
+    ret.set_tx_ptr(&(aux2_z_[s_idx]));
+    sd->add_tx_rx_data(ret);
+  }
+
+  if (aux3_x_)
+  {
+    ret.set_rx_ptr(&(aux3_x_[r_idx]));
+    ret.set_tx_ptr(&(aux3_x_[s_idx]));
+    sd->add_tx_rx_data(ret);
+
+    ret.set_rx_ptr(&(aux3_y_[r_idx]));
+    ret.set_tx_ptr(&(aux3_y_[s_idx]));
+    sd->add_tx_rx_data(ret);
+
+    ret.set_rx_ptr(&(aux3_z_[r_idx]));
+    ret.set_tx_ptr(&(aux3_z_[s_idx]));
+    sd->add_tx_rx_data(ret);
+  }
 
 }

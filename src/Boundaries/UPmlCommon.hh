@@ -24,10 +24,27 @@
 
 #include "../Grid.hh"
 
+
+// ADE Drude was the first one implemented, but the interior grid uses
+// a drude forumulation that was developed using the Z transform. Use
+// of the ADE in the UPML and the Z transform in the interior seems to
+// cause instability (or there is an error in one of the
+// constants). The Z transform formulation should also be more
+// accurate.
+#undef ADE_DRUDE
+// #define ADE_DRUDE 1
+
+
 /**
  * A class that contains data that is needed for all Uniaxial PML's on
  * a grid. This is a singleton; the assumption is that there is only
  * ever one grid being used in a program at a time.
+ *
+ * This class is cabable of matching interiors with inhomogenous
+ * mixtures of dielectrics, lossy dielectrics, Drude (non magnetic
+ * plasma) material. 
+ *
+ * Lorentz and Debye materials coming soon. 
  */ 
 class UPmlCommon
 {
@@ -117,74 +134,13 @@ protected:
   // Constants for the lossy dispersion, one for each material. 
   float *lossyA_, *lossyB_;
 
-//   /**
-//    * Returns a sigma value along the x axis.
-//    *
-//    * @param mid material id
-//    * @param x x coordinate
-//    */
-//   inline float sigma_x(unsigned int mid, unsigned int x)
-//   {
-//     unsigned int xcoord = 0; 
-//     float ret = 0.0;
-
-//     if (x < thicknesses_[BACK])
-//       xcoord = x;
-//     if (x > (grid_.get_ldx() - thicknesses_[FRONT]))
-//       xcoord = thicknesses_[BACK]
-//         + (x - (grid_.get_ldx() - thicknesses_[FRONT]));
-
-//     if (mid > 0)
-//       ret = sigma_x_[xcoord + ((mid - 1) * num_materials_)];
-
-//     return ret;
-//   }
-
-//   /**
-//    * Returns a sigma value along the y axis.
-//    *
-//    * @param mid material id
-//    * @param y y coordinate
-//    */
-//   inline float sigma_y(unsigned int mid, unsigned int y)
-//   {
-//     unsigned int ycoord = 0; 
-//     float ret = 0.0;
-
-//     if (y < thicknesses_[LEFT])
-//       ycoord = y;
-//     if (y > (grid_.get_ldy() - thicknesses_[RIGHT]))
-//       ycoord = thicknesses_[LEFT]
-//         + (y - (grid_.get_ldy() - thicknesses_[RIGHT]));
-
-//     if (mid > 0)
-//       ret = sigma_y_[ycoord + ((mid - 1) * num_materials_)];
-
-//     return ret;
-//   }
-
-//   /**
-//    * Returns a sigma value along the z axis.
-//    *
-//    * @param mid material id
-//    * @param z z coordinate
-//    */
-//   inline float sigma_z(unsigned int mid, unsigned int z)
-//   {
-//     unsigned int zcoord = 0; 
-//     float ret = 0.0;
-
-//     if (z < thicknesses_[BOTTOM])
-//       zcoord = z;
-//     if (z > (grid_.get_ldz() - thicknesses_[TOP]))
-//       zcoord = thicknesses_[BOTTOM]
-//         + (z - (grid_.get_ldz() - thicknesses_[TOP]));
-
-//     if (mid > 0)
-//       ret = sigma_z_[zcoord + ((mid - 1) * num_materials_)];
-
-//     return ret;
-//   }
+  // Constants for the Drude (unmagnitized plasma) dispersion, one for
+  // each material, so they can be indexed using mid. 
+#ifdef ADE_DRUDE
+  float *drudeC1_, *drudeC2_, *drudeC3_, *drudeC4_, *drudeC5_;
+#else
+  float *vcdt_, *omegasq_;
+#endif
 
   void init_constants();
 
@@ -199,6 +155,11 @@ public:
   static UPmlCommon *get_upml_common(Grid &grid);
 
   void init_coeffs();
+
+  /**
+   * Called by UPml::deinit. Free memory and reset the object.
+   */ 
+  void deinit();
 
   inline const float Ax(loop_idx_t i)
   {
@@ -278,6 +239,32 @@ public:
 
   inline MaterialType mtype(mat_idx_t mid)
   { return mtype_[mid]; }
+
+  // ADE Drude model constants
+#ifdef ADE_DRUDE
+  inline float drude_c1(mat_idx_t mid)
+  { return drudeC1_[mid]; }
+
+  inline float drude_c2(mat_idx_t mid)
+  { return drudeC2_[mid]; }
+
+  inline float drude_c3(mat_idx_t mid)
+  { return drudeC3_[mid]; }
+
+  inline float drude_c4(mat_idx_t mid)
+  { return drudeC4_[mid]; }
+
+  inline float drude_c5(mat_idx_t mid)
+  { return drudeC5_[mid]; }
+
+#else
+  // Z transform Drude model constants
+  inline float get_vcdt(mat_idx_t mid)
+  { return vcdt_[mid]; }
+
+  inline float get_omegasq(mat_idx_t mid)
+  { return omegasq_[mid]; }
+#endif
 
   // Parameters set by the UPml object set by the user
   inline unsigned int get_poly_order() const

@@ -231,7 +231,7 @@ void FreqGrid::update_ex(region_t update_r)
           mid = material_[idx];
 
           // Is this a plasma?
-          if (vcdt_[mid] == 0.0) 
+          if (vcdt_[mid] == 0.0) // bad floating point compare... also, slow. 
           {        
             *ex = Ca_[mid] * *ex
               + Cby_[mid] * (*hz1 - *hz2)

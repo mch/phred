@@ -18,7 +18,13 @@ UPmlCommon::UPmlCommon(const Grid &grid)
     Bx_(0), By_(0), Bz_(0), 
     Cx_(0), Cy_(0), Cz_(0), 
     Dx_(0), Dy_(0), Dz_(0), 
-    er_(0), ur_(0)
+    er_(0), ur_(0), mtype_(0),
+    lossyA_(0), lossyB_(0),
+#ifdef ADE_DRUDE
+    drudeC1_(0), drudeC2_(0), drudeC3_(0), drudeC4_(0), drudeC5_(0)
+#else
+    vcdt_(0), omegasq_(0)
+#endif
 {
 
 }
@@ -162,14 +168,10 @@ void UPmlCommon::init_coeffs()
   er_ = new float[nm];
   ur_ = new float[nm];
   mtype_ = new MaterialType[nm];
-  lossyA_ = new float[nm];
-  lossyB_ = new float[nm];
 
   memset(er_, 0, sizeof(float) * nm);
   memset(ur_, 0, sizeof(float) * nm);
   memset(mtype_, 0, sizeof(MaterialType) * nm);
-  memset(lossyA_, 0, sizeof(float) * nm);
-  memset(lossyB_, 0, sizeof(float) * nm);
 
   init_sigmas();
 
@@ -185,11 +187,58 @@ void UPmlCommon::init_sigmas()
   float *sigmas;
   unsigned int start, thickness;
   int incr;
+  int nm = grid_.get_material_lib()->num_materials();
 
   map<string, Material>::const_iterator iter = mlib->materials_.begin();
   map<string, Material>::const_iterator iter_e = mlib->materials_.end();
   
+  // Check if despersion constants and aux variables should be allocated
+  bool need_lossy = false;
+  bool need_drude = false;
+  while (iter != iter_e) 
+  {
+    mat_idx_t mid = (*iter).second.get_id();
+  
+    if ((*iter).second.type() == LOSSY)
+      need_lossy = true;
+
+    if ((*iter).second.type() == DRUDE)
+      need_drude = true;
+
+    ++iter;
+  }
+
+  if (need_lossy)
+  {
+    lossyA_ = new float[nm];
+    lossyB_ = new float[nm];
+
+    memset(lossyA_, 0, sizeof(float) * nm);
+    memset(lossyB_, 0, sizeof(float) * nm);
+  }
+
+  if (need_drude)
+  {
+#ifdef ADE_DRUDE
+    drudeC1_ = new float[nm];
+    drudeC2_ = new float[nm];
+    drudeC3_ = new float[nm];
+    drudeC4_ = new float[nm];
+    drudeC5_ = new float[nm];
+
+    memset(drudeC1_, 0, sizeof(float) * nm);
+    memset(drudeC2_, 0, sizeof(float) * nm);
+    memset(drudeC3_, 0, sizeof(float) * nm);
+    memset(drudeC4_, 0, sizeof(float) * nm);
+    memset(drudeC5_, 0, sizeof(float) * nm);
+#else
+    vcdt_ = new float[nm];
+    omegasq_ = new float[nm];
+#endif
+  }
+
   // Loop over the materials
+  iter = mlib->materials_.begin();
   while (iter != iter_e) 
   {
     mat_prop_t eps = ((*iter).second).get_epsilon() * EPS_0;
@@ -208,6 +257,38 @@ void UPmlCommon::init_sigmas()
       delta_t dt = grid_.get_deltat();
       lossyA_[mid] = (2*eps - dt*sig) / (2*eps + dt*sig);
       lossyB_[mid] = (2*dt) / (2*eps + dt*sig);
+    }
+
+    if (mtype_[mid] == DRUDE)
+    {
+      delta_t dt = grid_.get_deltat();
+      mat_prop_t omega_p = (*iter).second.get_plasma_freq();
+      mat_prop_t vc = (*iter).second.get_collision_freq();
+
+#ifdef ADE_DRUDE
+      mat_prop_t drudeC6 = eps * (
+                                  (omega_p * omega_p / 4) 
+                                  + (vc / (2 * dt))
+                                  - (1 / (dt * dt))
+                                  );
+
+      drudeC1_[mid] = eps / drudeC6 
+        * ( -(omega_p * omega_p) / 2 - 2 / (dt * dt));
+                                             
+      drudeC2_[mid] = eps / drudeC6
+        * ( 1 / (dt * dt) + vc / (2 * dt) - (omega_p * omega_p) / 4 );
+        
+      drudeC3_[mid] = 1 / drudeC6 
+        * ( vc / (2 * dt) - 1 / (dt * dt));
+
+      drudeC4_[mid] = 2 / (drudeC6 * dt * dt);
+
+      drudeC5_[mid] = (-vc * dt - 2) 
+        / (2 * dt * dt * drudeC6);
+#else
+      vcdt_[mid] = exp(-1.0 * vc * dt);
+      omegasq_[mid] = omega_p * omega_p * (dt / vc);
+#endif
     }
 
     ++iter;
@@ -373,4 +454,98 @@ mat_coef_t UPmlCommon::calc_sigma_max(delta_t delta)
     ret = sigma_max_;
 
   return ret;
+}
+
+
+void UPmlCommon::deinit()
+{
+  free_sigmas();
+
+  if (Ax_)
+  {
+    delete[] Ax_;
+    Ax_ = 0;
+    delete[] Ay_;
+    Ay_ = 0;
+    delete[] Az_;
+    Az_ = 0;
+
+    delete[] Bx_;
+    Bx_ = 0;
+    delete[] By_;
+    By_ = 0;
+    delete[] Bz_;
+    Bz_ = 0;
+
+    delete[] Cx_;
+    Cx_ = 0;
+    delete[] Cy_;
+    Cy_ = 0;
+    delete[] Cz_;
+    Cz_ = 0;
+
+    delete[] Dx_;
+    Dx_ = 0;
+    delete[] Dy_;
+    Dy_ = 0;
+    delete[] Dz_;
+    Dz_ = 0;
+  }
+
+  if (er_)
+  {
+    delete[] er_;
+    er_ = 0;
+
+    delete[] ur_;
+    ur_ = 0;
+
+    delete[] mtype_;
+    mtype_ = 0;
+  }
+
+  if (lossyA_)
+  {
+    delete[] lossyA_;
+    lossyA_ = 0;
+
+    delete[] lossyB_;
+    lossyB_ = 0;
+  }
+
+#ifdef ADE_DRUDE
+  if (drudeC1_)
+  {
+    delete[] drudeC1_;
+    drudeC1_ = 0;
+
+    delete[] drudeC2_;
+    drudeC2_ = 0;
+
+    delete[] drudeC3_;
+    drudeC3_ = 0;
+
+    delete[] drudeC4_;
+    drudeC4_ = 0;
+
+    delete[] drudeC5_;
+    drudeC5_ = 0;
+  }
+#else
+  if (vcdt_)
+  {
+    delete[] vcdt_;
+    vcdt_ = 0;
+
+    delete[] omegasq_;
+    omegasq_ = 0;
+  }
+#endif
+
+  inited_ = false;
+}
+
+UPmlCommon::~UPmlCommon()
+{
+  deinit();
 }
