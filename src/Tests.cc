@@ -250,8 +250,8 @@ void hole()
   (*mdw).set_filename(prefix + "power.mat");
   fdtd.add_datawriter("mdw", mdw);
 
-  shared_ptr<GridResult> gridr
-    = shared_ptr<GridResult>(new GridResult);
+//   shared_ptr<GridResult> gridr
+//     = shared_ptr<GridResult>(new GridResult);
 
   // GRID RESULT: Should be disabled for the full problem
 //   fdtd.add_result("grid", gridr);
@@ -300,46 +300,46 @@ void hole()
   fdtd.map_result_to_datawriter("p2", "mdw");
   fdtd.map_result_to_datawriter("p2dft", "mdw");
 
-  // Farfield measurements
-  shared_ptr<CSGBox> ffbox
-    = shared_ptr<CSGBox>(new CSGBox());
-  ffbox->set_size(gridx, gridy, plate_thickness);
+//   // Farfield measurements
+//   shared_ptr<CSGBox> ffbox
+//     = shared_ptr<CSGBox>(new CSGBox());
+//   ffbox->set_size(gridx, gridy, plate_thickness);
   
-  // About the y axis
-  shared_ptr<FarfieldResult> ffy
-    = shared_ptr<FarfieldResult>(new FarfieldResult());
-  ffy->set_freq(dft_low, dft_high, dft_num);
-  ffy->set_region(ffbox);
-  ffy->use_face(FRONT, false);
-  ffy->use_face(BACK, false);
-  ffy->use_face(LEFT, false);
-  ffy->use_face(RIGHT, false);
-  ffy->use_face(BOTTOM, false);
-  ffy->use_face(TOP, true);  
+//   // About the y axis
+//   shared_ptr<FarfieldResult> ffy
+//     = shared_ptr<FarfieldResult>(new FarfieldResult());
+//   ffy->set_freq(dft_low, dft_high, dft_num);
+//   ffy->set_region(ffbox);
+//   ffy->use_face(FRONT, false);
+//   ffy->use_face(BACK, false);
+//   ffy->use_face(LEFT, false);
+//   ffy->use_face(RIGHT, false);
+//   ffy->use_face(BOTTOM, false);
+//   ffy->use_face(TOP, true);  
   
-  ffy->set_theta_degrees(-9, 9, 7);
-  ffy->set_phi_degrees(0, 0, 1);
+//   ffy->set_theta_degrees(-9, 9, 7);
+//   ffy->set_phi_degrees(0, 0, 1);
 
-  // About the x axis
-  shared_ptr<FarfieldResult> ffx
-    = shared_ptr<FarfieldResult>(new FarfieldResult());
-  ffx->set_freq(dft_low, dft_high, dft_num);
-  ffx->set_region(ffbox);
-  ffx->use_face(FRONT, false);
-  ffx->use_face(BACK, false);
-  ffx->use_face(LEFT, false);
-  ffx->use_face(RIGHT, false);
-  ffx->use_face(BOTTOM, false);
-  ffx->use_face(TOP, true);  
+//   // About the x axis
+//   shared_ptr<FarfieldResult> ffx
+//     = shared_ptr<FarfieldResult>(new FarfieldResult());
+//   ffx->set_freq(dft_low, dft_high, dft_num);
+//   ffx->set_region(ffbox);
+//   ffx->use_face(FRONT, false);
+//   ffx->use_face(BACK, false);
+//   ffx->use_face(LEFT, false);
+//   ffx->use_face(RIGHT, false);
+//   ffx->use_face(BOTTOM, false);
+//   ffx->use_face(TOP, true);  
   
-  ffx->set_theta_degrees(-9, 9, 7);
-  ffx->set_phi_degrees(90, 90, 1);
+//   ffx->set_theta_degrees(-9, 9, 7);
+//   ffx->set_phi_degrees(90, 90, 1);
 
-  fdtd.add_result("ffy", ffy);
-  fdtd.add_result("ffx", ffx);
+//   fdtd.add_result("ffy", ffy);
+//   fdtd.add_result("ffx", ffx);
   
-  fdtd.map_result_to_datawriter("ffy", "mdw");
-  fdtd.map_result_to_datawriter("ffx", "mdw");
+//   fdtd.map_result_to_datawriter("ffy", "mdw");
+//   fdtd.map_result_to_datawriter("ffx", "mdw");
     
   shared_ptr<CSGBox> metal = shared_ptr<CSGBox>(new CSGBox());
   metal->set_size(gridx, gridy, plate_thickness);
@@ -449,22 +449,47 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
   // GRID RESULT: Should be disabled for the full problem
   if (have_netcdf)
   {
-    shared_ptr<GridResult> gridr
-      = shared_ptr<GridResult>(new GridResult);
+//     shared_ptr<GridResult> gridr
+//       = shared_ptr<GridResult>(new GridResult);
 
-    fdtd.add_result("grid", gridr);
-    fdtd.map_result_to_datawriter("grid", "ncdw");
+//     fdtd.add_result("grid", gridr);
+//     fdtd.map_result_to_datawriter("grid", "ncdw");
 
-    shared_ptr<CSGBox> pln_box = shared_ptr<CSGBox>(new CSGBox);
-    pln_box->set_size(gridx, deltay, gridz);
+    shared_ptr<CSGBox> pln_box1 = shared_ptr<CSGBox>(new CSGBox);
+    pln_box1->set_size(gridx, 0, gridz);
+
+    shared_ptr<CSGBox> pln_box1a = shared_ptr<CSGBox>(new CSGBox);
+    pln_box1a->set_size(deltax * 25, 0, deltaz * 25);
+
+    shared_ptr<CSGBox> pln_box2 = shared_ptr<CSGBox>(new CSGBox);
+    pln_box2->set_size(0, gridy, gridz);
+
+    shared_ptr<CSGBox> pln_box3 = shared_ptr<CSGBox>(new CSGBox);
+    pln_box3->set_size(gridx, gridy, 0);
 
     shared_ptr<PlaneResult> plnr1
       = shared_ptr<PlaneResult>(new PlaneResult);
     plnr1->set_time_param(0, time_steps, 10);
-    plnr1->set_plane(pln_box, LEFT);
+    plnr1->set_plane(pln_box1a, RIGHT);
     plnr1->set_field(FC_EX);
     fdtd.add_result("xz_ex", plnr1);
     fdtd.map_result_to_datawriter("xz_ex", "ncdw");
+
+    shared_ptr<PlaneResult> plnr2
+      = shared_ptr<PlaneResult>(new PlaneResult);
+    plnr2->set_time_param(0, time_steps, 10);
+    plnr2->set_plane(pln_box2, BACK);
+    plnr2->set_field(FC_EX);
+    fdtd.add_result("yz_ex", plnr2);
+    fdtd.map_result_to_datawriter("yz_ex", "ncdw");
+
+    shared_ptr<PlaneResult> plnr3
+      = shared_ptr<PlaneResult>(new PlaneResult);
+    plnr3->set_time_param(0, time_steps, 10);
+    plnr3->set_plane(pln_box3, TOP);
+    plnr3->set_field(FC_EX);
+    fdtd.add_result("xy_ex", plnr3);
+    fdtd.map_result_to_datawriter("xy_ex", "ncdw");
   }
 
   // INFORMATION ABOUT EXCIATION
@@ -510,46 +535,46 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
   fdtd.map_result_to_datawriter("p2", "mdw");
   fdtd.map_result_to_datawriter("p2dft", "mdw");
 
-  // Farfield measurements
-  shared_ptr<CSGBox> ffbox
-    = shared_ptr<CSGBox>(new CSGBox());
-  ffbox->set_size(gridx, gridy, plate_thickness);
+//   // Farfield measurements
+//   shared_ptr<CSGBox> ffbox
+//     = shared_ptr<CSGBox>(new CSGBox());
+//   ffbox->set_size(gridx, gridy, plate_thickness);
   
-  // About the y axis
-  shared_ptr<FarfieldResult> ffy
-    = shared_ptr<FarfieldResult>(new FarfieldResult());
-  ffy->set_freq(dft_low, dft_high, dft_num);
-  ffy->set_region(ffbox);
-  ffy->use_face(FRONT, false);
-  ffy->use_face(BACK, false);
-  ffy->use_face(LEFT, false);
-  ffy->use_face(RIGHT, false);
-  ffy->use_face(BOTTOM, false);
-  ffy->use_face(TOP, true);  
+//   // About the y axis
+//   shared_ptr<FarfieldResult> ffy
+//     = shared_ptr<FarfieldResult>(new FarfieldResult());
+//   ffy->set_freq(dft_low, dft_high, dft_num);
+//   ffy->set_region(ffbox);
+//   ffy->use_face(FRONT, false);
+//   ffy->use_face(BACK, false);
+//   ffy->use_face(LEFT, false);
+//   ffy->use_face(RIGHT, false);
+//   ffy->use_face(BOTTOM, false);
+//   ffy->use_face(TOP, true);  
   
-  ffy->set_theta_degrees(-9, 9, 7);
-  ffy->set_phi_degrees(0, 0, 1);
+//   ffy->set_theta_degrees(-9, 9, 7);
+//   ffy->set_phi_degrees(0, 0, 1);
 
-  // About the x axis
-  shared_ptr<FarfieldResult> ffx
-    = shared_ptr<FarfieldResult>(new FarfieldResult());
-  ffx->set_freq(dft_low, dft_high, dft_num);
-  ffx->set_region(ffbox);
-  ffx->use_face(FRONT, false);
-  ffx->use_face(BACK, false);
-  ffx->use_face(LEFT, false);
-  ffx->use_face(RIGHT, false);
-  ffx->use_face(BOTTOM, false);
-  ffx->use_face(TOP, true);  
+//   // About the x axis
+//   shared_ptr<FarfieldResult> ffx
+//     = shared_ptr<FarfieldResult>(new FarfieldResult());
+//   ffx->set_freq(dft_low, dft_high, dft_num);
+//   ffx->set_region(ffbox);
+//   ffx->use_face(FRONT, false);
+//   ffx->use_face(BACK, false);
+//   ffx->use_face(LEFT, false);
+//   ffx->use_face(RIGHT, false);
+//   ffx->use_face(BOTTOM, false);
+//   ffx->use_face(TOP, true);  
   
-  ffx->set_theta_degrees(-9, 9, 7);
-  ffx->set_phi_degrees(90, 90, 1);
+//   ffx->set_theta_degrees(-9, 9, 7);
+//   ffx->set_phi_degrees(90, 90, 1);
 
-  fdtd.add_result("ffy", ffy);
-  fdtd.add_result("ffx", ffx);
+//   fdtd.add_result("ffy", ffy);
+//   fdtd.add_result("ffx", ffx);
   
-  fdtd.map_result_to_datawriter("ffy", "mdw");
-  fdtd.map_result_to_datawriter("ffx", "mdw");
+//   fdtd.map_result_to_datawriter("ffy", "mdw");
+//   fdtd.map_result_to_datawriter("ffx", "mdw");
 }
 
 void square_hole(int ysize)
@@ -767,11 +792,11 @@ void square_hole_thin(int ysize)
   // GRID RESULT: Should be disabled for the full problem
   if (have_netcdf)
   {
-    shared_ptr<GridResult> gridr
-      = shared_ptr<GridResult>(new GridResult);
+//     shared_ptr<GridResult> gridr
+//       = shared_ptr<GridResult>(new GridResult);
     
-    fdtd.add_result("grid", gridr);
-    fdtd.map_result_to_datawriter("grid", "ncdw");
+//     fdtd.add_result("grid", gridr);
+//     fdtd.map_result_to_datawriter("grid", "ncdw");
 
     shared_ptr<CSGBox> pln_box = shared_ptr<CSGBox>(new CSGBox());
     pln_box->set_size(gridx, deltay, gridz);
@@ -829,46 +854,46 @@ void square_hole_thin(int ysize)
   fdtd.map_result_to_datawriter("p2", "mdw");
   fdtd.map_result_to_datawriter("p2dft", "mdw");
 
-  // Farfield measurements
-  shared_ptr<CSGBox> ffbox
-    = shared_ptr<CSGBox>(new CSGBox());
-  ffbox->set_size(gridx, gridy, plate_thickness);
+//   // Farfield measurements
+//   shared_ptr<CSGBox> ffbox
+//     = shared_ptr<CSGBox>(new CSGBox());
+//   ffbox->set_size(gridx, gridy, plate_thickness);
 
-  // About the y axis
-  shared_ptr<FarfieldResult> ffy
-    = shared_ptr<FarfieldResult>(new FarfieldResult());
-  ffy->set_freq(dft_low, dft_high, dft_num);
-  ffy->set_region(ffbox);
-  ffy->use_face(FRONT, false);
-  ffy->use_face(BACK, false);
-  ffy->use_face(LEFT, false);
-  ffy->use_face(RIGHT, false);
-  ffy->use_face(BOTTOM, false);
-  ffy->use_face(TOP, true);
+//   // About the y axis
+//   shared_ptr<FarfieldResult> ffy
+//     = shared_ptr<FarfieldResult>(new FarfieldResult());
+//   ffy->set_freq(dft_low, dft_high, dft_num);
+//   ffy->set_region(ffbox);
+//   ffy->use_face(FRONT, false);
+//   ffy->use_face(BACK, false);
+//   ffy->use_face(LEFT, false);
+//   ffy->use_face(RIGHT, false);
+//   ffy->use_face(BOTTOM, false);
+//   ffy->use_face(TOP, true);
 
-  ffy->set_theta_degrees(-9, 9, 7);
-  ffy->set_phi_degrees(0, 0, 1);
+//   ffy->set_theta_degrees(-9, 9, 7);
+//   ffy->set_phi_degrees(0, 0, 1);
 
-  // About the x axis
-  shared_ptr<FarfieldResult> ffx
-    = shared_ptr<FarfieldResult>(new FarfieldResult());
-  ffx->set_freq(dft_low, dft_high, dft_num);
-  ffx->set_region(ffbox);
-  ffx->use_face(FRONT, false);
-  ffx->use_face(BACK, false);
-  ffx->use_face(LEFT, false);
-  ffx->use_face(RIGHT, false);
-  ffx->use_face(BOTTOM, false);
-  ffx->use_face(TOP, true);
+//   // About the x axis
+//   shared_ptr<FarfieldResult> ffx
+//     = shared_ptr<FarfieldResult>(new FarfieldResult());
+//   ffx->set_freq(dft_low, dft_high, dft_num);
+//   ffx->set_region(ffbox);
+//   ffx->use_face(FRONT, false);
+//   ffx->use_face(BACK, false);
+//   ffx->use_face(LEFT, false);
+//   ffx->use_face(RIGHT, false);
+//   ffx->use_face(BOTTOM, false);
+//   ffx->use_face(TOP, true);
 
-  ffx->set_theta_degrees(-9, 9, 7);
-  ffx->set_phi_degrees(90, 90, 1);
+//   ffx->set_theta_degrees(-9, 9, 7);
+//   ffx->set_phi_degrees(90, 90, 1);
 
-  fdtd.add_result("ffy", ffy);
-  fdtd.add_result("ffx", ffx);
+//   fdtd.add_result("ffy", ffy);
+//   fdtd.add_result("ffx", ffx);
 
-  fdtd.map_result_to_datawriter("ffy", "mdw");
-  fdtd.map_result_to_datawriter("ffx", "mdw");
+//   fdtd.map_result_to_datawriter("ffy", "mdw");
+//   fdtd.map_result_to_datawriter("ffx", "mdw");
 
   shared_ptr<CSGBox> metal = shared_ptr<CSGBox>(new CSGBox());
   metal->set_size(gridx, gridy, plate_thickness);

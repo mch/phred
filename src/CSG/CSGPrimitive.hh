@@ -52,7 +52,7 @@ public:
   /**
    * Returns the centre of the object. 
    */ 
-  point get_centre();
+  point get_centre() const;
 
   /**
    * Print a string representation to an ostream.

@@ -69,12 +69,14 @@ void PowerResult::init(const Grid &grid)
   const GridInfo &gi = grid.get_grid_info();
 
   /* Region must be in out local sub-domain */ 
-  region_ = grid.get_local_region(*box_);
-  shared_ptr<Block> global_b_ = grid.get_global_region(*box_);
+  shared_ptr<CellSet> cells = grid.get_cellset(*box_);
 
-  x_size_ = (*region_).xmax() - (*region_).xmin();
-  y_size_ = (*region_).ymax() - (*region_).ymin();
-  z_size_ = (*region_).zmax() - (*region_).zmin();
+  region_ = cells->get_local_block();
+  shared_ptr<Block> global_b = cells->get_global_block();
+
+  x_size_ = (*region_).xlen();
+  y_size_ = (*region_).ylen();
+  z_size_ = (*region_).zlen();
 
   /* Region must be a plane; set up grid plane */
   if (face_ == FRONT || face_ == BACK)

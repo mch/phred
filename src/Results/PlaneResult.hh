@@ -24,6 +24,7 @@
 
 #include "Result.hh"
 #include "../Types.hh"
+#include "../CellSet.hh"
 #include "../CSG/CSGBox.hh"
 
 #include <mpi.h>
@@ -31,6 +32,8 @@
 /** 
  * A simple class that outputs the value of the field components at a
  * specific plane in space.
+ *
+ * \bug Averaging of the result is not yet finished. 
  */ 
 class PlaneResult : public Result
 {
@@ -99,7 +102,8 @@ protected:
   // The face the plane is parallel to
   Face face_;
 
-  // Local grid region
+  // A cell set representing the set of cells this result must deal with
+  shared_ptr<CellSet> cells_;
   shared_ptr<Block> region_;
   
   // The field component we are interested in. 

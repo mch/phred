@@ -15,10 +15,10 @@ libresults_a_SOURCES = 	Result.hh \
 	SignalTimeResult.cc \
 	SignalDFTResult.hh \
 	SignalDFTResult.cc \
-	PowerResult.hh \
-	PowerResult.cc \
 	FakeResult.hh \
 	FakeResult.cc \
+	PowerResult.hh \
+	PowerResult.cc \
 	SurfaceCurrentResult.hh \
 	SurfaceCurrentResult.cc \
 	GridResult.hh \
@@ -27,3 +27,4 @@ libresults_a_SOURCES = 	Result.hh \
 	FarfieldResult2.cc \
 	FarfieldResult.cc \
 	FarfieldResult.hh
+

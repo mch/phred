@@ -175,14 +175,18 @@ void FarfieldResult::init(const Grid &grid)
 {
   deinit();
 
+  shared_ptr<CellSet> cells;
+
   if (box_.get())
   {
-    region_ = grid.get_local_region(*(box_.get()));
+    cells = grid.get_cellset(*box_);
+    region_ = cells->get_local_block();
+
   } else {
     throw ResultException("SurfaceCurrentResult has no surface defined!");
   }
 
-  shared_ptr<Block> gregion = grid.get_global_region(*(box_.get()));
+  shared_ptr<Block> gregion = cells->get_global_block();
 
   // Number of farfield timesteps we have to keep track of
   point bsz = (*box_).get_size();
@@ -457,39 +461,39 @@ void FarfieldResult::deinit()
 
 ostream& FarfieldResult::to_string(ostream &os) const
 {
-  os << "Near to Far field transformation using Luebbers' method. "
-    "Near field data is being collected from a ";
+  os << "Near to Far field transformation using Luebbers' method. \n";
+//     "Near field data is being collected from a ";
 
-  if (box_.get())
-  {
-    os << (*box_);
-  }
-  else
-  {
-    os << "an undefined box.";
-  }
+//   if (box_.get())
+//   {
+//     os << (*box_);
+//   }
+//   else
+//   {
+//     os << "an undefined box.";
+//   }
 
-  os << " The corresponding grid cells are ";
+//   os << " The corresponding grid cells are ";
 
-  if (region_.get())
-  {
-    os << (*region_);
-  }
-  else
-  {
-    os << "undefined. ";
-  }
+//   if (region_.get())
+//   {
+//     os << (*region_);
+//   }
+//   else
+//   {
+//     os << "undefined. ";
+//   }
 
-  os << "The faces of the box being used are [";
+//   os << "The faces of the box being used are [";
 
-  for (int i = 0; i < 6; i++)
-    if (use_face_[i])
-      os << face_string(static_cast<Face>(i)) << " ";
+//   for (int i = 0; i < 6; i++)
+//     if (use_face_[i])
+//       os << face_string(static_cast<Face>(i)) << " ";
 
-  os << "\b].";
+//   os << "\b].";
 
-  os << "Theta: " << theta_data_ << ". Phi: " 
-     << phi_data_ << ". Freqs: " << frequencies_ << ". ";
+//   os << "Theta: " << theta_data_ << ". Phi: " 
+//      << phi_data_ << ". Freqs: " << frequencies_ << ". ";
   
   return os;
 }
@@ -716,7 +720,7 @@ void FarfieldResult::calculate_result(const Grid &grid,
         if (face_idx == FRONT)
         {
           data.xshift = -0.5;
-          cell = (*region_).xmax() - 1;
+          cell = (*region_).xmax();
         }
         else
         {
@@ -737,7 +741,7 @@ void FarfieldResult::calculate_result(const Grid &grid,
         if (face_idx == RIGHT)
         {
           data.yshift = -0.5;
-          cell = (*region_).ymax() - 1;
+          cell = (*region_).ymax();
         }
         else
         {
@@ -759,7 +763,7 @@ void FarfieldResult::calculate_result(const Grid &grid,
         if (face_idx == TOP)
         {
           data.zshift = -0.5;
-          cell = (*region_).zmax() - 1;
+          cell = (*region_).zmax();
         }
         else
         {

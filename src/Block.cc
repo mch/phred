@@ -23,14 +23,37 @@
 
 std::ostream &operator<<(std::ostream &os, const Block &b)
 {
-  return os << "Block of grid cells, in the local grid, lower lefthand "
+  if (b.is_global())
+  {
+    os << "Block of grid cells, in the global grid.";
+  } else {
+    os << "Block of grid cells, in the local grid.";
+  }
+  
+  os << "\n\tLower lefthand "
     "corner is at (" << b.xmin() << ", " << b.ymin() << ", " << b.zmin()
-            << "), extends to but does not include ("
+            << "), extends to\n\tand includes ("
             << b.xmax() << ", " << b.ymax() << ", " << b.zmax() 
-            << "). Length: " << b.xlen() << ", " << b.ylen() 
-            << ", " << b.zlen() 
-            << ". With respect to the block of grid cells in the "
-    "global domain, this local block starts at (" 
-            << b.xstart() << ", " << b.ystart() << ", " << b.zstart()
-            << "). ";
+            << ").\n\tLength: " << b.xlen() << ", " << b.ylen() 
+            << ", " << b.zlen()
+            << ".";
+
+  if (!b.is_global())
+  {
+    os << "\n\tWith respect to the block of grid cells in the "
+      "global domain,\n\tthis local block starts at, or is offset by, (" 
+       << b.xoffset() << ", " << b.yoffset() << ", " << b.zoffset()
+       << "). ";
+  }
+
+  if (b.has_data())
+  {
+    os << "\n\tThis block contains data. " << std::endl;
+
+//     os << "This block has faces [";
+    
+//     os << " in the grid. " << endl;
+  }
+
+  return os;
 }

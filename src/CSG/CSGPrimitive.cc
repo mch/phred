@@ -44,7 +44,7 @@ void CSGPrimitive::set_centre(float x, float y, float z)
   centre_[2] = z;
 }
 
-point CSGPrimitive::get_centre()
+point CSGPrimitive::get_centre() const
 {
   return point(centre_[0], centre_[1], centre_[2]);
 }

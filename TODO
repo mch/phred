@@ -58,6 +58,12 @@ old things all over the place.
 
 - S Parameter extraction
 
+- Ensure that the output is always correct for 1, 2, 4 etc MPI
+  processors. In particular, getting the order of dimensions backward
+  may mess things up. 
+
+- Replace Grid::get_face_start()...
+
 
 
 * Excitations

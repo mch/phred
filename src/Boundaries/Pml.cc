@@ -96,6 +96,7 @@ void Pml::alloc_pml_fields(Face face, const Grid &grid)
   
   compute_regions(face, grid);
 
+#ifdef DEBUG
   cout << "PML Update region for face " << face << ":"
        << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
        << grid_ex_r_.xmax
@@ -133,6 +134,7 @@ void Pml::alloc_pml_fields(Face face, const Grid &grid)
        << grid_hz_r_.ymax
        << ", z: " << grid_hz_r_.zmin << " -> " 
        << grid_hz_r_.zmax << endl;
+#endif
 
   unsigned int sz = (grid_r_.xmax - grid_r_.xmin) 
     * (grid_r_.ymax - grid_r_.ymin) * (grid_r_.zmax - grid_r_.zmin);

@@ -474,9 +474,9 @@ int main (int argc, char **argv)
          << "For redistribution conditions type `print conditions'.\n";
   }
 
-//   cout << "\nMPI information: \nThis process is rank number " << MPI_RANK
-//        << ".\nThere are a total of " << MPI_SIZE
-//        << " processes in this group." << endl;
+  cout << "\nMPI information: \nThis process is rank number " << MPI_RANK
+       << ".\nThere are a total of " << MPI_SIZE
+       << " processes in this group." << endl;
 
 // #ifdef USE_OPENMP
 //   int max_threads = omp_get_max_threads();

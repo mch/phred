@@ -54,7 +54,8 @@ void Excitation::init(const Grid &grid)
 {
   if (box_.get())
   {
-    region_ = grid.get_local_region(*(box_.get()));
+    shared_ptr<CellSet> cells = grid.get_cellset(*(box_.get()));
+    region_ = cells->get_local_block();
 
 #ifdef DEBUG
     cout << "Excitation local region: (" << (*region_).xmin() << ", "
@@ -97,11 +98,11 @@ void Excitation::excite(Grid &grid, unsigned int time_step,
 
   if (!soft_) 
   {
-    for(unsigned int i = (*region_).xmin(); i < (*region_).xmax(); i++)
+    for(unsigned int i = (*region_).xmin(); i <= (*region_).xmax(); i++)
     {
-      for (unsigned int j = (*region_).ymin(); j < (*region_).ymax(); j++)
+      for (unsigned int j = (*region_).ymin(); j <= (*region_).ymax(); j++)
       {
-        for (unsigned int k = (*region_).zmin(); k < (*region_).zmax(); k++)
+        for (unsigned int k = (*region_).zmin(); k <= (*region_).zmax(); k++)
         {
           switch (type_) 
           {
@@ -125,11 +126,11 @@ void Excitation::excite(Grid &grid, unsigned int time_step,
       }
     }
   } else {
-    for(unsigned int i = (*region_).xmin(); i < (*region_).xmax(); i++)
+    for(unsigned int i = (*region_).xmin(); i <= (*region_).xmax(); i++)
     {
-      for (unsigned int j = (*region_).ymin(); j < (*region_).ymax(); j++)
+      for (unsigned int j = (*region_).ymin(); j <= (*region_).ymax(); j++)
       {
-        for (unsigned int k = (*region_).zmin(); k < (*region_).zmax(); k++)
+        for (unsigned int k = (*region_).zmin(); k <= (*region_).zmax(); k++)
         {
           switch (type_) 
           {

@@ -204,14 +204,16 @@ void FarfieldResult2::set_phi(field_t phi_start, field_t phi_stop,
 void FarfieldResult2::init(const Grid &grid)
 {
 #ifdef HAVE_COMPLEX
+  shared_ptr<CellSet> cells = grid.get_cellset(*box_);
+
   if (box_.get())
   {
-    region_ = grid.get_local_region(*(box_.get()));
+    region_ = cells->get_local_block();
   } else {
     throw ResultException("SurfaceCurrentResult has no surface defined!");
   }
 
-  shared_ptr<Block> gregion = grid.get_global_region(*(box_.get()));
+  shared_ptr<Block> gregion = cells->get_global_block();
 
   // Setup the arrays for temporary and RCS data
   unsigned int sz = frequencies_.length() * theta_data_.length()
@@ -534,22 +536,22 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
       if (face_idx == BACK) 
       {
         shift = 0.5;
-        cells.xmax = cells.xmin + 1;
+        cells.xmax = cells.xmin;
       }
       else
       {
         shift = -0.5;
-        cells.xmin = cells.xmax - 1;
+        cells.xmin = cells.xmax;
       }
 
       index = f_idx * (*region_).ylen() * (*region_).zlen();
 
       // Jt1 == Jy, Jt2 == Jz. Jx == 0
-      for (int idx = cells.xmin; idx < cells.xmax; idx++)
+      for (int idx = cells.xmin; idx <= cells.xmax; idx++)
       {
-        for (int jdx = cells.ymin; jdx < cells.ymax; jdx++)
+        for (int jdx = cells.ymin; jdx <= cells.ymax; jdx++)
         {
-          for (int kdx = cells.zmin; kdx < cells.zmax; kdx++, index++)
+          for (int kdx = cells.zmin; kdx <= cells.zmax; kdx++, index++)
           {
             field_t xt = (idx - static_cast<int>(grid_centre.x)) * dx
               + shift * dx;
@@ -580,22 +582,22 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
       if (face_idx == LEFT)
       {
         shift = 0.5;
-        cells.ymax = cells.ymin + 1;
+        cells.ymax = cells.ymin;
       }
       else
       {
         shift = -0.5;
-        cells.ymin = cells.ymax - 1;
+        cells.ymin = cells.ymax;
       }
  
       index = f_idx * (*region_).xlen() * (*region_).zlen();
 
       // Jt1 == Jz, Jt2 == Jx. Jy == 0
-      for (int idx = cells.xmin; idx < cells.xmax; idx++)
+      for (int idx = cells.xmin; idx <= cells.xmax; idx++)
       {
-        for (int jdx = cells.ymin; jdx < cells.ymax; jdx++)
+        for (int jdx = cells.ymin; jdx <= cells.ymax; jdx++)
         {
-          for (int kdx = cells.zmin; kdx < cells.zmax; kdx++, index++)
+          for (int kdx = cells.zmin; kdx <= cells.zmax; kdx++, index++)
           {
             field_t xt = (idx - static_cast<int>(grid_centre.x)) * dx;
             field_t yt = (jdx - static_cast<int>(grid_centre.y)) * dy
@@ -626,22 +628,22 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
       if (face_idx == TOP)
       {
         shift = -0.5;
-        cells.zmin = cells.zmax - 1;
+        cells.zmin = cells.zmax;
       }
       else
       {
         shift = 0.5;
-        cells.zmax = cells.zmin + 1;
+        cells.zmax = cells.zmin;
       }
 
       index = f_idx * (*region_).ylen() * (*region_).xlen();
 
       // Jt1 == Jx, Jt2 == Jy. Jz == 0
-      for (int idx = cells.xmin; idx < cells.xmax; idx++)
+      for (int idx = cells.xmin; idx <= cells.xmax; idx++)
       {
-        for (int jdx = cells.ymin; jdx < cells.ymax; jdx++)
+        for (int jdx = cells.ymin; jdx <= cells.ymax; jdx++)
         {
-          for (int kdx = cells.zmin; kdx < cells.zmax; kdx++, index++)
+          for (int kdx = cells.zmin; kdx <= cells.zmax; kdx++, index++)
           {
             field_t xt = (idx - static_cast<int>(grid_centre.x)) * dx;
             field_t yt = (jdx - static_cast<int>(grid_centre.y)) * dy;
@@ -712,37 +714,37 @@ FarfieldResult2::calculate_result(const Grid &grid,
     switch (face_idx)
     {
     case FRONT:
-      cells.xmin = cells.xmax - 1;
+      cells.xmin = cells.xmax;
       calc_currents<YZPlane>(grid, time_step, cells,
                              face_idx);
       break;
 
     case BACK:
-      cells.xmax = cells.xmin + 1;
+      cells.xmax = cells.xmin;
       calc_currents<YZPlane>(grid, time_step, cells,
                              face_idx);
       break;
 
     case LEFT:
-      cells.ymax = cells.ymin + 1;
+      cells.ymax = cells.ymin;
       calc_currents<XZPlane>(grid, time_step, cells,
                              face_idx);
       break;
 
     case RIGHT:
-      cells.ymin = cells.ymax - 1;
+      cells.ymin = cells.ymax;
       calc_currents<XZPlane>(grid, time_step, cells,
                              face_idx);
       break;
 
     case TOP:
-      cells.zmin = cells.zmax - 1;
+      cells.zmin = cells.zmax;
       calc_currents<XYPlane>(grid, time_step, cells,
                              face_idx);
       break;
 
     case BOTTOM:
-      cells.zmax = cells.zmin + 1;
+      cells.zmax = cells.zmin;
       calc_currents<XYPlane>(grid, time_step, cells,
                              face_idx);
       break;
@@ -787,11 +789,11 @@ void FarfieldResult2::calc_currents(const Grid &grid,
     h_cos_temp = cos(-2 * PI * frequencies_.get(f_idx) * h_time);
     h_sin_temp = sin(-2 * PI * frequencies_.get(f_idx) * h_time);
 
-    for (unsigned int i = cells.xmin; i < cells.xmax; i++)
+    for (unsigned int i = cells.xmin; i <= cells.xmax; i++)
     {
-      for (unsigned int j = cells.ymin; j < cells.ymax; j++)
+      for (unsigned int j = cells.ymin; j <= cells.ymax; j++)
       {
-        for (unsigned int k = cells.zmin; k < cells.zmax; k++)
+        for (unsigned int k = cells.zmin; k <= cells.zmax; k++)
         {
           e_t1 = p.get_avg_e_t1(i, j, k);
           e_t2 = p.get_avg_e_t2(i, j, k);

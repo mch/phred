@@ -47,9 +47,9 @@ void PlaneResult::calculate_result(const Grid &grid,
       switch(face_)
       {
       case FRONT:
-        for (int j = (*region_).ymin(); j < (*region_).ymax(); j++)
+        for (int j = (*region_).ymin(); j <= (*region_).ymax(); j++)
         {
-          for (int k = (*region_).zmin(); k < (*region_).zmax(); k++)
+          for (int k = (*region_).zmin(); k <= (*region_).zmax(); k++)
           {
             avg_data_ = 0;
             idx++;
@@ -70,8 +70,10 @@ void PlaneResult::init(const Grid &grid)
   // planes, then this PlaneResult can only return data if the point
   // is located in the local subdomain.
 
-  region_ = grid.get_local_region(*box_);
-  shared_ptr<Block> global_b = grid.get_global_region(*box_);
+  cells_ = grid.get_cellset(*box_);
+
+  region_ = cells_->get_local_block();
+  shared_ptr<Block> global_b = cells_->get_global_block();
 
   have_data_ = (*region_).has_face_data(face_);
   unsigned int sz = 0;
@@ -84,16 +86,16 @@ void PlaneResult::init(const Grid &grid)
     if (face_ == BACK)
       gp.x = (*region_).xmin();
     else
-      gp.x = (*region_).xmax() - 1;    
+      gp.x = (*region_).xmax();    
     
     gp.y = (*region_).ymin();
     gp.z = (*region_).zmin();
 
     // DIMENSION STARTS HAVE TO CHANGE TOO!
-    var_.add_dimension("y", (*region_).ylen(), (*global_b).ylen() - 1, 
-                       (*region_).ystart());
-    var_.add_dimension("z", (*region_).zlen(), (*global_b).zlen() - 1, 
-                       (*region_).zstart());
+    var_.add_dimension("y", (*region_).ylen(), (*global_b).ylen(), 
+                       (*region_).yoffset());
+    var_.add_dimension("z", (*region_).zlen(), (*global_b).zlen(), 
+                       (*region_).zoffset());
 
     sz = (*region_).ylen() * (*region_).zlen();
 
@@ -114,12 +116,12 @@ void PlaneResult::init(const Grid &grid)
     if (face_ == BOTTOM)
       gp.z = (*region_).zmin();
     else
-      gp.z = (*region_).zmax() - 1;    
+      gp.z = (*region_).zmax();    
     
-    var_.add_dimension("x", (*region_).xlen(), (*global_b).xlen() - 1, 
-                       (*region_).xstart());
-    var_.add_dimension("y", (*region_).ylen(), (*global_b).ylen() - 1, 
-                       (*region_).ystart());
+    var_.add_dimension("x", (*region_).xlen(), (*global_b).xlen(), 
+                       (*region_).xoffset());
+    var_.add_dimension("y", (*region_).ylen(), (*global_b).ylen(), 
+                       (*region_).yoffset());
 
     sz = (*region_).ylen() * (*region_).xlen();
 
@@ -143,14 +145,16 @@ void PlaneResult::init(const Grid &grid)
     if (face_ == LEFT)
       gp.y = (*region_).ymin();
     else
-      gp.y = (*region_).zmax() - 1;    
+      gp.y = (*region_).ymax();    
 
     gp.z = (*region_).zmin();
-    
-    var_.add_dimension("z", (*region_).zlen(), (*global_b).zlen() - 1, 
-                       (*region_).zstart());
-    var_.add_dimension("x", (*region_).xlen(), (*global_b).xlen() - 1, 
-                       (*region_).xstart());
+
+    // 2005-02-12, MCH: Flipped x and z for a little test.... Seems to
+    // have fixed the problem.
+    var_.add_dimension("x", (*region_).xlen(), (*global_b).xlen(), 
+                       (*region_).xoffset());
+    var_.add_dimension("z", (*region_).zlen(), (*global_b).zlen(), 
+                       (*region_).zoffset());
 
     sz = (*region_).xlen() * (*region_).zlen();
 
@@ -182,7 +186,8 @@ void PlaneResult::init(const Grid &grid)
   else
   {
     var_.set_datatype(datatype_);
-    var_.set_ptr(grid.get_face_start(face_, field_, gp));
+
+    var_.set_ptr(grid.get_pointer(gp, field_));
   }
 }
 

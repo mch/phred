@@ -92,7 +92,7 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 //       cerr << "Rank " << MPI_RANK << " has no data for variable " 
 //            << var.get_name() << endl;
 //     }
-  } 
+  }
   else 
   {
     unsigned int rcv_size = 0;
@@ -135,7 +135,7 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
       if (buffer_size < rcv_size)
         throw DataWriterException("Global data type size is smaller\
  than the amount of data to be recieved!");
-      
+
       ptr_head = ptr = new char[buffer_size];
       
 //       cerr << "Rank " << rank_ << " reciever buffer size is " 
@@ -214,6 +214,9 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
       delete[] ptr_head;
     }
   }
+
+  // TEMPORARY: For debugging an exception above!
+  MPI_Barrier(MPI_COMM_WORLD);
 
 }
 

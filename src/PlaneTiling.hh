@@ -145,7 +145,7 @@ public:
 
     Fields_t f;
 
-    for (yidx = ymin; yidx < ymax; yidx++)
+    for (yidx = ymin; yidx <= ymax; yidx++)
     {
       f.et1 = plane.get_e_t1_ptr(x, yidx, zmin);
       f.et2 = plane.get_e_t2_ptr(x, yidx, zmin);
@@ -153,7 +153,7 @@ public:
       f.ht1 = plane.get_h_t1_ptr(x, yidx, zmin);
       f.ht2 = plane.get_h_t2_ptr(x, yidx, zmin);
 
-      for (zidx = zmin; zidx < zmax; zidx++)
+      for (zidx = zmin; zidx <= zmax; zidx++)
       {
         // Impact of copying? Will dead code be removed? 
         f.et1_avg = plane.get_avg_e_t1(x, yidx, zidx);
@@ -210,7 +210,7 @@ public:
 
     Fields_t f;
 
-    for (xidx = xmin; xidx < xmax; xidx++)
+    for (xidx = xmin; xidx <= xmax; xidx++)
     {
       f.et1 = plane.get_e_t1_ptr(xidx, y, zmin);
       f.et2 = plane.get_e_t2_ptr(xidx, y, zmin);
@@ -218,7 +218,7 @@ public:
       f.ht1 = plane.get_h_t1_ptr(xidx, y, zmin);
       f.ht2 = plane.get_h_t2_ptr(xidx, y, zmin);
 
-      for (zidx = zmin; zidx < zmax; zidx++)
+      for (zidx = zmin; zidx <= zmax; zidx++)
       {
         // Impact of copying? Will dead code be removed? 
         f.et1_avg = plane.get_avg_e_t1(xidx, y, zidx);
@@ -276,9 +276,9 @@ public:
     Fields_t f;
 
     // The slowest of them all... no contiguous data access possible. 
-    for (xidx = xmin; xidx < xmax; xidx++)
+    for (xidx = xmin; xidx <= xmax; xidx++)
     {
-      for (yidx = ymin; yidx < ymax; yidx++)
+      for (yidx = ymin; yidx <= ymax; yidx++)
       {
         f.et1 = plane.get_e_t1_ptr(xidx, yidx, z);
         f.et2 = plane.get_e_t2_ptr(xidx, yidx, z);

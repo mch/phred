@@ -99,15 +99,15 @@ void WindowedExcitation::excite(Grid &grid, unsigned int time_step,
   if (!soft_) 
   {
     fx = lxmin_;
-    for(unsigned int i = (*region_).xmin(); i < (*region_).xmax(); i++, 
+    for(unsigned int i = (*region_).xmin(); i <= (*region_).xmax(); i++, 
           fx += grid.get_deltax())
     {
       fy = lymin_;
-      for (unsigned int j = (*region_).ymin(); j < (*region_).ymax(); j++,
+      for (unsigned int j = (*region_).ymin(); j <= (*region_).ymax(); j++,
              fy += grid.get_deltay())
       {
         fz = lzmin_;
-        for (unsigned int k = (*region_).zmin(); k < (*region_).zmax(); k++,
+        for (unsigned int k = (*region_).zmin(); k <= (*region_).zmax(); k++,
                fz += grid.get_deltaz())
         {
           w = window(fx, fy, fz);
@@ -136,15 +136,15 @@ void WindowedExcitation::excite(Grid &grid, unsigned int time_step,
     }
   } else {
     fx = lxmin_;
-    for(unsigned int i = (*region_).xmin(); i < (*region_).xmax(); i++,
+    for(unsigned int i = (*region_).xmin(); i <= (*region_).xmax(); i++,
           fx += grid.get_deltax())
     {
       fy = lymin_;
-      for (unsigned int j = (*region_).ymin(); j < (*region_).ymax(); j++,
+      for (unsigned int j = (*region_).ymin(); j <= (*region_).ymax(); j++,
              fy += grid.get_deltay())
       {
         fz = lzmin_;
-        for (unsigned int k = (*region_).zmin(); k < (*region_).zmax(); k++,
+        for (unsigned int k = (*region_).zmin(); k <= (*region_).zmax(); k++,
                fz += grid.get_deltaz())
         {
           w = window(fx, fy, fz);

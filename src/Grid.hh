@@ -55,7 +55,7 @@
 #include "MaterialLib.hh"
 #include "GridInfo.hh"
 #include "ProblemGeometry.hh"
-#include "Block.hh"
+#include "CellSet.hh"
 
 #include <map>
 
@@ -415,50 +415,6 @@ class Grid {
   {
     return const_cast<const BoundaryCond &>(info_.get_boundary(face));
   }
-
-  /**
-   * Convert global coordinate to local coordinates. Generally
-   * excitations and geometry specifications are given in terms of the
-   * global computational domain. Since each processor only knows
-   * about part of that domain, it is necessary to convert global
-   * coordinates to local ones that can be used.
-   *
-   * @param r the global region to convert.
-   * @param no_ol true if the ghost cells should NOT be included (for Results)
-   *
-   * @return region in local coordinate. 
-   */
-  shared_ptr<Block> global_to_local(shared_ptr<Block> r, 
-                                    bool no_ol = false) const;
-
-  /**
-   * Convert a global point to local coordinates.
-   *
-   * @param p the point to convert
-   * @return the point in global coordinates
-   */
-  grid_point global_to_local(grid_point p) const;
-
-  /**
-   * Convert a global grid regions to a local grid region. Generally
-   * excitations and geometry specifications are given in terms of the
-   * global FDTD grid. Since each processor only knows about part of
-   * that grid, it is necessary to convert global coordinates to local
-   * ones that can be used.
-   *
-   * @param xmin The starting cell of the box in x
-   * @param x_stop The ending cell of the box in x
-   * @param ymin The starting cell of the box in y
-   * @param y_stop The ending cell of the box in y
-   * @param zmin The starting cell of the box in z
-   * @param z_stop The ending cell of the box in z
-   *
-   * @return region_t in local coordinate. 
-   */
-  shared_ptr<Block> global_to_local(unsigned int xmin, unsigned int x_stop, 
-                                    unsigned int ymin, unsigned int y_stop, 
-                                    unsigned int zmin, unsigned int z_stop,
-                                    bool no_ol = false) const;
 
   /**
    * Returns the global size of the x dimension.
@@ -847,20 +803,6 @@ class Grid {
                           unsigned int offset = 0) const;
 
   /**
-   * Return a pointer to the start of a face. DANGER!! Clients must
-   * take care when using this pointer! 
-   *
-   * This is intended for use by PlaneResult for getting results out. 
-   *
-   * @param face The face of interest
-   * @param comp The component of interest
-   * @param p A point indicating where the plane intersects the grid
-   * @return a pointer to the field component at the specified face
-   */
-  field_t *get_face_start(Face face, FieldComponent comp,
-                          grid_point p) const;
-
-  /**
    * Return a pointer to a point in the grid for a particular field
    * component. DANGER!! Clients must take care when using this
    * pointer!
@@ -932,22 +874,40 @@ class Grid {
   }
 
   /**
-   * Returns a region of cells contained inside a given non-rotated
-   * CSGBox, NOT INCLUDING any ghost cells due to subdomain division.
+   * Convert global coordinate to local coordinates. Generally
+   * excitations and geometry specifications are given in terms of the
+   * global computational domain. Since each processor only knows
+   * about part of that domain, it is necessary to convert global
+   * coordinates to local ones that can be used.
    *
-   * Returned region is in local coordinates, suitable for iterating
-   * over.
-   */ 
-  shared_ptr<Block> get_local_region(CSGBox &box) const;
+   * @param CSGBox to find the cells for
+   *
+   * @return the set of cells occupied by the given object. 
+   */
+   shared_ptr<CellSet> get_cellset(const CSGBox &box) const;
 
   /**
-   * Returns a region of cells contained inside a given non-rotated
-   * CSGBox, NOT INCLUDING any ghost cells due to subdomain division. 
+   * Convert global coordinate to local coordinates. Generally
+   * excitations and geometry specifications are given in terms of the
+   * global computational domain. Since each processor only knows
+   * about part of that domain, it is necessary to convert global
+   * coordinates to local ones that can be used.
    *
-   * Returned region is in GLOBAL coordinates, suitable only for setting
-   * up dimensions in Results. 
-   */ 
-  shared_ptr<Block> get_global_region(CSGBox &box) const;
+   * @param r the global region to convert.
+   * @param no_ol true if the ghost cells should NOT be included (for Results)
+   *
+   * @return region in local coordinate. 
+   */
+   shared_ptr<Block> global_to_local(shared_ptr<Block> r) const;
+   shared_ptr<Block> global_to_local_ghost(shared_ptr<Block> r) const;
+
+  /**
+   * Convert a global point to local coordinates.
+   *
+   * @param p the point to convert
+   * @return the point in global coordinates
+   */
+  grid_point global_to_local(grid_point p) const;
 
   /**
    * Returns the grid cell point containing the given real point. If

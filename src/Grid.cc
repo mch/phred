@@ -297,7 +297,8 @@ void Grid::set_define_mode(bool d)
         setup_subdomain_data(sd, static_cast<Face>(i));
       }
     }
-    
+
+#ifdef DEBUG    
   cout << "Grid Update region:"
        << "\n\tEx, x: " << update_ex_r_.xmin << " -> " 
        << update_ex_r_.xmax
@@ -335,6 +336,7 @@ void Grid::set_define_mode(bool d)
        << update_hz_r_.ymax
        << ", z: " << update_hz_r_.zmin << " -> " 
        << update_hz_r_.zmax << endl;
+#endif
 
     if (ok)
       define_ = d;
@@ -683,35 +685,6 @@ void Grid::setup_grid(const GridInfo &info)
 }
 
 
-// void Grid::define_box(unsigned int xmin, unsigned int x_stop, 
-//                       unsigned int ymin, unsigned int y_stop, 
-//                       unsigned int zmin, unsigned int z_stop, 
-//                       unsigned int mat_index)
-// {
-//   // Given coordinates are global, so we have to convert them to local. 
-  
-//   if (!define_)
-//   {
-//     cerr << "Unable to define a box; the grid is not in define mode." << endl;
-//     return;
-//   }
-
-//   region_t r = global_to_local(xmin, x_stop,
-//                                ymin, y_stop,
-//                                zmin, z_stop);
-
-//   for (unsigned int i = r.xmin; i < r.xmax; i++)
-//   {
-//     for (unsigned int j = r.ymin; j < r.ymax; j++)
-//     {
-//       for (unsigned int k = r.zmin; k < r.zmax; k++)
-//       {
-//         material_[pi(i, j, k)] = mat_index;
-//       }
-//     }
-//   }
-// }
-
 // Straight out of Taflove.
 void Grid::update_e_field()
 {
@@ -1009,139 +982,6 @@ void Grid::apply_boundaries(FieldType type)
   info_.apply_boundaries(*this, type);
 }
 
-/**
- * \bug This doesn't work right if the point is larger than the bounds!!!
- * \bug No way to indicate that the point is actually outside the local grid
- */
-grid_point Grid::global_to_local(grid_point p) const
-{
-  grid_point r;
-  
-  r.x = (info_.start_x_ > p.x) ? 0 : p.x - info_.start_x_;
-  r.y = (info_.start_y_ > p.y) ? 0 : p.y - info_.start_y_;
-  r.z = (info_.start_z_ > p.z) ? 0 : p.z - info_.start_z_;
-
-  return r;
-}
-
-shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in, 
-                                        bool no_ol) const
-{
-  Block r;
-  unsigned int dx = info_.dimx_, dy = info_.dimy_, dz = info_.dimz_;
-
-  r.is_global_ = false;
-
-  r.xmin_ = r.ymin_ = r.zmin_ = 0;
-  r.xmax_ = r.ymax_ = r.zmax_ = 0;
-
-  if (no_ol)
-  {
-    dx = info_.dimx_no_sd_;
-    dy = info_.dimy_no_sd_;
-    dz = info_.dimz_no_sd_;
-  }
-
-
-  if (info_.start_x_ > (*in).xmin_) {
-    r.faces_[BACK] = false;
-    r.xmin_ = 0;
-  } else {
-    r.faces_[BACK] = true;
-    r.xmin_ = (*in).xmin_ - info_.start_x_;
-  }
-
-  if (info_.start_y_ > (*in).ymin_) {
-    r.ymin_ = 0;
-    r.faces_[LEFT] = false;
-  } else {
-    r.ymin_ = (*in).ymin_ - info_.start_y_;
-    r.faces_[LEFT] = true;
-  }
-
-  if (info_.start_z_ > (*in).zmin_) {
-    r.faces_[BOTTOM] = false;
-    r.zmin_ = 0;
-  } else {
-    r.faces_[BOTTOM] = true;
-    r.zmin_ = (*in).zmin_ - info_.start_z_;
-  }
-
-  if ((*in).xmax_ >= info_.start_x_) {
-    if ((*in).xmax_ >= info_.start_x_ + info_.dimx_) {
-      r.xmax_ = info_.dimx_;
-      r.faces_[FRONT] = false;
-    } else {
-      r.xmax_ = (*in).xmax_ - info_.start_x_;
-      r.faces_[FRONT] = true;
-    }
-  } else {
-    r.xmax_ = 0;
-    r.faces_[FRONT] = false;
-  }
-
-  if ((*in).ymax_ >= info_.start_y_) {
-    if ((*in).ymax_ >= info_.start_y_ + info_.dimy_) {
-      r.ymax_ = info_.dimy_;
-      r.faces_[RIGHT] = false;
-    } else {
-      r.ymax_ = (*in).ymax_ - info_.start_y_;
-      r.faces_[RIGHT] = true;
-    }
-  } else {
-    r.ymax_ = 0;
-    r.faces_[RIGHT] = false;
-  }
-
-  if ((*in).zmax_ >= info_.start_z_) {
-    if ((*in).zmax_ >= info_.start_z_ + info_.dimz_) {
-      r.zmax_ = info_.dimz_;
-      r.faces_[TOP] = false;
-    } else {
-      r.zmax_ = (*in).zmax_ - info_.start_z_;
-      r.faces_[TOP] = true;
-    }
-  } else {
-    r.zmax_ = 0;
-    r.faces_[TOP] = false;
-  }
-
-  r.len_x_ = r.xmax_ - r.xmin_;
-  r.len_y_ = r.ymax_ - r.ymin_;
-  r.len_z_ = r.zmax_ - r.zmin_;
-
-  //r.start_x_ = 
-
-  for (int i = 0; i < 6; i++)
-  {
-    if (r.faces_[i])
-    {
-      r.has_data_ = true;
-      break;
-    }      
-  }
-
-  return shared_ptr<Block> (new Block(r));
-}
-
-shared_ptr<Block> 
-Grid::global_to_local(unsigned int xmin, unsigned int x_stop, 
-                      unsigned int ymin, unsigned int y_stop, 
-                      unsigned int zmin, unsigned int z_stop,
-                      bool no_ol) const
-{
-  Block result;
-  
-  result.xmin_ = xmin;
-  result.xmax_ = x_stop;
-  result.ymin_ = ymin;
-  result.ymax_ = y_stop;
-  result.zmin_ = zmin;
-  result.zmax_ = z_stop;
-
-  return global_to_local(shared_ptr<Block> (new Block(result)), no_ol);
-}
-
 field_t *Grid::get_face_start(Face face, FieldComponent comp,
                               unsigned int offset) const
 {
@@ -1167,62 +1007,6 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp,
     break;
   case LEFT: // y=0
     idx = pi(0, offset, 0);
-    break;
-  }
-
-  switch(comp)
-  {
-  case FC_EX:
-    ptr = &(ex_[idx]);
-    break;
-  case FC_EY:
-    ptr = &(ey_[idx]);
-    break;
-  case FC_EZ:
-    ptr = &(ez_[idx]);
-    break;
-  case FC_HX:
-    ptr = &(hx_[idx]);
-    break;
-  case FC_HY:
-    ptr = &(hy_[idx]);
-    break;
-  case FC_HZ:
-    ptr = &(hz_[idx]);
-    break;
-  }
-
-  return ptr;
-}
-
-field_t *Grid::get_face_start(Face face, FieldComponent comp,
-                              grid_point p) const
-{
-  unsigned int idx = 0, xstart, ystart, zstart;
-  field_t *ptr = 0;
-
-  xstart = info_.start_x_no_sd_ - info_.start_x_;
-  ystart = info_.start_y_no_sd_ - info_.start_y_;
-  zstart = info_.start_z_no_sd_ - info_.start_z_;
-
-  //  cerr << "Grid::get_face_start(), xstart x ystart x zstart: " 
-  //       << xstart << " x " << ystart << " x " << zstart << endl << endl;
-
-  switch (face)
-  {
-  case FRONT:
-  case BACK:
-    idx = pi(p.x, ystart, zstart);    
-    break;
-
-  case TOP:
-  case BOTTOM:
-    idx = pi(xstart, ystart, p.z);    
-    break;
-
-  case LEFT:
-  case RIGHT:
-    idx = pi(xstart, p.y, zstart);
     break;
   }
 
@@ -1358,7 +1142,7 @@ grid_point Grid::get_global_cell(point p) const
 }
 
 // MCH, 2005-02-08: Modified to use global lengths rather than local
-// when checkni if a point is outside of the grid.
+// when checking if a point is outside of the grid.
 grid_point Grid::get_global_cell(float x, float y, float z) const
 {
   grid_point ret; 
@@ -1381,22 +1165,28 @@ grid_point Grid::get_global_cell(float x, float y, float z) const
     if (x > xs)
     {
       i = static_cast<unsigned int>(floor((x - xs) / get_deltax()));
-      if (i > get_gdx())
+      if (i >= get_gdx())
         i = get_gdx() - 1;
+      //if (i > get_ldx_sd())
+      //  i = get_ldx_sd() - 1;
     }
 
     if (y > ys)
     {
       j = static_cast<unsigned int>(floor((y - ys) / get_deltay()));
-      if (j > get_gdy())
+      if (j >= get_gdy())
         j = get_gdy() - 1;
+      //if (j > get_ldy_sd())
+      //  j = get_ldy_sd() - 1;
     }
 
     if (z > zs)
     {
       k = static_cast<unsigned int>(floor((z - zs) / get_deltaz()));
-      if (k > get_gdz())
+      if (k >= get_gdz())
         k = get_gdz() - 1;
+      //if (k > get_ldz_sd())
+      //  k = get_ldz_sd() - 1;
     }
 
     ret.x = i;
@@ -1410,35 +1200,14 @@ grid_point Grid::get_global_cell(float x, float y, float z) const
   return ret;
 }
 
-shared_ptr<Block> Grid::get_local_region(CSGBox &box) const
+shared_ptr<CellSet> Grid::get_cellset(const CSGBox &box) const
 {
-  shared_ptr<Block> hmm = get_global_region(box);
-  shared_ptr<Block> ret = global_to_local(hmm, true);
-
-  point sz = box.get_size();
-  point c = box.get_centre();
-
-#ifdef DEBUG
-  cerr << "LOCAL REGION: centre (" << c.x << ", " << c.y << ", "
-       << c.z << "), size (" << sz.x << ", " << sz.y << ", " << sz.z 
-       << ") => (" << (*ret).xmin_ << ", " << (*ret).ymin_
-       << ", " << (*ret).zmin_ << ") -> (" << (*ret).xmax_ << ", " 
-       << (*ret).ymax_ << ", " << (*ret).zmax_ << ")"
-       << endl;
-  cerr << "\t Lengths: " << (*ret).xlen() << ", " << (*ret).ylen()
-       << ", " << (*ret).zlen() << endl;
-  cerr << "\tStarting point in global grid: " << (*ret).xstart()
-       << ", " << (*ret).ystart() << ", " << (*ret).zstart() << endl;  
-#endif
-
-  return ret;
-}
-
-shared_ptr<Block> Grid::get_global_region(CSGBox &box) const
-{
+  shared_ptr<CellSet> cells = shared_ptr<CellSet>(new CellSet());
+  
+  // Fill out the global set
   point centre = box.get_centre();
   point size = box.get_size();
-  Block ret;
+  shared_ptr<Block> global = cells->global_;
 
   float xs = centre.x - size.x / 2;
   float ys = centre.y - size.y / 2;
@@ -1451,46 +1220,278 @@ shared_ptr<Block> Grid::get_global_region(CSGBox &box) const
   grid_point start = get_global_cell(xs, ys, zs);
   grid_point end = get_global_cell(xe, ye, ze);
   
-  // The +1 at the end of these lines is due to a slightly retarded move 
-  // I made in specifying min and max ranges... all of the loops treat
-  // the minimum as inclusive, and the maximum as exclusive. 
-  // I.e. The interval is closed at the minimum and open at the maximum. 
-  ret.xmin_ = start.x; ret.xmax_ = end.x + 1;
-  ret.ymin_ = start.y; ret.ymax_ = end.y + 1;
-  ret.zmin_ = start.z; ret.zmax_ = end.z + 1;
+  global->xmin_ = start.x; global->xmax_ = end.x;
+  global->ymin_ = start.y; global->ymax_ = end.y;
+  global->zmin_ = start.z; global->zmax_ = end.z;
 
-  // The above causes problems because it changes what get_global_cell
-  // means.... badness.
-//   ret.xmin_ = start.x; ret.xmax_ = end.x;
-//   ret.ymin_ = start.y; ret.ymax_ = end.y;
-//   ret.zmin_ = start.z; ret.zmax_ = end.z;
+  global->xlen_ = global->xmax_ - global->xmin_ + 1;
+  global->ylen_ = global->ymax_ - global->ymin_ + 1;
+  global->zlen_ = global->zmax_ - global->zmin_ + 1;
 
+  if (global->xlen_ == 0 || global->ylen_ == 0 || global->zlen_ == 0)
+  {
+    global->has_data_ = false;
 
-  ret.start_x_ = ret.xmin_;
-  ret.start_y_ = ret.ymin_;
-  ret.start_z_ = ret.zmin_;
+    for (int i = 0; i < 6; i++)
+      global->faces_[i] = false;
+  }
 
-  ret.len_x_ = ret.xmax_ - ret.xmin_;
-  ret.len_y_ = ret.ymax_ - ret.ymin_;
-  ret.len_z_ = ret.zmax_ - ret.zmin_;
+  // Local, with ghosts
+  cells->local_ghost_ = global_to_local_ghost(global);
 
-  point sz = box.get_size();
-  point c = box.get_centre();
+  // Local, without ghosts
+  cells->local_ = global_to_local(global);
 
 #ifdef DEBUG
-  cerr << "GLOBAL REGION: centre (" << c.x << ", " << c.y << ", "
-       << c.z << "), size (" << sz.x << ", " << sz.y << ", " << sz.z 
-       << ") => (" << ret.xmin_ << ", " << ret.ymin_
-       << ", " << ret.zmin_ << ") -> (" << ret.xmax_ << ", " 
-       << ret.ymax_ << ", " << ret.zmax_ << ")"
-       << endl;
-  cerr << "\t Lengths: " << ret.xlen() << ", " << ret.ylen()
-       << ", " << ret.zlen() << endl;
-  cerr << "\tStarting point in global grid: " << ret.xstart()
-       << ", " << ret.ystart() << ", " << ret.zstart() << endl;
+  cerr << "Grid::get_cellset, global block: \n" 
+       << *global << "\nlocal block, no ghosts:\n"
+       << *(cells->local_) << "\nlocal block, with ghosts:\n"
+       << *(cells->local_ghost_) << endl << endl;
 #endif
 
-  return shared_ptr<Block> (new Block(ret));
+  return cells;
+}
+
+shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in) const
+{
+  Block r;
+
+  // Size of the local grid, including ghost cells
+  unsigned int dxg = info_.dimx_, dyg = info_.dimy_, dzg = info_.dimz_;
+
+  // Size of the local grid, NOT including ghost cells
+  unsigned int dx = info_.dimx_no_sd_, dy = info_.dimy_no_sd_, 
+    dz = info_.dimz_no_sd_;
+
+  // Starting points of the local grid within the global grid,
+  // including ghost cells.
+  unsigned int sxg = info_.start_x_, syg = info_.start_y_, 
+    szg = info_.start_z_;
+
+  // Starting points of the local grid within the global grid,
+  // NOT including ghost cells.
+  unsigned int sx = info_.start_x_no_sd_, sy = info_.start_y_no_sd_, 
+    sz = info_.start_z_no_sd_;
+
+  r.is_global_ = false;
+
+
+  // Calculate Block parameters for a new Block in the local grid that
+  // DOES NOT include ghost cells.
+  if (in->xmin_ >= sx) 
+  {
+    if (in->xmin_ < sx + dx) {
+      r.xmin_ = in->xmin_ - sxg;
+      r.faces_[BACK] = true;
+    } else {
+      r.xmin_ = 0;
+      r.faces_[BACK] = false;
+      r.has_data_ = false;
+    }
+  } else {
+    r.xmin_ = sx - sxg;
+    r.xoffset_ = sx - in->xmin_;
+    r.faces_[BACK] = false;
+  }
+
+  if (in->ymin_ >= sy) 
+  {
+    if (in->ymin_ < sy + dy) {
+      r.ymin_ = in->ymin_ - syg;
+      r.faces_[LEFT] = true;
+    } else {
+      r.ymin_ = 0;
+      r.faces_[LEFT] = false;
+      r.has_data_ = false;
+    }
+  } else {
+    r.ymin_ = sy - syg;
+    r.yoffset_ = sy - in->ymin_;
+    r.faces_[LEFT] = false;
+  }
+
+  if (in->zmin_ >= sz)
+  {
+    if (in->zmin_ < sz + dz) {
+      r.zmin_ = in->zmin_ - szg;
+      r.faces_[BOTTOM] = true;
+    } else {
+      r.zmin_ = 0;
+      r.faces_[BOTTOM] = false;
+      r.has_data_ = false;
+    }
+  } else {
+    r.zmin_ = sz - szg; 
+    r.zoffset_ = sz - in->zmin_;
+    r.faces_[BOTTOM] = false;
+  }
+
+  // Maximums... 
+  if (in->xmax_ >= sx) {
+    if (in->xmax_ < sx + dx) {
+      r.xmax_ = in->xmax_ - sxg;
+      r.faces_[FRONT] = true;
+    } else {
+      r.xmax_ = sx - sxg + dx - 1;
+      r.faces_[FRONT] = false;
+    }
+  } else {
+    r.xmax_ = 0;
+    r.faces_[FRONT] = false;
+  }
+
+  if (in->ymax_ >= sy) {
+    if (in->ymax_ < sy + dy) {
+      r.ymax_ = in->ymax_ - syg;
+      r.faces_[RIGHT] = true;
+    } else {
+      r.ymax_ = sy - syg + dy - 1;
+      r.faces_[RIGHT] = false;
+    }
+  } else {
+    r.ymax_ = 0;
+    r.faces_[RIGHT] = false;
+  }
+
+  if (in->zmax_ >= sz) {
+    if (in->zmax_ < sz + dz) {
+      r.zmax_ = in->zmax_ - szg;
+      r.faces_[TOP] = true;
+    } else {
+      r.zmax_ = sz - szg + dz - 1;
+      r.faces_[TOP] = false;
+    }
+  } else {
+    r.zmax_ = 0;
+    r.faces_[TOP] = false;
+  }
+
+  r.xlen_ = r.xmax_ - r.xmin_ + 1;
+  r.ylen_ = r.ymax_ - r.ymin_ + 1;
+  r.zlen_ = r.zmax_ - r.zmin_ + 1;
+
+  return shared_ptr<Block> (new Block(r));
+}
+
+shared_ptr<Block> Grid::global_to_local_ghost(shared_ptr<Block> in) const
+{
+  Block r;
+
+  // Size of the local grid, including ghost cells
+  unsigned int dxg = info_.dimx_, dyg = info_.dimy_, dzg = info_.dimz_;
+
+  // Size of the local grid, NOT including ghost cells
+  unsigned int dx = info_.dimx_no_sd_, dy = info_.dimy_no_sd_, 
+    dz = info_.dimz_no_sd_;
+
+  // Starting points of the local grid within the global grid,
+  // including ghost cells.
+  unsigned int sxg = info_.start_x_, syg = info_.start_y_, 
+    szg = info_.start_z_;
+
+  // Starting points of the local grid within the global grid,
+  // NOT including ghost cells.
+  unsigned int sx = info_.start_x_no_sd_, sy = info_.start_y_no_sd_, 
+    sz = info_.start_z_no_sd_;
+
+  r.is_global_ = false;
+
+
+  // Calculate Block parameters for a new Block in the local grid that
+  // DOES NOT include ghost cells.
+  if (in->xmin_ >= sxg) 
+  {
+    if (in->xmin_ < sxg + dxg) {
+      r.xmin_ = in->xmin_ - sxg;
+      r.faces_[BACK] = true;
+    } else {
+      r.xmin_ = 0;
+      r.faces_[BACK] = false;
+      r.has_data_ = false;
+    }
+  } else {
+    r.xmin_ = 0;
+    r.xoffset_ = sxg - in->xmin_;
+    r.faces_[BACK] = false;
+  }
+
+  if (in->ymin_ >= syg) 
+  {
+    if (in->ymin_ < syg + dyg) {
+      r.ymin_ = in->ymin_ - syg;
+      r.faces_[LEFT] = true;
+    } else {
+      r.ymin_ = 0;
+      r.faces_[LEFT] = false;
+      r.has_data_ = false;
+    }
+  } else {
+    r.ymin_ = 0;
+    r.yoffset_ = syg - in->ymin_;
+    r.faces_[LEFT] = false;
+  }
+
+  if (in->zmin_ >= szg)
+  {
+    if (in->zmin_ < szg + dzg) {
+      r.zmin_ = in->zmin_ - szg;
+      r.faces_[BOTTOM] = true;
+    } else {
+      r.zmin_ = 0;
+      r.faces_[BOTTOM] = false;
+      r.has_data_ = false;
+    }
+  } else {
+    r.zmin_ = 0;
+    r.zoffset_ = szg - in->zmin_;
+    r.faces_[BOTTOM] = false;
+  }
+
+  // Maximums... 
+  if (in->xmax_ >= sxg) {
+    if (in->xmax_ < sxg + dxg) {
+      r.xmax_ = in->xmax_ - sxg;
+      r.faces_[FRONT] = true;
+    } else {
+      r.xmax_ = dxg - 1;
+      r.faces_[FRONT] = false;
+    }
+  } else {
+    r.xmax_ = 0;
+    r.faces_[FRONT] = false;
+  }
+
+  if (in->ymax_ >= syg) {
+    if (in->ymax_ < syg + dyg) {
+      r.ymax_ = in->ymax_ - syg;
+      r.faces_[RIGHT] = true;
+    } else {
+      r.ymax_ = dyg - 1;
+      r.faces_[RIGHT] = false;
+    }
+  } else {
+    r.ymax_ = 0;
+    r.faces_[RIGHT] = false;
+  }
+
+  if (in->zmax_ >= szg) {
+    if (in->zmax_ < szg + dzg) {
+      r.zmax_ = in->zmax_ - szg;
+      r.faces_[TOP] = true;
+    } else {
+      r.zmax_ = dzg - 1;
+      r.faces_[TOP] = false;
+    }
+  } else {
+    r.zmax_ = 0;
+    r.faces_[TOP] = false;
+  }
+
+  r.xlen_ = r.xmax_ - r.xmin_ + 1;
+  r.ylen_ = r.ymax_ - r.ymin_ + 1;
+  r.zlen_ = r.zmax_ - r.zmin_ + 1;
+
+  return shared_ptr<Block> (new Block(r));
 }
 
 point Grid::get_size() const
@@ -1501,4 +1502,19 @@ point Grid::get_size() const
 point Grid::get_centre() const
 {
   return (*pg_).get_grid_centre();
+}
+
+/**
+ * \bug This doesn't work right if the point is larger than the bounds!!!
+ * \bug No way to indicate that the point is actually outside the local grid
+ */
+grid_point Grid::global_to_local(grid_point p) const
+{
+  grid_point r;
+  
+  r.x = (info_.start_x_ > p.x) ? 0 : p.x - info_.start_x_;
+  r.y = (info_.start_y_ > p.y) ? 0 : p.y - info_.start_y_;
+  r.z = (info_.start_z_ > p.z) ? 0 : p.z - info_.start_z_;
+
+  return r;
 }
