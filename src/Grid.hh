@@ -18,6 +18,9 @@
 
 class Grid {
  private:
+  void alloc_grid();
+  void free_grid();
+  void init_datatypes();
 
  protected:
 
@@ -37,7 +40,10 @@ class Grid {
   unsigned int dimy_;
   unsigned int dimz_;
 
-  // E Field Coefficients
+  // Number of materials we know about (0 is PEC)
+  unsigned int num_materials_;
+
+  // E Field Material Coefficients
   mat_coef_t *Ca_;
   mat_coef_t *Cb1_;
   mat_coef_t *Cb2_;
@@ -64,10 +70,8 @@ class Grid {
 
   // A grid is a cube with six faces. Those faces either need to have
   // boundary conditions, or they are subdomain boundaries and they
-  // need to be shared with other processors. This array tells what
-  // to do with each face. If the number is negative, then it's a
-  // conventional boundary condition. If it is positive, it is a
-  // processor rank to talk to. 
+  // need to be shared with other processors. These arrays tell what
+  // to do with each face. 
   //
   // 0 - Front (x = 0, YZ plane)
   // 1 - Back (x = dimx, YZ plane)
@@ -76,12 +80,20 @@ class Grid {
   // 4 - Bottom (z = 0, XY plane)
   // 5 - Top (z = dimz, XY plane)
   //
-  signed int faces_[6];
+  BoundaryCondition face_bc_[6]; // Boundary condition to apply
+  int face_rank_[6]; // Rank of processor to talk to about this
+		     // interface. 
 
   // Derived MPI data types for sending data around. 
   MPI_Datatype xy_plane_;
   MPI_Datatype yz_plane_;
   MPI_Datatype xz_plane_;
+
+  // Accessing Z is contiguous, but accessing X and Y coordinates
+  // requires the use of strided vectors. 
+  MPI_Datatype x_vector_;
+  MPI_Datatype y_vector_;
+  MPI_Datatype z_vector_;
 
  public:
   Grid();
@@ -97,8 +109,8 @@ class Grid {
   void free_material();
 
   // Grid actions
-  void alloc_grid();
-  void free_grid();
+  setup_grid(int global_x, int global_y, int global_z, 
+	     int x, int y, int z);
 };
 
 #endif // GRID

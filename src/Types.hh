@@ -2,6 +2,17 @@
 // may be processed by autoconf in the future so these things 
 // can be configure switches, or dependent on machine type. 
 
+// Boundary conditions
+enum BoundaryCondition {
+  SUBDOMAIN, // Share me
+  EWALL, 
+  HWALL, 
+  ESYM,
+  HSYM,
+  IMPEDANCE,
+  PML
+}
+
 // Material types
 enum MaterialType {PERF_COND}
 

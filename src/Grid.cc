@@ -9,15 +9,15 @@ Grid::Grid()
     ex_sum_(0), ey_sum_(0), ez_sum_(0)
 {
   for (int i = 0; i < 6; i++) {
-    faces_[i] = 0;
+    face_bc_[i] = EWALL;
+    face_rank_[i] = 0;
   }
-
-  MPI_
 }
 
 Grid::~Grid()
 {
   free_grid();
+  free_material();
 }
     
 
@@ -75,5 +75,92 @@ Grid::free_grid()
 
 Grid::free_material()
 {
+  if (Ca_) {
+    delete[] Ca_;
+    delete[] Cb1_;
+    delete[] Cb2_;
+    
+    delete[] Da_;
+    delete[] Db1_;
+    delete[] Db2_;
+
+    Ca_ = Da_ = Cb1_ = Cb2_ = Db1_ = Db2_ = 0;
+  }
+}
+
+
+Grid::init_datatypes()
+{
+  MPI_Type_contiguous(dimz_, GRID_MPI_TYPE, &z_vector_);
+  MPI_Type_commit(&z_vector);
+
+  MPI_Type_vector(dimy_, 1, dimz_, GRID_MPI_TYPE, &y_vector_);
+  MPI_Type_commit(&y_vector);
   
+  MPI_Type_vector(dimx_, 1, dimy_ * dimz_, GRID_MPI_TYPE, &x_vector_);
+  MPI_Type_commit(&x_vector);
+
+  // Not 100% sure about these:
+  MPI_Type_vector(dimy_, 1, 0, z_vector_, &yz_plane_);
+  MPI_Type_commit(&yz_plane_);
+
+  MPI_Type_vector(dimx_, 1, dimy_, z_vector_, &xz_plane_);
+  MPI_Type_commit(&xz_plane);
+
+  MPI_Type_vector(dimx_, 1, 0, y_vector_, &xy_plane_);
+  MPI_Type_commit(&xy_plane_);
+}
+
+
+Grid::alloc_grid()
+{
+
+  ex_ = new **field_t(dimx_);
+  ey_ = new **field_t(dimx_);
+  ez_ = new **field_t(dimx_);
+
+  hx_ = new **field_t(dimx_);
+  hy_ = new **field_t(dimx_);
+  hz_ = new **field_t(dimx_);
+
+  for (unsigned int i = 0; i < dimx_; i++) {
+    ex_[i] = new *field_t(dimy_);
+    ey_[i] = new *field_t(dimy_);
+    ez_[i] = new *field_t(dimy_);
+
+    hx_[i] = new *field_t(dimy_);
+    hy_[i] = new *field_t(dimy_);
+    hz_[i] = new *field_t(dimy_);
+
+    for (unsigned int j = 0; j < dimy_; j++) {
+      ex_[i][j] = new field_t(dimz_);
+      ey_[i][j] = new field_t(dimz_);
+      ez_[i][j] = new field_t(dimz_);
+
+      hx_[i][j] = new field_t(dimz_);
+      hy_[i][j] = new field_t(dimz_);
+      hz_[i][j] = new field_t(dimz_);
+    }
+  }
+}
+
+
+Grid::load_materials(MaterialLib &matlib)
+{
+  
+}
+
+
+Grid::setup_grid(int global_x, int global_y, int global_z, 
+		 int x, int y, int z)
+{
+  global_dimx_ = global_x; 
+  global_dimy_ = global_y; 
+  global_dimz_ = global_z; 
+
+  dimx_ = x;
+  dimy_ = y;
+  dimz_ = z;
+
+  alloc_grid();
 }
