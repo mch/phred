@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -43,42 +43,28 @@ enum FfType {
  * collect data from other ranks using MPI communication. This might
  * be refactored later...
  *
- * Almost all of this code (except for the MPI stuff) is borrowed from
- * Jan's implementation.
- *
- * \bug Support for more than one rank (parallel communication) is
- * not yet implemented
- *
- * \bug Current implementation is pretty hard on memory... mostly
- * because of the need to copy things into a contigous output array.
+ * This class implements Luebbers' method, Taflove, Computational
+ * Electrodynamics, 2nd ed, pg 366
  */
 class FarfieldResult : public Result
 {
 private:
 protected:
-  float theta_start_;
-  float theta_stop_;
-  float phi_start_;
-  float phi_stop_;
-  unsigned int num_pts_; /**< Number of points on arc */
-
-  Axis axis_; /**< Axis to rotate around if it can't be deduced from
-                 theta and phi start/stop */
-
-  field_t freq_start_; /**< First frequency in the range */
-  field_t freq_stop_; /**< Last frequency in the range */
-  unsigned int num_freqs_; /**< Number of frequencies in range */
-  field_t freq_space_;
+  shared_ptr<CSGBox> box_; /**< The box to use as the surface to
+                              integrate currents over. */
   
-  region_t global_r_; /**< Region specifying surface of Huygen's box in
-                         the global grid (this result only deals in
-                         the global grid) */
+  shared_ptr<Block> region_;
 
-  float *theta_;
-  float *phi_;
+  // Angle range
+  Interval<field_t> theta_data_;
+  Interval<field_t> phi_data_;
 
-  float *freqs_buffer_; /* The frequencies to return. */ 
+  // Distance to observation point... hmm...
+  field_t r_;
 
+  // Field components in sphereical coordinats in farfield, where the
+  // radial component is approximatly zero.
+  complex
   float **e_theta_re_;
   float **e_theta_im_;
   float **e_phi_re_;
