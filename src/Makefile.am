@@ -26,7 +26,8 @@ phred_LDADD += \
 	Excitations/libexcitations.a \
 	DataWriters/libdatawriters.a \
 	Boundaries/libboundaries.a \
-	Sources/libsources.a
+	Sources/libsources.a \
+	CSG/libcsg.a
 
 #	jan-grammer.yy \
 #	jan-grammer-flex.ll \

@@ -20,6 +20,7 @@
 */
 
 #include "SimpleSDAlg.hh"
+#include "Globals.hh"
 #include <exception>
 
 SimpleSDAlg::SimpleSDAlg()
@@ -28,15 +29,14 @@ SimpleSDAlg::SimpleSDAlg()
 SimpleSDAlg::~SimpleSDAlg()
 {}
 
-GridInfo SimpleSDAlg::decompose_domain(int rank, int size, 
-                                       GridInfo &info)
+GridInfo SimpleSDAlg::decompose_domain(GridInfo &info)
 {
   bool divided = false;
 
-  if (size < 0) // that just wrong
+  if (MPI_SIZE < 0) // that just wrong
     throw std::exception();
 
-  unsigned int sz = static_cast<unsigned int>(size);
+  unsigned int sz = static_cast<unsigned int>(MPI_SIZE);
   
   // n, m, and p are the number of divisions along the x, y, and z
   // axis' respectivly
@@ -47,7 +47,7 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
 
   n = m = p = 1;
 
-  for (int i = 0; i < size; i++)
+  for (int i = 0; i < MPI_SIZE; i++)
   {
     if (sdx >= sdy && sdx >= sdz && (n+1)*m*p <= sz) {
       n++;
@@ -94,9 +94,9 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
 
   // Find the domain this grid will be in. 
   unsigned int x, y, z; 
-  x = rank % n;
-  y = ((rank - x)/n) % m;
-  z = ((rank - x)/n - y) / m;
+  x = MPI_RANK % n;
+  y = ((MPI_RANK - x)/n) % m;
+  z = ((MPI_RANK - x)/n - y) / m;
 
   // Assign sizes and starting points including overlap
   result.dimx_ = static_cast<unsigned int>
@@ -138,8 +138,8 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
     sdbc = new SubdomainBc();
 
     sdbc->set_neighbour((z*m + y) * n + (x-1));
-    sdbc->set_rank(rank);
-    result.set_boundary(BACK, sdbc, true);
+    sdbc->set_rank(MPI_RANK);
+    result.set_boundary(BACK, sdbc);
 
     result.dimx_++;
     result.start_x_--;
@@ -149,8 +149,8 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
     sdbc = new SubdomainBc();
 
     sdbc->set_neighbour((z*m + y) * n + (x+1));
-    sdbc->set_rank(rank);
-    result.set_boundary(FRONT, sdbc, true);
+    sdbc->set_rank(MPI_RANK);
+    result.set_boundary(FRONT, sdbc);
     result.dimx_++;
   } 
 
@@ -158,8 +158,8 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
     sdbc = new SubdomainBc();
 
     sdbc->set_neighbour((z*m + (y-1)) * n + x);
-    sdbc->set_rank(rank);
-    result.set_boundary(LEFT, sdbc, true);
+    sdbc->set_rank(MPI_RANK);
+    result.set_boundary(LEFT, sdbc);
     result.dimy_++;
     result.start_y_--;
   } 
@@ -168,8 +168,8 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
     sdbc = new SubdomainBc();
 
     sdbc->set_neighbour((z*m + (y+1)) * n + x);
-    sdbc->set_rank(rank);
-    result.set_boundary(RIGHT, sdbc, true);
+    sdbc->set_rank(MPI_RANK);
+    result.set_boundary(RIGHT, sdbc);
     result.dimy_++;
   }
 
@@ -177,8 +177,8 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
     sdbc = new SubdomainBc();
 
     sdbc->set_neighbour(((z-1)*m + y) * n + x);
-    sdbc->set_rank(rank);
-    result.set_boundary(BOTTOM, sdbc, true);
+    sdbc->set_rank(MPI_RANK);
+    result.set_boundary(BOTTOM, sdbc);
     result.dimz_++;
     result.start_z_--;
   }
@@ -187,8 +187,8 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
     sdbc = new SubdomainBc();
 
     sdbc->set_neighbour(((z+1)*m + y) * n + x);
-    sdbc->set_rank(rank);
-    result.set_boundary(TOP, sdbc, true);
+    sdbc->set_rank(MPI_RANK);
+    result.set_boundary(TOP, sdbc);
     result.dimz_++;
   }
 

@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -53,7 +53,116 @@ using namespace boost;
  */
 class FDTD
 {
-private:
+public:
+  FDTD();
+  virtual ~FDTD();
+
+  /**
+   * Set the grid material
+   */
+  void set_grid_material(const char *material);
+
+  /**
+   * Set the number of time steps to run the simulation for. 
+   */ 
+  void set_time_steps(unsigned int t);
+
+  /**
+   * Set the global (entire problem) grid size, in meters. 
+   */
+  void set_grid_size(float x, float y, float z);
+
+  /**
+   * Set the center of the grid. Defaults to (0,0,0).
+   */ 
+  void set_grid_centre(float x, float y, float z);
+
+  /**
+   * Set the grid deltas, the size of the cells. The time delta is
+   * automatically computed using the stability condition. 
+   */
+  void set_grid_deltas(field_t dx, field_t dy, field_t dz);
+
+  /**
+   * Set a time delta different from the one computed by
+   * set_grid_deltas(). 
+   */
+  void set_time_delta(field_t dt);
+
+  /**
+   * Returns the time delta. This is computed when set_grid_deltas is
+   * called.
+   */
+  field_t get_time_delta();
+
+  /**
+   * Returns the number of cells in the x direction
+   */ 
+  unsigned int get_num_x_cells();
+
+  /**
+   * Returns the number of cells in the y direction
+   */ 
+  unsigned int get_num_y_cells();
+
+  /**
+   * Returns the number of cells in the z direction
+   */ 
+  unsigned int get_num_z_cells();
+
+  /**
+   * Set a boundary condition object. A pointer to the object is
+   * stored, so don't, for the love of god and all that is holy,
+   * delete the object or allow it go go out of scope before this
+   * object does.
+   *
+   * This now uses a shared_ptr, so its ok. 
+   */
+  void set_boundary(Face face, shared_ptr<BoundaryCond> bc);
+
+  /**
+   * Load a material library to use.
+   */
+  void load_materials(shared_ptr<MaterialLib> matlib);
+
+  /**
+   * Let us know about an excitation, or replace one of the
+   * same name.  You are passing in a pointer; don't dispose of the
+   * object!
+   */
+  void add_excitation(const char *name, shared_ptr<Excitation> ex);
+
+  /**
+   * Add a result object, or replace one of the same name. 
+   */
+  void add_result(const char *name, shared_ptr<Result> r);
+
+  /** 
+   * Add a datawriter, or replace one of the same name. 
+   */
+  void add_datawriter(const char *name, shared_ptr<DataWriter> dw);
+
+  /**
+   * Add a CSG object to the grid
+   */
+  void add_object(string material, shared_ptr<CSGObject> obj);
+
+  /**
+   * Map a results to a DataWriter. Some DataWriters cannot accept
+   * more than one result, so this may throw and exception. Use this
+   * function after the results and datawriters have been added. 
+   *
+   * @param result the name of the result
+   * @param dw the name of the data writer
+   */
+  void map_result_to_datawriter(const char *result, const char *dw);
+
+  /**
+   * Run the simulation for N time steps. 
+   */
+  void run();
+
+
 protected:
   /**
    * The grid to operate on; what kind of grid specifically is decided
@@ -133,94 +242,6 @@ protected:
    * added to them. 
    */
   void setup_datawriters();
-
-public:
-  FDTD();
-  virtual ~FDTD();
-
-  /**
-   * Set the number of time steps to run the simulation for. 
-   */ 
-  void set_time_steps(unsigned int t);
-
-  /**
-   * Set the global (entire problem) grid size
-   */
-  void set_grid_size(unsigned int x, 
-                     unsigned int y, unsigned int z);
-
-  /**
-   * Set the grid deltas, the size of the cells. The time delta is
-   * automatically computed using the stability condition. 
-   */
-  void set_grid_deltas(field_t dx, field_t dy, field_t dz);
-
-  /**
-   * Set a time delta different from the one computed by
-   * set_grid_deltas(). 
-   */
-  void set_time_delta(field_t dt);
-
-  /**
-   * Returns the time delta. This is computed when set_grid_deltas is
-   * called.
-   */
-  field_t get_time_delta();
-
-  /**
-   * Set a boundary condition object. A pointer to the object is
-   * stored, so don't, for the love of god and all that is holy,
-   * delete the object or allow it go go out of scope before this
-   * object does.
-   *
-   * This now uses a shared_ptr, so its ok. 
-   */
-  void set_boundary(Face face, shared_ptr<BoundaryCond> bc);
-
-  /**
-   * Load a material library to use.
-   */
-  void load_materials(shared_ptr<MaterialLib> matlib);
-
-  /**
-   * Let us know about an excitation, or replace one of the
-   * same name.  You are passing in a pointer; don't dispose of the
-   * object!
-   */
-  void add_excitation(const char *name, shared_ptr<Excitation> ex);
-
-  /**
-   * Add a result object, or replace one of the same name. 
-   */
-  void add_result(const char *name, shared_ptr<Result> r);
-
-  /** 
-   * Add a datawriter, or replace one of the same name. 
-   */
-  void add_datawriter(const char *name, shared_ptr<DataWriter> dw);
-
-  /**
-   * Add a CSG object to the grid
-   */
-  void add_object(string material, shared_ptr<CSGObject> obj);
-
-  /**
-   * Map a results to a DataWriter. Some DataWriters cannot accept
-   * more than one result, so this may throw and exception. Use this
-   * function after the results and datawriters have been added. 
-   *
-   * @param result the name of the result
-   * @param dw the name of the data writer
-   */
-  void map_result_to_datawriter(const char *result, const char *dw);
-
-  /**
-   * Run the simulation for N time steps. 
-   *
-   * @param rank the process rank in MPI
-   * @param size the number of ranks in the MPI communicator
-   */
-  void run(int rank, int size);
 
 };
 

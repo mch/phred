@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -24,22 +24,58 @@
 #include "Globals.hh"
 
 FDTD::FDTD()
-{}
+{
+  mlib_ = shared_ptr<MaterialLib>(new MaterialLib()); // Empty default. 
+}
 
 FDTD::~FDTD()
 {}
+
+void FDTD::set_grid_material(const char *material)
+{
+  geometry_.set_grid_material(material);
+}
+
+unsigned int FDTD::get_num_x_cells()
+{
+  return global_ginfo_.global_dimx_;
+}
+
+unsigned int FDTD::get_num_y_cells()
+{
+  return global_ginfo_.global_dimy_;
+}
+
+unsigned int FDTD::get_num_z_cells()
+{
+  return global_ginfo_.global_dimz_;
+}
 
 void FDTD::set_time_steps(unsigned int t)
 {
   time_steps_ = t;
 }
 
-void FDTD::set_grid_size(unsigned int x, unsigned int y,
-                         unsigned int z)
+void FDTD::set_grid_size(float x, float y, float z)
 {
-  global_ginfo_.global_dimx_ = global_ginfo_.dimx_ = x;
-  global_ginfo_.global_dimy_ = global_ginfo_.dimy_ = y;
-  global_ginfo_.global_dimz_ = global_ginfo_.dimz_ = z;
+  geometry_.set_grid_size(x, y, z);
+
+  if (global_ginfo_.deltax_ > 0)
+    global_ginfo_.global_dimx_ = global_ginfo_.dimx_ = 
+      static_cast<unsigned int>(ceil(x / global_ginfo_.deltax_));
+
+  if (global_ginfo_.deltay_ > 0)
+    global_ginfo_.global_dimy_ = global_ginfo_.dimy_ = 
+      static_cast<unsigned int>(ceil(y / global_ginfo_.deltay_));
+
+  if (global_ginfo_.deltaz_ > 0)
+    global_ginfo_.global_dimz_ = global_ginfo_.dimz_ = 
+      static_cast<unsigned int>(ceil(z / global_ginfo_.deltaz_));
+}
+
+void FDTD::set_grid_centre(float x, float y, float z)
+{
+  geometry_.set_grid_centre(x, y, z);
 }
 
 void FDTD::set_grid_deltas(field_t dx, field_t dy, field_t dz)
@@ -52,6 +88,20 @@ void FDTD::set_grid_deltas(field_t dx, field_t dy, field_t dz)
     ( C * sqrt( 1/(pow(dx, static_cast<float>(2.0))) + 
                 1/(pow(dy, static_cast<float>(2.0))) + 
                 1/(pow(dz, static_cast<float>(2.0)))));
+
+  point gsize = geometry_.get_grid_size();
+
+  if (global_ginfo_.deltax_ > 0)
+    global_ginfo_.global_dimx_ = global_ginfo_.dimx_ = 
+      static_cast<unsigned int>(ceil(gsize.x / global_ginfo_.deltax_));
+
+  if (global_ginfo_.deltay_ > 0)
+    global_ginfo_.global_dimy_ = global_ginfo_.dimy_ = 
+      static_cast<unsigned int>(ceil(gsize.y / global_ginfo_.deltay_));
+
+  if (global_ginfo_.deltaz_ > 0)
+    global_ginfo_.global_dimz_ = global_ginfo_.dimz_ = 
+      static_cast<unsigned int>(ceil(gsize.z / global_ginfo_.deltaz_));
 }
 
 field_t FDTD::get_time_delta()
@@ -139,15 +189,34 @@ void FDTD::setup_datawriters()
 }
 
 // CHOP THIS UP; make helper functions
-void FDTD::run(int rank, int size)
+void FDTD::run()
 {
-  // Grid setup
-  SimpleSDAlg dd;
+  // Check that we have every thing we need...
+  // 1) Material Library
+  // 2) ...
 
-  local_ginfo_ = dd.decompose_domain(rank, size, global_ginfo_);
+  // Determine the number of cells in the Grid from the size of the
+  // grid box and the maximum excitation frequency, unless overridden.
+  //...
+
+  // Subdivide the grid using a domain decomosition algorithm.
+  SubdomainAlg *alg = 0;
+  if (MPI_SIZE == 1 || MPI_SIZE == 2 || MPI_SIZE == 4 || MPI_SIZE == 8)
+    alg = new SimpleSDAlg();
+  else
+  {
+    //  alg = new StripSDAlg();
+    cerr << "Striping sub-domaining algorithm is not implemented yet!"
+         << endl;
+    return;
+  }
+  
+  local_ginfo_ = alg->decompose_domain(global_ginfo_);
+
+  delete alg;
 
 #ifdef DEBUG
-  cerr << "Local grid on rank " << rank << " is "
+  cerr << "Local grid on rank " << MPI_RANK << " is "
        << local_ginfo_.dimx_ << " x " 
        << local_ginfo_.dimy_ << " x " 
        << local_ginfo_.dimz_ << ".\n"

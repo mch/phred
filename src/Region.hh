@@ -29,13 +29,13 @@
  * A region represents a block of Yee cells in a FDTD computational
  * domain. Since a single computational domain may be de-composed into
  * multiple domains which may then be assigned to different nodes or
- * processors, it is necessary to track both global information about
- * a region, and local information. The local part of the region refers
- * to the block of Yee cells that are actually allocated and located
- * on the current processor. 
+ * processors, it is necessary to track both global and local
+ * information about a region. The local part of the region refers to
+ * the block of Yee cells that are actually allocated and located on
+ * the current processor.
  * 
- * A region is a seperate concept from a Geometry object such as a
- * box, in that geometry objects are given in terms of real numbers
+ * A region is a seperate concept from a geometry (CSG) object such as
+ * a box, in that geometry objects are given in terms of real numbers
  * which represent a physical distance, while regions are unsigned
  * integers which refer to Yee cells.
  *
@@ -56,7 +56,7 @@ public:
   Region();
 
   /**
-   * Class contructor.This one initialized the region to a non-null space.  
+   * Class contructor. This one initializes the region to a non-null space.  
    */
   Region(unsigned int xmin, unsigned int xmax,
          unsigned int ymin, unsigned int ymax,
@@ -69,7 +69,7 @@ public:
    * to this processor. This should be called before calling any of
    * the get_{x,y,z}{min,max}() functions. 
    */ 
-  virtual bool is_local(const GridInfo &grid_info);
+  virtual bool is_local(const GridInfo &grid_info) const;
 
   /**
    * Set the closed interval along the x axis containing this region. 
@@ -101,37 +101,37 @@ public:
   /**
    * Returns the global xmin of this region. 
    */
-  inline unsigned int get_global_xmin()
+  inline unsigned int get_global_xmin() const
   { return global_xmin_; }
 
   /**
    * Returns the global ymin of this region. 
    */
-  inline unsigned int get_global_ymin()
+  inline unsigned int get_global_ymin() const
   { return global_ymin_; }
 
   /**
    * Returns the global zmin of this region. 
    */
-  inline unsigned int get_global_zmin()
+  inline unsigned int get_global_zmin() const
   { return global_zmin_; }
 
   /**
    * Returns the global xmax of this region. 
    */
-  inline unsigned int get_global_xmax()
+  inline unsigned int get_global_xmax() const
   { return global_xmax_; }
 
   /**
    * Returns the global ymax of this region. 
    */
-  inline unsigned int get_global_ymax()
+  inline unsigned int get_global_ymax() const
   { return global_ymax_; }
 
   /**
    * Returns the global zmax of this region. 
    */
-  inline unsigned int get_global_zmax()
+  inline unsigned int get_global_zmax() const
   { return global_zmax_; }
   
 
@@ -142,42 +142,42 @@ public:
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_xmin(const GridInfo &grid_info);
+  virtual unsigned int get_xmin(const GridInfo &grid_info) const;
 
   /**
    * Returns the local ymin of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_ymin(const GridInfo &grid_info);
+  virtual unsigned int get_ymin(const GridInfo &grid_info) const;
 
   /**
    * Returns the local zmin of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_zmin(const GridInfo &grid_info);
+  virtual unsigned int get_zmin(const GridInfo &grid_info) const;
 
   /**
    * Returns the local xmax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_xmax(const GridInfo &grid_info);
+  virtual unsigned int get_xmax(const GridInfo &grid_info) const;
 
   /**
    * Returns the local ymax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_ymax(const GridInfo &grid_info);
+  virtual unsigned int get_ymax(const GridInfo &grid_info) const;
 
   /**
    * Returns the local zmax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_zmax(const GridInfo &grid_info);
+  virtual unsigned int get_zmax(const GridInfo &grid_info) const;
   
 protected:
   unsigned int global_xmin_;
@@ -189,6 +189,7 @@ protected:
   unsigned int global_zmin_;
   unsigned int global_zmax_;
 
+  shared_ptr<Region> parent_;
 };
 
 /**
@@ -217,49 +218,49 @@ public:
    * to this processor. This should be called before calling any of
    * the get_{x,y,z}{min,max}() functions. 
    */ 
-  virtual bool is_local(const GridInfo &grid_info);
+  virtual bool is_local(const GridInfo &grid_info) const;
 
    /**
    * Returns the local xmin of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_xmin(const GridInfo &grid_info);
+  virtual unsigned int get_xmin(const GridInfo &grid_info) const;
 
   /**
    * Returns the local ymin of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_ymin(const GridInfo &grid_info);
+  virtual unsigned int get_ymin(const GridInfo &grid_info) const;
 
   /**
    * Returns the local zmin of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_zmin(const GridInfo &grid_info);
+  virtual unsigned int get_zmin(const GridInfo &grid_info) const;
 
   /**
    * Returns the local xmax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_xmax(const GridInfo &grid_info);
+  virtual unsigned int get_xmax(const GridInfo &grid_info) const;
 
   /**
    * Returns the local ymax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_ymax(const GridInfo &grid_info);
+  virtual unsigned int get_ymax(const GridInfo &grid_info) const;
 
   /**
    * Returns the local zmax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_zmax(const GridInfo &grid_info);
+  virtual unsigned int get_zmax(const GridInfo &grid_info) const;
 
 protected:
 

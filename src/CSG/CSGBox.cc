@@ -22,7 +22,9 @@
 #include "CSGBox.hh"
 
 CSGBox::CSGBox()
-{}
+{
+  set_size(1, 1, 1);
+}
 
 CSGBox::~CSGBox()
 {}

@@ -35,7 +35,7 @@ Region::Region(unsigned int xmin, unsigned int xmax,
 Region::~Region()
 {}
 
-bool Region::is_local(const GridInfo &grid_info)
+bool Region::is_local(const GridInfo &grid_info) const
 {
   bool ret = false;
   if (global_xmin_ >= grid_info.start_x_no_sd_ 
@@ -85,7 +85,7 @@ void Region::set_z(unsigned int zmin, unsigned int zmax)
   global_zmax_ = zmax;
 }
 
-unsigned int Region::get_xmin(const GridInfo &grid_info)
+unsigned int Region::get_xmin(const GridInfo &grid_info) const
 {
   unsigned int ret = 0;
   if (global_xmin_ < grid_info.start_x_no_sd_
@@ -99,7 +99,7 @@ unsigned int Region::get_xmin(const GridInfo &grid_info)
   return ret;
 }
 
-unsigned int Region::get_ymin(const GridInfo &grid_info)
+unsigned int Region::get_ymin(const GridInfo &grid_info) const
 {
   unsigned int ret = 0;
   if (global_ymin_ < grid_info.start_y_no_sd_
@@ -113,7 +113,7 @@ unsigned int Region::get_ymin(const GridInfo &grid_info)
   return ret;
 }
 
-unsigned int Region::get_zmin(const GridInfo &grid_info)
+unsigned int Region::get_zmin(const GridInfo &grid_info) const
 {
   unsigned int ret = 0;
   if (global_zmin_ < grid_info.start_z_no_sd_
@@ -127,7 +127,7 @@ unsigned int Region::get_zmin(const GridInfo &grid_info)
   return ret;
 }
 
-unsigned int Region::get_xmax(const GridInfo &grid_info)
+unsigned int Region::get_xmax(const GridInfo &grid_info) const
 {
   unsigned int upper_bnd = grid_info.start_x_no_sd_ 
     + grid_info.dimx_no_sd_ - 1;
@@ -141,7 +141,7 @@ unsigned int Region::get_xmax(const GridInfo &grid_info)
   return ret;
 }
 
-unsigned int Region::get_ymax(const GridInfo &grid_info)
+unsigned int Region::get_ymax(const GridInfo &grid_info) const
 {
   unsigned int upper_bnd = grid_info.start_y_no_sd_ 
     + grid_info.dimy_no_sd_ - 1;
@@ -155,7 +155,7 @@ unsigned int Region::get_ymax(const GridInfo &grid_info)
   return ret;
 }
 
-unsigned int Region::get_zmax(const GridInfo &grid_info)
+unsigned int Region::get_zmax(const GridInfo &grid_info) const
 {
   unsigned int upper_bnd = grid_info.start_z_no_sd_ 
     + grid_info.dimz_no_sd_ - 1;
@@ -185,7 +185,7 @@ OverlapRegion::OverlapRegion(unsigned int xmin, unsigned int xmax,
 OverlapRegion::~OverlapRegion()
 {}
 
-bool OverlapRegion::is_local(const GridInfo &grid_info)
+bool OverlapRegion::is_local(const GridInfo &grid_info) const
 {
   bool ret = false;
   if (global_xmin_ >= grid_info.start_x_ 
@@ -199,7 +199,7 @@ bool OverlapRegion::is_local(const GridInfo &grid_info)
   return ret;
 }
 
-unsigned int OverlapRegion::get_xmin(const GridInfo &grid_info)
+unsigned int OverlapRegion::get_xmin(const GridInfo &grid_info) const
 {
   unsigned int ret = 0;
   if (global_xmin_ < grid_info.start_x_
@@ -213,7 +213,7 @@ unsigned int OverlapRegion::get_xmin(const GridInfo &grid_info)
   return ret;
 }
 
-unsigned int OverlapRegion::get_ymin(const GridInfo &grid_info)
+unsigned int OverlapRegion::get_ymin(const GridInfo &grid_info) const
 {
   unsigned int ret = 0;
   if (global_ymin_ < grid_info.start_y_
@@ -227,7 +227,7 @@ unsigned int OverlapRegion::get_ymin(const GridInfo &grid_info)
   return ret;
 }
 
-unsigned int OverlapRegion::get_zmin(const GridInfo &grid_info)
+unsigned int OverlapRegion::get_zmin(const GridInfo &grid_info) const
 {
   unsigned int ret = 0;
   if (global_zmin_ < grid_info.start_z_
@@ -241,7 +241,7 @@ unsigned int OverlapRegion::get_zmin(const GridInfo &grid_info)
   return ret;
 }
 
-unsigned int OverlapRegion::get_xmax(const GridInfo &grid_info)
+unsigned int OverlapRegion::get_xmax(const GridInfo &grid_info) const
 {
   unsigned int upper_bnd = grid_info.start_x_ 
     + grid_info.dimx_ - 1;
@@ -255,7 +255,7 @@ unsigned int OverlapRegion::get_xmax(const GridInfo &grid_info)
   return ret;
 }
 
-unsigned int OverlapRegion::get_ymax(const GridInfo &grid_info)
+unsigned int OverlapRegion::get_ymax(const GridInfo &grid_info) const
 {
   unsigned int upper_bnd = grid_info.start_y_ 
     + grid_info.dimy_ - 1;
@@ -269,7 +269,7 @@ unsigned int OverlapRegion::get_ymax(const GridInfo &grid_info)
   return ret;
 }
 
-unsigned int OverlapRegion::get_zmax(const GridInfo &grid_info)
+unsigned int OverlapRegion::get_zmax(const GridInfo &grid_info) const
 {
   unsigned int upper_bnd = grid_info.start_z_ 
     + grid_info.dimz_ - 1;

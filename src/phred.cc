@@ -332,9 +332,10 @@ int main (int argc, char **argv)
 
         if (ext.compare("jan") == 0)
         {
-          JanFDTD jfdtd;
-          jfdtd.parse_file(argv[argc - 1]);
-          jfdtd.run(MPI_RANK, MPI_SIZE);
+          //JanFDTD jfdtd;
+          //jfdtd.parse_file(argv[argc - 1]);
+          //jfdtd.run(MPI_RANK, MPI_SIZE);
+          cout << "Jan's file format is no longer supported." << endl;
         }
         else if (ext.compare("py") == 0)
         {
@@ -369,7 +370,7 @@ int main (int argc, char **argv)
 
         // TESTS, TEMPORARY
         //point_test(rank, size);
-        pml_test(MPI_RANK, MPI_SIZE);
+        //pml_test(MPI_RANK, MPI_SIZE);
         //coupler_test(rank,size);
         //takakura_test(rank, size);
 

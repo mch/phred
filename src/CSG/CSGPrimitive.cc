@@ -22,7 +22,11 @@
 #include "CSGPrimitive.hh"
 
 CSGPrimitive::CSGPrimitive()
-{}
+{
+  centre_[0] = 0;
+  centre_[1] = 0;
+  centre_[2] = 0;  
+}
 
 CSGPrimitive::~CSGPrimitive()
 {}

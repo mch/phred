@@ -107,7 +107,9 @@ void export_fdtd()
 
   class_<FDTD, boost::noncopyable>("FDTD")
     .def("set_grid_size", &FDTD::set_grid_size)
+    .def("set_grid_centre", &FDTD::set_grid_centre)
     .def("set_grid_deltas", &FDTD::set_grid_deltas)
+    .def("set_time_delta", &FDTD::set_time_delta)
     .def("set_boundary", &FDTD::set_boundary)
     .def("load_materials", &FDTD::load_materials)
     .def("add_excitation", &FDTD::add_excitation)
@@ -118,6 +120,10 @@ void export_fdtd()
     .def("run", &FDTD::run)
     .def("set_time_steps", &FDTD::set_time_steps)
     .def("get_time_delta", &FDTD::get_time_delta)
+
+    .def("get_x_cells", &FDTD::get_num_x_cells)
+    .def("get_y_cells", &FDTD::get_num_y_cells)
+    .def("get_z_cells", &FDTD::get_num_z_cells)
     ;
   
 }

@@ -59,6 +59,11 @@ public:
   ~ProblemGeometry();
 
   /**
+   * Set the grid material
+   */ 
+  void set_grid_material(const char *material);
+
+  /**
    * Returns the material id for a given point in the grid. 
    */ 
   unsigned int get_material_id(float x, float y, float z) const;
@@ -111,8 +116,7 @@ protected:
   vector <GeomObject> objects_;
 
   // Grid box
-  CSGBox grid_box_;
-  unsigned int grid_material_id_;
+  GeomObject grid_box_;
 
   // Units multiplier
   float unit_;
