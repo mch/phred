@@ -104,24 +104,43 @@ void Pml::free_pml_fields()
 void Pml::apply(Face face, Grid &grid)
 {
   region_t grid_r = find_face(face, grid);
+  region_t e_grid_r = grid_r; 
 
+  // Modify the grid region so that the outer walls are not computed;
+  // that they be electric walls. 
   switch (face)
   {
   case FRONT:
+    e_grid_r.xmax--;
+    break;
   case BACK:
-    //condition<YZPlane>(r, grid);
+    e_grid_r.xmin++;
     break;
 
   case LEFT:
+    e_grid_r.ymin++;
+    break;
+
   case RIGHT:
-    //condition<XZPlane>(r, grid);
+    e_grid_r.ymax--;
     break;
 
   case TOP:
+    e_grid_r.zmax--;
+    break;
+
   case BOTTOM:
-    //condition<XYPlane>(r, grid);
+    e_grid_r.zmin++;
     break;
   }
+
+  pml_update_hx(grid_r, grid);
+  pml_update_hy(grid_r, grid);
+  pml_update_hz(grid_r, grid);
+
+  pml_update_ex(e_grid_r, grid);
+  pml_update_ey(e_grid_r, grid);
+  pml_update_ez(e_grid_r, grid);
 }
 
 void Pml::pml_update_ex(const region_t &grid_r, Grid &grid)
@@ -131,13 +150,6 @@ void Pml::pml_update_ex(const region_t &grid_r, Grid &grid)
   unsigned int i,j,k; 	/* indices in PML-layer */
   unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
   region_t tmp_r;
-
-  // Need to exclude the external boundaries; make them ewalls effectivly...
-  tmp_r.xmin = (pml_r_.xmin == 0 ? 1 : pml_r_.xmin);
-  tmp_r.ymin = (pml_r_.ymin == 0 ? 1 : pml_r_.ymin);
-  tmp_r.zmin = (pml_r_.zmin == 0 ? 1 : pml_r_.zmin);
-
-  //tmp_r.xmax = (pml_r_.xmax == grid_r.xmax
 
   PmlCommon &com = grid.get_pml_common();
 
