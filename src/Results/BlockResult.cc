@@ -190,7 +190,7 @@ map<string, Variable *> &BlockResult::get_result(const Grid &grid,
           for (unsigned int k = 0; k < grid.get_ldz(); 
                k++, f++, ex++, ey++, ez++)
           {
-            *f = sqrt(pow(*ex, 2) + pow(*ey, 2) + pow(*ez, 2));
+            *f = sqrt(*ex * *ex + *ey * *ey + *ez * *ez);
 //             field_data_[grid.pi(i,j,k)] 
 //               = sqrt(pow(grid.get_ex(i,j,k), 2) 
 //                      + pow(grid.get_ey(i,j,k), 2) 
@@ -210,7 +210,7 @@ map<string, Variable *> &BlockResult::get_result(const Grid &grid,
         for (unsigned int j = 0; j < grid.get_ldy(); j++)
           for (unsigned int k = 0; k < grid.get_ldz(); 
                k++, f++, hx++, hy++, hz++)
-            *f = sqrt(pow(*hx, 2) + pow(*hy, 2) + pow(*hz, 2));
+            *f = sqrt(*hx * *hx + *hy * *hy + *hz * *hz);
 
 //             field_data_[grid.pi(i,j,k)] 
 //               = sqrt(pow(grid.get_hx(i,j,k), 2) 

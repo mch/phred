@@ -101,9 +101,9 @@ void Grid::set_define_mode(bool d)
     // Sanity checks (like the grid has non zero size in all dimensions)
     
     // Stability check
-    float temp = C * sqrt( 1/(pow(get_deltax(), static_cast<float>(2.0))) + 
-                           1/(pow(get_deltay(), static_cast<float>(2.0))) + 
-                           1/(pow(get_deltaz(), static_cast<float>(2.0))));
+    float temp = C * sqrt( 1/(get_deltax() * get_deltax()) + 
+                           1/(get_deltay() * get_deltay()) + 
+                           1/(get_deltaz() * get_deltaz()));
 
     if (get_deltat() > 1/temp)
       throw StabilityException();

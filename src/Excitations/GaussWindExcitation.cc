@@ -40,10 +40,10 @@ field_t GaussWindExcitation::window(float x, float y, float z)
     float i = (x - xmin_) - centre.x;
     float j = (y - ymin_) - centre.y;
     float k = (z - zmin_) - centre.z;
-    
-    wx = exp((-pow(i, 2))/(2*pow(std_dev_, 2)));
-    wy = exp((-pow(j, 2))/(2*pow(std_dev_, 2)));
-    wz = exp((-pow(k, 2))/(2*pow(std_dev_, 2)));
+
+    wx = exp((-(i*i)) / std_dev_sqrd_two_);
+    wy = exp((-(j*j)) / std_dev_sqrd_two_);
+    wz = exp((-(k*k)) / std_dev_sqrd_two_);
   }
 
   return wx * wy * wz;
@@ -52,6 +52,7 @@ field_t GaussWindExcitation::window(float x, float y, float z)
 void GaussWindExcitation::set_std_dev(float stddev)
 {
   std_dev_ = stddev;
+  std_dev_sqrd_two_ = 2 * std_dev_ * std_dev_;
 }
 
 float GaussWindExcitation::get_std_dev()

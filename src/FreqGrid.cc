@@ -173,8 +173,8 @@ void FreqGrid::load_materials(shared_ptr<MaterialLib> matlib)
     if (((*iter).second).get_collision_freq() > 0)
     {
       vcdt_[index] = exp(-1.0 * ((*iter).second).get_collision_freq() * get_deltat());
-      omegapsq_[index] = pow(((*iter).second).get_plasma_freq(), 
-                             static_cast<float>(2.0))
+      omegapsq_[index] = ((*iter).second).get_plasma_freq()
+        * ((*iter).second).get_plasma_freq()
         * (get_deltat() / ((*iter).second).get_collision_freq());
     } else {
       vcdt_[index] = 0.0;

@@ -34,6 +34,7 @@ class GaussWindExcitation : public WindowedExcitation
 {
 private:
   float std_dev_; /**< Standard deviation of Gaussian window */ 
+  float std_dev_sqrd_two_; /**< Standard deviation squared times 2 */ 
 
 protected:
   /**

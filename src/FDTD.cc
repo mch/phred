@@ -85,9 +85,7 @@ void FDTD::set_grid_deltas(field_t dx, field_t dy, field_t dz)
   global_ginfo_.deltaz_ = dz;
   
   global_ginfo_.deltat_ = 0.9 / 
-    ( C * sqrt( 1/(pow(dx, static_cast<float>(2.0))) + 
-                1/(pow(dy, static_cast<float>(2.0))) + 
-                1/(pow(dz, static_cast<float>(2.0)))));
+    ( C * sqrt( 1/(dx*dx) + 1/(dy*dy) + 1/(dz*dz)));
 
   point gsize = geometry_.get_grid_size();
 
