@@ -283,6 +283,8 @@ void PowerResult::init(const Grid &grid)
     real_var_.set_num(0);
     imag_var_.set_num(0);
     freq_var_.set_num(0);
+
+    variables_.clear();
   }
 }
 

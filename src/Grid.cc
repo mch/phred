@@ -1091,14 +1091,14 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in,
   if ((*in).zmax_ >= info_.start_z_) {
     if ((*in).zmax_ >= info_.start_z_ + info_.dimz_) {
       r.zmax_ = info_.dimz_;
-      r.faces_[RIGHT] = false;
+      r.faces_[TOP] = false;
     } else {
       r.zmax_ = (*in).zmax_ - info_.start_z_;
-      r.faces_[RIGHT] = true;
+      r.faces_[TOP] = true;
     }
   } else {
     r.zmax_ = 0;
-    r.faces_[RIGHT] = false;
+    r.faces_[TOP] = false;
   }
 
   // r.xmin_ = (info_.start_x_ > (*in).xmin_) ? 0

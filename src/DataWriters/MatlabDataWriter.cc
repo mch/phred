@@ -647,7 +647,8 @@ void MatlabDataWriter::add_variable(Result &result)
     const vector<Dimension> &dimensions = var->get_dimensions();
     
     if (dimensions.size() == 0)
-      throw DataWriterException("Result must have at least one dimension.");
+      continue; // Sometimes there is no data. 
+    //throw DataWriterException("Result must have at least one dimension.");
     
     vector<int> dim_lens;
     for(int idx = dimensions.size() - 1; idx >= 0; idx--)
