@@ -31,7 +31,7 @@ PlaneResult::PlaneResult()
 
 PlaneResult::~PlaneResult()
 {
-  deinit();
+  //deinit(); // deinit() is not safe to call multiple times right now.
 }
 
 void PlaneResult::calculate_result(const Grid &grid, 
@@ -90,9 +90,9 @@ void PlaneResult::init(const Grid &grid)
     gp.z = (*region_).zmin();
 
     // DIMENSION STARTS HAVE TO CHANGE TOO!
-    var_.add_dimension("y", (*region_).ylen(), (*global_b).ylen(), 
+    var_.add_dimension("y", (*region_).ylen(), (*global_b).ylen() - 1, 
                        (*region_).ystart());
-    var_.add_dimension("z", (*region_).zlen(), (*global_b).zlen(), 
+    var_.add_dimension("z", (*region_).zlen(), (*global_b).zlen() - 1, 
                        (*region_).zstart());
 
     sz = (*region_).ylen() * (*region_).zlen();
@@ -116,9 +116,9 @@ void PlaneResult::init(const Grid &grid)
     else
       gp.z = (*region_).zmax() - 1;    
     
-    var_.add_dimension("x", (*region_).xlen(), (*global_b).xlen(), 
+    var_.add_dimension("x", (*region_).xlen(), (*global_b).xlen() - 1, 
                        (*region_).xstart());
-    var_.add_dimension("y", (*region_).ylen(), (*global_b).ylen(), 
+    var_.add_dimension("y", (*region_).ylen(), (*global_b).ylen() - 1, 
                        (*region_).ystart());
 
     sz = (*region_).ylen() * (*region_).xlen();
@@ -147,9 +147,9 @@ void PlaneResult::init(const Grid &grid)
 
     gp.z = (*region_).zmin();
     
-    var_.add_dimension("z", (*region_).zlen(), (*global_b).zlen(), 
+    var_.add_dimension("z", (*region_).zlen(), (*global_b).zlen() - 1, 
                        (*region_).zstart());
-    var_.add_dimension("x", (*region_).xlen(), (*global_b).xlen(), 
+    var_.add_dimension("x", (*region_).xlen(), (*global_b).xlen() - 1, 
                        (*region_).xstart());
 
     sz = (*region_).xlen() * (*region_).zlen();
@@ -188,7 +188,8 @@ void PlaneResult::init(const Grid &grid)
 
 void PlaneResult::deinit()
 {
-  MPI_Type_free(&datatype_);
+  if (datatype_)
+    MPI_Type_free(&datatype_);
 }
 
 ostream& PlaneResult::to_string(ostream &os) const
