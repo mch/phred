@@ -34,32 +34,32 @@ Material::~Material()
   
 }
 
-MaterialType Material::get_type()
+MaterialType Material::get_type() const
 {
   return type_;
 }
 
-mat_prop_t Material::get_epsilon()
+mat_prop_t Material::get_epsilon() const
 {
   return epsilon_;
 }
 
-mat_prop_t Material::get_sigma()
+mat_prop_t Material::get_sigma() const
 {
   return sigma_;
 }
 
-mat_prop_t Material::get_mu()
+mat_prop_t Material::get_mu() const
 {
   return mu_;
 }
 
-mat_prop_t Material::get_sigma_star()
+mat_prop_t Material::get_sigma_star() const
 {
   return sigma_star_;
 }
 
-string Material::get_name()
+string Material::get_name() const
 {
   return name_;
 }
@@ -104,12 +104,12 @@ void Material::set_plasma_freq(mat_prop_t fp)
   fp_ = fp;
 }
 
-mat_prop_t Material::get_collision_freq()
+mat_prop_t Material::get_collision_freq() const
 {
   return vc_;
 }
 
-mat_prop_t Material::get_plasma_freq()
+mat_prop_t Material::get_plasma_freq() const
 {
   return fp_;
 }

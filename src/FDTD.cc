@@ -158,8 +158,8 @@ void FDTD::run(int rank, int size)
 
   // Decide what grid to used from materials
   bool freqgrid = false;
-  vector<Material>::iterator miter = mlib_->get_material_iter_begin();
-  vector<Material>::iterator miter_e = mlib_->get_material_iter_end();
+  vector<Material>::const_iterator miter = mlib_->get_material_iter_begin();
+  vector<Material>::const_iterator miter_e = mlib_->get_material_iter_end();
   
   while(miter != miter_e)
   {

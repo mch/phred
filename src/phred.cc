@@ -96,6 +96,7 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "config.h"
 #include "Ewall.hh"
 #include "Hwall.hh"
+#include "UPml.hh"
 #include "PointResult.hh"
 #include "AsciiDataWriter.hh"
 #include "MatlabDataWriter.hh"
@@ -151,6 +152,7 @@ bool interactive;
 static void point_test(int rank, int size);
 static void pml_test(int rank, int size);
 static void takakura_test(int rank, int size);
+static void laser_test(int rank, int size);
 
 // MAIN!
 int
@@ -453,29 +455,27 @@ static void pml_test(int rank, int size)
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
   //fdtd.set_time_delta(3.1250e-17);
 
-  Pml front(VP, 1.0), back(VP, 1.0), left(VP, 1.0), right(VP, 1.0),
-    top(VP, 1.0), bottom(VP, 1.0);
-  front.set_thickness(4);
-  back.set_thickness(4);
-  left.set_thickness(4);
-  right.set_thickness(4);
-  top.set_thickness(4);
-  bottom.set_thickness(4);
+//   Pml front(VP, 1.0), back(VP, 1.0), left(VP, 1.0), right(VP, 1.0),
+//     top(VP, 1.0), bottom(VP, 1.0);
+//   front.set_thickness(4);
+//   back.set_thickness(4);
+//   left.set_thickness(4);
+//   right.set_thickness(4);
+//   top.set_thickness(4);
+//   bottom.set_thickness(4);
 
-  Ewall ewall;
-  Hwall hwall;
+  UPml front, back, left, right, top, bottom;
+  front.set_thickness(4); back.set_thickness(4);
+  left.set_thickness(4); right.set_thickness(4);
+  top.set_thickness(4); bottom.set_thickness(4);
+
   fdtd.set_boundary(FRONT, &front);
   fdtd.set_boundary(BACK, &back);
-  //fdtd.set_boundary(FRONT, &ewall);
-  //fdtd.set_boundary(BACK, &ewall);
   fdtd.set_boundary(BOTTOM, &bottom);
   fdtd.set_boundary(TOP, &top);
-  //fdtd.set_boundary(BOTTOM, &ewall);
-  //fdtd.set_boundary(TOP, &ewall);
   fdtd.set_boundary(LEFT, &left);
   fdtd.set_boundary(RIGHT, &right);
-  //fdtd.set_boundary(LEFT, &ewall);
-  //fdtd.set_boundary(RIGHT, &ewall);
+
 
   MaterialLib mats; 
   Material mat; // defaults to free space
@@ -516,7 +516,7 @@ static void pml_test(int rank, int size)
 
   fdtd.add_geometry(&all);
   //fdtd.add_geometry(&metal1);
-  fdtd.add_geometry(&sp1);
+  //fdtd.add_geometry(&sp1);
   // fdtd.add_geometry(&metal2);
 
   // Excitation
@@ -612,8 +612,8 @@ static void pml_test(int rank, int size)
   farfield.set_huygens(h);
   farfield.set_time_param(0, 49, 0);
 
-  fdtd.add_result("farfield", &farfield);
-  fdtd.map_result_to_datawriter("farfield", "mdw");
+  //fdtd.add_result("farfield", &farfield);
+  //fdtd.map_result_to_datawriter("farfield", "mdw");
 
   NetCDFDataWriter ncdw(rank, size);
   ncdw.set_filename("yz_plane.nc");
@@ -676,7 +676,7 @@ static void pml_test(int rank, int size)
 
    fdtd.map_result_to_datawriter("srctr", "adw8");
 
-   fdtd.set_time_steps(50);
+   fdtd.set_time_steps(500);
    fdtd.run(rank, size);
 }
 
@@ -809,4 +809,57 @@ static void takakura_test(int rank, int size)
 
   fdtd.set_time_steps(5000);
   fdtd.run(rank, size);
+}
+
+static void laser_test(int rank, int size)
+{
+  FDTD fdtd;
+  
+  fdtd.set_grid_size(75, 21, 21);
+  fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
+  //fdtd.set_time_delta(3.1250e-17);
+
+  Pml front(VP, 1.0), back(VP, 1.0), left(VP, 1.0), right(VP, 1.0),
+    top(VP, 1.0), bottom(VP, 1.0);
+  front.set_thickness(4);
+  back.set_thickness(4);
+  left.set_thickness(4);
+  right.set_thickness(4);
+  top.set_thickness(4);
+  bottom.set_thickness(4);
+
+  fdtd.set_boundary(FRONT, &front);
+  fdtd.set_boundary(BACK, &back);
+  fdtd.set_boundary(BOTTOM, &bottom);
+  fdtd.set_boundary(TOP, &top);
+  fdtd.set_boundary(LEFT, &left);
+  fdtd.set_boundary(RIGHT, &right);
+
+  MaterialLib mats; 
+  Material mat; // defaults to free space
+  mats.add_material(mat);
+  
+  // The library stores copies. 
+  mat.set_epsilon(2.2);
+  mat.set_name("Substrate");
+  mats.add_material(mat);
+
+  mat.set_epsilon(1);
+  mat.set_name("Silver");
+  //mat.set_collision_freq(57e12); // THz
+  //mat.set_plasma_freq(2 * PI * 2000e+12); // THz * 2 * pi
+  mat.set_collision_freq(1.4e+14);
+  mat.set_plasma_freq(2 * PI * 1.85e+15);
+  mats.add_material(mat);
+
+  fdtd.load_materials(mats);
+
+  // Global coordinates. 
+  Box all;
+  all.set_region(0, 75, 0, 21, 0, 21);
+  all.set_material_id(1);
+
+  Box metal1;
+  metal1.set_region(40, 65, 5, 14, 5, 14); // UNSTABLE
+  metal1.set_material_id(3);
 }

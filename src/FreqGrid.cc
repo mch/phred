@@ -37,7 +37,6 @@ FreqGrid::FreqGrid()
 
 FreqGrid::~FreqGrid()
 {
-  free_grid();
 }
 
 void FreqGrid::alloc_grid()
@@ -160,8 +159,8 @@ void FreqGrid::load_materials(MaterialLib &matlib)
 
   int index = 0;
 
-  vector<Material>::iterator iter = matlib.get_material_iter_begin();
-  vector<Material>::iterator iter_e = matlib.get_material_iter_end();
+  vector<Material>::const_iterator iter = matlib.get_material_iter_begin();
+  vector<Material>::const_iterator iter_e = matlib.get_material_iter_end();
 
   vcdt_[0] = 0;
   omegapsq_[0] = 0;

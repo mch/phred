@@ -38,22 +38,6 @@ protected:
   field_t *d_;
   field_t *h_;
 
-  // This a "shadow library" of material constants. These are
-  // modified versions of the grid material library which add
-  // conductivity, a little on the inner surface to quite a bit on
-  // the outer surface. The first index is the thickness, the second
-  // is the material number. 
-  mat_coef_t **Ca_;
-  mat_coef_t **Cbx_;
-  mat_coef_t **Cby_;
-  mat_coef_t **Cbz_;
-
-  mat_coef_t **Da_;
-  mat_coef_t **Dbx_;
-  mat_coef_t **Dby_;
-  mat_coef_t **Dbz_;
-
-
   mat_coef_t *sigmas_; /**< Changing sigma from the inside to
                           outside. */ 
   unsigned int poly_order_; /**< Order of the polynomial used to shape
@@ -62,13 +46,6 @@ protected:
   // UPML Specific update coeffs. 
   mat_coef_t **C1_;
   mat_coef_t **C2_;
-  mat_coef_t **C3_;
-  mat_coef_t **C4_;
-  mat_coef_t **C5_;
-  mat_coef_t **C6_;
-
-
-  Face our_face_;
 
 //   template<region_t region, field_t component, field_t curl1, field_t curl2>
 //   void normal_update(Grid &grid);
@@ -94,13 +71,6 @@ protected:
    * Free the material coefficients.
    */
   void free_coefs();
-
-  /**
-   * Determine the correct sigma index for this layer
-   */
-  unsigned int sigma_index(Grid &grid, unsigned int x, 
-                           unsigned int y, 
-                           unsigned int z);
 
 public:
   UPml();

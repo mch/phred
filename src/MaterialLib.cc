@@ -36,17 +36,17 @@ void MaterialLib::add_material(Material &mat)
   materials_.push_back(mat);
 }
 
-int MaterialLib::num_materials()
+int MaterialLib::num_materials() const
 {
   return materials_.size();
 }
 
-vector<Material>::iterator MaterialLib::get_material_iter_begin()
+vector<Material>::const_iterator MaterialLib::get_material_iter_begin() const
 {
   return materials_.begin();
 }
 
-vector<Material>::iterator MaterialLib::get_material_iter_end()
+vector<Material>::const_iterator MaterialLib::get_material_iter_end() const
 {
   return materials_.end();
 }

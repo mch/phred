@@ -463,6 +463,11 @@ void Grid::load_geometries(vector<Geometry *> &geoms)
   vector<Geometry *>::iterator iter;
   vector<Geometry *>::iterator iter_e = geoms.end();
   int idx = 0;
+  
+  if (geometries_)
+    delete geometries_;
+
+  geometries_ = new Geometry*[num_geoms_];
 
   for (iter = geoms.begin(), idx = 0; iter != iter_e; ++iter, idx++)
     geometries_[idx] = *iter;
@@ -524,8 +529,8 @@ void Grid::load_materials(MaterialLib &matlib)
   memset(Dby_, 0, sizeof(mat_coef_t) * num_mat);
   memset(Dbz_, 0, sizeof(mat_coef_t) * num_mat);
 
-  vector<Material>::iterator iter = matlib.get_material_iter_begin();
-  vector<Material>::iterator iter_e = matlib.get_material_iter_end();
+  vector<Material>::const_iterator iter = matlib.get_material_iter_begin();
+  vector<Material>::const_iterator iter_e = matlib.get_material_iter_end();
 
   // The first one is always PEC
   int index = 0;

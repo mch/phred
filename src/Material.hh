@@ -71,42 +71,42 @@ class Material
    *
    * @return material type
    */
-  MaterialType get_type();
+  MaterialType get_type() const;
 
   /**
    * Returns the permittivity
    *
    * @return epsilon
    */
-  mat_prop_t get_epsilon();
+  mat_prop_t get_epsilon() const;
 
   /**
    * Returns the conductivity
    *
    * @return sigma
    */
-  mat_prop_t get_sigma();
+  mat_prop_t get_sigma() const;
 
   /**
    * Returns the permeability
    *
    * @return mu
    */
-  mat_prop_t get_mu();
+  mat_prop_t get_mu() const;
 
   /**
    * Returns the other thing
    *
    * @return sigma star
    */
-  mat_prop_t get_sigma_star();
+  mat_prop_t get_sigma_star() const;
 
   /**
    * Returns the human readable material name
    *
    * @return name
    */
-  string get_name();
+  string get_name() const;
 
   /**
    * Set the material type
@@ -157,12 +157,12 @@ class Material
   /**
    * Get the collision frequency
    */
-  mat_prop_t get_collision_freq();
+  mat_prop_t get_collision_freq() const;
 
   /**
    * Get the plasma frequency
    */
-  mat_prop_t get_plasma_freq();
+  mat_prop_t get_plasma_freq() const;
 
 };
 

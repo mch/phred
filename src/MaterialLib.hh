@@ -70,7 +70,7 @@ class MaterialLib {
    * Returns the number of materials in the library
    * @return an int
    */
-  int num_materials();
+  int num_materials() const;
 
   /**
    * Returns an interator that points to the start of the vector
@@ -79,7 +79,7 @@ class MaterialLib {
    *
    * @return a vector<Material>::iterator
    */
-  vector<Material>::iterator get_material_iter_begin();
+  vector<Material>::const_iterator get_material_iter_begin() const;
 
   /**
    * Returns an interator that points to the end of the vector
@@ -88,7 +88,7 @@ class MaterialLib {
    *
    * @return a vector<Material>::iterator
    */
-  vector<Material>::iterator get_material_iter_end();
+  vector<Material>::const_iterator get_material_iter_end() const;
 };
 
 #endif // MATERIAL_LIB
