@@ -47,7 +47,7 @@
 \begin{slide}{Summary}
 
   \begin{itemize}
-    \item Architechure Overview 
+    \item Code Overview
     \item Memory Organization Improvments
     \item Minerva
     \item Hybrid Parallization
@@ -59,13 +59,109 @@
 \end{slide}
 
 \begin{slide}{Archetecture}
-  Object Oriented Infastruction
-
   Goals:
   \begin{itemize}
+  \item Performance
   \item Modularity
-  \item 
+  \item Safety
+  \item Readbility
   \end{itemize}
+
+\end{slide}
+
+\begin{slide}{Language: C++}
+  Object Oriented 
+  \begin{itemize}
+  \item Data and the functions that operate on that data are
+    grouped into classes
+  \item Polymorphism
+  \item C++ standard library: safe, easy to use data structures
+  \item Templates can be used to gain OO flexibility without the cost
+    of virtual function calls
+  \item Metaprogramming
+  \end{itemize}  
+
+\end{slide}
+
+\begin{slide}{Well defined interfaces}
+  Interfaces are provided for a number of important things:
+  \begin{itemize}
+  \item Grids
+  \item Excitations
+  \item Boundary Conditions
+  \item Results
+  \item FDTD Controller 
+  \end{itemize}
+  
+  Any number of subclasses can be created to add new behviours...
+\end{slide}
+
+\begin{slide}{FDTD Controllers}
+  FDTD Controller objects
+  \begin{itemize}
+  \item Stores a Grid object
+  \item Stores lists of excitations to apply
+  \item Stores lists of results to calculate
+  \item Some know how to load data files to build these lists
+  \end{itemize}
+
+  \insgraphics{fdtd-classes.eps}
+  
+\end{slide}
+
+\begin{slide}{Grid Classes}
+  \begin{itemize}
+  \item Store grid field component data
+  \item Knows how to update the field components
+  \item Allows the use of the simplest, fastest possible update
+    equations 
+  \end{itemize}
+
+  $\rightarrow$ Try new things out without breaking what works
+
+  \insgraphic{0.75}{grid-classes.eps}
+\end{slide}
+
+\begin{slide}{DataWriters and Results}
+  DataWriter classes:
+  \begin{itemize}
+  \item Write N dimensional array data in a given file format
+  \end{itemize}
+
+  Result classes:
+  \begin{itemize}
+  \item Compute a specific result 
+  \end{itemize}
+  
+  A well defined interface exists for passing data from Results to
+  DataWriters
+
+\end{slide}
+
+\begin{slide}{Yee Cell}
+  Yee Cell field components as held in memory at $(i,j,k)$
+  
+  \insgraphic{yee-cell.eps}
+
+\end{slide}
+
+\begin{slide}{Flow of execution}
+  \begin{enumerate}
+  \item Load material information, structure, excitations, required
+    outputs
+  \item Initialize data structures, allocate memory
+  \item Run FDTD time stepping:
+    \begin{enumerate}
+    \item Update H field components
+    \item Apply H excitations
+    \item Apply H boundary conditions
+    \item Update E field components
+    \item Apply E excitations
+    \item Apply E boundary conditions
+    \item Write results
+    \end{enumerate}
+  \item De-initialize, deallocate memory
+  \end{enumerate}
 \end{slide}
 
 \begin{slide}{Memory Organization - Old way}
@@ -76,7 +172,7 @@
 \begin{slide}{Memory Organization - New way}
   \insgraphic{1}{phred-memory.eps}
 
-  Memory offset calculation: $i = z + (y + x * numy) * numz$
+  Memory offset calculation: $idx = k + (j + i * n_y) * n_z$
 \end{slide}
 
 \begin{slide}{Memory Organization Performance}
@@ -107,6 +203,7 @@
   \item 8 node IBM RS/6000 SP 
   \item 16 375 MHz 64-bit Processors per node
   \item 8 Gb Memory per node (2 Gb accessable in 32-bit mode)
+  \item Nodes connected by a high performance communication fabric (500 MB/s)
   \item 4 nodes assigned to serial jobs
   \item 4 nodes assigned to parallel jobs
   \end{itemize}
@@ -114,8 +211,8 @@
 
 \begin{slide}{Parallization Techniques}
   \begin{itemize}
-  \item Message Passing Interface (MPI)
   \item OpenMP (Shared Memory SMP)
+  \item Message Passing Interface (MPI)
   \item Vector processors
     \begin{itemize}
     \item Intel SSE2
@@ -128,7 +225,43 @@
 \end{slide}
 
 \begin{slide}{OpenMP: Symmetrical Multiprocessing}
+  It is possible to use from 1 to 16 processors at a time
+  \begin{itemize}
+  \item Each processor is assigned a region of the grid to work on
+  \item All processors access the same memory
+  \item 
+  \end{itemize}
+
+\end{slide}
+
+\begin{slide}{Message Passing Interface}
+
+  \begin{itemize}
+  \item The FDTD domain is decomposed into an even number of
+    sub-domains.
+  \item Adjacent sub-domains overlap by two cells
+  \item Each sub-domain is assigned to a Minerva node.
+  \item Sub-domains and nodes are completly independent 
+  \end{itemize}
+
+  \insgraphic{1}{domain-decomp.eps}
   
+\end{slide}
+
+\begin{slide}{Overlap detail}
+  
+\end{slide}
+
+\begin{slide}{MPI Derived Datatypes}
+  
+  \begin{itemize}
+  \item Exchange overlapping field component data across nodes
+  \item Transmit Result data to DataWriters
+  \end{itemize}
+
+  Ex: Extracting a column from a matrix
+  \insgraphic{1}{mpi-datatypes.eps}
+  Start $= 3$, stride $= 3$, length $= 4$
 \end{slide}
 
 \begin{slide}{Parallel Performance Scaling}
