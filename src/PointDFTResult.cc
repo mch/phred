@@ -75,8 +75,8 @@ void PointDFTResult::init(const Grid &grid)
     freq_start_ = temp;
   }
 
-  time_dim_ = false; // We have only one output at the end. 
-
+  var_.has_time_dimension(false); // We have only one output at the end. 
+  
   var_.add_dimension("results", 13, 0);
   var_.add_dimension("freqs", num_freqs_, 0);
   var_.set_name("Point DFT");
@@ -118,7 +118,7 @@ void PointDFTResult::deinit(const Grid &grid)
   }
 }
 
-map<string, Variables *> &PointDFTResult::get_result(const Grid &grid, 
+map<string, Variable *> &PointDFTResult::get_result(const Grid &grid, 
                                                      unsigned int time_step)
 {
   delta_t dt = grid.get_deltat();

@@ -35,6 +35,8 @@ protected:
   SourceFunction &te_; /**< The time excitation to save. */
 
   field_t result_[2]; /**< Storage for the result. */
+  
+  Variable var_;
 
 public:
   SourceTimeResult(SourceFunction &te);
@@ -54,7 +56,8 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  virtual Data &get_result(const Grid &grid, unsigned int time_step);
+  virtual map<string, Variable *> &get_result(const Grid &grid, 
+                                              unsigned int time_step);
 
 };
 

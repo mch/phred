@@ -109,131 +109,142 @@ void NetCDFDataWriter::add_variable(Result &result)
   if (!fopen_)
     throw DataWriterException("Must call init() before adding variables.");
 
-  var.dim_lens_ = result.get_dim_lengths();
-  const vector<string> &dim_names = result.get_dim_names();
-
-  var.var_name_ = result.get_name();
-
-  if (var.var_name_.size() == 0)
-    throw DataWriterException("Result variable must have a valid NetCDF variable name.");
-
-  if (var.dim_lens_.size() == 0)
-    throw DataWriterException("Result must have at least one dimension.");
-
-  if (var.var_name_.length() > 0)
-  {
-    map<string, ncdfvar>::iterator iter = vars_.find(var.var_name_);
-    if (vars_.end() != iter)
-      throw DataWriterException("Duplicates not allowed");
-  }
-
-  status = nc_redef(ncid_);
-  if (status != NC_NOERR && status != NC_EINDEFINE)
-    handle_error(status);
-
-  // Add dimension id's
-  vector<int> dids;
-  for (unsigned int i = 0; i < var.dim_lens_.size(); i++)
-  {
-    string temp = ""; 
-
-    if (dim_names.size() > i)
-      temp = dim_names[i];
-
-    dimid = get_dim(i, var.dim_lens_[i], temp);
-    dids.push_back(dimid);
-  }
-
-  var.time_dim_ = result.has_time_dimension();
-  if (var.time_dim_)
-  {
-    status = nc_inq_dimid(ncid_, "t", &tdim);
-    
-    if (status != NC_NOERR) {
-      status = nc_def_dim(ncid_, "t", 
-                          NC_UNLIMITED,
-                          &tdim);
-      
-      if (status != NC_NOERR)
-        handle_error(status);
-    }
-    
-    dids.insert(dids.begin(), tdim);
-    var.dim_lens_.insert(var.dim_lens_.begin(), 0);
-  }
-
-  var.dim_ids_ = dids;
-
-  // Add variable
-  int *dimids = new int[dids.size()];
-
-  for (unsigned int i = 0; i < dids.size(); i++)
-    dimids[i] = dids[i];
+  const map<string, Variable *> vars = result.get_variables();
+  map<string, Variable *>::const_iterator iter;
+  map<string, Variable *>::const_iterator iter_e = vars.end();
   
-  // Does the variable already exist? 
-  status = nc_inq_varid(ncid_, var.var_name_.c_str(), &var.var_id_);
-  if (status == NC_NOERR)
+  for (iter = vars.begin(); iter != iter_e; ++iter)
   {
-    // Does the variable have the right dimensions? 
-    int ndims;
-    status == nc_inq_varndims(ncid_, var.var_id_, &ndims);
-    if (status != NC_NOERR)
-      handle_error(status);
-    
-    if (static_cast<unsigned int>(ndims) != dids.size())
-      throw DataWriterException("NetCDF variable name found, but wrong number of dimensions.");
+    Variable *r_var = iter->second;
 
-    status = nc_inq_vardimid(ncid_, var.var_id_, dimids);
-    if (status != NC_NOERR)
-      handle_error(status);
-    
-    size_t len = 0;
-    unsigned int i = 0;
-    
-    // Skip the time dimension, because if it exists, it's length
-    // won't be zero anyway.
-    if (var.time_dim_)
-      i++;
+    var.dim_lens_ = r_var->get_dim_lengths();
+    const vector<string> &dim_names = r_var->get_dim_names();
 
-    for (i = i; i < dids.size(); i++)
+    var.var_name_ = r_var->get_name();
+
+    if (var.var_name_.size() == 0)
+      throw DataWriterException("Result variable must have a valid NetCDF variable name.");
+    
+    if (var.dim_lens_.size() == 0)
+      throw DataWriterException("Result must have at least one dimension.");
+    
+    if (var.var_name_.length() > 0)
     {
-      status = nc_inq_dimlen(ncid_, dimids[i], &len);
+      map<string, ncdfvar>::iterator iter = vars_.find(var.var_name_);
+      if (vars_.end() != iter)
+        throw DataWriterException("Duplicates not allowed");
+    }
+    
+    status = nc_redef(ncid_);
+    if (status != NC_NOERR && status != NC_EINDEFINE)
+      handle_error(status);
+    
+    // Add dimension id's
+    vector<int> dids;
+    for (unsigned int i = 0; i < var.dim_lens_.size(); i++)
+    {
+      string temp = ""; 
       
+      if (dim_names.size() > i)
+        temp = dim_names[i];
+      
+      dimid = get_dim(i, var.dim_lens_[i], temp);
+      dids.push_back(dimid);
+    }
+    
+    var.time_dim_ = r_var->has_time_dimension();
+    if (var.time_dim_)
+    {
+      status = nc_inq_dimid(ncid_, "t", &tdim);
+      
+      if (status != NC_NOERR) {
+        status = nc_def_dim(ncid_, "t", 
+                            NC_UNLIMITED,
+                            &tdim);
+        
+        if (status != NC_NOERR)
+          handle_error(status);
+      }
+      
+      dids.insert(dids.begin(), tdim);
+      var.dim_lens_.insert(var.dim_lens_.begin(), 0);
+    }
+    
+    var.dim_ids_ = dids;
+    
+    // Add variable
+    int *dimids = new int[dids.size()];
+    
+    for (unsigned int i = 0; i < dids.size(); i++)
+      dimids[i] = dids[i];
+    
+    // Does the variable already exist? 
+    status = nc_inq_varid(ncid_, var.var_name_.c_str(), &var.var_id_);
+    if (status == NC_NOERR)
+    {
+      // Does the variable have the right dimensions? 
+      int ndims;
+      status == nc_inq_varndims(ncid_, var.var_id_, &ndims);
       if (status != NC_NOERR)
         handle_error(status);
       
-      if (static_cast<int>(len) != var.dim_lens_[i])
-        throw DataWriterException("Found a variable with the right name, but one of it's dimensions is the wrong length.");
+      if (static_cast<unsigned int>(ndims) != dids.size())
+        throw DataWriterException("NetCDF variable name found, but wrong number of dimensions.");
+      
+      status = nc_inq_vardimid(ncid_, var.var_id_, dimids);
+      if (status != NC_NOERR)
+        handle_error(status);
+      
+      size_t len = 0;
+      unsigned int i = 0;
+      
+      // Skip the time dimension, because if it exists, it's length
+      // won't be zero anyway.
+      if (var.time_dim_)
+        i++;
+      
+      for (i = i; i < dids.size(); i++)
+      {
+        status = nc_inq_dimlen(ncid_, dimids[i], &len);
+        
+        if (status != NC_NOERR)
+          handle_error(status);
+        
+        if (static_cast<int>(len) != var.dim_lens_[i])
+          throw DataWriterException("Found a variable with the right name, but one of it's dimensions is the wrong length.");
+      }
+    } 
+    else 
+    {
+      status = nc_def_var(ncid_, var.var_name_.c_str(), NC_FLOAT, 
+                          dids.size(), dimids, &var.var_id_);
     }
-  } 
-  else 
-  {
-    status = nc_def_var(ncid_, var.var_name_.c_str(), NC_FLOAT, 
-                        dids.size(), dimids, &var.var_id_);
+
+    if (status != NC_NOERR)
+      handle_error(status);
+
+    delete[] dimids;
+    
+    status = nc_enddef(ncid_);
+    if (status != NC_NOERR)
+      handle_error(status);
+
+    // Remember the variable!
+    vars_[var.var_name_] = var;
   }
-
-  if (status != NC_NOERR)
-    handle_error(status);
-
-  delete[] dimids;
-
-  status = nc_enddef(ncid_);
-  if (status != NC_NOERR)
-    handle_error(status);
-
-  // Remember the variable!
-  vars_[var.var_name_] = var;
 
 }
 
 unsigned int NetCDFDataWriter::write_data(unsigned int time_step, 
-                                          Data &data, MPI_Datatype t, 
+                                          Variable &variable, 
+                                          MPI_Datatype t, 
                                           void *ptr, unsigned int len)
 {
   if (!fopen_)
     throw DataWriterException("File must be opened and dimensions defined.");
 
-  string vname = data.get_var_name();
+  const Data &data = variable.get_data();
+  string vname = variable.get_name();
   ncdfvar &var = vars_[vname]; // may throw exception
 
   size_t *start, *count;

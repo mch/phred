@@ -90,6 +90,8 @@ phred_SOURCES=\
 	DataWriter.cc \
 	AsciiDataWriter.hh \
 	AsciiDataWriter.cc \
+	MatlabDataWriter.hh \
+	MatlabDataWriter.cc \
 	NetCDFDataWriter.hh \
 	NetCDFDataWriter.cc \
 	HdfDataWriter.hh \

@@ -100,7 +100,7 @@ public:
   /**
    * Used to set wether or not a variable has a dimension that is time. 
    */
-  inline void has_time_dimension(bool t) const
+  inline void has_time_dimension(bool t)
   {
     time_dim_ = t;
   }  
@@ -155,7 +155,7 @@ public:
   /**
    * Get the data type
    */
-  inline MPI_Datatype &get_datatype()
+  inline MPI_Datatype get_datatype() const
   {
     return data_.get_datatype();
   }
@@ -216,7 +216,7 @@ public:
    */
   inline void set_num(unsigned int num)
   {
-    data_.set_num(0);
+    data_.set_num(num);
   }
 };
 
@@ -315,6 +315,15 @@ public:
   inline const string &get_dw_name()
   {
     return dw_name_;
+  }
+
+  /**
+   * Returns the map of variables. They are not expected to have any
+   * output available at this point.
+   */
+  inline const map<string, Variable *> &get_variables() const
+  {
+    return variables_;
   }
 
   /**

@@ -120,16 +120,24 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
           break;
 
         case RCSNORM:
+          *p = freq_start_ + (j * freq_space_);
+          ++p;
           *p = (e_theta_im_[i][j] * e_theta_im_[i][j] 
-                + e_phi_im_[i][j] * e_phi_im_[i][j]) 
-            / ETH_0;
+                + e_phi_im_[i][j] * e_phi_im_[i][j]
+                + e_theta_re_[i][j] * e_theta_re_[i][j] 
+                + e_phi_re_[i][j] * e_phi_re_[i][j]) 
+            / (2 * ETA_0);
           ++p;
           break;
 
         case RCSDBPOL:
-          *p = 10 * log10( (e_theta_im_[i][j] * e_theta_im_[i][j] 
-                            + e_phi_im_[i][j] * e_phi_im_[i][j]) 
-                           / ETH_0);
+          *p = freq_start_ + (j * freq_space_);
+          ++p;
+          *p = 10 * log10((e_theta_im_[i][j] * e_theta_im_[i][j] 
+                           + e_phi_im_[i][j] * e_phi_im_[i][j]
+                           + e_theta_re_[i][j] * e_theta_re_[i][j] 
+                           + e_phi_re_[i][j] * e_phi_re_[i][j]) 
+                          / (2 * ETA_0));
           ++p;
           break;
         }
@@ -229,51 +237,51 @@ void FarfieldResult::init(const Grid &grid)
   switch (output_type_)
   {
   case ETHETA:
-    var_name_ = "Electric field in theta";
-    break;
+    data_.set_name("Electric field in theta");
     num_cols = 2;
     break;
 
   case EPHI:
-    var_name_ = "Electric field in phi";
-    break;
+    data_.set_name("Electric field in phi");
     num_cols = 2;
     break;
 
   case HTHETA:
-    var_name_ = "Magnetic field in theta";
+    data_.set_name("Magnetic field in theta");
     num_cols = 2;
     break;
 
   case HPHI:
-    var_name_ = "Magentic field in phi";
+    data_.set_name("Magentic field in phi");
     num_cols = 2;
     break;
 
   case RCSNORM:
-    var_name_ = "Normalized RADAR cross-section";
+    data_.set_name("Normalized RADAR cross-section");
     num_cols = 2;
     break;
 
   case RCSDBPOL:
-    var_name_ = "Normalized RADAR cross-section in dB";
+    data_.set_name("Normalized RADAR cross-section in dB");
     num_cols = 2;
     break;
 
   case ETHETAPHI:
-    var_name_ = "Electric field in theta and phi";
+    data_.set_name("Electric field in theta and phi");
     num_cols = 4;
     break;
 
   case HTHETAPHI:
-    var_name_ = "Magentic field in theta and phi"; 
+    data_.set_name("Magentic field in theta and phi"); 
     num_cols = 4;
     break;
   }
   
   freqs_.add_dimension("frequency", num_freqs_, 0);
+  freqs_.set_name("frequencies");
   angles_.add_dimension("theta and phi", 2, 0);
   angles_.add_dimension("angles", num_pts_, 0);
+  angles_.set_name("angles");
   data_.add_dimension("data", num_cols, 0);
   data_.add_dimension("points", num_pts_, 0);
   data_.add_dimension("frequencies", num_freqs_, 0);
@@ -284,7 +292,7 @@ void FarfieldResult::init(const Grid &grid)
     deinit(grid);
     throw MemoryException();
   }
-  memset(result_, 0, num_cols * num_freqs_ * num_ptrs_);
+  memset(result_, 0, num_cols * num_freqs_ * num_pts_);
   
   MPI_Datatype temp;
   MPI_Type_contiguous(num_cols * num_freqs_ * num_pts_, 
@@ -735,11 +743,11 @@ void FarfieldResult::ffpu_moment_update(const Grid &grid)
         r_accent[2] = (glob_k+0.5)*grid.get_deltaz()-origin[2];
         tau = -f_dot(r_unit,r_accent)/(C*grid.get_deltat());
 
-        t1_h = floor(tau);
+        t1_h = static_cast<int>(floor(tau));
         f2_h = tau-t1_h;
         f1_h = 1.-f2_h;
 
-        t1_e = floor(tau+0.5);
+        t1_e = static_cast<int>(floor(tau+0.5));
         f2_e = tau+0.5-t1_e;
         f1_e = 1.-f2_e;
 				
@@ -782,11 +790,11 @@ void FarfieldResult::ffpu_moment_update(const Grid &grid)
         tau = -(r_unit[0]*r_accent[0]+r_unit[1]*r_accent[1]+
                 r_unit[2]*r_accent[2])/(C*grid.get_deltat());
 
-        t1_h = floor(tau);
+        t1_h = static_cast<int>(floor(tau));
         f2_h = tau-t1_h;
         f1_h = 1.-f2_h;
 
-        t1_e = floor(tau+0.5);
+        t1_e = static_cast<int>(floor(tau+0.5));
         f2_e = tau+0.5-t1_e;
         f1_e = 1.-f2_e;
 				
@@ -829,11 +837,11 @@ void FarfieldResult::ffpu_moment_update(const Grid &grid)
         tau = -(r_unit[0]*r_accent[0]+r_unit[1]*r_accent[1]+
                 r_unit[2]*r_accent[2])/(C*grid.get_deltat());
 
-        t1_h = floor(tau);
+        t1_h = static_cast<int>(floor(tau));
         f2_h = tau-t1_h;
         f1_h = 1.-f2_h;
 
-        t1_e = floor(tau+0.5);
+        t1_e = static_cast<int>(floor(tau+0.5));
         f2_e = tau+0.5-t1_e;
         f1_e = 1.-f2_e;
 				
@@ -876,11 +884,11 @@ void FarfieldResult::ffpu_moment_update(const Grid &grid)
         tau = -(r_unit[0]*r_accent[0]+r_unit[1]*r_accent[1]+
                 r_unit[2]*r_accent[2])/(C*grid.get_deltat());
 
-        t1_h = floor(tau);
+        t1_h = static_cast<int>(floor(tau));
         f2_h = tau-t1_h;
         f1_h = 1.-f2_h;
 
-        t1_e = floor(tau+0.5);
+        t1_e = static_cast<int>(floor(tau+0.5));
         f2_e = tau+0.5-t1_e;
         f1_e = 1.-f2_e;
 				
@@ -923,11 +931,11 @@ void FarfieldResult::ffpu_moment_update(const Grid &grid)
         tau = -(r_unit[0]*r_accent[0]+r_unit[1]*r_accent[1]+
                 r_unit[2]*r_accent[2])/(C*grid.get_deltat());
 
-        t1_h = floor(tau);
+        t1_h = static_cast<int>(floor(tau));
         f2_h = tau-t1_h;
         f1_h = 1.-f2_h;
 
-        t1_e = floor(tau+0.5);
+        t1_e = static_cast<int>(floor(tau+0.5));
         f2_e = tau+0.5-t1_e;
         f1_e = 1.-f2_e;
 				
@@ -970,11 +978,11 @@ void FarfieldResult::ffpu_moment_update(const Grid &grid)
         tau = -(r_unit[0]*r_accent[0]+r_unit[1]*r_accent[1]+
                 r_unit[2]*r_accent[2])/(C*grid.get_deltat());
 
-        t1_h = floor(tau);
+        t1_h = static_cast<int>(floor(tau));
         f2_h = tau-t1_h;
         f1_h = 1.-f2_h;
 
-        t1_e = floor(tau+0.5);
+        t1_e = static_cast<int>(floor(tau+0.5));
         f2_e = tau+0.5-t1_e;
         f1_e = 1.-f2_e;
 				

@@ -68,7 +68,7 @@ public:
   /**
    * Get the data type
    */
-  inline MPI_Datatype &get_datatype()
+  inline MPI_Datatype get_datatype() const
   {
     return type_;
   }
@@ -77,7 +77,7 @@ public:
    * Returns the number of pointers contained in this data
    * block. 
    */
-  inline unsigned int get_num_ptrs()
+  inline unsigned int get_num_ptrs() const 
   {
     return ptrs_.size();
   }
@@ -89,9 +89,9 @@ public:
    * @param ptr_num the pointer number to return, defaults to
    * zero. Must be less than the value returned by get_num_ptrs(). 
    */
-  inline void *get_ptr(unsigned int ptr_num = 0)
+  inline void *get_ptr(unsigned int ptr_num = 0) const
   {
-    map<unsigned int, void *>::iterator iter = ptrs_.find(ptr_num);
+    map<unsigned int, void *>::const_iterator iter = ptrs_.find(ptr_num);
     
     if (iter != ptrs_.end())
       return (*iter).second;
@@ -103,7 +103,7 @@ public:
    * Returns the number of items (MPI Datatype data blocks) contained
    * in each pointer. 
    */
-  inline unsigned int get_num()
+  inline unsigned int get_num() const
   {
     return num_;
   }
@@ -142,13 +142,13 @@ class RxTxData : public Data
 {
 private:
   // Hide these
-  inline void *get_ptr(unsigned int ptr_num)
+  inline void *get_ptr(unsigned int ptr_num) const
   { return Data::get_ptr(ptr_num); }
 
   inline void set_ptr(void *ptr, unsigned int ptr_num)
   { Data::set_ptr(ptr, ptr_num); }
 
-  inline unsigned int get_num_ptrs()
+  inline unsigned int get_num_ptrs() const
   { return 0; }
   
 protected:
@@ -170,7 +170,7 @@ public:
   /**
    * Get the rx pointer
    */
-  inline void *get_rx_ptr()
+  inline void *get_rx_ptr() const
   {
     return get_ptr(0);
   }
@@ -186,7 +186,7 @@ public:
   /**
    * Get the tx pointer
    */
-  inline void *get_tx_ptr()
+  inline void *get_tx_ptr() const
   {
     return get_ptr(1);
   }

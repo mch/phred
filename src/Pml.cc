@@ -432,25 +432,25 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
   if (!alloced_)
     throw exception(); // PML must be set up before applying it. 
 
-  if (face == BOTTOM && type == E)
-  {
-    if (grid.get_ldx() == 37) // rank 0
-    {
-      for (int h = 34; h < 38; h++)
-      {
-        cout << "rank 0, before update, (" << h << ", 10, 4), exy = " 
-             << exy_[pi(h, 10, 4)] 
-             << ", exz = " << exz_[pi(h, 10, 4)] << endl;
-      }
-    } else {
-      for (int h = 0; h < 4; h++)
-      {
-        cout << "rank 1, before update, (" << h << ", 10, 4), exy = " 
-             << exy_[pi(h, 10, 4)]
-             << ", exz = " << exz_[pi(h, 10, 4)] << endl;
-      }
-    }
-  }
+//   if (face == BOTTOM && type == E)
+//   {
+//     if (grid.get_ldx() == 37) // rank 0
+//     {
+//       for (int h = 34; h < 38; h++)
+//       {
+//         cout << "rank 0, before update, (" << h << ", 10, 4), exy = " 
+//              << exy_[pi(h, 10, 4)] 
+//              << ", exz = " << exz_[pi(h, 10, 4)] << endl;
+//       }
+//     } else {
+//       for (int h = 0; h < 4; h++)
+//       {
+//         cout << "rank 1, before update, (" << h << ", 10, 4), exy = " 
+//              << exy_[pi(h, 10, 4)]
+//              << ", exz = " << exz_[pi(h, 10, 4)] << endl;
+//       }
+//     }
+//   }
   
 
   region_t grid_r = find_face(face, grid);
@@ -474,25 +474,25 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
   }
   
   // TEMPORARY: output some PML split field data
-  if (face == BOTTOM && type == E)
-  {
-    if (grid.get_ldx() == 37) // rank 0
-    {
-      for (int h = 34; h < 38; h++)
-      {
-        cout << "rank 0, after update, (" << h << ", 10, 4), exy = " 
-             << exy_[pi(h, 10, 4)] 
-             << ", exz = " << exz_[pi(h, 10, 4)] << endl;
-      }
-    } else {
-      for (int h = 0; h < 4; h++)
-      {
-        cout << "rank 1, after update, (" << h << ", 10, 4), exy = " 
-             << exy_[pi(h, 10, 4)]
-             << ", exz = " << exz_[pi(h, 10, 4)] << endl;
-      }
-    }
-  }
+//   if (face == BOTTOM && type == E)
+//   {
+//     if (grid.get_ldx() == 37) // rank 0
+//     {
+//       for (int h = 34; h < 38; h++)
+//       {
+//         cout << "rank 0, after update, (" << h << ", 10, 4), exy = " 
+//              << exy_[pi(h, 10, 4)] 
+//              << ", exz = " << exz_[pi(h, 10, 4)] << endl;
+//       }
+//     } else {
+//       for (int h = 0; h < 4; h++)
+//       {
+//         cout << "rank 1, after update, (" << h << ", 10, 4), exy = " 
+//              << exy_[pi(h, 10, 4)]
+//              << ", exz = " << exz_[pi(h, 10, 4)] << endl;
+//       }
+//     }
+//   }
   
 }
 

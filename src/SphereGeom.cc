@@ -65,8 +65,12 @@ void Sphere::set_material(Grid &grid)
 
       if (p > 0)
       {
-        unsigned int zmax = static_cast<unsigned int>(ceil(sqrt(static_cast<double>(p)) + centre_.z));
-        unsigned int zmin = static_cast<unsigned int>(ceil(sqrt(static_cast<double>(p)) - centre_.z));
+        unsigned int zmax = 
+          static_cast<unsigned int>(centre_.z + 
+                                    ceil(sqrt(static_cast<double>(p))));
+        unsigned int zmin = 
+          static_cast<unsigned int>(centre_.z - 
+                                    ceil(sqrt(static_cast<double>(p))));
 
         for (unsigned int k = zmin; k < zmax; k++)
         {

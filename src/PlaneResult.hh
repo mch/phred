@@ -105,6 +105,14 @@ public:
    * Initalize the result. Set's the size of the plane from the grid.
    */
   virtual void init(const Grid &grid);
+
+  /**
+   * Set the name of our variable to something human readable!
+   */
+  inline void set_name(const char *name)
+  {
+    var_.set_name(name);
+  }
 };
 
 #endif // PLANE_RESULT_H

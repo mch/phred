@@ -63,7 +63,7 @@ protected:
    * default implementation of handle_data(), then override
    * write_data() and end_data() instead. 
    */ 
-  void gather_data(unsigned int time_step, const Data &data);
+  void gather_data(unsigned int time_step, Variable &var);
 
    /**
    * Does recursive writing of packed data. This function will only
@@ -81,7 +81,7 @@ protected:
    * @return the number of bytes written. 
    */
   virtual unsigned int write_data(unsigned int time_step, 
-                                  const Data &data, MPI_Datatype t, 
+                                  Variable &var, MPI_Datatype t, 
                                   void *ptr, unsigned int len) = 0;
  
 public:

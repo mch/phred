@@ -130,7 +130,8 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  Data &get_result(const Grid &grid, unsigned int time_step);
+  map<string, Variable *> &get_result(const Grid &grid, 
+                                      unsigned int time_step);
 
   /**
    * Setup the result, allocate memory, etc. Called just before the

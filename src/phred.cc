@@ -107,6 +107,7 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "BartlettExcitation.hh"
 #include "FDTD.hh"
 #include "Box.hh"
+#include "SphereGeom.hh"
 
 #ifdef USE_PY_BINDINGS
 #include <Python.h>
@@ -478,8 +479,14 @@ static void pml_test(int rank, int size)
   //metal2.set_region(45, 50, 5, 46, 35, 60);
   //metal2.set_material_id(3);
 
+  Sphere sp1;
+  sp1.set_centre(point_t(40, 10, 10));
+  sp1.set_radius(5);
+  sp1.set_material_id(3);
+
   fdtd.add_geometry(&all);
-  fdtd.add_geometry(&metal1);
+  //fdtd.add_geometry(&metal1);
+  fdtd.add_geometry(&sp1);
   // fdtd.add_geometry(&metal2);
 
   // Excitation
@@ -655,7 +662,7 @@ static void pml_test(int rank, int size)
      cout << "j[" << i << "] = " << j[i] << endl;
 #endif
 
-   fdtd.run(rank, size, 75);
+   fdtd.run(rank, size, 250);
 }
 
 static void takakura_test(int rank, int size)

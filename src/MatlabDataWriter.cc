@@ -19,56 +19,64 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#include "AsciiDataWriter.hh"
+#include "MatlabDataWriter.hh"
 #include "Exceptions.hh"
 
 #include <string.h>
 #include <mpi.h>
+#include <stdio.h>
+#include <time.h>
+#include <types.h>
 
-AsciiDataWriter::AsciiDataWriter(int rank, int size)
-  : DataWriter(rank, size), time_dim_(true)
+MatlabDataWriter::MatlabDataWriter(int rank, int size)
+  : DataWriter(rank, size)
 {}
 
-AsciiDataWriter::AsciiDataWriter(int rank, int size, 
+MatlabDataWriter::MatlabDataWriter(int rank, int size, 
                                  const char *fn, Result &result)
-  : DataWriter(rank, size), time_dim_(true)
+  : DataWriter(rank, size)
 {
-  set_filename(fn);
+  filename_ = fn;
   add_variable(result);
 }
 
-AsciiDataWriter::~AsciiDataWriter()
+MatlabDataWriter::~MatlabDataWriter()
 {
   deinit();
 }
 
-void AsciiDataWriter::init()
+void MatlabDataWriter::header_setup()
+{
+  snprintf(header_.text, 124, "MATLAB 5.0 MAT-file, Platform: %s, Created on: %s by phred %s", 
+           PLATFORM, ctime(time(0)), PACKAGE_VERSION);
+  header_.version = 0x0100;
+  header_.endian.bytes[0] = 'M';
+  header_.endian.bytes[1] = 'I';
+}
+
+void MatlabDataWriter::init()
 {
   if (filename_.length() > 0 && rank_ == 0)
   {
-    file_.open(filename_.c_str(), ofstream::out);
-    file_.flags(ios_base::scientific);
+    file_.open(filename_.c_str(), ofstream::out | ofstream::binary
+               | ofstream::trunc);
   }
 }
 
-void AsciiDataWriter::deinit()
+void MatlabDataWriter::deinit()
 {
   if (rank_ == 0 && file_.is_open())
     file_.close();
 }
 
-void AsciiDataWriter::add_variable(Result &result)
+void MatlabDataWriter::add_variable(Result &result)
 {
   const map<string, Variable *> vars = result.get_variables();
   map<string, Variable *>::const_iterator iter;
   map<string, Variable *>::const_iterator iter_e = vars.end();
   
-  bool one = false;
   for (iter = vars.begin(); iter != iter_e; ++iter)
   {
-    if (one)
-      throw DataWriterException("AsciiDatawriter can only handle one output variable.");
-
     Variable *var = iter->second;
     const vector<int> &dim_lens = var->get_dim_lengths();
     
@@ -84,7 +92,7 @@ void AsciiDataWriter::add_variable(Result &result)
   }
 }
 
-unsigned int AsciiDataWriter::write_data(unsigned int time_step, 
+unsigned int MatlabDataWriter::write_data(unsigned int time_step, 
                                          Variable &variable, MPI_Datatype t, 
                                          void *ptr, unsigned int len)
 {
@@ -96,12 +104,6 @@ unsigned int AsciiDataWriter::write_data(unsigned int time_step,
     if (!file_.is_open()) 
       throw DataWriterException("Unable to open output file!");
   }
-
-  // If this result doesn't have a time dimension, then move to the
-  // start of the file before writing anything; overwrite existing
-  // data.
-  if (!time_dim_)
-    file_.seekp(0);
 
   unsigned int tbw = 0, bytes_written = 0;
 
@@ -126,7 +128,7 @@ unsigned int AsciiDataWriter::write_data(unsigned int time_step,
   return tbw;
 }
 
-unsigned int AsciiDataWriter::write_data(MPI_Datatype t, void *ptr, 
+unsigned int MatlabDataWriter::write_data(MPI_Datatype t, void *ptr, 
                                   unsigned int len)
 {
   unsigned int bytes_written = 0; 
@@ -198,7 +200,7 @@ unsigned int AsciiDataWriter::write_data(MPI_Datatype t, void *ptr,
 }
 
 template <class T>
-unsigned int AsciiDataWriter::write_array(void *ptr, unsigned int len)
+unsigned int MatlabDataWriter::write_array(void *ptr, unsigned int len)
 {
   unsigned int items_avail = items_avail = len / sizeof(T);
   T *r = static_cast<T *>(ptr);

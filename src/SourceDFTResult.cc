@@ -27,7 +27,9 @@
 SourceDFTResult::SourceDFTResult(SourceFunction &te)
   : te_(te), freq_start_(0), freq_stop_(0),
     num_freqs_(0)
-{}
+{
+  variables_["Source DFT"] = &var_;
+}
 
 SourceDFTResult::SourceDFTResult(SourceFunction &te, 
                                   field_t freq_start,
@@ -35,7 +37,9 @@ SourceDFTResult::SourceDFTResult(SourceFunction &te,
                                   unsigned int num_freqs)
   : te_(te), freq_start_(freq_start), freq_stop_(freq_stop),
     num_freqs_(num_freqs)
-{}
+{
+  variables_["Source DFT"] = &var_;
+}
 
 SourceDFTResult::~SourceDFTResult()
 { 
@@ -52,11 +56,11 @@ void SourceDFTResult::init(const Grid &grid)
     freq_start_ = temp;
   }
 
-  time_dim_ = false; // We have only one output at the end. 
+  var_.has_time_dimension(false); // We have only one output at the end. 
+  var_.add_dimension("Freq, re, im", 3, 0);
+  var_.add_dimension("frequencies", num_freqs_, 0);
 
-  dim_lens_.push_back(3); // Rows of (Freq, DFT)
-  dim_lens_.push_back(num_freqs_); // num_freq rows
-  var_name_ = "Source DFT";
+  var_.set_name("Source DFT");
 
   freq_space_ = (freq_stop_ - freq_start_) / num_freqs_;
   result_ = new field_t[(num_freqs_ + 1) * 3];
@@ -72,9 +76,9 @@ void SourceDFTResult::init(const Grid &grid)
   MPI_Type_contiguous(3, GRID_MPI_TYPE, &temp);
   MPI_Type_commit(&temp);
 
-  data_.set_num(num_freqs_);
-  data_.set_ptr(result_);
-  data_.set_datatype(temp);
+  var_.set_num(num_freqs_);
+  var_.set_ptr(result_);
+  var_.set_datatype(temp);
 }
 
 void SourceDFTResult::deinit(const Grid &grid)
@@ -88,17 +92,24 @@ void SourceDFTResult::set_excitation(const SourceFunction &te)
   te_ = te;
 }
 
-Data &SourceDFTResult::get_result(const Grid &grid, unsigned int time_step)
+map<string, Variable *> &SourceDFTResult::get_result(const Grid &grid, 
+                                                     unsigned int time_step)
 {
-  field_t sf = te_.source_function(grid, time_step);
-  for (unsigned int i = 0; i <= num_freqs_; i++)
+  if (result_time(time_step)) 
   {
-    result_[i*3 + 1] += sf * cos(2 * PI * result_[i*3] 
-                                 * time_step * grid.get_deltat());
-
-    result_[i*3 + 2] += (-1) * sf * sin(2 * PI * result_[i*3] 
-                                        * time_step * grid.get_deltat());
+    field_t sf = te_.source_function(grid, time_step);
+    for (unsigned int i = 0; i <= num_freqs_; i++)
+    {
+      result_[i*3 + 1] += sf * cos(2 * PI * result_[i*3] 
+                                   * time_step * grid.get_deltat());
+    
+      result_[i*3 + 2] += (-1) * sf * sin(2 * PI * result_[i*3] 
+                                          * time_step * grid.get_deltat());
+    }
+    var_.set_num(1); 
+  } else {
+    var_.set_num(0); 
   }
 
-  return data_;
+  return variables_;
 }

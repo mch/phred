@@ -30,6 +30,11 @@
 #define TYPES_H
 
 /**
+ * Target platform 
+ */ 
+static const char *PLATFORM = "@target@";
+
+/**
  * Axis of rotation
  */
 enum Axis {

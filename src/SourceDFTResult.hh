@@ -43,6 +43,8 @@ protected:
   field_t *result_; /**< Storage for the result. Interlevaved data;
                        freq, Real DFT value, Imag DFT value, etc */
 
+  Variable var_;
+
 public:
   SourceDFTResult(SourceFunction &te);
   SourceDFTResult(SourceFunction &te, field_t freq_start,
@@ -113,7 +115,8 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  virtual Data &get_result(const Grid &grid, unsigned int time_step);
+  virtual map<string, Variable *> &get_result(const Grid &grid, 
+                                              unsigned int time_step);
 
   /**
    * Setup the result, allocate memory, etc. Called just before the

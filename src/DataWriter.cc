@@ -28,15 +28,16 @@ void DataWriter::handle_data(unsigned int time_step,
   map<string, Variable *>::iterator iter_e = data.end();
 
   for (iter = data.begin(); iter != iter_e; ++iter)
-    gather_data(time_step, (*iter).second->get_data(););
+    gather_data(time_step, *(*iter).second);
 }
 
-void DataWriter::gather_data(unsigned int time_step, const Data &data)
+void DataWriter::gather_data(unsigned int time_step, Variable &var)
 {
   // Is the data on the right rank? 
   unsigned int nums_snd[2], *nums_recv;
   char *ptr, *ptr_head; 
   int sz; 
+  const Data &data = var.get_data();
 
   MPI_Status status;
 
@@ -94,7 +95,7 @@ void DataWriter::gather_data(unsigned int time_step, const Data &data)
       
       MPI_Datatype t = data.get_datatype();
         
-      write_data(time_step, data, t, ptr_head, total);
+      write_data(time_step, var, t, ptr_head, total);
 
       delete[] ptr_head;
     }

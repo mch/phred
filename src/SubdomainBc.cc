@@ -57,8 +57,9 @@ void SubdomainBc::apply(Face face, Grid &grid, FieldType type)
   {
     if (type == (*iter).get_field_type()) 
     {
+      MPI_Datatype dtype = (*iter).get_datatype();
       send_recv((*iter).get_tx_ptr(), (*iter).get_rx_ptr(), 
-                (*iter).get_datatype());
+                dtype);
     }
 
     ++iter;
