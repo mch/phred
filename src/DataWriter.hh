@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Result.hh"
+#include "LifeCycle.hh"
 
 using namespace std;
 
@@ -23,7 +24,7 @@ using namespace std;
  * The subclass must implement add variable and provide it's own way
  * of handling per variable data. 
  */
-class DataWriter 
+class DataWriter : public LifeCycle
 {
 private:
   DataWriter()
@@ -68,16 +69,6 @@ public:
 
   virtual ~DataWriter()
   { }
-
-  /**
-   * Initialize this object
-   */
-  virtual void init() = 0;
-
-  /**
-   * Deinit
-   */
-  virtual void deinit() = 0;
 
   /**
    * Returns the rank

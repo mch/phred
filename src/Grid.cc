@@ -266,27 +266,6 @@ void Grid::init_datatypes()
   MPI_Type_commit(&xy_plane_);
 
   types_alloced_ = true;
-
-  // TEST:
-  int sz; 
-  MPI_Type_size(z_vector_, &sz);
-  cout << "Z_vector of " << get_ldz() << " floats is " << sz << " bytes.\n";
-
-  MPI_Type_size(y_vector_, &sz);
-  cout << "Y_vector of " << get_ldy() << " floats is " << sz << " bytes.\n";
-
-  MPI_Type_size(x_vector_, &sz);
-  cout << "X_vector of " << get_ldx() << " floats is " << sz << " bytes.\n";
-
-  MPI_Type_size(yz_plane_, &sz);
-  cout << "YZ_plane of " << get_ldy() << "x" << get_ldz() << " floats is " << sz << " bytes.\n";  
-
-  MPI_Type_size(xz_plane_, &sz);
-  cout << "XZ_plane of " << get_ldx() << "x" << get_ldz() << " floats is " << sz << " bytes.\n";  
-
-  MPI_Type_size(xy_plane_, &sz);
-  cout << "XY_plane of " << get_ldx() << "x" << get_ldy() << " floats is " << sz << " bytes." << endl;  
-
 }
 
 

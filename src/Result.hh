@@ -7,6 +7,7 @@
 #include "Types.hh"
 #include "Grid.hh"
 #include "Data.hh"
+#include "LifeCycle.hh"
 
 using namespace std;
 
@@ -36,7 +37,7 @@ using namespace std;
  * return data at more than one time step anyway, then later data
  * overwrites previous data, as far as the DataWriter is concerened. 
  */
-class Result
+class Result : public LifeCycle
 {
 private:
   Result(const Result &rhs);
@@ -149,13 +150,6 @@ public:
   {
     return var_name_;
   }
-
-  /**
-   * Called to perform any initialization that may be required. Does
-   * nothing by default. 
-   */
-  virtual void init(const Grid &grid)
-  {}
 
   /**
    * Returns the lengths of the dimensions

@@ -27,6 +27,8 @@ phred_SOURCES=phred.cc \
 	jan-grammer.yy \
 	jan-grammer-flex.ll \
 	system.h \
+	LifeCycle.hh \
+	LifeCycle.cc \
 	Grid.cc \
 	Grid.hh \
 	GridInfo.hh \
@@ -44,6 +46,8 @@ phred_SOURCES=phred.cc \
 	SourceFunction.hh \
 	AltiVec.hh \
 	Excitation.hh \
+	WindowedExcitation.hh \
+	BartlettExcitation.hh \
 	BoundaryCondition.hh \
 	BoundaryCondition.cc \
 	Ewall.hh \
