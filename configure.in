@@ -169,6 +169,7 @@ void test()
 ], [
         AC_MSG_RESULT([yes])
         USE_ALTIVEC="1"
+        CFLAGS="$CFLAGS -faltivec"
         AC_DEFINE([USE_ALTIVEC], [1], [Using AltiVec])
         ], [AC_MSG_RESULT[no]])
             
@@ -332,12 +333,14 @@ echo -n "Using popt to parse command line arguments? "
 if test "x$HAVE_LIBPOPT" = "x1"; then echo "yes"; else echo "no"; fi
 echo
 echo "DataWriters: " 
-echo -n " - NetCDF? $USE_NETCDF " 
+echo -n " - NetCDF? " 
 if test "x$USE_NETCDF" = "x1"; then echo "yes"; else echo "no"; fi
 echo -n " - HDF 4? " 
 if [[ "x$USE_HDF4" = "x1" ]]; then echo "yes"; else echo "no"; fi
 echo -n " - HDF 5? " 
 if [[ "x$USE_HDF5" = "x1" ]]; then echo "yes"; else echo "no"; fi
+echo -n " - VTK? " 
+if [[ "x$USE_VTK" = "x1" ]]; then echo "yes"; else echo "no"; fi
 echo
 echo -n "Building AltiVec support? " 
 if [[ "x$USE_ALTIVEC" = "x1" ]]; then echo "yes"; else echo "no"; fi

@@ -105,6 +105,7 @@ typedef struct region_str {
   unsigned int zmax;
 } region_t;
 
+#ifdef __cplusplus
 /**
  * Represents a single point in space. The class constructor makes it
  * easy to construct temporary objects for more terse syntax
@@ -124,6 +125,13 @@ public:
     : x(xn), y(yn), z(zn)
   {}
 };
+#else
+typedef struct {
+  unsigned int x;
+  unsigned int y;
+  unsigned int z;
+} point_t;
+#endif
 
 #endif
 

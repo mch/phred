@@ -3,7 +3,7 @@
  * there is any significant impact resulting from the use of the C++
  * compiler to build phred, vs. using just a C compiler to build this
  * program. Of course, no C++ features are used here, and this program
- * is not very versitile. 
+ * is not very versatile. 
  *
  * This program is single node only, no MPI, maybe OpenMP and Altivec,
  * if it's worth the trouble to test those. 
@@ -19,66 +19,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../src/config.h"
-#include "../../src/Types.hh"
-#include "../../src/Constants.hh"
-
-/****************************************************************
- * Global Variables!
- ****************************************************************/
-
-/* Number of materials we know about (0 is PEC)*/
-unsigned int num_materials_;
-
-/* E Field Material Coefficients */
-mat_coef_t *Ca_;
-mat_coef_t *Cbx_;
-mat_coef_t *Cby_;
-mat_coef_t *Cbz_;
-
-/* H Field Coefficients */
-mat_coef_t *Da_;
-mat_coef_t *Dbx_;
-mat_coef_t *Dby_;
-mat_coef_t *Dbz_;
-
-field_t *ex_;
-field_t *ey_;
-field_t *ez_;
-field_t *hx_;
-field_t *hy_;
-field_t *hz_;
-
-/* The material for each point in the grid. This is an index into
- * the material arrays, Ca, Cbx, etc. */
-unsigned int *material_;
-
-/* Time and space steppings; the distance between each point in the
- * grid. */ 
-delta_t deltax_;
-delta_t deltay_;
-delta_t deltaz_;
-delta_t deltat_;
-
-/* Size of the grid along each dimension */
-unsigned int dimx_;
-unsigned int dimy_;
-unsigned int dimz_;
-
-/****************************************************************
- * Function declarations
- ****************************************************************/
-
-void update_ex();
-void update_ey();
-void update_ez();
-
-void update_hx();
-void update_hy();
-void update_hz();
-
-unsigned int pi(unsigned int x, unsigned int y, 
-                unsigned int z);
+#include "common.h"
 
 void alloc_grid();
 void free_grid();
@@ -120,15 +61,12 @@ int main(int argc, char **argv)
   {
     printf("High speed C, time step %i, source: %g\n", 
            i, gaussm(i, 500e12, 1, 300e12));
-    update_ex();
-    update_ey();
-    update_ez();
-
-    update_hx();
-    update_hy();
-    update_hz();
+    e_update();
 
     ey_[pi(100, 100, 100)] = gaussm(i, 500e12, 1, 300e12);
+
+    h_update();
+
   }
 
   /* Clean up */
@@ -158,6 +96,8 @@ void alloc_grid()
 
   if (sz > 0) 
   {
+    /* Fortunatly for us, on OS X malloc returns memory block aligned
+       on 16 byte boundaries required by AltiVec */ 
     ex_ = malloc(sz);
     ey_ = malloc(sz);
     ez_ = malloc(sz);
@@ -307,192 +247,11 @@ void free_material()
   }
 }
 
-/* Straight out of Taflove. */
-/* This is a slow version */
-void update_ex() 
-{
-  unsigned int mid, idx, idx2, i, j, k;
-  
-  for (i = 0; i < dimx_; i++) {
-    for (j = 1; j < dimy_; j++) {
-
-      idx = pi(i, j, 1);
-      idx2 = pi(i, j-1, 1);
-
-      for (k = 1; k < dimz_; k++) {
-        mid = material_[idx];
-
-        ex_[idx] = Ca_[mid] * ex_[idx]
-          + Cby_[mid] * (hz_[idx] - hz_[idx2])
-          + Cbz_[mid] * (hy_[idx-1] - hy_[idx]);
-        
-        idx++;
-        idx2++;
-      }
-    }
-  }
-}
-
-/* Straight out of Taflove. */
-/* Pointer arithmetic should be faster. */
-void update_ey() 
-{
-  unsigned int mid, i, j, k, idx;
-  field_t *ey, *hx, *hz1, *hz2;
-
-  for (i = 1; i < dimx_; i++) {
-    for (j = 0; j < dimy_; j++) {
-
-      idx = pi(i, j, 1);
-      ey = &(ey_[idx]);
-      hx = &(hx_[idx]);
-      hz1 = &(hz_[pi(i-1, j, 1)]);
-      hz2 = &(hz_[idx]);
-
-      for (k = 1; k < dimz_; k++) {
-        mid = material_[idx];
-
-        *ey = Ca_[mid] * *ey
-          + Cbz_[mid] * (*hx - *(hx-1))
-          + Cbx_[mid] * (*hz1 - *hz2);
-
-        ey++;
-        hx++;
-        hz1++;
-        hz2++;
-        idx++;
-      }
-    }
-  }
-
-}
-
-/* Straight out of Taflove. */
-/* Pointer arithmetic plus OpenMP threading should be faster still! */
-void update_ez() 
-{
-  unsigned int mid, i, j, k, idx;
-  field_t *ez, *hy1, *hy2, *hx1, *hx2;
-  
-  for (i = 1; i < dimx_; i++) {
-    for (j = 1; j < dimy_; j++) {
-
-      idx = pi(i, j, 0);
-      ez = &(ez_[idx]);
-      hy1 = &(hy_[idx]);
-      hy2 = &(hy_[pi(i-1, j, 0)]);
-      hx1 = &(hx_[pi(i, j-1, 0)]);
-      hx2 = &(hx_[idx]);
-
-#ifdef USE_OPENMP
-#pragma opt parallel for \
-        private(i, j, k, idx, idx2, mid, ez, hy1, hy2, hx1, hx2) \
-        shared(Ca_, Cbx_, Cby_) \
-        schedule(static)
-#endif
-      for (k = 0; k < dimz_; k++) {
-        mid = material_[pi(i, j, k)];
-
-        *ez = Ca_[mid] * *ez
-          + Cbx_[mid] * (*hy1 - *hy2)
-          + Cby_[mid] * (*hx1 - *hx2);
-
-        ez++;
-        hy1++; hy2++; hx1++; hx2++;
-        idx++;
-      }
-    }
-  }
-}
-
-void update_hx()
-{
-  unsigned int mid, i, j, k, idx;
-  field_t *hx, *ez1, *ez2, *ey;
-
-  for (i = 0; i < dimx_; i++) {
-    for (j = 0; j < dimy_ - 1; j++) {
-
-      idx = pi(i, j, 0);
-      hx = &(hx_[idx]);
-      ez1 = &(ez_[idx]);
-      ez2 = &(ez_[pi(i, j+1, 0)]);
-      ey = &(ey_[idx]);
-
-      for (k = 0; k < dimz_ - 1; k++) {
-        mid = material_[idx];
-
-        *hx = Da_[mid] * *hx
-          + Dby_[mid] * (*ez1 - *ez2)
-          + Dbz_[mid] * (*(ey+1) - *ey);
-
-        hx++; idx++;
-        ez1++; ez2++; ey++;
-      }
-    }
-  }
-}
-
-void update_hy()
-{
-  unsigned int mid, i, j, k, idx;
-  field_t *hy, *ex, *ez1, *ez2;
-
-  for (i = 0; i < dimx_ - 1; i++) {
-    for (j = 0; j < dimy_; j++) {
-
-      idx = pi(i, j, 0);
-      hy = &(hy_[idx]);
-      ex = &(ex_[idx]);
-      ez1 = &(ez_[pi(i+1, j, 0)]);
-      ez2 = &(ez_[idx]);
-
-      for (k = 0; k < dimz_ - 1; k++) {
-        mid = material_[idx];
-
-        *hy = Da_[mid] * *hy
-          + Dbz_[mid] * (*ex - *(ex + 1))
-          + Dbx_[mid] * (*ez1 - *ez2);        
-        
-        hy++; idx++;
-        ex++; ez1++; ez2++;
-      }
-    }
-  }
-}
-
-void update_hz()
-{
-  unsigned int mid, i, j, k, idx;
-  field_t *hz1, *ey1, *ey2, *ex1, *ex2;
-
-  for (i = 0; i < dimx_ - 1; i++) {
-    for (j = 0; j < dimy_ - 1; j++) {
-
-      idx = pi(i, j, 0);
-      hz1 = &(hz_[idx]);
-      ey1 = &(ey_[idx]);
-      ey2 = &(ey_[pi(i+1, j, 0)]);
-      ex1 = &(ex_[pi(i, j+1, 0)]);
-      ex2 = &(ex_[idx]);
-
-      for (k = 0; k < dimz_; k++) {
-        mid = material_[idx];
-
-        *hz1 = Da_[mid] * *hz1
-          + Dbx_[mid] * (*ey1 - *ey2)
-          + Dby_[mid] * (*ex1 - *ex2);
-
-        hz1++; idx++;
-        ey1++; ey2++;
-        ex1++; ex2++;
-      }
-    }
-  }
-}
-
 unsigned int pi(unsigned int x, unsigned int y, 
                 unsigned int z)
 {
   return z + (y + x*dimy_) * dimz_;
 }
+
+
+
