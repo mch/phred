@@ -155,7 +155,7 @@ void export_excitations()
     .def("get_deltaf", &Gaussm::get_deltaf)
     .def("get_f0", &Gaussm::get_f0)
     .def("length", &Gaussm::length)
-    //.def("signal_function", &Gaussm::signal_function) // in Signal
+    .def("signal_function", &Gaussm::signal_function) // in Signal
     ;
 
   class_<ExpSine, bases<Signal> >("ExpSine", "Ramping up sine function")
@@ -164,6 +164,7 @@ void export_excitations()
                   &ExpSine::set_frequency)
     .add_property("amplitude", &ExpSine::get_amplitude, 
                   &ExpSine::set_amplitude)
+    .def("signal_function", &ExpSine::signal_function)
     ;
 
   class_<BartlettExcitation, bases<WindowedExcitation> >("BartlettExcitation", "Bartlett windowed excitation; an attempt at a plane wave.", init<shared_ptr<Signal> >())

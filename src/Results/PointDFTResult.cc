@@ -176,4 +176,6 @@ ostream& PointDFTResult::to_string(ostream &os) const
      << ", starting at " << frequencies_.get_start() << " and ending at "
      << frequencies_.get_end() << "\nData is sampled at point " 
      << sp << ", grid cell " << p;
+
+  return os;
 }

@@ -435,24 +435,19 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
 
   if (has_data_)
   {
+    // Make this a templated function taking the GridPlane as a template
+    // parameter for speed, so we can avoid virtual function calls. 
     for (int x = xmin_; x < xmax_; x++) 
     {
       for (int y = ymin_; y < ymax_; y++) 
       {
         for (int z = zmin_; z < zmax_; z++) 
         {
-          // Use pointers
-          et1 = plane_->get_e_t1(x, y, z);
-          et2 = plane_->get_e_t2(x, y, z);
+          et1 = plane_->get_avg_e_t1(x, y, z);
+          et2 = plane_->get_avg_e_t2(x, y, z);
         
-          // Strictly speaking, H component should be averaged across
-          // two time steps.
-          ht1 = (plane_->get_h_t1(x, y, z) 
-                 + plane_->get_h_t1(x + step_x_, y + step_y_, 
-                                    z + step_z_)) / 2;
-          ht2 = (plane_->get_h_t2(x, y, z) 
-                 + plane_->get_h_t2(x + step_x_, y + step_y_, 
-                                    z + step_z_)) / 2;
+          ht1 = plane_->get_avg_h_t1(x, y, z);
+          ht2 = plane_->get_avg_h_t2(x, y, z);
 
           time_power_ += (et1 * ht2 - et2 * ht1) * cell_area_;
         }
@@ -479,23 +474,19 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
 
     if (has_data_)
     {
+      // Template this
       for (int x = xmin_; x < xmax_; x++) 
       {
         for (int y = ymin_; y < ymax_; y++) 
         {
           for (int z = zmin_; z < zmax_; z++) 
           {
-            // SLOW: Replace with pointer ops
-            et1 = plane_->get_e_t1(x, y, z);
-            et2 = plane_->get_e_t2(x, y, z);
+            et1 = plane_->get_avg_e_t1(x, y, z);
+            et2 = plane_->get_avg_e_t2(x, y, z);
+            
+            ht1 = plane_->get_avg_h_t1(x, y, z);
+            ht2 = plane_->get_avg_h_t2(x, y, z);
 
-            ht1 = (plane_->get_h_t1(x, y, z) 
-                   + plane_->get_h_t1(x + step_x_, y + step_y_, 
-                                      z + step_z_)) / 2;
-            ht2 = (plane_->get_h_t2(x, y, z) 
-                   + plane_->get_h_t2(x + step_x_, y + step_y_, 
-                                      z + step_z_)) / 2;
-          
             // Replace with complex numbers?
             et1_real = et1 * e_cos_temp;
             et1_imag = (-1) * et1 * e_sin_temp;
@@ -552,4 +543,6 @@ ostream& PowerResult::to_string(ostream &os) const
 {
   os << "PowerResult returning power passing through the "
      << face_string(face_) << " of a "; // << box_->get();
+
+  return os;
 }

@@ -834,8 +834,7 @@ void FarfieldResult2::calc_currents(const Grid &grid,
                                     region_t &cells,
                                     int face_idx)
 {
-  const field_t *e_t1;
-  const field_t *e_t2, *h_t1, *h_t2;
+  field_t e_t1, e_t2, h_t1, h_t2;
 
   T p(const_cast<Grid &>(grid)); // EVIL
 
@@ -866,11 +865,6 @@ void FarfieldResult2::calc_currents(const Grid &grid,
     {
       for (unsigned int j = cells.ymin; j < cells.ymax; j++)
       {
-        e_t1 = p.get_e_t1_ptr(i, j, cells.zmin);
-        e_t2 = p.get_e_t2_ptr(i, j, cells.zmin);
-        h_t1 = p.get_h_t1_ptr(i, j, cells.zmin);
-        h_t2 = p.get_h_t2_ptr(i, j, cells.zmin);
-
         for (unsigned int k = cells.zmin; k < cells.zmax; k++, idx++)
         {
           // SOME AVERAGING IS REQUIRED HERE!!! I.e. average all field
@@ -883,19 +877,23 @@ void FarfieldResult2::calc_currents(const Grid &grid,
           //               + grid.get_hy(i, j, k) + grid.get_hy(i, j+1, k)
           // h_z = 0.25 * (grid.get_hz(i-1, j, k) + grid.get_hz(i-1, j, k+1)
           //               + grid.get_hz(i, j, k) + grid.get_hz(i, j, k+1)
+          e_t1 = p.get_avg_e_t1(i, j, k);
+          e_t2 = p.get_avg_e_t2(i, j, k);
+          h_t1 = p.get_avg_h_t1(i, j, k);
+          h_t2 = p.get_avg_h_t2(i, j, k);
 
           // Slow due to temporaries? Optimized out? 
-          Jt1[idx] += complex<field_t>((-1) * *h_t2 * h_cos_temp, 
-                                       *h_t2 * h_sin_temp);
+          Jt1[idx] += complex<field_t>((-1) * h_t2 * h_cos_temp, 
+                                       h_t2 * h_sin_temp);
 
-          Jt2[idx] += complex<field_t>(*h_t1 * h_cos_temp,
-                                       (-1) * *h_t1 * h_sin_temp);
+          Jt2[idx] += complex<field_t>(h_t1 * h_cos_temp,
+                                       (-1) * h_t1 * h_sin_temp);
 
-          Mt1[idx] += complex<field_t>(*e_t2 * e_cos_temp,
-                                       (-1) * *e_t2 * e_sin_temp);
+          Mt1[idx] += complex<field_t>(e_t2 * e_cos_temp,
+                                       (-1) * e_t2 * e_sin_temp);
 
-          Mt2[idx] += complex<field_t>((-1) * *e_t1 * e_cos_temp,
-                                       *e_t1 * e_sin_temp);
+          Mt2[idx] += complex<field_t>((-1) * e_t1 * e_cos_temp,
+                                       e_t1 * e_sin_temp);
           
           h_t2++; h_t1++; e_t1++; e_t2++;
         }

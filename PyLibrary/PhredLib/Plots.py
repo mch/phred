@@ -12,7 +12,7 @@ dt is the time step size
 """
     
     time = Numeric.arange(0, dt * tsteps, dt)
-    y = [signal.source_function(x) for x in time]
+    y = [signal.signal_function(x) for x in time]
     
     p = biggles.FramedPlot()
     p.xlabel = "Time (sec)"

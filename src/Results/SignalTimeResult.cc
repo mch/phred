@@ -72,5 +72,5 @@ map<string, Variable *> &SignalTimeResult::get_result(const Grid &grid,
 
 ostream& SignalTimeResult::to_string(ostream &os) const
 {
-  os << "SignalTimeResult";
+  return os << "SignalTimeResult";
 }

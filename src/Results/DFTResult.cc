@@ -37,4 +37,6 @@ ostream& DFTResult::to_string(ostream &os) const
   os << "Generic DFTResult outputting " << frequencies_.length()
      << ", starting at " << frequencies_.get_start() << " and ending at "
      << frequencies_.get_end();
+
+  return os;
 }

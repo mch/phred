@@ -68,6 +68,18 @@ Aix xlC_r optimize flags (from Blitz++):
 Hmmm, array padding: -qhot=arraypad
 
 
+* MIPSPro 7.3.1.1m on IRIX
+
+Had to run configure like this: 
+CPPFLAGS="-I /opt/boost/include/boost-1_31/" ../phred/configure --with-cxx=CC
+
+Also has to add a header file <cstddef> since apparently the version
+of MIPSPro I have does not have it. Just #include <stddef.h>. 
+
+
+
+
+
 USING PYTHON:
 
 Python is a very powerful feature of Phred. Although Phred can be

@@ -24,6 +24,8 @@
  * machine type.
  */
 
+#include "config.h"
+
 /* Use only C comments, or the AIX C compiler with complain */ 
 
 #ifndef TYPES_H
@@ -257,5 +259,19 @@ typedef struct {
 
 #endif
 
+#ifndef HAVE_ISNAN
+/**
+ * Kludge for missing isnan
+ */ 
+#define isnan(x) (x != x)
 #endif
+
+#ifndef HAVE_ISINF
+/**
+ * Kludge for missing isinf
+ */
+#define isinf(x) (x == __infinity)
+#endif
+
+#endif // TYPES_HH
 

@@ -115,5 +115,5 @@ GridResult::get_pre_result(const Grid &grid)
 
 ostream& GridResult::to_string(ostream &os) const
 {
-  os << "GridResult; exports material information in the grid.";
+  return os << "GridResult; exports material information in the grid.";
 }

@@ -71,7 +71,7 @@ CPPFLAGS_SAVE="$CPPFLAGS"
 dnl Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_CC
-AC_PROG_CXX(mpic++ mpiCC)
+AC_PROG_CXX(mpic++ mpiCC, g++, CC)
 AC_PROG_CXXCPP
 dnl AC_PROG_YACC
 dnl AM_PROG_LEX
@@ -234,6 +234,53 @@ AC_CHECK_LIB(hdf5, H5open, [
                   [$with_hdf5_includes])], [], [$with_hdf5_libs])
 fi
 
+dnl isinf, isnan, finite checking code taken from Sablotron 1.0,
+dnl dually licensed licensed under MPL 1.1 and GPL
+dnl available from http://www.gingerall.cz/charlie/ga/xml/p_sab.xml
+
+dnl check for isnan etc...in the std. way and try link if not found
+dnl this is due HPUX, where isnan & Co. are defined as macros
+
+AC_CHECK_FUNC( isnan, [has_isnan=1; AC_DEFINE(HAVE_ISNAN, 1, isnan)], has_isnan=0)
+AC_CHECK_FUNC( isinf, [has_isinf=1; AC_DEFINE(HAVE_ISINF, 1, isinf)], has_isinf=0)
+AC_CHECK_FUNC( finite,[has_finite=1;AC_DEFINE(HAVE_FINITE, 1, finite)], has_finite=0)
+
+dnl check for macro isnan in math
+if test $has_isnan = 0; then
+  AC_MSG_CHECKING(for macro isnan)
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]], [[{ int foo; foo = isnan(0); }]])],[has_isnan=1],[has_isnan=0 ])
+  if test $has_isnan = 1; then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_ISNAN, 1, isnan)
+  else
+    AC_MSG_RESULT(no)
+  fi
+fi
+
+dnl check for macro isinf in math
+if test $has_isinf = 0; then
+  AC_MSG_CHECKING(for macro isinf)
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]], [[{ int foo; foo = isinf(0); }]])],[has_isinf=1],[has_isinf=0 ])
+  if test $has_isinf = 1; then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_ISINF, 1, isinf)
+  else
+    AC_MSG_RESULT(no)
+  fi
+fi
+
+dnl check for macro finite in math
+if test $has_finite = 0; then
+  AC_MSG_CHECKING(for macro finite)
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]], [[{ int foo; foo = finite(0); }]])],[has_finite=1],[has_finite=0 ])
+  if test $has_finite = 1; then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_FINITE, 1, finite)
+  else
+    AC_MSG_RESULT(no)
+  fi
+fi
+
 dnl Use OpenMP parallism? Does the compiler support it? Are the 
 dnl libraries available? 
 if test "x$WANT_OPENMP" = "x1"; then
@@ -320,6 +367,9 @@ AC_SUBST(PYTHON_LDFLAGS, $PYTHON_LDFLAGS)
 
 DATE=`date`
 AC_SUBST(DATE, $DATE)
+
+AC_SUBST(HAVE_ISNAN, $HAVE_ISNAN)
+AC_SUBST(HAVE_ISINF, $HAVE_ISINF)
 
 AC_OUTPUT([Makefile 
            src/Makefile 

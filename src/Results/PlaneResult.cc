@@ -170,4 +170,6 @@ ostream& PlaneResult::to_string(ostream &os) const
   os << "PlaneResult returning " << field_component_string(field_)
      << " data on a face parallel to the " 
      << face_string(face_);
+
+  return os;
 }
