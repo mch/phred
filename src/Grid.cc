@@ -39,6 +39,10 @@ void Grid::set_define_mode(bool d)
     update_r_.zmin = 0;
     update_r_.zmax = info_.dimz_;
 
+    // The domain decomp algorithm will take care of assigning the
+    // boundary conditions sensibly, so we don't have to worry about
+    // wether or not we are really on a boundary that has thickness
+    // (i.e. a PML face)
     unsigned int thickness = 0;
     for (int i = 0; i < 6; i++)
     {

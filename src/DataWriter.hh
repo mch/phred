@@ -8,16 +8,7 @@
 
 using namespace std;
 
-/** 
- * A Dimension
- */
-class Dimension
-{
-protected:
-  string label_;
-  string units_;
-  unsigned int len_;
-};
+class DataWriter;
 
 /**
  * A variable which defines the name, dimensionality, and size of
@@ -25,15 +16,36 @@ protected:
  */
 class Variable
 {
+private:
+  Variable();
+
 protected:
   string name_;
-  vector<*Dimension> dimensions_;
+
+  DataWriter dw_; /**< Output goes here */
 
 public:
-  /**
-   * Add dimension
-   */
-  Dimension *add_dimension();
+  Variable(DataWriter &dw, string name)
+    : name_(name), dw_(dw)
+  {}
+
+  virtual Variable() = 0;
+};
+
+/**
+ * A variable for 4d (x,y,z,t) data
+ */
+class Variable_4d : public Variable
+{
+private:
+  Variable_4d();
+protected:
+  region r_;
+
+public:
+  Variable_4d(DataWriter &dw, string name, region r)
+    : Variable(dw, name), r_(r)
+  {}
 };
 
 /**
@@ -66,9 +78,14 @@ public:
   virtual void save_data(unsigned int len, T data) = 0;
 
   /**
-   * Add a variable
+   * Add a 4d variable; x, y, z, and time! The x, y, and z axis are
+   * bounded by region, but time is assumed to be infinitly long,
+   * unless that's not supported. 
+   *
+   * @param name a variable name
+   * @param r describes the region to output
    */
-  Variable* add_variable(string name);
+  Variable_4d* add_4d_variable(string name, region r);
 };
 
 #endif // DATA_WRITER_H
