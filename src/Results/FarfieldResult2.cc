@@ -484,7 +484,7 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
           }
         }
       }
-
+      
       break;
 
     case LEFT:
@@ -568,8 +568,31 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
             field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
 
             // Angles to source point
-            field_t sp_phi = acos(zt / r_prime);
-            field_t sp_theta = acos(xt / (r_prime * sin(sp_phi)));
+            field_t sp_phi = zt / r_prime;
+            field_t sp_theta = xt / (r_prime * sin(sp_phi));
+            
+            // Have to ensure the argument to acos is between -1 and +1
+            // A little numeric error can cause a nan here.
+            if (sp_theta > 1.0)
+              sp_theta = 1.0;
+            if (sp_theta < -1.0)
+              sp_theta = -1.0;
+            
+            sp_theta = acos(sp_theta);
+
+            if (sp_phi > 1.0)
+              sp_phi = 1.0;
+            if (sp_phi < -1.0)
+              sp_phi = -1.0;
+
+            sp_phi = acos(sp_phi);
+
+            if (sp_theta != sp_theta)
+            {
+              cout << "sp_theta is NaN for xt = " << xt << ", r_prime = "
+                   << r_prime << ", and sp_phi = " << sp_phi << endl;
+              sp_theta = PI;
+            }
 
             complex<field_t> cos_t_cos_p(cos(sp_theta) * cos(sp_phi), 0);
             complex<field_t> cos_t_sin_p(cos(sp_theta) * sin(sp_phi), 0);
@@ -597,6 +620,44 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
             
             p.L_phi += (complex<field_t>(-1,0) * Mt1[index] * sin_p
                         + Mt2[index] * cos_p) * temp;
+
+            // Ensure that there are no NaN's:
+            bool have_nan = false;
+            if (p.N_theta != p.N_theta)
+            {
+              cout << "p.N_theta is NaN! ";
+              have_nan = true;
+            }
+            if (p.N_phi != p.N_phi)
+            {
+              cout << "p.N_phi is NaN! ";
+              have_nan = true;
+            }
+
+            if (p.L_theta != p.L_theta)
+            {
+              cout << "p.N_theta is NaN! ";
+              have_nan = true;
+            }
+            if (p.L_phi != p.L_phi)
+            {
+              cout << "p.L_phi is NaN! ";
+              have_nan = true;
+            }
+            
+            if (have_nan)
+            {
+              cout << " psi = " << psi << ", temp = " << temp 
+                   << ", index = " << index << ", Jt1[index] = "
+                   << Jt1[index] << ", Jt2[index] = " << Jt2[index]
+                   << ", Mt1[index] = " << Mt1[index] 
+                   << ", Mt2[index] = " << Mt2[index] 
+                   << ", idx = " << idx << ", jdx = " << jdx 
+                   << ", kdx = " << kdx << ", theta = " << theta
+                   << ", phi = " << phi << ", sp_theta = " 
+                   << sp_theta << ", sp_phi = " << sp_phi << endl;
+            }
+            
           }
         }
       }

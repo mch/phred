@@ -23,6 +23,8 @@
 #include "../Constants.hh"
 #include <math.h>
 
+#include <iostream>
+
 CSGTransform::CSGTransform(shared_ptr<CSGObject> child)
   : child_(child), tx_(0), ty_(0), tz_(0), angle_(0), 
     sx_(1), sy_(1), sz_(1)
@@ -30,8 +32,14 @@ CSGTransform::CSGTransform(shared_ptr<CSGObject> child)
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 3; j++)
     {
-      A[i][j] = 0;
-      Ainv[i][j] = 0;
+      if (i == j)
+      {
+        A[i][j] = 1;
+        Ainv[i][j] = 1;
+      } else {
+        A[i][j] = 0;
+        Ainv[i][j] = 0;
+      }
     }
 }
 
@@ -108,6 +116,9 @@ void CSGTransform::set_scaling(float sx, float sy, float sz)
   sx_ = sx;
   sy_ = sy;
   sz_ = sz;
+
+  std::cerr << "WARNING! CSGTransform scaling is NOT implemented!" 
+            << std::endl;
 }
 
 void CSGTransform::set_translation(float tx, float ty, float tz)

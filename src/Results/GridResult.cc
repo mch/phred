@@ -110,7 +110,7 @@ void GridResult::deinit()
 map<string, Variable *> &
 GridResult::get_pre_result(const Grid &grid)
 {
-  return post_vars_;
+  return pre_vars_;
 }
 
 ostream& GridResult::to_string(ostream &os) const
