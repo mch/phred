@@ -16,7 +16,7 @@
  * structured grid information. Currently works only with the
  * BlockResult class. 
  */
-class VtkDataWriter {
+class VtkDataWriter : public DataWriter {
 private:
 protected:
 #ifdef USE_VTK

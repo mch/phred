@@ -48,6 +48,11 @@ public:
   const char *what() const throw() { return "HDF5 is not availble."; }
 };
 
+class NoVtkException : public std::exception {
+public:
+  const char *what() const throw() { return "VTK is not availble."; }
+};
+
 class StabilityException : public std::exception {
 public:
   const char *what() const throw() { return "Delta x, y, z, and time settings do not statisfy Courant stability condition."; }

@@ -104,6 +104,7 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "SourceDFTResult.hh"
 #include "SourceTimeResult.hh"
 #include "Excitation.hh"
+#include "BartlettExcitation.hh"
 
 #ifdef USE_PY_BINDINGS
 #include <Python.h>
@@ -350,7 +351,7 @@ static void point_test(int rank, int size)
   // Excitation
   Gaussm gm;
   gm.set_parameters(1, 500e12, 300e12);
-  Excitation<Gaussm> ex(gm);
+  BartlettExcitation<Gaussm> ex(gm);
   ex.set_soft(false);
   ex.set_region(50, 50, 50, 50, 50, 50);
   ex.set_polarization(0.0, 1.0, 0.0);
@@ -527,9 +528,9 @@ static void pml_test(int rank, int size)
   Gaussm gm;
   gm.set_parameters(1, 500e12, 300e12);
 
-  Excitation<Gaussm> ex(gm);
+  BartlettExcitation<Gaussm> ex(gm);
   ex.set_soft(true);
-  ex.set_region(20, 20, 25, 25, 30, 30);
+  ex.set_region(15, 25, 20, 30, 30, 30);
   ex.set_polarization(0.0, 1.0, 0.0);
 
   // Results
@@ -652,7 +653,7 @@ static void pml_test(int rank, int size)
   grid.set_define_mode(false);
   
   // Main loop
-  unsigned int num_time_steps = 11;
+  unsigned int num_time_steps = 100;
   unsigned int ts = 0;
 
   //ex.excite(grid, ts, E);

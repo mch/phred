@@ -173,9 +173,16 @@
 /* Use Python bindings */
 #undef USE_PY_BINDINGS
 
+/* Use VTK as a DataWriter */
+#undef USE_VTK
+
 /* Version number of package */
 #undef VERSION
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */
 #undef YYTEXT_POINTER
+
+/* Define as `__inline' if that's what the C compiler calls it, or to nothing
+   if it is not supported. */
+#undef inline

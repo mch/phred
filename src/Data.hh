@@ -99,7 +99,7 @@ public:
     map<unsigned int, void *>::iterator iter = ptrs_.find(ptr_num);
     
     if (iter != ptrs_.end())
-      return *iter;
+      return (*iter).second;
     else
       return 0;
   }
