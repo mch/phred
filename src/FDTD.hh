@@ -67,6 +67,12 @@ public:
   void set_time_steps(unsigned int t);
 
   /**
+   * Returns the number of time steps the simulation will run for.
+   */ 
+  inline unsigned int get_time_steps() const
+  { return time_steps_; }
+
+  /**
    * Set the length of time the simulation should run for. 
    * The number of time steps is automatically calculated.
    */ 

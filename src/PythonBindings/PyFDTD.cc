@@ -121,6 +121,7 @@ void export_fdtd()
     .def("map_result_to_datawriter", &FDTD::map_result_to_datawriter)
     .def("run", &FDTD::run)
     .def("set_time_steps", &FDTD::set_time_steps)
+    .def("get_time_steps", &FDTD::get_time_steps)
     .def("get_time_delta", &FDTD::get_time_delta)
 
     .def("get_x_cells", &FDTD::get_num_x_cells)

@@ -336,9 +336,7 @@ Options:\n");
                              start up, don't report each time step, etc.\n\
   -m, --memory               Estimate amount of required memory and exit\n\
   -b, --mnps                 Benchmark: estimate the millions of nodes \n\
-                             processed per second (this does NOT include\n\
-                             time spent in IO or other activities; only\n\
-                             node update times are counted.\n\
+                             processed per second\n\
   -t, --test                 Run a hard coded test problem; select from:\n\
                              H   Single circular hole\n\
                              M   Million node benchmark\n\
@@ -376,9 +374,7 @@ Options:\n");
               start up, don't report each time step, etc.\n\
   -m          Estimate amount of required memory and exit\n\
   -b          Benchmark: estimate the millions of nodes \n\
-              processed per second (this does NOT include\n\
-              time spent in IO or other activities; only\n\
-              node update times are counted.\n\
+              processed per second\n\
   -t          Run a hard coded test problem; select from:\n\
               H   Single circular hole\n\
               M   Million node benchmark\n\

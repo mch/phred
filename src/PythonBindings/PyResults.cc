@@ -156,7 +156,7 @@ void export_results()
          "currents should be calculated.")
     .def("use_face", &FarfieldResult::use_face,
          "Exclude or include faces from the Huygen's surface. This breaks "
-         "the surface equivalence theorm slightly, use with caution. ")
+         "the surface equivalence theorem slightly, use with caution. ")
     ;
 
 //   class_<FarfieldResult, bases<Result> >("FarfieldResult")

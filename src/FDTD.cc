@@ -432,12 +432,15 @@ void FDTD::run()
     ++iter;
   }
 
-  if (!quiet)
-    cout << "\nStarting FDTD time stepping." << endl;
+  cout << "\nStarting FDTD time stepping, running for " 
+       << time_steps_ << " time steps..." << endl;
 
   // For optionally tracking millions of nodes per second. 
-  time_t start, now;
-  clock_t start_cpu, now_cpu;
+  time_t start = time(NULL);
+  time_t now;
+
+  clock_t start_cpu = clock();
+  clock_t now_cpu;
 
   double time_total = 0;
   double time_total_cpu = 0;
@@ -448,8 +451,6 @@ void FDTD::run()
   unsigned int rt_steps = 9;
   
   for (ts = 1; ts <= time_steps_; ts++) {
-    //     if (!quiet)
-    //       cout << "Phred time step " << ts << endl;
     
     if ((ts - 10) % 100 == 0)
     {
@@ -485,23 +486,7 @@ void FDTD::run()
       rt_start = time(NULL);
     }
 
-    // Fields update
-    if (mnps) 
-    {
-      start=time(NULL);
-      start_cpu = clock();
-    }
-
     grid_->update_h_field();
-
-    if (mnps) 
-    {
-      now = time(NULL);
-      now_cpu = clock();
-      time_total += static_cast<double>(now) - static_cast<double>(start);
-      time_total_cpu += static_cast<double>(now_cpu)
-        - static_cast<double>(start_cpu);
-    }
 
     // Excitations
     h_eiter = h_eiter_b;
@@ -514,24 +499,8 @@ void FDTD::run()
     // Boundary condition application
     grid_->apply_boundaries(H);
 
-    // Fields update
-    if (mnps) 
-    {
-      start=time(NULL);
-      start_cpu = clock();
-    }
-
     grid_->update_e_field();
     
-    if (mnps) 
-    {
-      now = time(NULL);
-      now_cpu = clock();
-      time_total += static_cast<double>(now) - static_cast<double>(start);
-      time_total_cpu += static_cast<double>(now_cpu)
-        - static_cast<double>(start_cpu);
-    }
-
     // Excitations
     e_eiter = e_eiter_b;
     while (e_eiter != e_eiter_e)
@@ -558,12 +527,18 @@ void FDTD::run()
 
 
       ++iter;
-    }
+   }
     
   } // End of main loop
 
   if (mnps)
   {
+    now = time(NULL);
+    now_cpu = clock();
+    time_total = static_cast<double>(now) - static_cast<double>(start);
+    time_total_cpu = static_cast<double>(now_cpu)
+      - static_cast<double>(start_cpu);
+
     double avg_time = time_total / static_cast<double>(time_steps_);
 
     double avg_cpu_time = time_total_cpu / time_steps_;
@@ -571,24 +546,20 @@ void FDTD::run()
       / 1.0e6;
 
     cout << "Number of updated nodes: " << grid_->get_num_updated_nodes()
-         << ", millions of updated nodes: " << num_mnodes << endl;
+	 << ", millions of updated nodes: " << num_mnodes << endl;
     cout << "Average wall time: " << avg_time << ", avg cpu time: "
-         << avg_cpu_time / static_cast<double>(CLOCKS_PER_SEC) << endl;
+	 << avg_cpu_time / static_cast<double>(CLOCKS_PER_SEC) << endl;
     cout << "Average millions of nodes per second, w.r.t. wall clock time: " 
          << num_mnodes / avg_time << endl;
     cout << "Average millions of nodes per second, w.r.t. CPU time: " 
          << num_mnodes / (avg_cpu_time / static_cast<double>(CLOCKS_PER_SEC)) 
          << endl;
-    cout << "NOTE: These numbers only account for the time required "
-      "to do node updates.\nIt does not include time required for "
-      "applying boundary conditions or\nexcitations, or for "
-      "generating output data.\n";
   }
 
   // Do data output for results that only produce data at the end
   iter = r_dw_map_.begin();
   iter_e = r_dw_map_.end();
-  
+
   while (iter != iter_e)
   {
     riter = results_.find((*iter).first);
@@ -601,6 +572,7 @@ void FDTD::run()
     
     ++iter;
   }
+
 
   // life cycle de init
   e_eiter = e_eiter_b;
