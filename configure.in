@@ -131,10 +131,9 @@ fi
 dnl Set up compiler flags, so that libraries will be tested with these
 dnl (so that 64 bit tests will fail to work against 32 bit libs for
 dnl instance).
-echo "Testing compiler, it is: $CXX"
+
 if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then
 dnl Turn on inlining, template registry, RTTI, 2 GB memory access
-   echo "Turning on inline etc for AIX compiler"
    CXXFLAGS="$CXXFLAGS -Q -qtemplateregistry -qrtti=all"
    if test "x$WANT_64BIT" = "x1"; then
       CXXFLAGS="-q64 -qwarn64 $CXXFLAGS"
@@ -297,7 +296,7 @@ dnl libraries available?
 if test "x$WANT_OPENMP" = "x1"; then
 dnl        AC_MSG_WARN([OpenMP support is not fully implemented yet. ])
         AC_MSG_CHECKING([for OpenMP support])
-        CXXFLAGS_TEMP="$CXXFLAGS"
+        CXXFLAGSTEMP="$CXXFLAGS"
         AC_LANG_PUSH(C++)
         CXXFLAGS="-qSMP=omp"        
         AC_COMPILE_IFELSE([
@@ -309,13 +308,15 @@ for (i = 0; i < 100; i++)
   j += i;
 }], [
         AC_MSG_RESULT([yes])
+        CXXFLAGSTEMP="$CXXFLAGSTEMP -qSMP=omp"
         USE_OPENMP="1"
         AC_DEFINE([USE_OPENMP], [1], [Using OpenMP (-qSMP=omp on AIX)])
-        CXXFLAGS_TEMP="$CXXFLAGS_TEMP -qSMP=omp"], [
+    ], [
+	AC_MSG_RESULT([no])
+        AC_MSG_ERROR([OpenMP is not supported by the compiler.])
+    ])
         AC_LANG_POP(C++)
-        CXXFLAGS="$CXXFLAGS_TEMP"
-        AC_MSG_RESULT([no])
-        AC_MSG_ERROR([OpenMP is not supported by the compiler.])])
+        CXXFLAGS="$CXXFLAGSTEMP"
 fi
 
 dnl Use double precision?
