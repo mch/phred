@@ -418,7 +418,8 @@ MATLAB_array_type MatlabArray::get_array_class(MATLAB_data_type type)
   if (type >= miINT8 && type < miSINGLE)
     ret = static_cast<MATLAB_array_type>(type + mxSINGLE_CLASS);
   else if (type == miSINGLE)
-    ret = static_cast<MATLAB_array_type>(mxSINGLE_CLASS);
+  //  ret = static_cast<MATLAB_array_type>(mxSINGLE_CLASS);
+    ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
   else if (type == miDOUBLE)
     ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
   else

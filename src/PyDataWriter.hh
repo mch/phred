@@ -24,6 +24,8 @@
 
 #ifdef USE_PY_BINDINGS
 #include <Python.h>
+#include <boost/python/numeric.hpp>
+#include <boost/python/tuple.hpp>
 #endif
 
 #include "DataWriter.hh"

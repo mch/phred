@@ -19,7 +19,6 @@ phred_cond += python-bindings/PyExcitations.hh \
 	python-bindings/PyBoundaries.cc \
 	python-bindings/PyExcitations.cc
 
-phred_LDADD += ../thirdparty/boost.python/src/libboost_python.la
 phred_LDFLAGS += @PYTHON_LDFLAGS@
 endif
 

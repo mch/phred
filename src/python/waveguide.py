@@ -19,7 +19,7 @@ ylen = 20
 zlen = 45
 
 # Prefix for output files
-output_prefix = "wg_"
+output_prefix = "wg2_"
 
 num_time_steps = 3000
 
@@ -36,7 +36,8 @@ front.set_thickness(4)
 back.set_thickness(4)
 
 fdtd.set_boundary(FRONT, front)
-fdtd.set_boundary(BACK, back)
+#fdtd.set_boundary(BACK, back)
+fdtd.set_boundary(BACK, others)
 fdtd.set_boundary(LEFT, others)
 fdtd.set_boundary(RIGHT, others)
 fdtd.set_boundary(TOP, others)
@@ -68,7 +69,7 @@ fdtd.add_geometry(interior)
 
 # Excitation
 gm = Gaussm()
-gm.set_parameters(1, 2e9, 9e9)
+gm.set_parameters(1, 0.2e9, 9e9)
 
 ex = Excitation(gm)
 ex.set_soft(0)
@@ -131,6 +132,15 @@ frontpt.set_point(p2)
 fdtd.add_result("frontpt", frontpt)
 fdtd.map_result_to_datawriter("frontpt", "mdw")
 
+# Source output
+adw = AsciiDataWriter(MPI_RANK, MPI_SIZE)
+adw.set_filename(output_prefix + "source.txt")
+fdtd.add_datawriter("adw", adw)
+
+srcoutput = SourceTimeResult(gm)
+fdtd.add_result("src", srcoutput)
+fdtd.map_result_to_datawriter("src", "adw")
+fdtd.map_result_to_datawriter("src", "mdw")
 
 srcdft = SourceDFTResult(gm, 8e9, 12.5e9, 120)
 fdtd.add_result("srcdft", srcdft)

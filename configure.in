@@ -75,8 +75,8 @@ AC_ARG_WITH(python, AC_HELP_STRING([--with-python], [Generate Python scripting s
 AC_ARG_WITH(python_libs, AC_HELP_STRING([--with-python-libs], [Location of Python libraries]))
 AC_ARG_WITH(python_includes, AC_HELP_STRING([--with-python-includes], [Location of Python include files]))
 
-AC_ARG_WITH(boost_libs, AC_HELP_STRING([--with-boost-libs], [Location of boost libraries (builds boost by default)]))
-AC_ARG_WITH(boost_includes, AC_HELP_STRING([--with-boost-includes], [Location of boost include files (uses distributed version by default)]))
+AC_ARG_WITH(boost_libs, AC_HELP_STRING([--with-boost-libs], [Location of boost libraries]))
+AC_ARG_WITH(boost_includes, AC_HELP_STRING([--with-boost-includes], [Location of boost include files]))
 
 AC_ARG_WITH(readline, AC_HELP_STRING([--without-readline], [Don't use readline for Python interactive mode. Interactive mode will be restricted to single node execution.]))
 
@@ -247,7 +247,6 @@ fi
 
 dnl Setup scripting
 USE_PY_BINDINGS=0
-BUILD_LIBBOOSTPYTHON=0
 PYTHON_LDFLAGS=""
 if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
         PYTHON_LDFLAGS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LINKFORSHARED')" | python -`
@@ -275,22 +274,15 @@ Py_Initialize();
 
         AC_CHECK_HEADER([Python.h], [], [AC_MSG_ERROR([*** Can't find the Python header files])])
 
-        if [[ ! -z "$with_boost_includes" ]] || [[ ! -z "$with_boost_libs" ]]; then 
-
-          if [[ ! -z "$with_boost_includes" ]]; then
+        if [[ ! -z "$with_boost_includes" ]]; then
             CPPFLAGS="$CPPFLAGS -I$with_boost_includes"
-          fi
+        fi
 
-          AC_CHECK_HEADER([boost/python.hpp], [], [AC_MSG_ERROR([*** Can't find the Boost Python header files])])
+        AC_CHECK_HEADER([boost/python.hpp], [], [AC_MSG_ERROR([*** Can't find the Boost Python header files])])
 
-          AC_CHECK_LIB(boost_python, PyBaseObject_Type, [], [
+        AC_CHECK_LIB(boost_python, PyBaseObject_Type, [], [
             AC_MSG_ERROR(*** Can't find the Boost Python library.)], 
             [-L$with_boost_libs])
-        else
-dnl THIS INCLUDE PATH NEEDS TO BE ABSOLUTE!!!          
-          CPPFLAGS="$CPPFLAGS -I`pwd`/thirdparty"
-          BUILD_LIBBOOSTPYTHON=1
-        fi
 
         USE_PY_BINDINGS=1
         AC_DEFINE([USE_PY_BINDINGS], [1], [Use Python bindings])
@@ -302,7 +294,6 @@ dnl Use readline?
         fi
 fi
 AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
-AM_CONDITIONAL(BUILD_LIBBOOSTPYTHON, test "x$BUILD_LIBBOOSTPYTHON" = "x1")
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -327,7 +318,7 @@ AC_SUBST(CXXFLAGS, $CXXFLAGS)
 AC_SUBST(LIBS, $LIBS)
 AC_SUBST(PYTHON_LDFLAGS, $PYTHON_LDFLAGS)
 
-AC_OUTPUT(Makefile src/Makefile doc/Makefile tests/Makefile tests/high_speed_c/Makefile thirdparty/Makefile thirdparty/boost.python/Makefile thirdparty/boost.python/src/Makefile src/Types.hh doc/Doxyfile doc/phred.lsm phred.spec)
+AC_OUTPUT(Makefile src/Makefile doc/Makefile tests/Makefile tests/high_speed_c/Makefile src/Types.hh doc/Doxyfile doc/phred.lsm phred.spec)
 
 
 dnl Display a summary of results
