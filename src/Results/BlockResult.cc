@@ -172,6 +172,9 @@ void BlockResult::calculate_result(const Grid &grid,
 
       const field_t *hx = grid.get_pointer(gp, FC_HX);
       const field_t *hy = grid.get_pointer(gp, FC_HY);
+
+      // On the RS/6000 SP, there seems to be a #define for hz!
+#undef hz
       const field_t *hz = grid.get_pointer(gp, FC_HZ);
 
       for (unsigned int i = region_->xmin(); i <= region_->xmax(); i++)

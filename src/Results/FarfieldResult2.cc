@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -123,8 +123,12 @@ void FarfieldResult2::export_dfts()
 }
 
 FarfieldResult2::FarfieldResult2()
-  : r_(100), e_theta_data_(0), e_phi_data_(0), h_theta_data_(0),
-    h_phi_data_(0), rcs_data_(0)
+  : r_(100), 
+#ifdef HAVE_COMPLEX
+    e_theta_data_(0), e_phi_data_(0), 
+    h_theta_data_(0), h_phi_data_(0),
+#endif 
+    rcs_data_(0)
 {
   for (int i = 0; i < 6; i++)
     use_face_[i] = true;
