@@ -22,10 +22,12 @@ enum PmlVariation_t {
  * the lossy free-space medium equals that of lossless vacuum -> no
  * reflection. 
  *
- * \bug IMPLEMENT ME!
+ * This is based on Jan's implementation. I just reorganized the
+ * code, factored out some common stuff, etc. 
  */
 class Pml : public BoundaryCond
 {
+  friend class PmlCommon;
 private:
 protected:
 
@@ -70,6 +72,12 @@ protected:
 
   region_t pml_r_; // A region
 
+  /** 
+   * A helper function called by PmlCommon::init_ratios
+   * @param x
+   */
+  float sigma_over_eps_int(float x);
+
   /**
    * Allocate memory for the field data. Thickness must be non zero. 
    */
@@ -88,9 +96,12 @@ protected:
 
 public:
   Pml();
-  Pml(char variation, float g, float nrml_refl);
-  Pml(char variation, float nrml_refl);
+  Pml(const Pml &rhs);
+  Pml(PmlVariation_t variation, float g, float nrml_refl);
+  Pml(PmlVariation_t variation, float nrml_refl);
   ~Pml();
+
+  const Pml &operator=(const Pml &rhs);
 
   /**
    * Point Index: Calculate the index in the arrays of a 3d
@@ -141,7 +152,7 @@ public:
    * parameter. 
    * @param variation 
    */
-  inline void set_variation(char variaiton)
+  inline void set_variation(PmlVariation_t variation)
   {
     variation_ = variation;
   }

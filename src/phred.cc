@@ -128,7 +128,326 @@ static int decode_switches (int argc, char **argv);
 string inputfile;
 const char *program_name;
 
+// Some test declarations
+static void test_yz_plane(field_t *ptr, MPI_Datatype t, int xpos, int rank);
+static void test2(field_t *ptr, MPI_Datatype t);
+static void test3_yz(Grid &grid, int i);
+static void test4_z_vec(field_t *ptr, MPI_Datatype t);
+static void test5_y_vec(field_t *ptr, MPI_Datatype t);
+static void test6_x_vec(field_t *ptr, MPI_Datatype t);
 
+
+// MAIN!
+int
+main (int argc, char **argv)
+{
+  int i, rank, size, len;
+  string prog_name;
+  char *temp;
+
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+#ifdef USE_PY_BINDINGS
+  Py_Initialize();
+#endif 
+
+  if (rank == 0)
+  {
+    prog_name = argv[0];
+    len = prog_name.size();
+    program_name = prog_name.c_str();
+    
+    // MPI implementations are not required to distribute command line
+    // args, although MPICH does.
+    i = decode_switches (argc, argv);
+  } 
+
+  cout << "phread version " << PACKAGE_VERSION << " starting. " 
+       << "Rank " << rank << " of " << size << "." << endl;
+
+  // Parse the input script (each process will just load it's own file
+  // for now. ) 
+
+  // Subdomain the grid among the available processors and have each
+  // processor set up its grid.
+
+  SimpleSDAlg dd; // Domain decomposition algorithm. Maybe it should
+                  // be static? 
+  
+
+  // THIS STUFF HERE IS TEMPORARY
+  Grid grid; 
+  GridInfo info_g;
+  
+  info_g.global_dimx_ = info_g.dimx_ = 40;
+  info_g.global_dimy_ = info_g.dimy_ = 50;
+  info_g.global_dimz_ = info_g.dimz_ = 60;
+  info_g.deltax_ = 18.85e-9; 
+  info_g.deltay_ = 18.8e-9; 
+  info_g.deltaz_ = 18.75e-9;
+  info_g.deltat_ = 36e-18;
+  info_g.start_x_ = info_g.start_y_ = info_g.start_z_ = 0;
+
+  Pml *pml = dynamic_cast<Pml *>(info_g.set_boundary(FRONT, PML));
+  pml->set_thickness(10);
+  pml->set_variation(VP);
+  pml->set_nrml_refl(1.0);
+
+  pml = dynamic_cast<Pml *>(info_g.set_boundary(BACK, PML));
+  pml->set_thickness(10);
+  pml->set_variation(VP);
+  pml->set_nrml_refl(1.0);
+
+  pml = dynamic_cast<Pml *>(info_g.set_boundary(LEFT, PML));
+  pml->set_thickness(10);
+  pml->set_variation(VP);
+  pml->set_nrml_refl(1.0);
+
+  pml = dynamic_cast<Pml *>(info_g.set_boundary(RIGHT, PML));
+  pml->set_thickness(10);
+  pml->set_variation(VP);
+  pml->set_nrml_refl(1.0);
+
+  pml = dynamic_cast<Pml *>(info_g.set_boundary(BOTTOM, PML));
+  pml->set_thickness(10);
+  pml->set_variation(VP);
+  pml->set_nrml_refl(1.0);
+
+  pml = dynamic_cast<Pml *>(info_g.set_boundary(TOP, PML));
+  pml->set_thickness(10);
+  pml->set_variation(VP);
+  pml->set_nrml_refl(1.0);
+
+  
+  GridInfo info = dd.decompose_domain(rank, size, info_g);
+
+  grid.setup_grid(info);
+  grid.alloc_grid();
+
+  MaterialLib mats; 
+  Material mat; // defaults to free space
+  mats.add_material(mat);
+  
+  // The library stores copies. 
+  mat.set_epsilon(2.2);
+  mat.set_name("Substrate");
+  mats.add_material(mat);
+
+  grid.load_materials(mats);
+
+  // Global coordinates. 
+  grid.define_box(0, 40, 0, 50, 0, 60, 1);
+  //grid.define_box(20, 30, 20, 30, 20, 30, 2);
+
+  // Excitation
+  Gaussm ex;
+  ex.set_parameters(1, 500e12, 300e12);
+  ex.set_region(20, 20, 25, 25, 30, 30);
+  ex.set_polarization(0.0, 1.0, 0.0);
+
+  // Results
+  point_t p;
+  p.x = 15;
+  p.y = 25;
+  p.z = 30;
+  PointResult res1;
+  PointResult res2;
+  PointResult res3;
+  res1.set_point(p);
+  p.x = 20;
+  res2.set_point(p);
+  p.x = 25;
+  res3.set_point(p);
+
+  AsciiDataWriter adw1(rank, size);
+  adw1.set_filename("t_ey_15.txt");
+  adw1.add_variable(res1);
+  
+  AsciiDataWriter adw2(rank, size);
+  adw2.set_filename("t_ey_20.txt");
+  adw2.add_variable(res2);
+
+  AsciiDataWriter adw3(rank, size);
+  adw3.set_filename("t_ey_25.txt");
+  adw3.add_variable(res3);
+
+  point_t p2;
+  p2.x = 20;
+  p2.y = 25;
+  p2.z = 30;
+ 
+  AsciiDataWriter adw4(rank, size);
+  PlaneResult pr1;
+  pr1.set_plane(p2, BACK);
+  pr1.set_size(grid.get_ldy(), grid.get_ldz());
+  adw4.set_filename("yz_plane.txt");
+  adw4.add_variable(pr1);
+
+  SourceDFTResult sdftr(ex, 100e12, 600e12, 20);
+  sdftr.set_time_param(0, 11, 0);
+
+  AsciiDataWriter adw5(rank, size);
+  adw5.set_filename("src_dft.txt");
+  adw5.add_variable(sdftr);
+
+  grid.set_define_mode(false);
+  
+  // Main loop
+  unsigned int num_time_steps = 12;
+  unsigned int ts = 0;
+
+  //ex.excite(grid, ts, BOTH);
+  grid.apply_boundaries();
+
+
+  cout << "main loop begins." << endl;  
+  for (ts = 1; ts < num_time_steps; ts++) {
+    cout << "phred, time step " << ts << ", excitation: " 
+         << ex.source_function(grid, ts) << endl;
+
+    // Fields update
+    grid.update_fields();
+
+    // Total / Scattered excitation
+
+    // Excitations
+    ex.excite(grid, ts, E);
+    ex.excite(grid, ts, H);
+
+    //test6_x_vec(grid.get_face_start(BACK, EY, 0), grid.get_x_vector_dt());
+    //test5_y_vec(grid.get_face_start(BACK, EY, 0), grid.get_y_vector_dt());
+    //test4_z_vec(grid.get_face_start(BACK, EY, 0), grid.get_z_vector_dt());
+    //test(grid.get_face_start(FRONT, EY, p2), grid.get_plane_dt(FRONT));
+    //cout << "\nTest2: " << endl;
+    //test2(grid.get_face_start(BACK, EY, 2), grid.get_plane_dt(FRONT));
+    //test3_yz(grid, 2);
+    //cout << "\nTest trans: " << endl;
+    //test_trans(grid.get_face_start(BACK, EY), grid.get_plane_dt(BACK));
+    //if (rank == 0)
+    //  test3(grid, 25);
+    //else
+    //test3(grid, 0);
+
+    //if (rank == 0)
+    //test_yz_plane(grid.get_face_start(BACK, EY, 22), 
+    //                grid.get_plane_dt(BACK), 0, rank);
+    //else if (rank == 1)
+    //  test_yz_plane(grid.get_face_start(BACK, EY, 0), 
+    //                grid.get_plane_dt(BACK), 0, rank);
+
+    // Boundary condition application
+    grid.apply_boundaries();
+
+    // Total / Scattered field interface confditions
+
+    // Results
+    adw4.handle_data(ts, pr1.get_result(grid, ts));
+    adw1.handle_data(ts, res1.get_result(grid, ts));
+    adw2.handle_data(ts, res2.get_result(grid, ts));
+    adw3.handle_data(ts, res3.get_result(grid, ts));
+    adw5.handle_data(ts, sdftr.get_result(grid, ts));
+  }
+
+  cout << "phred is phinished." << endl;
+
+#ifdef USE_PY_BINDINGS
+  Py_Finalize();
+#endif 
+
+  // Thank you and goodnight
+  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Finalize();
+
+  exit (0);
+}
+
+/* Set all the option flags according to the switches specified.
+   Return the index of the first non-option argument.  */
+
+static int
+decode_switches (int argc, char **argv)
+{
+  int c;
+  char *arg = 0;
+
+#ifdef HAVE_LIBPOPT
+  poptContext ctx = poptGetContext(0, argc, 
+                                   const_cast<const char **>(argv), 
+                                   options, 0);
+
+  while ((c = poptGetNextOpt (ctx)) > 0 || c == POPT_ERROR_BADOPT)
+  {
+    if (c == POPT_ERROR_BADOPT)
+      continue;
+
+    switch (c)
+    {
+    case 'V':
+      cout << "phred " << VERSION << endl;
+      exit (0);
+      break;
+
+    case 'h':
+      usage (0);
+      break;
+
+    case 'f':
+      arg = const_cast<char *>(poptGetOptArg(ctx));
+
+      if (arg)
+        inputfile = arg;
+      else 
+      {
+        cout << "No filename given for the -f switch." << endl;
+        exit(0);
+      }
+      break;
+
+    default:
+      cout << "WARNING: got unknown option number: " << c << endl;
+    }
+  }
+
+  poptFreeContext(ctx);
+
+#endif
+
+  
+  return optind;
+}
+
+
+static void
+usage (int status)
+{
+  printf ("%s - \
+Phred is a parallel finite difference time domain electromagnetics simulator.\n", program_name);
+
+#ifdef HAVE_LIBPOPT
+  printf ("Usage: %s [OPTION]... [FILE]...\n", program_name);
+  printf ("\
+Options:\n\
+  -f, --filename             filename to read problem description from\n\
+  -v, --verbose              print more information\n\
+  -h, --help                 display this help and exit\n\
+  -V, --version              output version information and exit\n\
+");
+#else
+  printf ("Usage: %s FILENAME\n", program_name);
+  printf("\
+FILENAME is the file containing the description of the proble to simulate.\n\
+");
+#endif
+
+  exit (status);
+}
+
+
+
+
+// TESTS
 static void test_yz_plane(field_t *ptr, MPI_Datatype t, int xpos, int rank)
 {
   int sz, pos, floats,j,k,i;
@@ -328,292 +647,4 @@ static void test6_x_vec(field_t *ptr, MPI_Datatype t)
   cout << endl;
 
   delete[] r;
-}
-
-int
-main (int argc, char **argv)
-{
-  int i, rank, size, len;
-  string prog_name;
-  char *temp;
-
-  MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-#ifdef USE_PY_BINDINGS
-  Py_Initialize();
-#endif 
-
-  if (rank == 0)
-  {
-    prog_name = argv[0];
-    len = prog_name.size();
-    program_name = prog_name.c_str();
-    
-    // MPI implementations are not required to distribute command line
-    // args, although MPICH does.
-    i = decode_switches (argc, argv);
-  } 
-
-  cout << "phread version " << PACKAGE_VERSION << " starting. " 
-       << "Rank " << rank << " of " << size << "." << endl;
-
-  // Parse the input script (each process will just load it's own file
-  // for now. ) 
-
-  // Subdomain the grid among the available processors and have each
-  // processor set up its grid.
-
-  SimpleSDAlg dd; // Domain decomposition algorithm. Maybe it should
-                  // be static? 
-  
-
-  // THIS STUFF HERE IS TEMPORARY
-  Grid grid; 
-  GridInfo info_g;
-  
-  info_g.global_dimx_ = info_g.dimx_ = 50;
-  info_g.global_dimy_ = info_g.dimy_ = 50;
-  info_g.global_dimz_ = info_g.dimz_ = 50;
-  info_g.deltax_ = info_g.deltay_ = info_g.deltaz_ = 18.75e-9;
-  info_g.deltat_ = 36e-18;
-  info_g.start_x_ = info_g.start_y_ = info_g.start_z_ = 0;
-
-  info_g.set_boundary(FRONT, EWALL);
-  info_g.set_boundary(BACK, EWALL);
-  info_g.set_boundary(LEFT, EWALL);
-  info_g.set_boundary(RIGHT, EWALL);
-  info_g.set_boundary(BOTTOM, EWALL);
-  info_g.set_boundary(TOP, EWALL);
-  
-  GridInfo info = dd.decompose_domain(rank, size, info_g);
-
-  grid.setup_grid(info);
-  grid.alloc_grid();
-
-  MaterialLib mats; 
-  Material mat; // defaults to free space
-  mats.add_material(mat);
-  
-  // The library stores copies. 
-  mat.set_epsilon(2.2);
-  mat.set_name("Substrate");
-  mats.add_material(mat);
-
-  grid.load_materials(mats);
-
-  // Global coordinates. 
-  grid.define_box(0, 50, 0, 50, 0, 50, 1);
-  //grid.define_box(20, 30, 20, 30, 20, 30, 2);
-
-  // Excitation
-  Gaussm ex;
-  ex.set_parameters(1, 500e12, 300e12);
-  ex.set_region(22, 22, 25, 25, 25, 25);
-  ex.set_polarization(0.0, 1.0, 0.0);
-
-  Gaussm ex2;
-  ex2.set_parameters(1, 500e12, 300e12);
-  ex2.set_region(22, 22, 0, 0, 0, 0);
-  ex2.set_polarization(0.0, 1.0, 0.0);
-
-  // Results
-  point_t p;
-  p.x = 20;
-  p.y = 25;
-  p.z = 25;
-  PointResult res1;
-  PointResult res2;
-  PointResult res3;
-  res1.set_point(p);
-  p.x = 25;
-  res2.set_point(p);
-  p.x = 30;
-  res3.set_point(p);
-
-  AsciiDataWriter adw1(rank, size);
-  adw1.set_filename("t_ey_20.txt");
-  adw1.add_variable(res1);
-  
-  AsciiDataWriter adw2(rank, size);
-  adw2.set_filename("t_ey_25.txt");
-  adw2.add_variable(res2);
-
-  AsciiDataWriter adw3(rank, size);
-  adw3.set_filename("t_ey_30.txt");
-  adw3.add_variable(res3);
-
-  point_t p2;
-  p2.x = 22;
-  p2.y = 25;
-  p2.z = 25;
- 
-  AsciiDataWriter adw4(rank, size);
-  PlaneResult pr1;
-  pr1.set_plane(p2, BACK);
-  pr1.set_size(grid.get_ldy(), grid.get_ldz());
-  adw4.set_filename("yz_plane.txt");
-  adw4.add_variable(pr1);
-
-  SourceDFTResult sdftr(ex, 100e12, 600e12, 20);
-  sdftr.set_time_param(0, 11, 0);
-
-  AsciiDataWriter adw5(rank, size);
-  adw5.set_filename("src_dft.txt");
-  adw5.add_variable(sdftr);
-
-  grid.set_define_mode(false);
-  
-  // Main loop
-  unsigned int num_time_steps = 12;
-  unsigned int ts = 0;
-
-  //ex.excite(grid, ts, BOTH);
-  grid.apply_boundaries();
-
-
-  cout << "main loop begins." << endl;  
-  for (ts = 1; ts < num_time_steps; ts++) {
-    cout << "phred, time step " << ts << ", excitation: " 
-         << ex.source_function(grid, ts) << endl;
-
-    // Fields update
-    grid.update_fields();
-
-    // Total / Scattered excitation
-
-    // Excitations
-    ex.excite(grid, ts, E);
-    ex.excite(grid, ts, H);
-
-    //ex2.excite(grid, ts, E);
-    //ex2.excite(grid, ts, H);
-
-    //test6_x_vec(grid.get_face_start(BACK, EY, 0), grid.get_x_vector_dt());
-    //test5_y_vec(grid.get_face_start(BACK, EY, 0), grid.get_y_vector_dt());
-    //test4_z_vec(grid.get_face_start(BACK, EY, 0), grid.get_z_vector_dt());
-    //test(grid.get_face_start(FRONT, EY, p2), grid.get_plane_dt(FRONT));
-    //cout << "\nTest2: " << endl;
-    //test2(grid.get_face_start(BACK, EY, 2), grid.get_plane_dt(FRONT));
-    //test3_yz(grid, 2);
-    //cout << "\nTest trans: " << endl;
-    //test_trans(grid.get_face_start(BACK, EY), grid.get_plane_dt(BACK));
-    //if (rank == 0)
-    //  test3(grid, 25);
-    //else
-    //test3(grid, 0);
-
-    //if (rank == 0)
-    //test_yz_plane(grid.get_face_start(BACK, EY, 22), 
-    //                grid.get_plane_dt(BACK), 0, rank);
-    //else if (rank == 1)
-    //  test_yz_plane(grid.get_face_start(BACK, EY, 0), 
-    //                grid.get_plane_dt(BACK), 0, rank);
-
-    // Boundary condition application
-    grid.apply_boundaries();
-
-    // Total / Scattered field interface confditions
-
-    // Results
-    adw4.handle_data(ts, pr1.get_result(grid, ts));
-    adw1.handle_data(ts, res1.get_result(grid, ts));
-    adw2.handle_data(ts, res2.get_result(grid, ts));
-    adw3.handle_data(ts, res3.get_result(grid, ts));
-    adw5.handle_data(ts, sdftr.get_result(grid, ts));
-  }
-
-  cout << "phred is phinished." << endl;
-
-#ifdef USE_PY_BINDINGS
-  Py_Finalize();
-#endif 
-
-  // Thank you and goodnight
-  MPI_Barrier(MPI_COMM_WORLD);
-  MPI_Finalize();
-
-  exit (0);
-}
-
-/* Set all the option flags according to the switches specified.
-   Return the index of the first non-option argument.  */
-
-static int
-decode_switches (int argc, char **argv)
-{
-  int c;
-  char *arg = 0;
-
-#ifdef HAVE_LIBPOPT
-  poptContext ctx = poptGetContext(0, argc, 
-                                   const_cast<const char **>(argv), 
-                                   options, 0);
-
-  while ((c = poptGetNextOpt (ctx)) > 0 || c == POPT_ERROR_BADOPT)
-  {
-    if (c == POPT_ERROR_BADOPT)
-      continue;
-
-    switch (c)
-    {
-    case 'V':
-      cout << "phred " << VERSION << endl;
-      exit (0);
-      break;
-
-    case 'h':
-      usage (0);
-      break;
-
-    case 'f':
-      arg = const_cast<char *>(poptGetOptArg(ctx));
-
-      if (arg)
-        inputfile = arg;
-      else 
-      {
-        cout << "No filename given for the -f switch." << endl;
-        exit(0);
-      }
-      break;
-
-    default:
-      cout << "WARNING: got unknown option number: " << c << endl;
-    }
-  }
-
-  poptFreeContext(ctx);
-
-#endif
-
-  
-  return optind;
-}
-
-
-static void
-usage (int status)
-{
-  printf ("%s - \
-Phred is a parallel finite difference time domain electromagnetics simulator.\n", program_name);
-
-#ifdef HAVE_LIBPOPT
-  printf ("Usage: %s [OPTION]... [FILE]...\n", program_name);
-  printf ("\
-Options:\n\
-  -f, --filename             filename to read problem description from\n\
-  -v, --verbose              print more information\n\
-  -h, --help                 display this help and exit\n\
-  -V, --version              output version information and exit\n\
-");
-#else
-  printf ("Usage: %s FILENAME\n", program_name);
-  printf("\
-FILENAME is the file containing the description of the proble to simulate.\n\
-");
-#endif
-
-  exit (status);
 }

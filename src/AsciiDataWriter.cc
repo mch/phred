@@ -51,6 +51,11 @@ unsigned int AsciiDataWriter::write_data(Data &data, MPI_Datatype t,
       throw std::exception(); // "Unable to open output file!");
   }
 
+  // If this result doesn't have a time dimension, then move to the
+  // start of the file before writing anything; overwrite existing
+  // data.
+  file_.seekp(0);
+
   unsigned int tbw = 0, bytes_written = 0;
 
   while (tbw < len) {

@@ -149,6 +149,9 @@
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
 
+/* Using AltiVec */
+#undef USE_ALTIVEC
+
 /* Use HDF4 as a DataWriter */
 #undef USE_HDF4
 
@@ -169,7 +172,3 @@
 
 /* Version number of package */
 #undef VERSION
-
-/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
-   `char[]'. */
-#undef YYTEXT_POINTER

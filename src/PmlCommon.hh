@@ -1,6 +1,8 @@
 #ifndef PML_COMMON_H
 #define PML_COMMON_H
 
+#include "Types.hh"
+
 /**
  * Data common to a set of PML's. This holds coefficients and stuff
  * that are used by all PML's. This is intended to be a member of a
@@ -50,6 +52,11 @@ private:
    * Free the coefficients.
    */
   void free_coeffs();
+
+  /**
+   * Helper function to initialize ratios
+   */
+  void init_ratios(Face face, Grid &grid, Pml *p);
 
 public:
   /**

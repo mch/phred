@@ -68,16 +68,8 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
     cerr << "WARNING: simple domain decomposition did not result in one grid per\nprocessor!" << endl;
   }
 
-  GridInfo result;
-  result.global_dimx_ = info.global_dimx_;
-  result.global_dimy_ = info.global_dimy_;
-  result.global_dimz_ = info.global_dimz_;
-  
-  result.deltax_ = info.deltax_;
-  result.deltay_ = info.deltay_;
-  result.deltaz_ = info.deltaz_;
-  result.deltat_ = info.deltat_;
-
+  // Result initially has the exact same properties as the input.
+  GridInfo result = info; 
 
   // Find the domain this grid will be in. 
   unsigned int x, y, z; 
@@ -118,52 +110,42 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
   // Assign boundary conditions the ranks to talk to 
   SubdomainBc *sdbc = 0;
 
-  if (x == 0) { // BACK
-    result.set_boundary(BACK, info.get_bc_type(BACK));
-  } else {
-    sdbc = &(dynamic_cast<SubdomainBc &>(result.set_boundary(BACK, 
-                                                             SUBDOMAIN)));
+  if (x != 0) { // BACK
+    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(BACK, 
+                                                            SUBDOMAIN)));
     sdbc->set_neighbour((z*m + y) * n + (x-1));
     sdbc->set_rank(rank);
     result.dimx_++;
     result.start_x_--;
   }
 
-  if (x == n - 1) { // FRONT
-    result.set_boundary(FRONT, info.get_bc_type(FRONT));
-  } else {
-    sdbc = &(dynamic_cast<SubdomainBc &>(result.set_boundary(FRONT, 
-                                                             SUBDOMAIN)));
+  if (x != n - 1) { // FRONT
+    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(FRONT, 
+                                                            SUBDOMAIN)));
     sdbc->set_neighbour((z*m + y) * n + (x+1));
     sdbc->set_rank(rank);
     result.dimx_++;
   } 
 
-  if (y == 0) { // LEFT 
-    result.set_boundary(LEFT, info.get_bc_type(LEFT));
-  } else {
-    sdbc = &(dynamic_cast<SubdomainBc &>(result.set_boundary(LEFT, 
-                                                             SUBDOMAIN)));
+  if (y != 0) { // LEFT 
+    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(LEFT, 
+                                                            SUBDOMAIN)));
     sdbc->set_neighbour((z*m + (y-1)) * n + x);
     sdbc->set_rank(rank);
     result.dimy_++;
     result.start_y_--;
   } 
 
-  if (y == m - 1) { // RIGHT
-    result.set_boundary(RIGHT, info.get_bc_type(RIGHT));
-  } else {
-    sdbc = &(dynamic_cast<SubdomainBc &>(result.set_boundary(RIGHT, 
+  if (y != m - 1) { // RIGHT
+    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(RIGHT, 
                                                              SUBDOMAIN)));
     sdbc->set_neighbour((z*m + (y+1)) * n + x);
     sdbc->set_rank(rank);
     result.dimy_++;
   }
 
-  if (z == 0) { // BOTTOM
-    result.set_boundary(BOTTOM, info.get_bc_type(BOTTOM));
-  } else {
-    sdbc = &(dynamic_cast<SubdomainBc &>(result.set_boundary(BOTTOM, 
+  if (z != 0) { // BOTTOM
+    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(BOTTOM, 
                                                              SUBDOMAIN)));
     sdbc->set_neighbour(((z-1)*m + y) * n + x);
     sdbc->set_rank(rank);
@@ -171,10 +153,8 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
     result.start_z_--;
   }
 
-  if (z == p - 1) { // TOP
-    result.set_boundary(TOP, info.get_bc_type(TOP));
-  } else {
-    sdbc = &(dynamic_cast<SubdomainBc &>(result.set_boundary(TOP, 
+  if (z != p - 1) { // TOP
+    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(TOP, 
                                                              SUBDOMAIN)));
     sdbc->set_neighbour(((z+1)*m + y) * n + x);
     sdbc->set_rank(rank);

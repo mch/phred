@@ -59,7 +59,18 @@ GridInfo& GridInfo::operator=(const GridInfo &info)
   return *this;
 }
 
-BoundaryCond &GridInfo::set_boundary(Face face,
+Pml *GridInfo::set_pml_boundary(Face face, unsigned int thickness, 
+                                PmlVariation_t var, float nrml_refl)
+{
+  Pml *pml = new Pml(var, nrml_refl);
+  pml->set_thickness(thickness);
+  face_bc_[face] = pml;
+  face_bc_type_[face] = PML;
+
+  return face_bc_[face];
+}
+
+BoundaryCond *GridInfo::set_boundary(Face face,
                                      BoundaryCondition bc)
 {
   face_bc_type_[face] = bc;
@@ -91,7 +102,7 @@ BoundaryCond &GridInfo::set_boundary(Face face,
   }
 
 
-  return *face_bc_[face];
+  return face_bc_[face];
 }
 
 BoundaryCond *GridInfo::copy_bc(BoundaryCond *bc, BoundaryCondition bc_type)

@@ -35,7 +35,7 @@ SourceDFTResult::SourceDFTResult(TimeExcitation &te,
   MPI_Type_contiguous(3, GRID_MPI_TYPE, &temp);
   MPI_Type_commit(&temp);
 
-  data_.set_num(0);
+  data_.set_num(1);
   data_.set_ptr(result_);
   data_.set_datatype(temp);
 }
@@ -61,9 +61,6 @@ Data &SourceDFTResult::get_result(Grid &grid, unsigned int time_step)
     result_[i*3 + 2] += (-1) * sf * sin(2 * PI * result_[i*3] 
                                         * time_step * grid.get_deltat());
   }
-
-  if (time_step == time_stop_)
-    data_.set_num(num_freqs_);
 
   return data_;
 }

@@ -31,6 +31,10 @@ using namespace std;
  * DFT. Such results can exclude themselves from the implicit time
  * dimension by setting time_dim = false in thier constructors. It's
  * up to DataWriters to hounor this flag of course. 
+ *
+ * If Results do exclude themselves from the time dimension, but
+ * return data at more than one time step anyway, then later data
+ * overwrites previous data, as far as the DataWriter is concerened. 
  */
 class Result
 {

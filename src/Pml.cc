@@ -1,18 +1,19 @@
 #include "Pml.hh"
 #include "Grid.hh"
 #include "Exceptions.hh"
+#include "Constants.hh"
 
 using namespace std;
 
 Pml::Pml()
-  : variation_(P), g_(0.0), nrml_refl_(1.0),
+  : variation_(VP), g_(0.0), nrml_refl_(1.0),
     ratio_m_(0.0), exponent_n_(0.0), delta_bndy_(0.0), 
     geometric_delta_(0.0), geometric_profile_(0),
     exy_(0), exz_(0), eyx_(0), eyz_(0), ezx_(0), ezy_(0),
     hxy_(0), hxz_(0), hyx_(0), hyz_(0), hzx_(0), hzy_(0), alloced_(false)
 {}
 
-Pml::Pml(PmlVariation variation, float g, float nrml_refl)
+Pml::Pml(PmlVariation_t variation, float g, float nrml_refl)
   : variation_(variation), g_(g), nrml_refl_(nrml_refl),
     ratio_m_(0.0), exponent_n_(0.0), delta_bndy_(0.0), 
     geometric_delta_(0.0), geometric_profile_(0),
@@ -20,7 +21,7 @@ Pml::Pml(PmlVariation variation, float g, float nrml_refl)
     hxy_(0), hxz_(0), hyx_(0), hyz_(0), hzx_(0), hzy_(0), alloced_(false)
 {}
 
-Pml::Pml(char variation, float nrml_refl)
+Pml::Pml(PmlVariation_t variation, float nrml_refl)
   : variation_(variation), g_(0.0), nrml_refl_(nrml_refl),
     ratio_m_(0.0), exponent_n_(0.0), delta_bndy_(0.0), 
     geometric_delta_(0.0), geometric_profile_(0),
@@ -31,6 +32,30 @@ Pml::Pml(char variation, float nrml_refl)
 Pml::~Pml()
 {
   free_pml_fields();
+}
+
+Pml::Pml(const Pml &rhs)
+{
+  *this = rhs;
+}
+
+const Pml &Pml::operator=(const Pml &rhs)
+{
+  variation_ = rhs.variation_;
+  g_ = rhs.g_;
+  nrml_refl_ = rhs.nrml_refl_;
+  ratio_m_ = rhs.ratio_m_;
+  exponent_n_ = rhs.exponent_n_;
+  delta_bndy_ = rhs.delta_bndy_;
+  geometric_delta_ = rhs.geometric_delta_;
+  geometric_profile_ = rhs.geometric_profile_;
+  exy_ = exz_ = eyx_ = eyz_ = ezx_ = ezy_ = 0;
+  hxy_ = hxz_ = hyx_ = hyz_ = hzx_ = hzy_ = 0;
+  alloced_ = false;
+
+  thickness_ = rhs.thickness_;
+
+  return *this;
 }
 
 void Pml::alloc_pml_fields(Face face, Grid &grid)
@@ -127,7 +152,7 @@ void Pml::setup(Face face, Grid &grid)
     break;
 
   case VG:
-    ratio_m_ *= log(g_) / (pow(g_, static_cast<double>(thickness)) - 1.0);
+    ratio_m_ *= log(g_) / (pow(g_, static_cast<double>(thickness_)) - 1.0);
     geometric_profile_ = 1;
     break;
   }
@@ -139,6 +164,7 @@ void Pml::setup(Face face, Grid &grid)
        << "\n\tgeometric_delta_ = " << geometric_delta_
        << "\n\tgeomtric_profile_ = " << geometric_profile_ << endl;
 
+  alloc_pml_fields(face, grid);
 }
 
 void Pml::free_pml_fields()
@@ -239,7 +265,6 @@ void Pml::pml_update_ex(const region_t &pml_r,
 
   unsigned int i,j,k; 	/* indices in PML-layer */
   unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
-  region_t tmp_r;
 
   PmlCommon &com = grid.get_pml_common();
 
@@ -426,4 +451,34 @@ void Pml::pml_update_hz(const region_t &grid_r, Grid &grid)
         
         grid.hz_[grid_idx] = hzx_[pml_idx] + hzy_[pml_idx];
       }
+}
+
+float Pml::sigma_over_eps_int(float x)
+{
+  if (geometric_profile_ <= 0.0)
+  {
+    if (x <= 0.0)
+      return 0.0;
+
+    else if (x <= delta_bndy_)
+      return ratio_m_ * delta_bndy_ / (exponent_n_ + 1.0) 
+        * (1.0 - pow((delta_bndy_ - x) / delta_bndy_, exponent_n_ + 1.0));
+    
+    else
+      return ratio_m_ * delta_bndy_ / (exponent_n_ + 1.0);
+  }
+  else
+  {
+    if (x <= 0.0)
+      return 0.0;
+
+    else if (x <= delta_bndy_)
+      return ratio_m_ * delta_bndy_ * pow(g_, delta_bndy_ / geometric_delta_)
+        / log(g_) * (1.0 - pow(g_, -x / geometric_delta_));
+
+    else 
+      return ratio_m_ * delta_bndy_ 
+        * (pow(g_, delta_bndy_ / geometric_delta_) - 1.)
+        / log(g_);
+  }
 }

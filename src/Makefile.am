@@ -60,6 +60,8 @@ phred_SOURCES=phred.cc \
 	AsciiDataWriter.cc \
 	NetCDFDataWriter.hh \
 	NetCDFDataWriter.cc \
+	PointDFTResult.hh \
+	PointDFTResult.cc \
 	SourceTimeResult.hh \
 	SourceTimeResult.cc \
 	SourceDFTResult.hh \

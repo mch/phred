@@ -85,20 +85,26 @@ void Grid::set_define_mode(bool d)
       switch (i) {
       case FRONT:
         update_r_.xmax -= thickness;
+        break;
       case BACK:
         update_r_.xmin += thickness;
+        break;
       case TOP:
         update_r_.zmax -= thickness;
+        break;
       case BOTTOM:
         update_r_.zmin += thickness;
+        break;
       case LEFT:
         update_r_.ymin += thickness;
+        break;
       case RIGHT:
         update_r_.ymax -= thickness;
+        break;
       }
 
       // Initialize the PML's
-      Pml *p = dynamic_cast<Pml *>(&info.get_boundary(static_cast<Face>(i)));
+      Pml *p = dynamic_cast<Pml *>(&info_.get_boundary(static_cast<Face>(i)));
       if (p)
         p->setup(static_cast<Face>(i), *this);
     }
@@ -143,8 +149,8 @@ void Grid::free_grid()
   if (hz_)
     delete[] hz_;
 
-    ex_ = ey_ = ez_ = hx_ = hy_ = hz_ = 0;
-  }
+  ex_ = ey_ = ez_ = hx_ = hy_ = hz_ = 0;
+
 }
 
 
@@ -468,13 +474,13 @@ void Grid::update_ex()
 #pragma opt parallel 
 #endif
   // Inner part
-  for (i = 0; i < get_ldx(); i++) {
-    for (j = 1; j < get_ldy(); j++) {
+  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+    for (j = update_r_.ymin + 1; j < update_r_.ymax; j++) {
 
       idx = pi(i, j, 1);
       idx2 = pi(i, j-1, 1);
 
-      for (k = 1; k < get_ldz(); k++) {
+      for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
         mid = material_[idx];
 
         ex_[idx] = Ca_[mid] * ex_[idx]
@@ -495,8 +501,8 @@ void Grid::update_ey()
   field_t *ey, *hx, *hz1, *hz2;
 
   // Inner part
-  for (i = 1; i < get_ldx(); i++) {
-    for (j = 0; j < get_ldy(); j++) {
+  for (i = update_r_.xmin + 1; i < update_r_.xmax; i++) {
+    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
 
       idx = pi(i, j, 1);
       ey = &(ey_[idx]);
@@ -504,7 +510,7 @@ void Grid::update_ey()
       hz1 = &(hz_[pi(i-1, j, 1)]);
       hz2 = &(hz_[idx]);
 
-      for (k = 1; k < get_ldz(); k++) {
+      for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
         mid = material_[idx];
 
         *ey = Ca_[mid] * *ey
@@ -529,8 +535,8 @@ void Grid::update_ez()
   field_t *ez, *hy1, *hy2, *hx1, *hx2;
   
   // Inner part
-  for (i = 1; i < get_ldx(); i++) {
-    for (j = 1; j < get_ldy(); j++) {
+  for (i = update_r_.xmin + 1; i < update_r_.xmax; i++) {
+    for (j = update_r_.ymin + 1; j < update_r_.ymax; j++) {
 
       idx = pi(i, j, 0);
       ez = &(ez_[idx]);
@@ -539,7 +545,7 @@ void Grid::update_ez()
       hx1 = &(hx_[pi(i, j-1, 0)]);
       hx2 = &(hx_[idx]);
 
-      for (k = 0; k < get_ldz(); k++) {
+      for (k = update_r_.zmin; k < update_r_.zmax; k++) {
         mid = material_[pi(i, j, k)];
 
         *ez = Ca_[mid] * *ez
@@ -560,8 +566,8 @@ void Grid::update_hx()
   unsigned int mid, i, j, k, idx;
   field_t *hx, *ez1, *ez2, *ey;
 
-  for (i = 0; i < get_ldx(); i++) {
-    for (j = 0; j < get_ldy() - 1; j++) {
+  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+    for (j = update_r_.ymin; j < update_r_.ymax - 1; j++) {
 
       idx = pi(i, j, 0);
       hx = &(hx_[idx]);
@@ -569,7 +575,7 @@ void Grid::update_hx()
       ez2 = &(ez_[pi(i, j+1, 0)]);
       ey = &(ey_[idx]);
 
-      for (k = 0; k < get_ldz() - 1; k++) {
+      for (k = update_r_.zmin; k < update_r_.zmax - 1; k++) {
         mid = material_[idx];
 
         *hx = Da_[mid] * *hx
@@ -589,8 +595,8 @@ void Grid::update_hy()
   unsigned int mid, i, j, k, idx;
   field_t *hy, *ex, *ez1, *ez2;
 
-  for (i = 0; i < get_ldx() - 1; i++) {
-    for (j = 0; j < get_ldy(); j++) {
+  for (i = update_r_.xmin; i < update_r_.xmax - 1; i++) {
+    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
 
       idx = pi(i, j, 0);
       hy = &(hy_[idx]);
@@ -598,7 +604,7 @@ void Grid::update_hy()
       ez1 = &(ez_[pi(i+1, j, 0)]);
       ez2 = &(ez_[idx]);
 
-      for (k = 0; k < get_ldz() - 1; k++) {
+      for (k = update_r_.zmin; k < update_r_.zmax - 1; k++) {
         mid = material_[idx];
 
         *hy = Da_[mid] * *hy
@@ -618,8 +624,8 @@ void Grid::update_hz()
   unsigned int mid, i, j, k, idx;
   field_t *hz1, *ey1, *ey2, *ex1, *ex2;
 
-  for (i = 0; i < get_ldx() - 1; i++) {
-    for (j = 0; j < get_ldy() - 1; j++) {
+  for (i = update_r_.xmin; i < update_r_.xmax - 1; i++) {
+    for (j = update_r_.ymin; j < update_r_.ymax - 1; j++) {
 
       idx = pi(i, j, 0);
       hz1 = &(hz_[idx]);
@@ -628,7 +634,7 @@ void Grid::update_hz()
       ex1 = &(ex_[pi(i, j+1, 0)]);
       ex2 = &(ex_[idx]);
 
-      for (k = 0; k < get_ldz(); k++) {
+      for (k = update_r_.zmin; k < update_r_.zmax; k++) {
         mid = material_[idx];
 
         *hz1 = Da_[mid] * *hz1

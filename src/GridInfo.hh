@@ -107,7 +107,18 @@ public:
    * @return a BoundaryCond object of the type required, in which the
    * specifics of the boundary condition can be stored.
    */ 
-  BoundaryCond& set_boundary(Face face, BoundaryCondition bc);
+  BoundaryCond *set_boundary(Face face, BoundaryCondition bc);
+
+  /**
+   * Set a PML boundary
+   * @param face the face to apply the pml to 
+   * @param thickness the number of cells thick the pml is
+   * @param var the pml variation profile
+   * @param nrml_refl amount of normal reflection (try 1.0)
+   * @return a point to the pml object if you want to mess with it some more. 
+   */
+  Pml *set_pml_boundary(Face face, unsigned int thickness, 
+                        PmlVariation_t var, float nrml_refl);
 
   /**
    * Returns the type of boundary assigned to a face.
