@@ -82,7 +82,7 @@ using namespace boost::python;
 //   { return call_update_hz<void>(self, "update_hz"); }
 // };
 
-BOOST_PYTHON_MODULE(Grids)
+void export_grids()
 {
   class_<Grid, boost::noncopyable>("Grid", no_init);
   class_<FreqGrid, bases<Grid>, boost::noncopyable>("FreqGrid", no_init);

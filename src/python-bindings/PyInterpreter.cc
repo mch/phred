@@ -22,27 +22,65 @@
 #include "PyInterpreter.hh"
 #include "../Exceptions.hh"
 
-#include "PyTypes.hh"
-#include "PyMaterial.hh"
-#include "PyResults.hh"
-#include "PyGeometry.hh"
-#include "PyExcitations.hh"
-#include "PyFDTD.hh"
-#include "PyDatawriters.hh"
-#include "PyBoundaries.hh"
-//#include "PyGrid.hh"
+#include <iostream>
+#include <mpi.h>
+
+using namespace std;
+
+// #include "PyTypes.hh"
+// #include "PyMaterial.hh"
+// #include "PyResults.hh"
+// #include "PyGeometry.hh"
+// #include "PyExcitations.hh"
+// #include "PyFDTD.hh"
+// #include "PyDatawriters.hh"
+// #include "PyBoundaries.hh"
+// #include "PyGrid.hh"
+
+// static struct _inittab modules_[] = 
+//   {
+//     {"Results", &initResults},
+//     {"Excitations", &initExcitations},
+//     {"FDTD", &initFDTD},
+//     {"Boundaries", &initBoundaries},
+//     {"Materials", &initMaterials},
+//     {"Types", &initTypes},
+//     {"DataWriters", &initDataWriters},
+//     {"Geometry", &initGeometry},
+//     {"Grids", &initGrids},
+//     {0, 0}
+//   };
+
+#include <boost/python.hpp>
+using namespace boost::python;
+
+// Reduce compile time...
+void export_results();
+void export_excitations();
+void export_fdtd();
+void export_boundaries();
+void export_materials();
+void export_types();
+void export_datawriters();
+void export_geometry();
+void export_grids();
+
+BOOST_PYTHON_MODULE(Phred)
+{
+  export_results();
+  export_excitations();
+  export_fdtd();
+  export_boundaries();
+  export_materials();
+  export_types();
+  export_datawriters();
+  export_geometry();
+  export_grids();
+}
 
 static struct _inittab modules_[] = 
   {
-    //{"Results", &initResults},
-    {"Excitations", &initExcitations},
-    {"FDTD", &initFDTD},
-    {"Boundaries", &initBoundaries},
-    {"Materials", &initMaterials},
-    {"Types", &initTypes},
-    {"DataWriters", &initDataWriters},
-    {"Geometry", &initGeometry},
-    //{"Grid", &initGrid},
+    {"Phred", &initPhred},
     {0, 0}
   };
   
@@ -231,33 +269,42 @@ void PyInterpreter::add_modules()
 //   handle<> res( PyImport_Import(rname.get()) );
 //   PyDict_SetItemString(main_namespace.get(), "Results", res.get());
 
-  handle<> ename ( PyString_FromString("Excitations") );
-  handle<> ex( PyImport_Import(ename.get()) );
-  PyDict_SetItemString(main_namespace.get(), "Excitations", ex.get());
+//   handle<> ename ( PyString_FromString("Excitations") );
+//   handle<> ex( PyImport_Import(ename.get()) );
+//   PyDict_SetItemString(main_namespace.get(), "Excitations", ex.get());
 
-  handle<> fname ( PyString_FromString("FDTD") );
-  handle<> fdtd( PyImport_Import(fname.get()) );
-  PyDict_SetItemString(main_namespace.get(), "FDTD", fdtd.get());
+//   handle<> fname ( PyString_FromString("FDTD") );
+//   handle<> fdtd( PyImport_Import(fname.get()) );
+//   PyDict_SetItemString(main_namespace.get(), "FDTD", fdtd.get());
 
-  handle<> mname ( PyString_FromString("Materials") );
-  handle<> mats( PyImport_Import(mname.get()) );
-  PyDict_SetItemString(main_namespace.get(), "Materials", mats.get());
+//   handle<> mname ( PyString_FromString("Materials") );
+//   handle<> mats( PyImport_Import(mname.get()) );
+//   PyDict_SetItemString(main_namespace.get(), "Materials", mats.get());
 
-  handle<> tname ( PyString_FromString("Types") );
-  handle<> types( PyImport_Import(tname.get()) );
-  PyDict_SetItemString(main_namespace.get(), "Types", types.get());
+//   handle<> tname ( PyString_FromString("Types") );
+//   handle<> types( PyImport_Import(tname.get()) );
+//   PyDict_SetItemString(main_namespace.get(), "Types", types.get());
 
-  handle<> bname ( PyString_FromString("Boundaries") );
-  handle<> bnds( PyImport_Import(bname.get()) );
-  PyDict_SetItemString(main_namespace.get(), "Boundaries", bnds.get());
+//   handle<> bname ( PyString_FromString("Boundaries") );
+//   handle<> bnds( PyImport_Import(bname.get()) );
+//   PyDict_SetItemString(main_namespace.get(), "Boundaries", bnds.get());
 
-  handle<> gname ( PyString_FromString("Geometry") );
-  handle<> geom( PyImport_Import(gname.get()) );
-  PyDict_SetItemString(main_namespace.get(), "Geometry", geom.get());
+//   handle<> gname ( PyString_FromString("Geometry") );
+//   handle<> geom( PyImport_Import(gname.get()) );
+//   PyDict_SetItemString(main_namespace.get(), "Geometry", geom.get());
 
-  handle<> dwname ( PyString_FromString("DataWriters") );
-  handle<> dws( PyImport_Import(dwname.get()) );
-  PyDict_SetItemString(main_namespace.get(), "DataWriters", dws.get());
+//   handle<> dwname ( PyString_FromString("DataWriters") );
+//   handle<> dws( PyImport_Import(dwname.get()) );
+//   PyDict_SetItemString(main_namespace.get(), "DataWriters", dws.get());
+
+//   handle<> gridname ( PyString_FromString("Grids") );
+//   handle<> grds( PyImport_Import(gridname.get()) );
+//   PyDict_SetItemString(main_namespace.get(), "Grids", grds.get());
+
+  handle<> phredname(PyString_FromString("Phred"));
+  handle<> p(PyImport_Import(phredname.get()));
+  PyDict_SetItemString(main_namespace.get(), "Phred", p.get());
+  //PyDict_Merge(main_namespace.get(), p.get(), 0);
 
   // MPI Data
   PyDict_SetItemString(main_namespace.get(), "MPI_RANK", 

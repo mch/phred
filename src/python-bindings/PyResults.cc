@@ -33,7 +33,7 @@
 using namespace boost::python;
 
 
-BOOST_PYTHON_MODULE(Results)
+void export_results()
 {
   class_<Result, boost::noncopyable>("Result", no_init)
     .def("set_time_param", &Result::set_time_param)
