@@ -455,6 +455,10 @@ void Grid::alloc_grid()
     memset(hz_, 0, sizeof(field_t) * sz);
 
     memset(material_, 0, sizeof(unsigned int) * sz);
+
+    cout << "Sucessfully allocated " 
+	 << sz * sizeof(field_t) * 6 + sz * sizeof(unsigned int) 
+	 << " bytes of memory for use by the grid." << endl;
   }
 }
 

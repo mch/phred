@@ -392,7 +392,7 @@ static void point_test(int rank, int size)
 {
   FDTD fdtd;
   
-  fdtd.set_grid_size(100, 100, 500);
+  fdtd.set_grid_size(100, 100, 400);
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
 
   Ewall ewall;
@@ -498,7 +498,7 @@ static void pml_test(int rank, int size)
 {
   FDTD fdtd;
   
-  fdtd.set_grid_size(500, 100, 100);
+  fdtd.set_grid_size(600, 100, 100);
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
   //fdtd.set_time_delta(3.1250e-17);
 
@@ -731,7 +731,7 @@ static void pml_test(int rank, int size)
 
 //     fdtd.map_result_to_datawriter("srctr", "adw8");
 
-   fdtd.set_time_steps(100);
+   fdtd.set_time_steps(500);
 
    
 #ifdef USE_OPENMP
