@@ -307,14 +307,14 @@ void FarfieldResult::init(const Grid &grid)
     break;
   }
   
-  freqs_.add_dimension("frequency", num_freqs_, 0);
+  freqs_.add_dimension("frequency", num_freqs_, num_freqs_, 0);
 
-  angles_.add_dimension("angles", num_pts_, 0);
-  angles_.add_dimension("theta and phi", 2, 0);
+  angles_.add_dimension("angles", num_pts_, num_pts_, 0);
+  angles_.add_dimension("theta and phi", 2, 2, 0);
 
-  data_.add_dimension("data", num_cols, 0);
-  data_.add_dimension("points", num_pts_, 0);
-  data_.add_dimension("frequencies", num_freqs_, 0);
+  data_.add_dimension("data", num_cols, num_cols, 0);
+  data_.add_dimension("points", num_pts_, num_pts_, 0);
+  data_.add_dimension("frequencies", num_freqs_, num_freqs_, 0);
 
   result_ = new field_t[num_cols * num_freqs_ * num_pts_];
   if (!result_)

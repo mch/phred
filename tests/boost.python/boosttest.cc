@@ -29,8 +29,14 @@ using namespace std;
 
 #include <unistd.h>
 #include <stdio.h>
+
+// TEMP
+#define HAVE_LIBREADLINE 1
+
+#ifdef HAVE_LIBREADLINE
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 
 #include <boost/python/numeric.hpp>
 #include <boost/python/tuple.hpp>
@@ -41,6 +47,7 @@ using namespace std;
 // This ties us to Numeric... 
 #include <Numeric/arrayobject.h>
 
+#ifdef HAVE_LIBREADLINE
 char *rl(const char *prompt)
 {
   char *line_read = readline (prompt);
@@ -52,6 +59,12 @@ char *rl(const char *prompt)
   
   return (line_read);
 }
+#else
+char *rl(const char *prompt)
+{
+  return 0;
+}
+#endif
 
 class Fiction {
 public:
@@ -284,7 +297,10 @@ int main(int argc, char **argv)
   }
 
   Py_Initialize();
+
+#ifdef HAVE_LIBREADLINE
   rl_bind_key ('\t', rl_insert);
+#endif
 
   try {
     handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
@@ -316,11 +332,28 @@ int main(int argc, char **argv)
 
     numeric::array arr(make_tuple(1, 2, 3));
     PyDict_SetItemString(main_namespace.get(), "garr", arr.ptr());
-    handle<> bonk(PyRun_String("z = zeros((3,3))", Py_single_input,
+    handle<> bonk(PyRun_String("zeros((3,3))", Py_single_input,
                              main_namespace.get(),
                              main_namespace.get()));
     
-    numeric::array obj(make_tuple(1));
+//     handle<> zeros (PyRun_String("zeros", Py_single_input, 
+//                                  main_namespace.get(),
+//                                  main_namespace.get()));
+
+    handle<> zeros ( PyDict_GetItemString(main_namespace.get(),
+                                          "zeros"));
+
+    if (PyCallable_Check(zeros.get()))
+    {
+      cerr << "Zeros is callable!" << endl;
+      numeric::array bonk2 = 
+        extract<numeric::array>(PyObject_CallObject(zeros.get(), make_tuple(3,3).ptr()));
+    } else
+      cerr << "Zeros is NOT callable.   :(" << endl;
+
+    //numeric::array bk = extract<numeric::array>(bonk.get() );
+
+    numeric::array obj(make_tuple(make_tuple(1, 2), make_tuple(3, 4)));
     //obj.resize(make_tuple(2,2));
     PyDict_SetItemString(main_namespace.get(), "blargh", obj.ptr());
 

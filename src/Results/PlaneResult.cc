@@ -53,8 +53,9 @@ void PlaneResult::init(const Grid &grid)
   {
   case FRONT:
   case BACK:
-    var_.add_dimension("y", grid.get_ldy(), 0);
-    var_.add_dimension("z", grid.get_ldz(), 0);
+    // DIMENSION STARTS HAVE TO CHANGE TOO!
+    var_.add_dimension("y", grid.get_ldy(), grid.get_gdy(), grid.get_lsy());
+    var_.add_dimension("z", grid.get_ldz(), grid.get_gdz(), grid.get_lsz());
 
     // ERROR: This is only contiguous if the overlap IS INCLUDED!
     // That's not what we want for results!
@@ -64,8 +65,8 @@ void PlaneResult::init(const Grid &grid)
 
   case TOP:
   case BOTTOM:
-    var_.add_dimension("x", grid.get_ldx(), 0);
-    var_.add_dimension("y", grid.get_ldy(), 0);
+    var_.add_dimension("x", grid.get_ldx(), grid.get_gdx(), grid.get_lsx());
+    var_.add_dimension("y", grid.get_ldy(), grid.get_gdy(), grid.get_lsy());
 
     MPI_Datatype y_vector;
     MPI_Type_vector(grid.get_ldy(), 1, grid.get_ldz(), 
@@ -78,8 +79,8 @@ void PlaneResult::init(const Grid &grid)
 
   case LEFT:
   case RIGHT:
-    var_.add_dimension("x", grid.get_ldx(), 0);
-    var_.add_dimension("z", grid.get_ldz(), 0);
+    var_.add_dimension("x", grid.get_ldx(), grid.get_gdx(), grid.get_lsx());
+    var_.add_dimension("z", grid.get_ldz(), grid.get_gdz(), grid.get_lsz());
 
     MPI_Type_vector(grid.get_ldx(), grid.get_ldz(), 
                     grid.get_ldy() * grid.get_ldz(), 

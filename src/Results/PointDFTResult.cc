@@ -76,8 +76,8 @@ void PointDFTResult::init(const Grid &grid)
 
   var_.has_time_dimension(false); // We have only one output at the end. 
   
-  var_.add_dimension("results", 13, 0);
-  var_.add_dimension("freqs", num_freqs_, 0);
+  var_.add_dimension("results", 13, 13, 0);
+  var_.add_dimension("freqs", num_freqs_, num_freqs_, 0);
   var_.set_name(base_name_);
 
   freq_space_ = (freq_stop_ - freq_start_) / num_freqs_;

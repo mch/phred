@@ -70,14 +70,14 @@ void AsciiDataWriter::add_variable(Result &result)
       throw DataWriterException("AsciiDatawriter can only handle one output variable.");
 
     Variable *var = iter->second;
-    const vector<int> &dim_lens = var->get_dim_lengths();
+    const vector<Dimension> &dimensions = var->get_dimensions();
     
-    if (dim_lens.size() == 0)
+    if (dimensions.size() == 0)
       throw DataWriterException("Result must have at least one dimension.");
     
     dim_len_ = 0;
-    for (unsigned int i = 0; i < dim_lens.size(); i++)
-      dim_len_ += dim_lens[i];
+    for (unsigned int i = 0; i < dimensions.size(); i++)
+      dim_len_ += dimensions[i].global_len_;
 
     time_dim_ = var->has_time_dimension();
     one = true;

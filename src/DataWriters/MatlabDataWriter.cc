@@ -631,11 +631,15 @@ void MatlabDataWriter::add_variable(Result &result)
   for (iter = vars.begin(); iter != iter_e; ++iter)
   {
     Variable *var = iter->second;
-    const vector<int> &dim_lens = var->get_dim_lengths();
+    const vector<Dimension> &dimensions = var->get_dimensions();
     
-    if (dim_lens.size() == 0)
+    if (dimensions.size() == 0)
       throw DataWriterException("Result must have at least one dimension.");
     
+    vector<int> dim_lens;
+    for(unsigned int idx; idx < dimensions.size(); idx++)
+      dim_lens.push_back(dimensions[idx].global_len_);
+
     vars_[var->get_name()] = 
       new MatlabArray(var->get_name().c_str(), 
                       dim_lens, var->has_time_dimension(), 

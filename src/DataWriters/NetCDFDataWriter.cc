@@ -116,9 +116,13 @@ void NetCDFDataWriter::add_variable(Result &result)
   for (iter = vars.begin(); iter != iter_e; ++iter)
   {
     Variable *r_var = iter->second;
+    const vector<Dimension> &dimensions = r_var->get_dimensions();
 
-    var.dim_lens_ = r_var->get_dim_lengths();
-    const vector<string> &dim_names = r_var->get_dim_names();
+    vector<int> dim_lens;
+    for(unsigned int idx = 0; idx < dimensions.size(); idx++)
+      dim_lens.push_back(dimensions[idx].global_len_);
+
+    var.dim_lens_ = dim_lens;
 
     var.var_name_ = r_var->get_name();
 
@@ -141,14 +145,12 @@ void NetCDFDataWriter::add_variable(Result &result)
     
     // Add dimension id's
     vector<int> dids;
-    for (unsigned int i = 0; i < var.dim_lens_.size(); i++)
+    for (unsigned int i = 0; i < dimensions.size(); i++)
     {
       string temp = ""; 
+      temp = dimensions[i].name_;
       
-      if (dim_names.size() > i)
-        temp = dim_names[i];
-      
-      dimid = get_dim(i, var.dim_lens_[i], temp);
+      dimid = get_dim(i, dimensions[i].global_len_, temp);
       dids.push_back(dimid);
     }
     

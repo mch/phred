@@ -44,7 +44,12 @@ void BlockResult::init(const Grid &grid)
   MPI_Datatype temp;
   int sizes[3];
   int subsizes[3];
+  int g_subsizes[3];
   int starts[3];
+  
+  g_subsizes[0] = region_.xmax - region_.xmin;
+  g_subsizes[1] = region_.ymax - region_.ymin;
+  g_subsizes[2] = region_.zmax - region_.zmin;
 
   // Setup (convert to local)
   region_ = grid.global_to_local(region_);
@@ -72,9 +77,9 @@ void BlockResult::init(const Grid &grid)
                                                               region_.ymin, 
                                                               region_.zmin), 
                                                       field_comp_)));
-  var_.add_dimension("x", subsizes[0], starts[0]);
-  var_.add_dimension("y", subsizes[1], starts[1]);
-  var_.add_dimension("z", subsizes[2], starts[2]);
+  var_.add_dimension("x", subsizes[0], g_subsizes[0], starts[0]);
+  var_.add_dimension("y", subsizes[1], g_subsizes[1], starts[1]);
+  var_.add_dimension("z", subsizes[2], g_subsizes[2], starts[2]);
   
   init_ = true; 
 }

@@ -61,9 +61,9 @@ void PyDataWriter::add_variable(Result &result)
   for (iter = vars.begin(); iter != iter_e; ++iter)
   {
     Variable *var = iter->second;
-    const vector<int> &dim_lens = var->get_dim_lengths();
+    const vector<Dimension> &dimensions = var->get_dimensions();
     
-    if (dim_lens.size() == 0)
+    if (dimensions.size() == 0)
       throw DataWriterException("Result must have at least one dimension.");
     
     numeric::array arr(make_tuple(1));

@@ -86,7 +86,7 @@ void PointResult::init(const Grid &grid)
   MPI_Type_commit(&temp);
   var_.set_datatype(temp);
 
-  var_.add_dimension("field components", 7, 0);
+  var_.add_dimension("field components", 7, 7, 0);
   var_.set_name(base_name_);
   var_.set_ptr(field_data_);
 }

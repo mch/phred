@@ -28,8 +28,8 @@ USING PYTHON:
 
 Python is a very powerful feature of Phred. Although Phred can be
 used without Python, it is a very useful thing to compile in. Python
-is known to work on Linux, Mac OS X, and AIX. If you install install
-Python your self, be sure to 'make libinstall' and 'make
+is known to work on Linux, Mac OS X, and AIX. If you install
+Python yourself, be sure to 'make libinstall' and 'make
 libpython2.3.so'. 'make altinstall' seems to be the only target that
 actually installs the shared library in $PREFIX/lib. 
 

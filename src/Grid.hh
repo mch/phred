@@ -139,7 +139,10 @@ class Grid {
   // the material arrays, Ca, Cbx, etc. 
   unsigned int *material_;
 
-  // Derived MPI data types for sending data around. 
+  // Derived MPI data types for sending data around. These are for
+  // Grid internal use ONLY. Results MUST create thier own data types,
+  // since generally results will not want to include the overlap, and
+  // these always include the overlap.
   MPI_Datatype xy_plane_;
   MPI_Datatype yz_plane_;
   MPI_Datatype xz_plane_;
@@ -260,6 +263,14 @@ class Grid {
    * @param face the face this subdomain boundary is on. 
    */
   virtual void setup_subdomain_data(SubdomainBc *sd, Face face);
+
+  /**
+   * Return the MPI derived data type for the xy plane. 
+   *
+   * @param face the face to return the data type for
+   * @return MPI_Datatype
+   */
+  MPI_Datatype get_plane_dt(Face face) const;
 
  public:
   Grid();
@@ -489,7 +500,7 @@ class Grid {
    */
   inline unsigned int get_lsx() const
   {
-    return info_.start_x_; // no_sd_;
+    return info_.start_x_no_sd_;
   }
 
   /**
@@ -499,7 +510,7 @@ class Grid {
    */
   inline unsigned int get_lsy() const
   {
-    return info_.start_y_; // no_sd_;
+    return info_.start_y_no_sd_;
   }
 
   /**
@@ -509,7 +520,7 @@ class Grid {
    */
   inline unsigned int get_lsz() const
   {
-    return info_.start_z_; // no_sd_;
+    return info_.start_z_no_sd_;
   }
 
 
@@ -792,40 +803,32 @@ class Grid {
     return hz_[pi(x, y, z)];
   }
 
-  /**
-   * Return the MPI derived data type for the xy plane. 
-   *
-   * @param face the face to return the data type for
-   * @return MPI_Datatype
-   */
-  MPI_Datatype get_plane_dt(Face face) const;
+//   /**
+//    * Return the MPI Derived data type for an X vector
+//    * @return MPI_Datatype
+//    */
+//   inline MPI_Datatype get_x_vector_dt() const
+//   {
+//     return x_vector_;
+//   }
 
-  /**
-   * Return the MPI Derived data type for an X vector
-   * @return MPI_Datatype
-   */
-  inline MPI_Datatype get_x_vector_dt() const
-  {
-    return x_vector_;
-  }
+//   /**
+//    * Return the MPI Derived data type for an Y vector
+//    * @return MPI_Datatype
+//    */
+//   inline MPI_Datatype get_y_vector_dt() const
+//   {
+//     return y_vector_;
+//   }
 
-  /**
-   * Return the MPI Derived data type for an Y vector
-   * @return MPI_Datatype
-   */
-  inline MPI_Datatype get_y_vector_dt() const
-  {
-    return y_vector_;
-  }
-
-  /**
-   * Return the MPI Derived data type for an Z vector
-   * @return MPI_Datatype
-   */
-  inline MPI_Datatype get_z_vector_dt() const
-  {
-    return z_vector_;
-  }
+//   /**
+//    * Return the MPI Derived data type for an Z vector
+//    * @return MPI_Datatype
+//    */
+//   inline MPI_Datatype get_z_vector_dt() const
+//   {
+//     return z_vector_;
+//   }
 
   /**
    * Return a pointer to the start of a face. DANGER!! Clients must

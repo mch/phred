@@ -34,7 +34,18 @@
 using namespace std;
 
 /**
- * Contains all the data about a variable. 
+ * Groups dimension information together. 
+ */ 
+typedef struct {
+  unsigned int local_len_;
+  unsigned int global_len_;
+  string name_;
+  unsigned int start_;
+} Dimension;
+
+/**
+ * Contains all the data about a variable, including global and local
+ * dimension lengths.
  */
 class Variable 
 {
@@ -44,14 +55,18 @@ protected:
   string var_name_; /**< Variable name */
   Data data_;
 
-  vector<int> dim_lens_; /**< Dimension lengths */
-  vector<string> dim_names_; /**< Dimension names */
-  vector<unsigned int> dim_starts_; /**< Starting positions for the
-                                       data in the final output. Used
-                                       when the data is collected to
-                                       one rank for writing, so it
-                                       knows where the data from each
-                                       rank goes. */
+  vector<Dimension> dimensions_; /**< Dimension information for this
+                                    variable. */ 
+
+  //vector<int> local_dim_lens_; /**< Local node dimension lengths */
+  //vector<int> global_dim_lens_; /**< Global dimension lengths */
+  //vector<string> dim_names_; /**< Dimension names */
+  //vector<unsigned int> dim_starts_; /**< Starting positions for the
+  //                                     data in the final output. Used
+  //                                     when the data is collected to
+  //                                     one rank for writing, so it
+  //                                     knows where the data from each
+  //                                     rank goes. */
 
   bool time_dim_; /**< True if this variable has a time dimension. If
                      false, DataWriters except only one result from
@@ -72,16 +87,26 @@ public:
    * Add a dimension to this variable
    *
    * @param name the name of the dimension, or some identifying string
-   * @param length the *local* size of the dimention 
+   * @param local_length the *local* size of the dimention 
+   * @param global_length the *global* size of the dimention 
    * @param start the starting point for the dimension in the global
    * scheme of things.   
    */
-  inline void add_dimension(const char *name, unsigned int length, 
-                            unsigned int start = 0)
+  inline void add_dimension(const char *name, unsigned int local_length, 
+                            unsigned int global_length, 
+                            unsigned int start)
   {
-    dim_names_.push_back(name);
-    dim_lens_.push_back(length);
-    dim_starts_.push_back(start);
+    //dim_names_.push_back(name);
+    //local_dim_lens_.push_back(local_length);
+    //global_dim_lens_.push_back(global_length);
+    //dim_starts_.push_back(start);
+    Dimension new_dim;
+    new_dim.local_len_ = local_length;
+    new_dim.global_len_ = global_length;
+    new_dim.name_ = name;
+    new_dim.start_ = start;
+    
+    dimensions_.push_back(new_dim);
   }
 
   /**
@@ -90,9 +115,12 @@ public:
    */ 
   inline void reset()
   {
-    dim_names_.clear();
-    dim_lens_.clear();
-    dim_starts_.clear();
+    dimensions_.clear();
+
+//     dim_names_.clear();
+//     local_dim_lens_.clear();
+//     global_dim_lens_.clear();
+//     dim_starts_.clear();
   }
 
   /**
@@ -164,30 +192,51 @@ public:
   }
 
   /**
-   * Returns the lengths of the dimensions
-   * @return a reference to a vector of lengths of the dimensions
-   */
-  inline const vector<int> &get_dim_lengths() const
+   * Returns the list of dimensions. 
+   *
+   * @return a const reference to a vector of dimensions. 
+   */ 
+  inline const vector<Dimension> &get_dimensions() const
   {
-    return dim_lens_;
+    return dimensions_;
   }
 
-  /**
-   * Returns the names of the dimensions
-   * @return a reference to the names of the dimensions
-   */
-  inline const vector<string> &get_dim_names() const
-  {
-    return dim_names_;
-  }
+//   /**
+//    * Returns the local lengths of the dimensions
+//    *
+//    * @return a reference to a vector of lengths of the dimensions
+//    */
+//   inline const vector<int> &get_local_dim_lengths() const
+//   {
+//     return local_dim_lens_;
+//   }
 
-  /**
-   * Returns the starting points of the dimensions for this rank. 
-   */
-  inline const vector<unsigned int> &get_dim_starts() const
-  {
-    return dim_starts_;
-  }
+//   /**
+//    * Returns the global lengths of the dimensions
+//    *
+//    * @return a reference to a vector of lengths of the dimensions
+//    */
+//   inline const vector<int> &get_global_dim_lengths() const
+//   {
+//     return global_dim_lens_;
+//   }
+
+//   /**
+//    * Returns the names of the dimensions
+//    * @return a reference to the names of the dimensions
+//    */
+//   inline const vector<string> &get_dim_names() const
+//   {
+//     return dim_names_;
+//   }
+
+//   /**
+//    * Returns the starting points of the dimensions for this rank. 
+//    */
+//   inline const vector<unsigned int> &get_dim_starts() const
+//   {
+//     return dim_starts_;
+//   }
 
   // The following functions are just helpers that forward to the
   // Data_ member...
@@ -288,7 +337,6 @@ public:
  * If Results do exclude themselves from the time dimension, but
  * return data at more than one time step anyway, then later data
  * overwrites previous data, as far as the DataWriter is concerened. 
- *
  */
 class Result : public LifeCycle
 {

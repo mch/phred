@@ -184,10 +184,10 @@ void PowerResult::init(const Grid &grid)
   freq_var_.set_name(base_name_ + "_freqs");
   power_var_.set_name(base_name_ + "_time_power");
 
-  real_var_.add_dimension("Frequency", num_freqs_);
-  imag_var_.add_dimension("Frequency", num_freqs_);
-  freq_var_.add_dimension("Frequency", num_freqs_);
-  power_var_.add_dimension("Power", 1, 0);
+  real_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
+  imag_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
+  freq_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
+  power_var_.add_dimension("Power", 1, 1, 0);
 
   imag_var_.set_ptr(power_imag_);
   real_var_.set_ptr(power_real_);  

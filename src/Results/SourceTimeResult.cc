@@ -25,7 +25,7 @@ SourceTimeResult::SourceTimeResult(SourceFunction &te)
   : te_(te)
 {
   variables_["Source time excitation"] = &var_;
-  var_.add_dimension("Source Time Excitation", 2, 0);
+  var_.add_dimension("Source Time Excitation", 2, 2, 0);
 
   MPI_Datatype temp;
   MPI_Type_contiguous(2, GRID_MPI_TYPE, &temp);
