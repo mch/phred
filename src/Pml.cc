@@ -205,43 +205,43 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
     }
   }
 
-  cout << "PML Update region for face " << face << ":"
-       << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
-       << grid_ex_r_.xmax
-       << ", y: " << grid_ex_r_.ymin << " -> " 
-       << grid_ex_r_.ymax
-       << ", z: " << grid_ex_r_.zmin << " -> " 
-       << grid_ex_r_.zmax
-       << "\n\tEy, x: " << grid_ey_r_.xmin << " -> " 
-       << grid_ey_r_.xmax
-       << ", y: " << grid_ey_r_.ymin << " -> " 
-       << grid_ey_r_.ymax
-       << ", z: " << grid_ey_r_.zmin << " -> " 
-       << grid_ey_r_.zmax
-       << "\n\tEz, x: " << grid_ez_r_.xmin << " -> " 
-       << grid_ez_r_.xmax
-       << ", y: " << grid_ez_r_.ymin << " -> " 
-       << grid_ez_r_.ymax
-       << ", z: " << grid_ez_r_.zmin << " -> " 
-       << grid_ez_r_.zmax 
-       << "\n\tHx, x: " << grid_hx_r_.xmin << " -> " 
-       << grid_hx_r_.xmax
-       << ", y: " << grid_hx_r_.ymin << " -> " 
-       << grid_hx_r_.ymax
-       << ", z: " << grid_hx_r_.zmin << " -> " 
-       << grid_hx_r_.zmax
-       << "\n\tHy, x: " << grid_hy_r_.xmin << " -> " 
-       << grid_hy_r_.xmax
-       << ", y: " << grid_hy_r_.ymin << " -> " 
-       << grid_hy_r_.ymax
-       << ", z: " << grid_hy_r_.zmin << " -> " 
-       << grid_hy_r_.zmax
-       << "\n\tHz, x: " << grid_hz_r_.xmin << " -> " 
-       << grid_hz_r_.xmax
-       << ", y: " << grid_hz_r_.ymin << " -> " 
-       << grid_hz_r_.ymax
-       << ", z: " << grid_hz_r_.zmin << " -> " 
-       << grid_hz_r_.zmax << endl;
+//   cout << "PML Update region for face " << face << ":"
+//        << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
+//        << grid_ex_r_.xmax
+//        << ", y: " << grid_ex_r_.ymin << " -> " 
+//        << grid_ex_r_.ymax
+//        << ", z: " << grid_ex_r_.zmin << " -> " 
+//        << grid_ex_r_.zmax
+//        << "\n\tEy, x: " << grid_ey_r_.xmin << " -> " 
+//        << grid_ey_r_.xmax
+//        << ", y: " << grid_ey_r_.ymin << " -> " 
+//        << grid_ey_r_.ymax
+//        << ", z: " << grid_ey_r_.zmin << " -> " 
+//        << grid_ey_r_.zmax
+//        << "\n\tEz, x: " << grid_ez_r_.xmin << " -> " 
+//        << grid_ez_r_.xmax
+//        << ", y: " << grid_ez_r_.ymin << " -> " 
+//        << grid_ez_r_.ymax
+//        << ", z: " << grid_ez_r_.zmin << " -> " 
+//        << grid_ez_r_.zmax 
+//        << "\n\tHx, x: " << grid_hx_r_.xmin << " -> " 
+//        << grid_hx_r_.xmax
+//        << ", y: " << grid_hx_r_.ymin << " -> " 
+//        << grid_hx_r_.ymax
+//        << ", z: " << grid_hx_r_.zmin << " -> " 
+//        << grid_hx_r_.zmax
+//        << "\n\tHy, x: " << grid_hy_r_.xmin << " -> " 
+//        << grid_hy_r_.xmax
+//        << ", y: " << grid_hy_r_.ymin << " -> " 
+//        << grid_hy_r_.ymax
+//        << ", z: " << grid_hy_r_.zmin << " -> " 
+//        << grid_hy_r_.zmax
+//        << "\n\tHz, x: " << grid_hz_r_.xmin << " -> " 
+//        << grid_hz_r_.xmax
+//        << ", y: " << grid_hz_r_.ymin << " -> " 
+//        << grid_hz_r_.ymax
+//        << ", z: " << grid_hz_r_.zmin << " -> " 
+//        << grid_hz_r_.zmax << endl;
 
   unsigned int sz = (grid_r_.xmax - grid_r_.xmin) 
     * (grid_r_.ymax - grid_r_.ymin) * (grid_r_.zmax - grid_r_.zmin);
@@ -347,9 +347,30 @@ void Pml::setup(Face face, Grid &grid)
 
   alloc_pml_fields(face, grid);
 
-  MPI_Datatype y_vec;
+//   MPI_Datatype y_vec;
 
-  MPI_Type_vector(pml_r_.ymax, 1, pml_r_.zmax, GRID_MPI_TYPE, &y_vec);
+//   MPI_Type_vector(pml_r_.ymax, 1, pml_r_.zmax, GRID_MPI_TYPE, &y_vec);
+
+//   MPI_Type_contiguous(pml_r_.zmax * pml_r_.ymax, GRID_MPI_TYPE, &yz_plane_);
+//   MPI_Type_commit(&yz_plane_);
+
+//   MPI_Type_vector(pml_r_.xmax, pml_r_.zmax, pml_r_.ymax * pml_r_.zmax, 
+//                   GRID_MPI_TYPE, &xz_plane_);
+//   MPI_Type_commit(&xz_plane_);
+
+//   MPI_Type_hvector(pml_r_.xmax, 1, sizeof(field_t) * pml_r_.ymax 
+//                    * pml_r_.zmax, y_vec, &xy_plane_);
+//   MPI_Type_commit(&xy_plane_);
+
+  MPI_Type_contiguous(pml_r_.zmax, GRID_MPI_TYPE, &z_vector_);
+  MPI_Type_commit(&z_vector_);
+
+  MPI_Type_vector(pml_r_.ymax, 1, pml_r_.zmax, GRID_MPI_TYPE, &y_vector_);
+  MPI_Type_commit(&y_vector_);
+  
+  MPI_Type_vector(pml_r_.xmax, 1, pml_r_.ymax * pml_r_.zmax, 
+                  GRID_MPI_TYPE, &x_vector_);
+  MPI_Type_commit(&x_vector_);
 
   MPI_Type_contiguous(pml_r_.zmax * pml_r_.ymax, GRID_MPI_TYPE, &yz_plane_);
   MPI_Type_commit(&yz_plane_);
@@ -358,9 +379,10 @@ void Pml::setup(Face face, Grid &grid)
                   GRID_MPI_TYPE, &xz_plane_);
   MPI_Type_commit(&xz_plane_);
 
-  MPI_Type_hvector(pml_r_.xmax, 1, sizeof(field_t) * pml_r_.ymax 
-                   * pml_r_.zmax, y_vec, &xy_plane_);
+  MPI_Type_hvector(pml_r_.xmax, 1, sizeof(field_t) * pml_r_.zmax * pml_r_.ymax, 
+                   y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
+
 }
 
 void Pml::free_pml_fields()
@@ -410,6 +432,27 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
   if (!alloced_)
     throw exception(); // PML must be set up before applying it. 
 
+//   if (face == BOTTOM && type == E)
+//   {
+//     if (grid.get_ldx() == 37) // rank 0
+//     {
+//       for (int h = 34; h < 38; h++)
+//       {
+//         cout << "rank 0, before update, (" << h << ", 10, 4), exy = " 
+//              << exy_[pi(h, 10, 4)] 
+//              << ", exz = " << exz_[pi(h, 10, 4)] << endl;
+//       }
+//     } else {
+//       for (int h = 0; h < 4; h++)
+//       {
+//         cout << "rank 1, before update, (" << h << ", 10, 4), exy = " 
+//              << exy_[pi(h, 10, 4)]
+//              << ", exz = " << exz_[pi(h, 10, 4)] << endl;
+//       }
+//     }
+//   }
+  
+
   region_t grid_r = find_face(face, grid);
 
   if (type == E)
@@ -429,6 +472,27 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
   {
     cout << "INCORRECT FIELD TYPE GIVEN TO UPDATE!" << endl;
   }
+  
+  // TEMPORARY: output some PML split field data
+//   if (face == BOTTOM && type == E)
+//   {
+//     if (grid.get_ldx() == 37) // rank 0
+//     {
+//       for (int h = 34; h < 38; h++)
+//       {
+//         cout << "rank 0, after update, (" << h << ", 10, 4), exy = " 
+//              << exy_[pi(h, 10, 4)] 
+//              << ", exz = " << exz_[pi(h, 10, 4)] << endl;
+//       }
+//     } else {
+//       for (int h = 0; h < 4; h++)
+//       {
+//         cout << "rank 1, after update, (" << h << ", 10, 4), exy = " 
+//              << exy_[pi(h, 10, 4)]
+//              << ", exz = " << exz_[pi(h, 10, 4)] << endl;
+//       }
+//     }
+//   }
   
 }
 
@@ -735,8 +799,8 @@ void Pml::add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface)
     ret.set_datatype(yz_plane_);
     break;
   case BOTTOM:
-    s_idx = pi(0, 0, 0);
-    r_idx = pi(0, 0, 1);
+    s_idx = pi(0, 0, 1);
+    r_idx = pi(0, 0, 0);
     ret.set_datatype(xy_plane_);
     break;
   case TOP:

@@ -267,7 +267,8 @@ void FDTD::run(int rank, int size, unsigned int steps)
 
       ++iter;
     }
-  }
+    
+  } // End of main loop
 
   // life cycle de init
   e_eiter = e_eiter_b;

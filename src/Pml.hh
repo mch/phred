@@ -115,6 +115,9 @@ protected:
 
   // MPI Derived data types for moving split field data across
   // subdomain boundaries
+  MPI_Datatype z_vector_;
+  MPI_Datatype y_vector_;
+  MPI_Datatype x_vector_;
   MPI_Datatype xy_plane_;
   MPI_Datatype yz_plane_;
   MPI_Datatype xz_plane_;
