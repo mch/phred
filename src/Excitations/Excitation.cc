@@ -79,7 +79,7 @@ void Excitation::excite(Grid &grid, unsigned int time_step,
   field_t h_sf = sf_->signal_function(grid.get_deltat() * (time_step - 0.5));
 
   if (h_sf < time_start_ || (e_sf > time_stop_ 
-                             && time_stop_ > grid.get_time_delta()))
+                             && time_stop_ > grid.get_deltat()))
     return;
 
   field_t e_fld[3];

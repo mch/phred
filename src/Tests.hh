@@ -40,3 +40,5 @@ void var_benchmark(unsigned int x_cells, unsigned int y_cells,
 void grooves_top();
 void grooves_bottom();
 void grooves_both();
+
+void square_hole(int ysize);

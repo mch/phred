@@ -364,8 +364,6 @@ void square_hole(int ysize)
   cout << "Simulating a square hole in a plate of perfect conductor..." 
        << endl;
 
-  cout << "Hole is 270 nm by " << ysize << " nm in a PEC place that is 300 nm thick." << endl;
-
   string prefix = "sqhole_";
 
   // Time steps is recalculated based on the length of the excitation.
@@ -383,6 +381,10 @@ void square_hole(int ysize)
   float hole_x = 270e-9;
   float hole_y = ysize * 1.0e-9;
 
+  cout << "Hole is " << hole_x * 1e9 << " nm by " << ysize 
+       << " nm in a PEC place that is " 
+       << plate_thickness * 1e9 << " nm thick." << endl;
+
   // Excitation parameters
   float ex_ampl = 1.0;
   float ex_freq_size = 200e12;
@@ -392,7 +394,7 @@ void square_hole(int ysize)
   // DFT Parameters
   float dft_low = 300e12;
   float dft_high = 750e12;
-  unsigned int dft_num = 20;
+  unsigned int dft_num = 30;
 
   // GRID
   FDTD fdtd;
@@ -435,6 +437,7 @@ void square_hole(int ysize)
   ex->set_soft(true);
   ex->set_type(E);
   ex->set_polarization(1,0,0);
+  ex->set_time_param(0, gm->length(), 0);
 
   fdtd.add_excitation("fluffy", ex);
 
@@ -451,10 +454,10 @@ void square_hole(int ysize)
   (*mdw).set_filename(prefix + "power.mat");
   fdtd.add_datawriter("mdw", mdw);
 
-  shared_ptr<GridResult> gridr
-    = shared_ptr<GridResult>(new GridResult);
-
   // GRID RESULT: Should be disabled for the full problem
+//   shared_ptr<GridResult> gridr
+//     = shared_ptr<GridResult>(new GridResult);
+
 //   fdtd.add_result("grid", gridr);
 //   fdtd.map_result_to_datawriter("grid", "ncdw");
 
@@ -545,10 +548,9 @@ void square_hole(int ysize)
   shared_ptr<CSGBox> metal = shared_ptr<CSGBox>(new CSGBox());
   metal->set_size(gridx, gridy, plate_thickness);
 
-  shared_ptr<CSGCylinder> hole 
-    = shared_ptr<CSGCylinder>(new CSGCylinder());
-  hole->set_radius(hole_radius);
-  hole->set_height(2 * plate_thickness);
+  shared_ptr<CSGBox> hole 
+    = shared_ptr<CSGBox>(new CSGBox());
+  hole->set_size(hole_x, hole_y, plate_thickness * 2);
   
   shared_ptr<CSGDifference> plate 
     = shared_ptr<CSGDifference>(new CSGDifference(metal, hole));

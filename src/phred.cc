@@ -258,9 +258,15 @@ Options:\n\
   -V, --version              output version information and exit\n\
 ");
 #else
-  printf ("Usage: %s FILENAME\n", program_name);
-  printf("\
-FILENAME is the file containing the description of the problem to simulate.\n\
+  printf ("Usage: %s A [opts]\n", program_name);
+  printf("A is a letter identifying the test to run, and [opts] are any\n"
+         "options that test takes.\nTests:\n\
+  H   Single circular hole\n\
+  M   Million node benchmark\n\
+  V   Variable number of nodes benchmark; follow by the number of cells\n\
+      in the X, Y, and Z axis.\n\
+  S   Square hole, followed by the size of the hole in the y dimension as\n\
+      an integer number of nanometers.\n\
 ");
 #endif
 
@@ -345,13 +351,25 @@ int main (int argc, char **argv)
 
     if (test_run) {
 #ifndef HAVE_LIBPOPT
-      if (argc >= 4)
+      // Find the exec name
+      int argi = 0;
+      for (argi = 0; argi < argc; argi++)
       {
-        string phred_name(argv[argc - 4]);
+        string phred_name(argv[argi]);
         if (phred_name.length() > 5)
           phred_name = phred_name.substr(phred_name.length() - 5, 5);
-
+        
         if (phred_name.compare("phred") == 0)
+          break;
+      }
+
+      if (argc > (argi + 1))
+      {
+        string cmd(argv[argi + 1]);
+
+        if (cmd.compare("H") == 0)
+          hole();
+        else if (cmd.compare("V") == 0 && argi + 4 < argc)
         {
           unsigned int x_cells = 0;
           unsigned int y_cells = 0;
@@ -372,15 +390,39 @@ int main (int argc, char **argv)
               "100.\nRunning million node benchmark instead.\n";
             mn_benchmark();
           }
-        } else {
-          hole();
         }
+        else if (cmd.compare("M") == 0)
+        {
+          mn_benchmark();
+        }
+        else if (cmd.compare("S") == 0 && argi+2 < argc)
+        {
+          int ysize = 105;
+          try
+          {
+            ysize = lexical_cast<int>(argv[argc - 1]);
+
+            square_hole(ysize);
+          }
+          catch(bad_lexical_cast &)
+          {
+            cout << "The size of the hole in the y dimension must "
+              "be an integer number of nanometers.\nRunning the "
+              "sim with y = 105 nm." << endl;
+            square_hole(105);
+          }
+        } 
+        else 
+        {
+          cout << "Unrecognized test option." << endl;
+          usage();
+        }
+        
       } else {
-        hole();
+        usage();
       }
 #else
-      hole();
-      //mn_benchmark();
+      mn_benchmark();
 #endif
     } else if (!interactive) {
 
