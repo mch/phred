@@ -26,7 +26,7 @@
 #include <math.h>
 
 PointDFTResult::PointDFTResult()
-  : freq_start_(0), freq_stop_(0), num_freqs_(0), result_(0)
+  : result_(0)
 {
   variables_["point_DFT"] = &var_;
 }
@@ -34,8 +34,7 @@ PointDFTResult::PointDFTResult()
 PointDFTResult::PointDFTResult(field_t freq_start,
                                field_t freq_stop, 
                                unsigned int num_freqs)
-  : freq_start_(freq_start), freq_stop_(freq_stop),
-    num_freqs_(num_freqs), result_(0)
+  : DFTResult(freq_start, freq_stop, num_freqs), result_(0)
 {
   variables_["point_DFT"] = &var_;
 }
