@@ -196,7 +196,7 @@ public:
     if (y <= 0)
       y++;
 
-    YZPlane plane(const_cast<Grid &>(grid));
+    XZPlane plane(const_cast<Grid &>(grid));
 
     Fields_t f;
 

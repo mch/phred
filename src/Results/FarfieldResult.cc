@@ -33,6 +33,16 @@
 
 using namespace std;
 
+// void FarfieldResult::write_cart_comps()
+// {
+//   ofstream fcs;
+
+//   fcs.open("cart_fields.txt");
+
+
+//   fcs.close();
+// }
+
 void FarfieldResult::idx_tests()
 {
   ofstream wuf;
@@ -551,7 +561,7 @@ public:
       + (data.zshift * data.dz);
 
     // Angles to the far field observation point
-    field_t phi, theta;
+    double phi, theta;
     int wuidx = 0;
 
     for (int phi_idx = 0; phi_idx < data.phi_data->length(); phi_idx++)
@@ -602,26 +612,43 @@ public:
         assert(W_b >= -1.0 && W_b <= 1.0);
         assert(W_c >= 0.0 && W_c <= 1.0);
 
-        field_t temp = data.cellsize * data.signchange; //  / (data.dt);
+        field_t temp = data.cellsize * data.signchange
+          / (4 * M_PI * C * data.dt);
 
         data.U_t1[wuidx + U_n - 1] += temp * U_a * (f.et2_avg);
         data.U_t1[wuidx + U_n] += temp * U_b * (f.et2_avg);
-        data.U_t1[wuidx + U_n + 1] += temp * U_c * (f.et2_avg);
+        data.U_t1[wuidx + U_n + 1] += -1 * temp * U_c * (f.et2_avg);
 
         data.W_t2[wuidx + W_n - 1] += W_a * temp * (f.ht1_avg);
         data.W_t2[wuidx + W_n] += W_b * temp * (f.ht1_avg);
-        data.W_t2[wuidx + W_n + 1] += W_c * temp * (f.ht1_avg);
+        data.W_t2[wuidx + W_n + 1] += -1 * W_c * temp * (f.ht1_avg);
 
         // These are -= due to the sign change going from field
         // components to currents.
         data.U_t2[wuidx + U_n - 1] -= temp * U_a * (f.et1_avg);
         data.U_t2[wuidx + U_n] -= temp * U_b * (f.et1_avg);
-        data.U_t2[wuidx + U_n + 1] -= temp * U_c * (f.et1_avg);
+        data.U_t2[wuidx + U_n + 1] -= -1 * temp * U_c * (f.et1_avg);
         
         data.W_t1[wuidx + W_n - 1] -= W_a * temp * (f.ht2_avg);
         data.W_t1[wuidx + W_n] -= W_b * temp * (f.ht2_avg);
-        data.W_t1[wuidx + W_n + 1] -= W_c * temp * (f.ht2_avg);
+        data.W_t1[wuidx + W_n + 1] -= -1 * W_c * temp * (f.ht2_avg);
 
+//         cerr << "FFR: phi_idx=" << phi_idx << ", theta_idx=" << theta_idx
+//              << ", phi=" << phi << ", theta=" << theta << ", wuidx="
+//              << wuidx
+//              << ", x=" << x << ", y=" << y << ", z=" << z
+//              << ", ts=" << data.tstep << ", tau=" << tau 
+//              << ", tau/dt=" << tau / data.dt << ", U_n=" << U_n
+//              << ", W_n=" << W_n << ", sc=" << data.signchange
+//              << endl;
+//         cerr << "   : U_t1[-1]=" << data.U_t1[wuidx + U_n - 1]
+//              << ", U_t1[0]=" << data.U_t1[wuidx + U_n]
+//              << ", U_t1[+1]=" << data.U_t1[wuidx + U_n + 1]
+//              << ", U_t2[-1]=" << data.U_t2[wuidx + U_n - 1]
+//              << ", U_t2[0]=" << data.U_t2[wuidx + U_n]
+//              << ", U_t2[+1]=" << data.U_t2[wuidx + U_n + 1] << endl;
+//         cerr << "   : U_a=" << U_a << ", U_b=" << U_b << ", U_c="
+//              << U_c << endl;
       }
     }
 
@@ -856,8 +883,6 @@ map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
     return post_vars_;
   
   // Calculate E_theta, E_phi, rcs
-  //field_t temp = 1 / (4 * PI * r_ * C); // Non-normalized
-  field_t temp = 1 / (4 * PI * C * grid.get_deltat()); // Normalized
   field_t W_t, W_p, U_t, U_p;
 
   int idx = 0;
@@ -874,17 +899,24 @@ map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
                        theta_data_.length(), 
                        ff_tsteps_);
 
-        W_t = temp * (Wx_[idx] * cos(theta) * cos(phi)
-                      + Wy_[idx] * cos(theta) * sin(phi)
-                      - Wz_[idx] * sin(theta));
+//         cerr << "FFR PP: phi_idx=" << phi_idx << ", theta_idx="
+//              << theta_idx << ", phi=" << phi << ", theta="
+//              << theta << ", idx=" << idx << ", Wx_=" 
+//              << Wx_[idx] << ", Wy_=" << Wy_[idx] << ", Wz_="
+//              << Wz_[idx] << ", Ux_=" << Ux_[idx] << ", Uy_="
+//              << Uy_[idx] << ", Uz_=" << Uz_[idx] << endl;
 
-        W_p = temp * (- Wx_[idx] * sin(phi) + Wy_[idx] * cos(phi));
+        W_t = (Wx_[idx] * cos(theta) * cos(phi)
+               + Wy_[idx] * cos(theta) * sin(phi)
+               - Wz_[idx] * sin(theta));
 
-        U_t = temp * (Ux_[idx] * cos(theta) * cos(phi)
-                      + Uy_[idx] * cos(theta) * sin(phi)
-                      - Uz_[idx] * sin(theta)); 
+        W_p = (- Wx_[idx] * sin(phi) + Wy_[idx] * cos(phi));
 
-        U_p = temp * (- Ux_[idx] * sin(phi) + Uy_[idx] * cos(phi));
+        U_t = (Ux_[idx] * cos(theta) * cos(phi)
+               + Uy_[idx] * cos(theta) * sin(phi)
+               - Uz_[idx] * sin(theta)); 
+
+        U_p = (- Ux_[idx] * sin(phi) + Uy_[idx] * cos(phi));
 
         E_theta_[idx] = - ETA * W_t - U_p;
         E_phi_[idx] = - ETA * W_p + U_t;

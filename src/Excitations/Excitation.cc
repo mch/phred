@@ -106,15 +106,15 @@ void Excitation::excite(Grid &grid, unsigned int time_step,
           switch (type_) 
           {
           case E:
-            if (polarization_[0] != 0.0) grid.set_ex(i,j,k, e_fld[0]);
-            if (polarization_[1] != 0.0) grid.set_ey(i,j,k, e_fld[1]);
-            if (polarization_[2] != 0.0) grid.set_ez(i,j,k, e_fld[2]);
+            grid.set_ex(i,j,k, e_fld[0]);
+            grid.set_ey(i,j,k, e_fld[1]);
+            grid.set_ez(i,j,k, e_fld[2]);
             break;
 
           case H:
-            if (polarization_[0] != 0.0) grid.set_hx(i,j,k, h_fld[0]);
-            if (polarization_[1] != 0.0) grid.set_hy(i,j,k, h_fld[1]);
-            if (polarization_[2] != 0.0) grid.set_hz(i,j,k, h_fld[2]);
+            grid.set_hx(i,j,k, h_fld[0]);
+            grid.set_hy(i,j,k, h_fld[1]);
+            grid.set_hz(i,j,k, h_fld[2]);
             break;
 
           case BOTH: // Isn't meant for Excitations.
