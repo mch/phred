@@ -103,11 +103,12 @@ AC_ARG_WITH(mpi_libs, AC_HELP_STRING([--with-mpi-libs], [Location of MPI librari
 AC_ARG_WITH(mpi_includes, AC_HELP_STRING([--with-mpi-includes], [Location of MPI include files]), [MPI_INCLUDES=$withval])
 
 dnl Debug?
-CFLAGS=
-CXXFLAGS=
+dnl CFLAGS=
+dnl CXXFLAGS=
 if test "x$WANT_DEBUG" = "x1"; then
         AC_DEFINE([DEBUG], [1], [Turn on debugging messages])
-        CXXFLAGS="-g -Wall"
+        AC_LANG_WERROR
+        CXXFLAGS="-g"
 else
         AC_DEFINE([NDEBUG], [1], [Turn off assertions])
         CXXFLAGS="-O2"
@@ -202,7 +203,7 @@ if [[ ! "$with_popt" = "no" ]]; then
 fi
 
 if [[ ! "$with_vtk" = "no" ]]; then 
-AC_CHECK_LIB(vtkIO, init, [
+AC_CHECK_LIB(vtkIO, vtkInstantiatorvtkXMLStructuredGridReaderNew, [
     LIBS="-lvtk $LIBS";
     AC_CHECK_HEADER([vtk.h], [
         USE_VTK="1"
@@ -353,7 +354,7 @@ echo -n "Using OpenMP parallization? "
 if [[ "x$USE_OPENMP" = "x1" ]]; then echo "yes"; else echo "no"; fi
 echo
 echo -n "Building Python bindings? " 
-if [[ "x$USE_PY_BINDINGS" == "x1" ]]; then 
+if [[ "x$USE_PY_BINDINGS" = "x1" ]]; then 
   echo "yes"; 
   echo -n "Using readline for interactive Python? "
   if [[ ! "$with_readline" = "no" ]]; then echo "yes"; else echo "no"; fi

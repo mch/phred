@@ -3,6 +3,8 @@
 #include "Exceptions.hh"
 #include "Constants.hh"
 
+#include <math.h>
+
 using namespace std;
 
 Pml::Pml()

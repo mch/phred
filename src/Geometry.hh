@@ -16,7 +16,33 @@ public:
   Geometry();
   virtual ~Geometry() = 0;
 
+  /**
+   * Iterator class for traversing the cells within the region defined
+   * by the geometry. 
+   */
+  class iterator {
+  private:
+  protected:
+  public:
+    iterator();
+    ~iterator();
 
+    /**
+     * Postfix iterator increment
+     */
+    const iterator &operator++();
+
+    /**
+     * Prefix iterator increment
+     */
+    const iterator &operator++(const iterator &rhs);
+    
+    /**
+     * Dereference the iterator; return a index into the grid where
+     * the current element can be found. 
+     */
+    unsigned int operator*(const iterator &rhs);
+  };
 };
 
 #endif // GEOMETRY_H

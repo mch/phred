@@ -2,6 +2,8 @@
 #include "Grid.hh"
 #include "Exceptions.hh"
 
+#include <math.h>
+
 PmlCommon::PmlCommon()
   : ratio_x_(0), ratio_star_x_(0), 
     ratio_y_(0), ratio_star_y_(0), 

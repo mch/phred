@@ -1,6 +1,8 @@
 #include "SourceDFTResult.hh"
 #include "Constants.hh"
 
+#include <math.h>
+
 SourceDFTResult::SourceDFTResult(SourceFunction &te, 
                                   field_t freq_start,
                                   field_t freq_stop, 

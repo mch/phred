@@ -30,6 +30,9 @@ enum PmlVariation_t {
  *
  * This is based on Jan's implementation. I just reorganized the
  * code, factored out some common stuff, etc. 
+ *
+ * \bug FIX THE RX_TX method so that the subdomain BC actually has
+ * something to pass around.
  */
 class Pml : public BoundaryCond
 {

@@ -1,6 +1,8 @@
 #include "PointDFTResult.hh"
 #include "Constants.hh"
 
+#include <math.h>
+
 PointDFTResult::PointDFTResult(field_t freq_start,
                                field_t freq_stop, 
                                unsigned int num_freqs)

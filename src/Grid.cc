@@ -8,6 +8,7 @@
 #include "Exceptions.hh"
 
 #include <mpi.h>
+#include <math.h>
 
 Grid::Grid() 
   : num_materials_(0),
@@ -517,6 +518,7 @@ void Grid::update_ex()
         hz1++;
         hz2++;
         hy++;
+        idx++;
       }
     }
   }
