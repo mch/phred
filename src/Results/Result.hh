@@ -151,7 +151,7 @@ public:
   /**
    * Return a const reference to the data object
    */
-  inline const Data &get_data()
+  inline const Data &get_data() const
   {
     return data_;
   }

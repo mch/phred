@@ -54,8 +54,8 @@ void Region::set_x(unsigned int xmin, unsigned int xmax)
   if (xmin > xmax)
     throw RegionException("xmin cannot be greater than xmax!");
 
-  if (xmax > grid_info.global_dimx_)
-    throw RegionException("xmax is outside of the grid's region.");
+//   if (xmax > grid_info.global_dimx_)
+//     throw RegionException("xmax is outside of the grid's region.");
 
   global_xmin_ = xmin;
   global_xmax_ = xmax;
@@ -66,8 +66,8 @@ void Region::set_y(unsigned int ymin, unsigned int ymax)
   if (ymin > ymax)
     throw RegionException("ymin cannot be greater than ymax!");
 
-  if (ymax > grid_info.global_dimy_)
-    throw RegionException("ymax is outside of the grid's region.");
+//   if (ymax > grid_info.global_dimy_)
+//     throw RegionException("ymax is outside of the grid's region.");
 
   global_ymin_ = ymin;
   global_zmax_ = ymax;
@@ -78,8 +78,8 @@ void Region::set_z(unsigned int zmin, unsigned int zmax)
   if (zmin > zmax)
     throw RegionException("zmin cannot be greater than zmax!");
 
-  if (zmax > grid_info.global_dimz_)
-    throw RegionException("zmax is outside of the grid's region.");
+//   if (zmax > grid_info.global_dimz_)
+//     throw RegionException("zmax is outside of the grid's region.");
 
   global_zmin_ = zmin;
   global_zmax_ = zmax;

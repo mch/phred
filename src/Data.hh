@@ -53,7 +53,7 @@ protected:
 
 public:
   Data()
-    : type_(GRID_MPI_TYPE), global_type(MPI_DATATYPE_NULL), num_(0)
+    : type_(GRID_MPI_TYPE), global_type_(MPI_DATATYPE_NULL), num_(0)
   {
     //MPI_Type_contiguous(1, GRID_MPI_TYPE, &type_);
     //MPI_Type_commit(&type_);

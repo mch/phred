@@ -46,25 +46,49 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 
   MPI_Status status;
 
+  // How much data will we recieve? 
+  vector<unsigned int> rcv_bytes = get_recieve_sizes(data);
+
+  // How is it arranged? 
+  vector<pair<unsigned int, unsigned int> > sizes = gather_sizes(var);
 
   if (rank_ != 0)
   {
     if (data.get_num() > 0)
+    {
+      int sz;
+      MPI_Type_size(data.get_datatype(), &sz);
+      cerr << "Rank " << rank_ << " is sending " << data.get_num()
+           << " items, " << sz << " bytes each." << endl;
       MPI_Send(data.get_ptr(), data.get_num(), data.get_datatype(), 
                0, 1, MPI_COMM_WORLD);
+    }
   } 
 
   else 
   {
     unsigned int rcv_size = 0;
-    vector<unsigned int> rcv_bytes = get_recieve_sizes(data);
 
+    for (vector<unsigned int>::iterator iter = rcv_bytes.begin();
+         iter != rcv_bytes.end(); ++iter)
+      rcv_size += *iter;
+
+#ifdef DEBUG
+    cerr << "Datawriter on rank 0 will recieve a total of " 
+         << rcv_size << " bytes. \n";
+#endif
 
     if (rcv_size > 0) 
     {
-      vector<pair<unsigned int, unsigned int> > sizes = gather_sizes(var);
-
       // A buffer to hold the result
+      buffer_size = 0;
+      MPI_Type_size(data.get_global_datatype(), &buffer_size);
+
+      if (buffer_size < rcv_size)
+        throw DataWriterException("Global data type size is smaller than the amount of data to be recieved! Has the Result object set up the global data type correctly?");
+
+      cerr << "Rank 0 recieve buffer is " << buffer_size << " bytes. "
+           << endl;
       ptr_head = ptr = new char[buffer_size];
       
       // Copy rank 0 data into the buffer
@@ -74,38 +98,37 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
         MPI_Sendrecv(data.get_ptr(), data.get_num(), 
                      data.get_datatype(), 0, 1, 
                      static_cast<void *>(ptr), 
-                     nums_recv[0] * nums_recv[1], MPI_CHAR, 0, 1,
+                     rcv_bytes[0], MPI_CHAR, 0, 1,
                      MPI_COMM_WORLD, &status);
-        ptr += nums_recv[0] * nums_recv[1];
+        ptr += rcv_bytes[0];
+
+        cerr << "Buffered " << rcv_bytes[0] << " from rank 0. " << endl;
       }
       
       // Recieve data from ranks > 0 
       // THIS IS ALSO BUGGY
       for (int i = 1; i < size_; i++)
       {
-        if (nums_recv[i*2] > 0) {
-          MPI_Recv(ptr, nums_recv[i*2] * nums_recv[i*2+1], MPI_CHAR, 
+        if (rcv_bytes[i] > 0) {
+          // Construct a derived data type that places the recieved
+          // data in the correct location inside the buffer. 
+
+          cerr << "Rank 0 is recieving " << rcv_bytes[i] 
+               << " bytes from rank " << i << endl;
+          MPI_Recv(ptr, rcv_bytes[i], MPI_CHAR, 
                    i, 1, MPI_COMM_WORLD, &status);
-          ptr += nums_recv[i*2] * nums_recv[i*2+1];
+          ptr += rcv_bytes[i];
         }
       }
       
       MPI_Datatype t = data.get_datatype();
         
-      write_data(time_step, var, t, ptr_head, total);
+      write_data(time_step, var, t, ptr_head, buffer_size);
 
       delete[] ptr_head;
     }
   }
 
-  delete[] dim_starts;
-  delete[] dim_lengths;
-
-  if (rank_ == 0)
-  {
-    delete[] recv_dim_starts;
-    delete[] recv_dim_lengths;
-  }
 }
 
 vector<unsigned int> DataWriter::get_recieve_sizes(const Data &data)
@@ -113,6 +136,7 @@ vector<unsigned int> DataWriter::get_recieve_sizes(const Data &data)
   unsigned int nums_snd[2], *nums_recv;
   unsigned int total = 0;
   vector<unsigned int> ret;
+  int sz;
 
   if (rank_ == 0)
     nums_recv = new unsigned int[size_ * 2];
@@ -138,7 +162,8 @@ vector<unsigned int> DataWriter::get_recieve_sizes(const Data &data)
   return ret;
 }
 
-vector<pair<unsigned int, unsigned int> > gather_sizes(const Variable &var)
+vector<pair<unsigned int, unsigned int> > 
+DataWriter::gather_sizes(const Variable &var)
 {
   // Every process must let us know where the data it is sending
   // starts, and what it's dimensions are, so we can fit it into the
@@ -151,6 +176,7 @@ vector<pair<unsigned int, unsigned int> > gather_sizes(const Variable &var)
   unsigned int *dim_lengths = new unsigned int[num_dimensions];
   unsigned int dim_idx = 0;
   vector<pair<unsigned int, unsigned int> > ret;
+  const Data &data = var.get_data();
 
   cerr << "Rank " << MPI_RANK << " is writing a variable with "
        << num_dimensions << " dimensions. \n\tstart\tlength:\n";
@@ -165,13 +191,17 @@ vector<pair<unsigned int, unsigned int> > gather_sizes(const Variable &var)
       dim_lengths[dim_idx] = 0;
       dim_starts[dim_idx] = 0;
     }
-    cerr << "\t" << dim_starts[dim_idx] << "\t" << dim_lengths[dim_idx] << "\n";
+    cerr << "\t" << dim_starts[dim_idx] << "\t" 
+         << dim_lengths[dim_idx] << "\n";
   }
+
+  unsigned int *recv_dim_starts = 0;
+  unsigned int *recv_dim_lens = 0;
 
   if (rank_ == 0)
   {
-    unsigned int *recv_dim_starts = new unsigned int[num_dimensions * MPI_SIZE];
-    unsigned int *recv_dim_lens = new unsigned int[num_dimensions * MPI_SIZE];
+    recv_dim_starts = new unsigned int[num_dimensions * MPI_SIZE];
+    recv_dim_lens = new unsigned int[num_dimensions * MPI_SIZE];
   }
 
   MPI_Gather(reinterpret_cast<void *>(dim_starts), num_dimensions, 
@@ -193,6 +223,10 @@ vector<pair<unsigned int, unsigned int> > gather_sizes(const Variable &var)
     {
       cerr << "\t" << recv_dim_starts[dim_idx] << "\t" 
            << recv_dim_lens[dim_idx] << "\n";
+
+      ret.push_back(pair<unsigned int, unsigned int>
+                    (recv_dim_starts[dim_idx], recv_dim_lens[dim_idx]));
+
       unsigned int offset = dim_idx % num_dimensions;
       total_dim_lens[offset] += recv_dim_lens[dim_idx];
     }
@@ -200,10 +234,15 @@ vector<pair<unsigned int, unsigned int> > gather_sizes(const Variable &var)
     cerr << "Totalled dimension lengths... \n";
     for (dim_idx = 0; dim_idx < num_dimensions; dim_idx++)
       cerr << "\t" << total_dim_lens[dim_idx] << "\n";
+
+    delete[] recv_dim_lens;
+    delete[] recv_dim_starts;
   }
 
   // DO ANY REGIONS OVERLAP? Is the total number of items to be
   // recieved, as far as the lengths is concerned, deviate from
   // expected?
 
+
+  return ret;
 }

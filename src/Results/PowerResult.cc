@@ -39,8 +39,6 @@ PowerResult::PowerResult()
   variables_["imag_power"] = &imag_var_;
   variables_["freqs"] = &freq_var_;
   variables_["time_power"] = &power_var_;
-
-  region2_ = 0;
 }
 
 PowerResult::PowerResult(field_t freq_start, field_t freq_stop, 
@@ -58,8 +56,6 @@ PowerResult::PowerResult(field_t freq_start, field_t freq_stop,
   variables_["imag_power"] = &imag_var_;
   variables_["freqs"] = &freq_var_;
   variables_["time_power"] = &power_var_;
-
-  region2_ = 0;
 }
 
 PowerResult::~PowerResult()
@@ -98,8 +94,6 @@ PowerResult::~PowerResult()
     ht2i_ = 0;
   }
 
-  if (region2_)
-    delete region2_;
 }
 
 void PowerResult::init(const Grid &grid)
