@@ -24,14 +24,28 @@
 
 #include <stdio.h>
 #include <sys/types.h>
-#include <getopt.h>
 #include "system.h"
+
+/* MPI (rocks your socks right off) */
+#include <mpi.h>
+
+/* popt plays way nicer with MPI than getopt. Trust me. */
+#include <popt.h>
+
+/* Let's use C++ for things that aren't speed critical, because life
+   is just so much easier that way. And safer. */
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std; // Too lazy to type namespaces all the time. 
 
 #define EXIT_FAILURE 1
 
-char *xmalloc ();
-char *xrealloc ();
-char *xstrdup ();
+// WTF?
+//char *xmalloc ();
+//char *xrealloc ();
+//char *xstrdup ();
 
 
 static void usage (int status);
@@ -39,36 +53,42 @@ static void usage (int status);
 /* The name the program was run with, stripped of any leading path. */
 char *program_name;
 
-/* getopt_long return codes */
-enum {DUMMY_CODE=129
-};
-
-/* Option flags and variables */
-
-int want_interactive;		/* --interactive */
-int want_verbose;		/* --verbose */
-
-static struct option const long_options[] =
-{
-  {"interactive", no_argument, 0, 'i'},
-  {"verbose", no_argument, 0, 'v'},
-  {"help", no_argument, 0, 'h'},
-  {"version", no_argument, 0, 'V'},
-  {NULL, 0, NULL, 0}
-};
+static struct poptOption options[] = 
+  {
+    {"help", 'h', POPT_ARG_NON, 0, 'h'},
+    {"version", 'V', POPT_ARG_NONE, 0, 'V'},
+    {"verbose", 'v', POPT_ARG_NONE, 0, 'v'},
+    {"file", 'f', POPT_ARG_STRING, 0 'f'}
+  };
 
 static int decode_switches (int argc, char **argv);
 
 int
 main (int argc, char **argv)
 {
-  int i;
+  int i, rank, size;
 
   program_name = argv[0];
 
-  i = decode_switches (argc, argv);
+  i = decode_switches (argc, const_cast<const char **>(argv));
+
+  MPI_Init(&argc, &args);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   /* do the work */
+  
+  // MPI Goodness?
+
+  // Parse the input script
+
+  // Allocate data structures
+
+  // Main loop
+  
+  
+  // Thank you and goodnight
+  MPI_Finalize();
 
   exit (0);
 }
@@ -80,35 +100,47 @@ static int
 decode_switches (int argc, char **argv)
 {
   int c;
+  char *arg = 0;
 
+  poptContext ctx = poptGetContext(0, argc, argv, options, 0);
 
-  while ((c = getopt_long (argc, argv, 
-			   "i"	/* interactive */
-			   "v"	/* verbose */
-			   "h"	/* help */
-			   "V",	/* version */
-			   long_options, (int *) 0)) != EOF)
+  while ((c = poptGetNextOpt (ctx)) > 0 || c == POPT_ERROR_BADOPT)
+  {
+    if (c == POPT_ERROR_BADOPT)
+      continue;
+
+    switch (c)
     {
-      switch (c)
-	{
-	case 'i':		/* --interactive */
-	  want_interactive = 1;
-	  break;
-	case 'v':		/* --verbose */
-	  want_verbose = 1;
-	  break;
-	case 'V':
-	  printf ("phred %s\n", VERSION);
-	  exit (0);
+    case 'V':
+      cout << "phred " << VERSION << endl;
+      exit (0);
+      break;
 
-	case 'h':
-	  usage (0);
+    case 'h':
+      usage (0);
+      break;
 
-	default:
-	  usage (EXIT_FAILURE);
-	}
+    case 'f':
+      arg = const_cast<char *>(poptGetOptArg(ctx));
+
+      if (arg)
+        inputfile = arg;
+      else 
+      {
+        cout << "No filename given for the -f switch." << endl;
+        exit(0);
+      }
+      break;
+
+    default:
+      cout << "WARNING: got unknown option number: " << c << endl;
     }
+  }
 
+  poptFreeContext(ctx);
+
+
+  
   return optind;
 }
 
@@ -122,7 +154,7 @@ Phred is a parallel finite difference time domain electromagnetics simulator.\n"
   printf (_("\
 Options:\n\
   -i, --interactive          prompt for confirmation\n\
-  --verbose                  print more information\n\
+  -v, --verbose              print more information\n\
   -h, --help                 display this help and exit\n\
   -V, --version              output version information and exit\n\
 "));
