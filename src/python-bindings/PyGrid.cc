@@ -84,6 +84,6 @@ using namespace boost::python;
 
 void export_grids()
 {
-  class_<Grid, boost::noncopyable>("Grid", no_init);
-  class_<FreqGrid, bases<Grid>, boost::noncopyable>("FreqGrid", no_init);
+  class_<Grid>("Grid");
+  class_<FreqGrid, bases<Grid>, boost::noncopyable>("FreqGrid");
 }

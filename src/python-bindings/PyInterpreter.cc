@@ -301,9 +301,9 @@ void PyInterpreter::add_modules()
 //   handle<> grds( PyImport_Import(gridname.get()) );
 //   PyDict_SetItemString(main_namespace.get(), "Grids", grds.get());
 
-  handle<> phredname(PyString_FromString("Phred"));
-  handle<> p(PyImport_Import(phredname.get()));
-  PyDict_SetItemString(main_namespace.get(), "Phred", p.get());
+  //handle<> phredname(PyString_FromString("Phred"));
+  //handle<> p(PyImport_Import(phredname.get()));
+  //PyDict_SetItemString(main_namespace.get(), "Phred", p.get());
   //PyDict_Merge(main_namespace.get(), p.get(), 0);
 
   // MPI Data

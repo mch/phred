@@ -7,17 +7,27 @@ phred_LDADD=
 # Conditional on having Python and boost.python
 if PY_BINDINGS
 phred_cond += python-bindings/PyExcitations.hh \
-	python-bindings/PyResults.hh \
-	python-bindings/PyMaterial.hh \
-	python-bindings/PyGeometry.hh \
-	python-bindings/PyGrid.hh \
-	python-bindings/PyFDTD.hh \
-	python-bindings/PyTypes.hh \
-	python-bindings/PyDatawriters.hh \
-	python-bindings/PyBoundaries.hh \
 	python-bindings/PyInterpreter.hh \
-	python-bindings/PyInterpreter.cc
+	python-bindings/PyInterpreter.cc \
+	python-bindings/PyResults.cc \
+	python-bindings/PyMaterial.cc \
+	python-bindings/PyGeometry.cc \
+	python-bindings/PyGrid.cc \
+	python-bindings/PyFDTD.cc \
+	python-bindings/PyTypes.cc \
+	python-bindings/PyDatawriters.cc \
+	python-bindings/PyBoundaries.cc \
+	python-bindings/PyExcitations.cc
+
 #	python-bindings/PyMaterial.cc
+#	python-bindings/PyResults.hh \
+#	python-bindings/PyMaterial.hh \
+#	python-bindings/PyGeometry.hh \
+#	python-bindings/PyGrid.hh \
+#	python-bindings/PyFDTD.hh \
+#	python-bindings/PyTypes.hh \
+#	python-bindings/PyDatawriters.hh \
+#	python-bindings/PyBoundaries.hh
 
 phred_LDADD += ../thirdparty/boost.python/src/libboost_python.la
 phred_LDFLAGS += @PYTHON_LDFLAGS@
