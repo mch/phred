@@ -33,7 +33,7 @@ ExpSine::ExpSine(float frequency)
 ExpSine::~ExpSine()
 {}
 
-field_t ExpSine::source_function(const Grid &grid, unsigned int time_step)
+field_t ExpSine::source_function(const Grid &grid, float time_step)
 {
   field_t ret = ampl_ * (1 - exp(-1 * grid.get_deltat() * time_step / period_))
     * sin(omega_ * grid.get_deltat() * time_step);

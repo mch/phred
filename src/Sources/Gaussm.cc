@@ -28,7 +28,7 @@ Gaussm::Gaussm()
 Gaussm::~Gaussm()
 {}
 
-field_t Gaussm::source_function(const Grid &grid, unsigned int time_step)
+field_t Gaussm::source_function(const Grid &grid, float time_step)
 {
   field_t t = time_step * grid.get_deltat();
   field_t temp = (t - 4. / (PI * deltaf_)) * deltaf_ * PI;

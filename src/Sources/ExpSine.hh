@@ -42,7 +42,7 @@ public:
    *
    * @return the value of the excitation
    */
-  field_t source_function(const Grid &grid, unsigned int time_step);
+  field_t source_function(const Grid &grid, float time_step);
 
   ExpSine();
   ExpSine(float frequency);

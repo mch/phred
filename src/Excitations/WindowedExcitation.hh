@@ -112,15 +112,22 @@ public:
     if (type != BOTH && type != type_)
       return;
 
-    field_t sf = sf_->source_function(grid, time_step);
-    field_t fld[3];
+    field_t e_sf = sf_->source_function(grid, time_step);
+    field_t h_sf = sf_->source_function(grid, time_step - 0.5);
+
+    field_t e_fld[3];
+    field_t h_fld[3];
             
     // Bartlett window coefficients
     field_t w = 1;
 
-    fld[0] = sf * polarization_[0];
-    fld[1] = sf * polarization_[1];
-    fld[2] = sf * polarization_[2];
+    e_fld[0] = e_sf * polarization_[0];
+    e_fld[1] = e_sf * polarization_[1];
+    e_fld[2] = e_sf * polarization_[2];
+
+    h_fld[0] = h_sf * polarization_[0];
+    h_fld[1] = h_sf * polarization_[1];
+    h_fld[2] = h_sf * polarization_[2];
 
     float fx, fy, fz;
 
@@ -146,15 +153,15 @@ public:
             switch (type_) 
             {
             case E:
-              if (polarization_[0] != 0.0) grid.set_ex(i,j,k, fld[0] * w);
-              if (polarization_[1] != 0.0) grid.set_ey(i,j,k, fld[1] * w);
-              if (polarization_[2] != 0.0) grid.set_ez(i,j,k, fld[2] * w);
+              if (polarization_[0] != 0.0) grid.set_ex(i,j,k, e_fld[0] * w);
+              if (polarization_[1] != 0.0) grid.set_ey(i,j,k, e_fld[1] * w);
+              if (polarization_[2] != 0.0) grid.set_ez(i,j,k, e_fld[2] * w);
               break;
 
             case H:
-              if (polarization_[0] != 0.0) grid.set_hx(i,j,k, fld[0] * w);
-              if (polarization_[1] != 0.0) grid.set_hy(i,j,k, fld[1] * w);
-              if (polarization_[2] != 0.0) grid.set_hz(i,j,k, fld[2] * w);
+              if (polarization_[0] != 0.0) grid.set_hx(i,j,k, h_fld[0] * w);
+              if (polarization_[1] != 0.0) grid.set_hy(i,j,k, h_fld[1] * w);
+              if (polarization_[2] != 0.0) grid.set_hz(i,j,k, h_fld[2] * w);
               break;
 
             case BOTH: // Isn't meant for Excitations.
@@ -184,25 +191,25 @@ public:
             {
             case E:
               if (polarization_[0] != 0.0) grid.set_ex(i,j,k, 
-                                                       w * fld[0] 
+                                                       w * e_fld[0] 
                                                        + grid.get_ex(i,j,k));
               if (polarization_[1] != 0.0) grid.set_ey(i,j,k, 
-                                                       w * fld[1] 
+                                                       w * e_fld[1] 
                                                        + grid.get_ey(i,j,k));
               if (polarization_[2] != 0.0) grid.set_ez(i,j,k, 
-                                                       w * fld[2] 
+                                                       w * e_fld[2] 
                                                        + grid.get_ez(i,j,k));
               break;
 
             case H:
               if (polarization_[0] != 0.0) grid.set_hx(i,j,k, 
-                                                       w * fld[0] 
+                                                       w * h_fld[0] 
                                                        + grid.get_hx(i,j,k));
               if (polarization_[1] != 0.0) grid.set_hy(i,j,k, 
-                                                       w * fld[1] 
+                                                       w * h_fld[1] 
                                                        + grid.get_hy(i,j,k));
               if (polarization_[2] != 0.0) grid.set_hz(i,j,k, 
-                                                       w * fld[2] 
+                                                       w * h_fld[2] 
                                                        + grid.get_hz(i,j,k));
               break;
 

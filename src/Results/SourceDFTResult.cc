@@ -105,10 +105,10 @@ map<string, Variable *> &SourceDFTResult::get_result(const Grid &grid,
     field_t sf = te_.source_function(grid, time_step);
     for (unsigned int i = 0; i <= num_freqs_; i++)
     {
-      result_[i*3 + 1] += sf * cos(2 * PI * result_[i*3] 
+      result_[i*3 + 1] += sf * cos(-2 * PI * result_[i*3] 
                                    * time_step * grid.get_deltat());
     
-      result_[i*3 + 2] += (-1) * sf * sin(2 * PI * result_[i*3] 
+      result_[i*3 + 2] += (-1) * sf * sin(-2 * PI * result_[i*3] 
                                           * time_step * grid.get_deltat());
     }
     var_.set_num(num_freqs_); 
