@@ -1242,12 +1242,12 @@ shared_ptr<CellSet> Grid::get_cellset(const CSGBox &box) const
   // Local, without ghosts
   cells->local_ = global_to_local(global);
 
-#ifdef DEBUG
-  cerr << "Grid::get_cellset, global block: \n" 
-       << *global << "\nlocal block, no ghosts:\n"
-       << *(cells->local_) << "\nlocal block, with ghosts:\n"
-       << *(cells->local_ghost_) << endl << endl;
-#endif
+// #ifdef DEBUG
+//   cerr << "Grid::get_cellset, global block: \n" 
+//        << *global << "\nlocal block, no ghosts:\n"
+//        << *(cells->local_) << "\nlocal block, with ghosts:\n"
+//        << *(cells->local_ghost_) << endl << endl;
+// #endif
 
   return cells;
 }

@@ -394,24 +394,24 @@ void UPmlCommon::init_sigmas()
     }      
   }
 
-#ifdef DEBUG
-  cout << "UPML conductivity profiles: \nx axis: ";
+// #ifdef DEBUG
+//   cout << "UPML conductivity profiles: \nx axis: ";
 
-  for (int i = 0; i < grid_.get_ldx_sd(); i++)
-    cout << sigma_x_[i] << " ";
+//   for (int i = 0; i < grid_.get_ldx_sd(); i++)
+//     cout << sigma_x_[i] << " ";
 
-  cout << "\ny axis: ";
+//   cout << "\ny axis: ";
 
-  for (int i = 0; i < grid_.get_ldy_sd(); i++)
-    cout << sigma_y_[i] << " ";
+//   for (int i = 0; i < grid_.get_ldy_sd(); i++)
+//     cout << sigma_y_[i] << " ";
 
-  cout << "\nz axis: ";
+//   cout << "\nz axis: ";
 
-  for (int i = 0; i < grid_.get_ldz_sd(); i++)
-    cout << sigma_z_[i] << " ";
+//   for (int i = 0; i < grid_.get_ldz_sd(); i++)
+//     cout << sigma_z_[i] << " ";
   
-  cout << endl;
-#endif
+//   cout << endl;
+// #endif
 
 }
 
@@ -476,11 +476,11 @@ mat_coef_t UPmlCommon::calc_sigma_max(delta_t delta)
   {
     ret = sigma_ratio_ * ((poly_order_ + 1) 
                           / (150 * PI * delta * sqrt(eps_opt_)));
-#ifdef DEBUG
-    cout << "Calculated Maximum conductivity using poly_order = " 
-         << poly_order_ << ", eps_opt = " << eps_opt_ 
-         << "\nand sigma_ratio = " << sigma_ratio_ << ": " << ret << endl;
-#endif
+// #ifdef DEBUG
+//     cout << "Calculated Maximum conductivity using poly_order = " 
+//          << poly_order_ << ", eps_opt = " << eps_opt_ 
+//          << "\nand sigma_ratio = " << sigma_ratio_ << ": " << ret << endl;
+// #endif
   }
   else
     ret = sigma_max_;

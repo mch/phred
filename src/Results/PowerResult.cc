@@ -185,21 +185,21 @@ void PowerResult::init(const Grid &grid)
       freq_var_.set_num(0);
     }
 
-#ifdef DEBUG
-    cerr << "PowerResult::init(), computing power through a surface which is "
-         << x_size_ << " x " << y_size_ << " x " << z_size_ 
-         << " in size." << endl;
-    cerr << "Frequency range: " << frequencies_.get_start() << " to " 
-         << frequencies_.get_end() << ", spacing: " 
-         << frequencies_.get_spacing() << ", number: "
-         << frequencies_.length() << endl;
-    cerr << "Cell area is " << cell_area_ << endl;
-#endif 
+// #ifdef DEBUG
+//     cerr << "PowerResult::init(), computing power through a surface which is "
+//          << x_size_ << " x " << y_size_ << " x " << z_size_ 
+//          << " in size." << endl;
+//     cerr << "Frequency range: " << frequencies_.get_start() << " to " 
+//          << frequencies_.get_end() << ", spacing: " 
+//          << frequencies_.get_spacing() << ", number: "
+//          << frequencies_.length() << endl;
+//     cerr << "Cell area is " << cell_area_ << endl;
+// #endif 
   } else {
-#ifdef DEBUG
-    cerr << "PowerResult::init(), rank " << MPI_RANK << " has no data to " 
-         << "contribute. " << endl;
-#endif
+// #ifdef DEBUG
+//     cerr << "PowerResult::init(), rank " << MPI_RANK << " has no data to " 
+//          << "contribute. " << endl;
+// #endif
     power_var_.set_num(0);
     real_var_.set_num(0);
     imag_var_.set_num(0);

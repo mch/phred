@@ -47,7 +47,7 @@ void Periodic::apply(Face face, Grid &grid, FieldType type)
     if (type == E && (face == BACK || face == LEFT || face == BOTTOM))
       copy_e(face, grid);
 
-    if (type == H && (face == TOP || face == RIGHT || face == TOP))
+    if (type == H && (face == TOP || face == RIGHT || face == FRONT))
       copy_h(face, grid);
   }
 }

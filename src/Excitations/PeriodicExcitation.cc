@@ -37,8 +37,7 @@ void PeriodicExcitation::excite(Grid &grid,
 
 void PeriodicExcitation::init(const Grid &grid)
 {
-  
-  
+  Excitation::init(grid);  
 }
 
 ostream& PeriodicExcitation::to_string(ostream &os) const

@@ -88,14 +88,14 @@ void PointResult::init(const Grid &grid)
   else 
     l_.z = point_.z - grid.get_lsz();
 
-#ifdef DEBUG
-  if (ours_)
-    cerr << "PointResult at " << l_.x << "x" << l_.y
-         << "x" << l_.z << " belongs to " << MPI_RANK << endl;
-  else
-    cerr << "PointResult at " << l_.x << "x" << l_.y
-         << "x" << l_.z << " DOES NOT belong to " << MPI_RANK << endl;
-#endif
+// #ifdef DEBUG
+//   if (ours_)
+//     cerr << "PointResult at " << l_.x << "x" << l_.y
+//          << "x" << l_.z << " belongs to " << MPI_RANK << endl;
+//   else
+//     cerr << "PointResult at " << l_.x << "x" << l_.y
+//          << "x" << l_.z << " DOES NOT belong to " << MPI_RANK << endl;
+// #endif
 
   MPI_Datatype temp;
   MPI_Type_contiguous(7, GRID_MPI_TYPE, &temp);
