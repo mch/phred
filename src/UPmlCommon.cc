@@ -15,9 +15,6 @@ UPmlCommon::UPmlCommon(const Grid &grid)
 
 UPmlCommon *UPmlCommon::get_upml_common(Grid &grid)
 {
-  if (grid.get_define_mode())
-    return 0;
-
   void *tmp = grid.get_auxdata(UPML_COMMON);
 
   if (tmp)
