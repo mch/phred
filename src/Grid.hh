@@ -887,6 +887,19 @@ class Grid {
     return material_lib_;
   }
 
+  /**
+   * Returns the number of nodes processed by the update equations. 
+   */ 
+  unsigned int get_num_updated_nodes()
+  {
+    return update_ex_r_.xmax - update_ex_r_.xmin + 
+      update_ey_r_.xmax - update_ey_r_.xmin + 
+      update_ez_r_.xmax - update_ez_r_.xmin + 
+      update_hx_r_.xmax - update_hx_r_.xmin + 
+      update_hy_r_.xmax - update_hy_r_.xmin + 
+      update_hz_r_.xmax - update_hz_r_.xmin;
+  }
+
 };
 
 #endif // GRID_H

@@ -22,6 +22,9 @@
 
 #include "FDTD.hh"
 
+// Globals from phred.cc
+bool mnps, estimate_memory;
+
 FDTD::FDTD()
   : grid_(0), mlib_(0)
 {}
@@ -86,14 +89,14 @@ void FDTD::load_materials(MaterialLib &matlib)
   mlib_ = &matlib;
 }
 
-void FDTD::add_e_excitation(const char *name, Excitation *ex)
+void FDTD::add_excitation(const char *name, Excitation *ex)
 {
-  e_excitations_[string(name)] = ex;
-}
+  FieldType t = ex->get_type();
+  if (t == E || t == BOTH)
+    e_excitations_[string(name)] = ex;
 
-void FDTD::add_h_excitation(const char *name, Excitation *ex)
-{
-  h_excitations_[string(name)] = ex;
+  if (t == H || t == BOTH)
+    h_excitations_[string(name)] = ex;    
 }
 
 void FDTD::add_result(const char *name, Result *r)
@@ -249,11 +252,29 @@ void FDTD::run(int rank, int size)
   // Run
   unsigned int ts = 0;
 
+  // For optionally tracking millions of nodes per second. 
+  time_t start, now, time_total = 0;
+  clock_t start_cpu, now_cpu, time_total_cpu = 0;
+
   for (ts = 1; ts <= time_steps_; ts++) {
     cout << "phred time step " << ts << endl;
-
+    
     // Fields update
+    if (mnps) 
+    {
+      start=time(NULL);
+      start_cpu = clock();
+    }
+
     grid_->update_h_field();
+
+    if (mnps) 
+    {
+      now = time(NULL);
+      now_cpu = clock();
+      time_total += now - start;
+      time_total_cpu += now_cpu - start_cpu;
+    }
 
     // Excitations
     h_eiter = h_eiter_b;
@@ -267,8 +288,22 @@ void FDTD::run(int rank, int size)
     grid_->apply_boundaries(H);
 
     // Fields update
+    if (mnps) 
+    {
+      start=time(NULL);
+      start_cpu = clock();
+    }
+
     grid_->update_e_field();
     
+    if (mnps) 
+    {
+      now = time(NULL);
+      now_cpu = clock();
+      time_total += now - start;
+      time_total_cpu += now_cpu - start_cpu;
+    }
+
     // Excitations
     e_eiter = e_eiter_b;
     while (e_eiter != e_eiter_e)
@@ -297,6 +332,19 @@ void FDTD::run(int rank, int size)
     }
     
   } // End of main loop
+
+  if (mnps)
+  {
+    time_t avg_time = time_total / time_steps_;
+    clock_t avg_cpu_time = time_total_cpu / time_steps_;
+    unsigned int num_mnodes = grid_->get_num_updated_nodes() / 1e6;
+
+    cout << "Average millions of nodes per second, w.r.t. wall clock time: " 
+         << num_mnodes / avg_time << endl;
+    cout << "Average millions of nodes per second, w.r.t. CPU time: " 
+         << num_mnodes / (avg_cpu_time / static_cast<double>(CLOCKS_PER_SEC)) 
+         << endl;
+  }
 
   // life cycle de init
   e_eiter = e_eiter_b;

@@ -27,16 +27,14 @@
 /**
  * A wave guide excitation. Exciates TE_{nm} modes across a retangular
  * window.
+ *
+ * \bug this class really isn't that intellegent. 
  */ 
 class WaveGuideExcitation : public WindowedExcitation
 {
 public:
-  WaveGuideExcitation(SouceFunction *sf)
-    : WindowedExcitation(sf)
-  {}
-
-  ~WaveGuideExcitation()
-  {}
+  WaveGuideExcitation(SouceFunction *sf);
+  ~WaveGuideExcitation();
 
   virtual field_t window(region_t r, unsigned int x, unsigned int y, 
                          unsigned int z);
@@ -54,7 +52,8 @@ public:
   }
 
   /** 
-   * Set the excitation size, location, and orientation.
+   * Set the excitation size, location, and orientation. This is
+   * totally weak. ugg.
    */
   void set_wg_excitation(unsigned int x, unsigned int y, unsigned int z,
                          unsigned int width, unsigned int height, 
@@ -66,6 +65,26 @@ public:
     width_ = width;
     height_ = height;
     axis_ = a;
+
+    region_.xmin = x_;
+    region_.ymin = y_;
+    region_.zmin = z_;
+
+    switch (axis_)
+    {
+    case X_AXIS:
+      region_.ymax = y_ + width;
+      region_.zmax = z_ + height;
+      break;
+    case Y_AXIS:
+      region_.xmax = x_ + width;
+      region_.zmax = z_ + height;
+      break;
+    case Z_AXIS:
+      region_.xmax = x_ + width;
+      region_.ymax = y_ + height;
+      break;
+    }
   }
 
   /**
@@ -73,7 +92,7 @@ public:
    * suitable region and set the mode numbers for each axis. Make
    * sure everything is inside the local region, etc.
    */ 
-  virtual void init(const Grid &grid);
+  //virtual void init(const Grid &grid);
 
 protected:
   unsigned int mode_n_;

@@ -241,6 +241,14 @@ public:
   }
 
   /**
+   * Returns the field type.
+   */
+  inline FieldType get_type()
+  {
+    return type_;
+  }
+
+  /**
    * Tells if this source is "soft" or not. Soft sources are
    * additive. 
    */
@@ -256,6 +264,14 @@ public:
   inline void set_soft(bool soft)
   {
     soft_ = soft;
+  }
+
+  /**
+   * Verify that the excitation region is entierly inside the global grid. 
+   */
+  virtual void init(const Grid &grid)
+  {
+    
   }
 
 };

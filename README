@@ -24,6 +24,20 @@ Comments are welcome.
 	- Matt Hughes <mhughe@uvic.ca>
 
 
+USING PYTHON:
+
+Python is a very powerful feature of Phred. Although Phred can be
+used without Python, it is a very useful thing to compile in. Python
+is known to work on Linux, Mac OS X, and AIX. If you install install
+Python your self, be sure to 'make libinstall' and 'make
+libpython2.3.so'. 'make altinstall' seems to be the only target that
+actually installs the shared library in $PREFIX/lib. 
+
+On AIX, I had to use GCC 3.3.3 to build boost.python, because the
+Visual Age 6 C++ compiler choked on partial template specializations
+used by boost. I used Visual Age to compile the rest of Phred,
+for the MPI and OpenMP stuff to work. 
+
 
 NOTE ON LICENCES:
 This program optionally depends on a number of other software

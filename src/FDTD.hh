@@ -171,18 +171,11 @@ public:
   void load_materials(MaterialLib &matlib);
 
   /**
-   * Let us know about a electric excitation, or replace one of the
+   * Let us know about an excitation, or replace one of the
    * same name.  You are passing in a pointer; don't dispose of the
    * object!
    */
-  void add_e_excitation(const char *name, Excitation *ex);
-
-  /**
-   * Let us know about a magnetic excitation, or replace one of the
-   * same name.  You are passing in a pointer; don't dispose of the
-   * object!
-   */
-  void add_h_excitation(const char *name, Excitation *ex);
+  void add_excitation(const char *name, Excitation *ex);
 
   /**
    * Add a result object, or replace one of the same name. 

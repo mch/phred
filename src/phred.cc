@@ -135,6 +135,8 @@ static struct poptOption options[] =
     {"version", 'V', POPT_ARG_NONE, 0, 'V'},
     {"interactive", 'i', POPT_ARG_NONE, 0, 'i'},
     {"file", 'f', POPT_ARG_STRING, 0, 'f'},
+    {"memory", 'm', POPT_ARG_NONE, 0, 'm'},
+    {"mnps", 'b', POPT_ARG_NONE, 0, 'b'}, 
     {0, 0, 0, 0, 0}
   };
 #endif
@@ -146,7 +148,7 @@ static string get_extension(string filename);
 // Ugly globals
 string inputfile;
 const char *program_name;
-bool interactive;
+extern bool interactive, estimate_memory, mnps;
 
 // Test runs
 static void point_test(int rank, int size);
@@ -162,6 +164,7 @@ main (int argc, char **argv)
   string prog_name;
   char *temp;
   interactive = false;
+  estimate_memory = false;
 
   //std::set_terminate (__gnu_cxx::__verbose_terminate_handler);
 
@@ -310,6 +313,14 @@ decode_switches (int argc, char **argv)
       }
       break;
 
+    case 'm':
+      estimate_memory = true; 
+      break;
+
+    case 'b':
+      mnps = true;
+      break;
+
     default:
       cout << "WARNING: got unknown option number: " << c << endl;
     }
@@ -341,6 +352,9 @@ Options:\n\
                              interpreters running on the other ranks.\n");
 #endif
   printf("  -h, --help                 display this help and exit\n\
+  -m, --memory               Estimate amount of required memory and exit\n\
+  -b, --mnps                 Benchmark: estimate the millions of nodes \n\
+                             processed per second\n\
   -V, --version              output version information and exit\n\
 ");
 #else
@@ -420,7 +434,7 @@ static void point_test(int rank, int size)
   ex.set_region(50, 50, 50, 50, 50, 50);
   ex.set_polarization(0.0, 1.0, 0.0);
   
-  fdtd.add_e_excitation("modgauss", &ex);
+  fdtd.add_excitation("modgauss", &ex);
 
   // Results
   point_t p;
@@ -562,7 +576,7 @@ static void pml_test(int rank, int size)
   //ex.set_region(20, 20, 6, 13, 6, 13);
   ex.set_polarization(0.0, 1.0, 0.0);
 
-  fdtd.add_e_excitation("modgauss", &ex);
+  fdtd.add_excitation("modgauss", &ex);
 
   // Results
   point_t p;
@@ -782,7 +796,7 @@ static void takakura_test(int rank, int size)
   ex.set_region(6, 43, 6, 313, 15, 15);
   ex.set_polarization(0.0, 1.0, 0.0);
 
-  fdtd.add_e_excitation("modgauss", &ex);
+  fdtd.add_excitation("modgauss", &ex);
 
   // Results
   point_t p;

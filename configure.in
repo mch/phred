@@ -217,12 +217,15 @@ Py_Initialize();
 
 	BOOST_LIBS=""
 	if [[ ! -z "$with_boost_libs" ]]; then
-		BOOST_LIBS="-L $with_boost_libs"
+		BOOST_LIBS="-L$with_boost_libs"
 	fi
 
-        AC_CHECK_LIB(boost_python, PyBaseObject_Type, [], [
-            AC_MSG_ERROR(*** Can't find the Boost Python library.)], 
-            [$BOOST_LIBS])
+dnl        AC_CHECK_LIB(boost_python, PyBaseObject_Type, [], [
+dnl            AC_MSG_ERROR(*** Can't find the Boost Python library.)], 
+dnl            [$BOOST_LIBS])
+
+	LIBS="$LIBS -lboost_python"
+	CXXFLAGS="$CXXFLAGS $BOOST_LIBS"
 
 	CXX=$OLD_CXX
 	CXXCPP=$OLD_CXXCPP
