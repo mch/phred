@@ -163,7 +163,7 @@ main (int argc, char **argv)
   char *temp;
   interactive = false;
 
-  std::set_terminate (__gnu_cxx::__verbose_terminate_handler);
+  //std::set_terminate (__gnu_cxx::__verbose_terminate_handler);
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -464,20 +464,20 @@ static void pml_test(int rank, int size)
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
   //fdtd.set_time_delta(3.1250e-17);
 
-//   Pml front(VP, 1.0), back(VP, 1.0), left(VP, 1.0), right(VP, 1.0),
-//     top(VP, 1.0), bottom(VP, 1.0);
-//   front.set_thickness(4);
-//   back.set_thickness(4);
-//   left.set_thickness(4);
-//   right.set_thickness(4);
-//   top.set_thickness(4);
-//   bottom.set_thickness(4);
+   Pml front(VP, 1.0), back(VP, 1.0), left(VP, 1.0), right(VP, 1.0),
+     top(VP, 1.0), bottom(VP, 1.0);
+   front.set_thickness(4);
+   back.set_thickness(4);
+   left.set_thickness(4);
+   right.set_thickness(4);
+   top.set_thickness(4);
+   bottom.set_thickness(4);
 
-  Ewall ewall;
-  UPml front, back, left, right, top, bottom;
-  front.set_thickness(4); back.set_thickness(4);
-  left.set_thickness(4); right.set_thickness(4);
-  top.set_thickness(4); bottom.set_thickness(4);
+  //Ewall ewall;
+  //UPml front, back, left, right, top, bottom;
+  //front.set_thickness(4); back.set_thickness(4);
+  //left.set_thickness(4); right.set_thickness(4);
+  //top.set_thickness(4); bottom.set_thickness(4);
 
   //fdtd.set_boundary(FRONT, &ewall);
   //fdtd.set_boundary(BACK, &ewall);
@@ -515,21 +515,21 @@ static void pml_test(int rank, int size)
 
   // Global coordinates. 
   Box all;
-  all.set_region(0, 75, 0, 21, 0, 21);
+  all.set_region(0, 100, 0, 50, 0, 50);
   all.set_material_id(1);
 
   Box metal1;
-  metal1.set_region(40, 65, 5, 14, 5, 14); // UNSTABLE
+  metal1.set_region(40, 65, 10, 40, 10, 40); // UNSTABLE
   metal1.set_material_id(3);
 
-  Box metal2;
-  metal2.set_region(45, 50, 5, 46, 35, 60);
-  metal2.set_material_id(3);
+//    Box metal2;
+//    metal2.set_region(45, 50, 5, 46, 35, 60);
+//    metal2.set_material_id(3);
 
-  Sphere sp1;
-  sp1.set_centre(point_t(40, 10, 10));
-  sp1.set_radius(5);
-  sp1.set_material_id(3);
+//    Sphere sp1;
+//    sp1.set_centre(point_t(40, 10, 10));
+//    sp1.set_radius(5);
+//    sp1.set_material_id(3);
 
   fdtd.add_geometry(&all);
   //fdtd.add_geometry(&metal1);
@@ -543,7 +543,7 @@ static void pml_test(int rank, int size)
   Excitation ex(&gm);
   //BartlettExcitation ex(gm);
   ex.set_soft(false);
-  ex.set_region(20, 20, 9, 9, 9, 9);
+  ex.set_region(20, 20, 25, 25, 25, 25);
   //ex.set_region(20, 20, 6, 13, 6, 13);
   ex.set_polarization(0.0, 1.0, 0.0);
 
@@ -552,8 +552,8 @@ static void pml_test(int rank, int size)
   // Results
   point_t p;
   p.x = 35;
-  p.y = 9;
-  p.z = 9;
+  p.y = 25;
+  p.z = 25;
   PointResult res1(p);
   PointDFTResult pdft(5e12, 600e12, 120);
   pdft.set_point(p);

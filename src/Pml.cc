@@ -381,42 +381,49 @@ void Pml::pml_update_ex(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
-  unsigned int i,j,k; 	/* indices in PML-layer */
-  unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+  int i,j,k; 	/* indices in PML-layer */
+  int it,jt,kt;/* indices in total computational domain (FDTD grid) */
 
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_ex_r_); 
 
   PmlCommon *com = PmlCommon::get_pml_common(grid);
 
+  i = pml_r.xmin;
+
 #ifdef USE_OPENMP
-#pragam omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt)
   {
-#pragam omp for
+#pragma omp for
 #endif
-    for(i = pml_r.xmin, it = grid_ex_r_.xmin; it < grid_ex_r_.xmax; i++, it++)
-      for(j = pml_r.ymin, jt = grid_ex_r_.ymin; jt < grid_ex_r_.ymax; j++, jt++)
-        for(k = pml_r.zmin, kt = grid_ex_r_.zmin; kt < grid_ex_r_.zmax; k++, kt++)
-        {
-          grid_idx = grid.pi(it, jt, kt);
-          pml_idx = pi(i, j, k);
-          
-          mid = grid.material_[grid_idx];
-          
-          exz_[pml_idx] = 
-            com->get_e_z_coef1(kt) * grid.Ca_[mid] * exz_[pml_idx] 
-            + com->get_e_z_coef2(kt) * grid.Cbz_[mid] 
-            * (grid.hy_[grid.pi(it, jt, kt-1)] 
-               - grid.hy_[grid.pi(it, jt, kt)]);
+    for(it = grid_ex_r_.xmin; it < grid_ex_r_.xmax; it++)
+      {
+	for(j = pml_r.ymin, jt = grid_ex_r_.ymin; jt < grid_ex_r_.ymax; j++, jt++)
+	  {
+	    for(k = pml_r.zmin, kt = grid_ex_r_.zmin; kt < grid_ex_r_.zmax; k++, kt++)
+	      {
+		grid_idx = grid.pi(it, jt, kt);
+		pml_idx = pi(i, j, k);
+		
+		mid = grid.material_[grid_idx];
+		
+		exz_[pml_idx] = 
+		  com->get_e_z_coef1(kt) * grid.Ca_[mid] * exz_[pml_idx] 
+		  + com->get_e_z_coef2(kt) * grid.Cbz_[mid] 
+		  * (grid.hy_[grid.pi(it, jt, kt-1)] 
+		     - grid.hy_[grid.pi(it, jt, kt)]);
+		
+		exy_[pml_idx] = 
+		  com->get_e_y_coef1(jt) * grid.Ca_[mid] * exy_[pml_idx] 
+		  + com->get_e_y_coef2(jt) * grid.Cby_[mid] 
+		  * (grid.hz_[grid.pi(it, jt, kt)] 
+		     - grid.hz_[grid.pi(it, jt-1, kt)]);
         
-          exy_[pml_idx] = 
-            com->get_e_y_coef1(jt) * grid.Ca_[mid] * exy_[pml_idx] 
-            + com->get_e_y_coef2(jt) * grid.Cby_[mid] 
-            * (grid.hz_[grid.pi(it, jt, kt)] 
-               - grid.hz_[grid.pi(it, jt-1, kt)]);
-        
-          grid.ex_[grid_idx] = exz_[pml_idx] + exy_[pml_idx];
-        }
+		grid.ex_[grid_idx] = exz_[pml_idx] + exy_[pml_idx];
+	      }
+	  }
+	i++;
+      }
 #ifdef USE_OPENMP
   }
 #endif

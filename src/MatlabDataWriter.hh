@@ -121,7 +121,9 @@ private:
   MatlabElement(const MatlabElement &rhs)
   {}
   const MatlabElement &operator=(const MatlabElement &rhs)
-  {}
+  {
+    return *this;
+  }
 
 protected:
   data_tag_t tag_; /**< Type and size of data */ 
@@ -210,7 +212,9 @@ private:
   MatlabArray(const MatlabArray &rhs)
   {}
   const MatlabArray &operator=(const MatlabArray &rhs)
-  {}
+  {
+    return *this;
+  }
 
 protected:
   MatlabElement me_flags_;
