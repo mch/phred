@@ -1007,13 +1007,15 @@ grid_point Grid::global_to_local(grid_point p) const
   return r;
 }
 
-region_t Grid::global_to_local(region_t in, bool no_ol) const
+Block Grid::global_to_local(Block in, bool no_ol) const
 {
-  region_t r;
+  Block r;
   unsigned int dx = info_.dimx_, dy = info_.dimy_, dz = info_.dimz_;
 
-  r.xmin = r.ymin = r.zmin = 0;
-  r.xmax = r.ymax = r.zmax = 0;
+  r.is_global_ = false;
+
+  r.xmin_ = r.ymin_ = r.zmin_ = 0;
+  r.xmax_ = r.ymax_ = r.zmax_ = 0;
 
   if (no_ol)
   {
@@ -1022,44 +1024,44 @@ region_t Grid::global_to_local(region_t in, bool no_ol) const
     dz = info_.dimz_no_sd_;
   }
 
-  r.xmin = (info_.start_x_ > in.xmin) ? 0
-    : in.xmin - info_.start_x_;
-  r.ymin = (info_.start_y_ > in.ymin) ? 0
-    : in.ymin - info_.start_y_;
-  r.zmin = (info_.start_z_ > in.zmin) ? 0
-    : in.zmin - info_.start_z_;
+  r.xmin_ = (info_.start_x_ > in.xmin_) ? 0
+    : in.xmin_ - info_.start_x_;
+  r.ymin_ = (info_.start_y_ > in.ymin_) ? 0
+    : in.ymin_ - info_.start_y_;
+  r.zmin_ = (info_.start_z_ > in.zmin_) ? 0
+    : in.zmin_ - info_.start_z_;
 
-  r.xmax = (in.xmax >= info_.start_x_) ? 
-    ((in.xmax >= info_.start_x_ + info_.dimx_) 
-     ? info_.dimx_ : in.xmax - info_.start_x_ + 1)
+  r.xmax_ = (in.xmax_ >= info_.start_x_) ? 
+    ((in.xmax_ >= info_.start_x_ + info_.dimx_) 
+     ? info_.dimx_ : in.xmax_ - info_.start_x_ + 1)
     : 0;
 
-  r.ymax = (in.ymax >= info_.start_y_) ? 
-    ((in.ymax >= info_.start_y_ + info_.dimy_) 
-     ? info_.dimy_ : in.ymax - info_.start_y_ + 1)
+  r.ymax_ = (in.ymax_ >= info_.start_y_) ? 
+    ((in.ymax_ >= info_.start_y_ + info_.dimy_) 
+     ? info_.dimy_ : in.ymax_ - info_.start_y_ + 1)
     : 0;
 
-  r.zmax = (in.zmax >= info_.start_z_) ? 
-    ((in.zmax >= info_.start_z_ + info_.dimz_) 
-     ? info_.dimz_ : in.zmax - info_.start_z_ + 1)
+  r.zmax_ = (in.zmax_ >= info_.start_z_) ? 
+    ((in.zmax_ >= info_.start_z_ + info_.dimz_) 
+     ? info_.dimz_ : in.zmax_ - info_.start_z_ + 1)
     : 0;
 
   return r;
 }
 
-region_t Grid::global_to_local(unsigned int xmin, unsigned int x_stop, 
-                               unsigned int ymin, unsigned int y_stop, 
-                               unsigned int zmin, unsigned int z_stop,
-                               bool no_ol) const
+Block Grid::global_to_local(unsigned int xmin, unsigned int x_stop, 
+                            unsigned int ymin, unsigned int y_stop, 
+                            unsigned int zmin, unsigned int z_stop,
+                            bool no_ol) const
 {
-  region_t result;
+  Block result;
   
-  result.xmin = xmin;
-  result.xmax = x_stop;
-  result.ymin = ymin;
-  result.ymax = y_stop;
-  result.zmin = zmin;
-  result.zmax = z_stop;
+  result.xmin_ = xmin;
+  result.xmax_ = x_stop;
+  result.ymin_ = ymin;
+  result.ymax_ = y_stop;
+  result.zmin_ = zmin;
+  result.zmax_ = z_stop;
 
   return global_to_local(result, no_ol);
 }
@@ -1324,29 +1326,29 @@ grid_point Grid::get_global_cell(float x, float y, float z) const
   return ret;
 }
 
-region_t Grid::get_local_region(CSGBox &box) const
+Block Grid::get_local_region(CSGBox &box) const
 {
-  region_t hmm = get_global_region(box);
-  region_t ret = global_to_local(hmm);
+  Block hmm = get_global_region(box);
+  Block ret = global_to_local(hmm, true);
 
   point sz = box.get_size();
   point c = box.get_centre();
 
   cerr << "Box with centre at " << c.x << ", " << c.y << ", "
        << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
-       << " is a local region (" << ret.xmin << ", " << ret.ymin
-       << ", " << ret.zmin << ") -> (" << ret.xmax << ", " 
-       << ret.ymax << ", " << ret.zmax << ")"
+       << " is a local region (" << ret.xmin_ << ", " << ret.ymin_
+       << ", " << ret.zmin_ << ") -> (" << ret.xmax_ << ", " 
+       << ret.ymax_ << ", " << ret.zmax_ << ")"
        << endl;
 
   return ret;
 }
 
-region_t Grid::get_global_region(CSGBox &box) const
+Block Grid::get_global_region(CSGBox &box) const
 {
   point centre = box.get_centre();
   point size = box.get_size();
-  region_t ret;
+  Block ret;
 
   float xs = centre.x - size.x / 2;
   float ys = centre.y - size.y / 2;
@@ -1359,18 +1361,26 @@ region_t Grid::get_global_region(CSGBox &box) const
   grid_point start = get_global_cell(xs, ys, zs);
   grid_point end = get_global_cell(xe, ye, ze);
   
-  ret.xmin = start.x; ret.xmax = end.x;
-  ret.ymin = start.y; ret.ymax = end.y;
-  ret.zmin = start.z; ret.zmax = end.z;
+  ret.xmin_ = start.x; ret.xmax_ = end.x;
+  ret.ymin_ = start.y; ret.ymax_ = end.y;
+  ret.zmin_ = start.z; ret.zmax_ = end.z;
+
+  ret.start_x_ = ret.xmin_;
+  ret.start_y_ = ret.ymin_;
+  ret.start_z_ = ret.zmin_;
+
+  ret.len_x_ = ret.xmax_ - ret.xmin_;
+  ret.len_y_ = ret.ymax_ - ret.ymin_;
+  ret.len_z_ = ret.zmax_ - ret.zmin_;
 
   point sz = box.get_size();
   point c = box.get_centre();
 
   cerr << "Box with centre at " << c.x << ", " << c.y << ", "
        << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
-       << " is a global region (" << ret.xmin << ", " << ret.ymin
-       << ", " << ret.zmin << ") -> (" << ret.xmax << ", " 
-       << ret.ymax << ", " << ret.zmax << ")"
+       << " is a global region (" << ret.xmin_ << ", " << ret.ymin_
+       << ", " << ret.zmin_ << ") -> (" << ret.xmax_ << ", " 
+       << ret.ymax_ << ", " << ret.zmax_ << ")"
        << endl;
 
   return ret;

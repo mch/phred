@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -56,6 +56,7 @@
 #include "GridInfo.hh"
 #include "Geometry.hh"
 #include "ProblemGeometry.hh"
+#include "Block.hh"
 
 #include <map>
 
@@ -428,7 +429,7 @@ class Grid {
    *
    * @return region in local coordinate. 
    */
-  region_t global_to_local(region_t r, bool no_ol = false) const;
+  Block global_to_local(Block r, bool no_ol = false) const;
 
   /**
    * Convert a global point to local coordinates.
@@ -454,10 +455,10 @@ class Grid {
    *
    * @return region_t in local coordinate. 
    */
-  region_t global_to_local(unsigned int xmin, unsigned int x_stop, 
-                           unsigned int ymin, unsigned int y_stop, 
-                           unsigned int zmin, unsigned int z_stop,
-                           bool no_ol = false) const;
+  Block global_to_local(unsigned int xmin, unsigned int x_stop, 
+                        unsigned int ymin, unsigned int y_stop, 
+                        unsigned int zmin, unsigned int z_stop,
+                        bool no_ol = false) const;
 
   /**
    * Define geometry in the grid (i.e. assign material indicies to
@@ -960,7 +961,7 @@ class Grid {
    * Returned region is in local coordinates, suitable for iterating
    * over.
    */ 
-  region_t get_local_region(CSGBox &box) const;
+  Block get_local_region(CSGBox &box) const;
 
   /**
    * Returns a region of cells contained inside a given non-rotated
@@ -969,7 +970,7 @@ class Grid {
    * Returned region is in GLOBAL coordinates, suitable only for setting
    * up dimensions in Results. 
    */ 
-  region_t get_global_region(CSGBox &box) const;
+  Block get_global_region(CSGBox &box) const;
 
   /**
    * Returns the grid cell point containing the given real point. If
