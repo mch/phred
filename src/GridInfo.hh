@@ -8,6 +8,8 @@
 #include "SubdomainBc.hh"
 #include "Pml.hh"
 
+#include "counted_ptr.hh"
+
 /**
  * This class is plain old data that is in class form "just in
  * case". Think of it as a structure. All members are public, but
@@ -69,13 +71,17 @@ public:
   // 5 - Top (z = dimz, XY plane)
   //
 protected:
-  BoundaryCond *face_bc_[6]; // Boundary condition to apply
-  BoundaryCondition face_bc_type_[6]; // Boundary condition type
+  // THIS MAY BE A PRIME SMART POINTER CANDIDATE, due to the copying complexity. 
+  counted_ptr<BoundaryCond> *face_bc_[6]; // Boundary condition to apply
 
   /**
-   * A little helper for copying boundary condition pointers.
+   * GridInfo will occasionally have to take responsibility for
+   * deleting boundary conditions that get left with us, such as those
+   * created by the domain decomposition algorithm. This array tells
+   * us whats what (true is GridInfo owns the bc).
    */
-  BoundaryCond *copy_bc(BoundaryCond *bc, BoundaryCondition bc_type);
+  //bool face_ptr_owner_[6];
+  
   
 public:
   GridInfo();
@@ -107,7 +113,7 @@ public:
    * @return a BoundaryCond object of the type required, in which the
    * specifics of the boundary condition can be stored.
    */ 
-  BoundaryCond *set_boundary(Face face, BoundaryCondition bc);
+  void set_boundary(Face face, BoundaryCond *bc, bool take_ownership = false);
 
   /**
    * Set a PML boundary
@@ -127,7 +133,7 @@ public:
    */
   inline const BoundaryCondition get_bc_type(Face face)
   {
-    return face_bc_type_[face];
+    return face_bc_[face]->get()->get_type();
   }
 
   /** 
@@ -137,7 +143,7 @@ public:
    */
   inline BoundaryCond& get_boundary(Face face)
   {
-    return *face_bc_[face];
+    return *(face_bc_[face]->get());
   }
 
   /**

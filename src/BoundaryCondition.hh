@@ -53,6 +53,14 @@ public:
    */
   unsigned int get_thickness();
 
+  /**
+   * Boundary condition type. Subclasses may implement. Only really
+   * important for PMLs.
+   */
+  virtual BoundaryCondition get_type() 
+  {
+    return UNKNOWN;
+  }
 };
 
 /**

@@ -14,9 +14,9 @@
 #include "Types.hh"
 #include "Grid.hh"
 #include "SourceFunction.hh"
+#include "LifeCycle.hh"
 
-template<class T>
-class Excitation 
+class Excitation : public LifeCycle
 {
 protected:
   /**
@@ -41,7 +41,7 @@ protected:
    */
   bool soft_;
 
-  T &sf_; /**< Source function object to apply */
+  SourceFunction *sf_; /**< Source function object to apply */
 
 public:
 
@@ -53,7 +53,7 @@ public:
    *
    * @param sf SourceFunction object to use as an excitation. 
    */
-  Excitation(T &sf)
+  Excitation(SourceFunction *sf)
     : type_(E), soft_(false),
       sf_(sf)
   {
@@ -83,7 +83,7 @@ public:
 
     region_t r = grid.global_to_local(region_);
 
-    field_t sf = sf_.source_function(grid, time_step);
+    field_t sf = sf_->source_function(grid, time_step);
     field_t fld[3];
 
     fld[0] = sf * polarization_[0];

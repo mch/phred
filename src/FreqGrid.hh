@@ -4,6 +4,20 @@
  * A derivation of grid which allows for frequency dependent material,
  * including conductive materials which result in the imaginary part
  * of permittivity being dependent on frequency.
+ *
+ * \bug We'll do the "hard on memory" approach first, treating every
+ * cell as if it were a plasma material, but with constants which
+ * reduce the equations to the normal Taflove perfect conductor
+ * equations. This will probably be faster than....
+ *
+ * \bug compute the normal update equations over the entire region
+ * first and only re-compute the plasma equations in the region where
+ * there is actually plasma... or...
+ * 
+ * \bug Put an "if" inside the loop to see if the plasma or normal
+ * update equations should be used. This may kill pipeline
+ * performance, but it might also be ok, because we can probably
+ * expect to go for long stretches with the same "if" outcome. 
  */
 
 #ifndef FREQ_GRID_H

@@ -10,8 +10,7 @@
  * Check the Bartlett Window definition at:
  * http://www.cg.tuwien.ac.at/studentwork/CESCG/CESCG99/TTheussl/node6.html
  */
-template<class T>
-class BartlettExcitation : public WindowedExcitation<T>
+class BartlettExcitation : public WindowedExcitation
 {
 private:
 protected:
@@ -36,8 +35,8 @@ protected:
   }
 
 public:
-  BartlettExcitation(T &sf) 
-    : WindowedExcitation<T>(sf)
+  BartlettExcitation(SourceFunction *sf) 
+    : WindowedExcitation(sf)
   {}
 
   ~BartlettExcitation()

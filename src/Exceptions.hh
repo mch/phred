@@ -73,4 +73,12 @@ public:
   }
 };
 
+class FDTDException : public std::exception {
+private:
+  const char *buf_;
+public:
+  FDTDException(const char *buf) : buf_(buf) {}
+  const char *what() const throw() { return buf_; }
+};
+
 #endif // EXCEPTIONS_H

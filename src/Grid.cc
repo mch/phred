@@ -513,12 +513,6 @@ void Grid::update_ex()
           + Cby_[mid] * (*hz1 - *hz2)
           + Cbz_[mid] * (*(hy - 1) - *hy);
 
-//         ex_[idx] = Ca_[mid] * ex_[idx]
-//           + Cby_[mid] * (hz_[idx] - hz_[idx2])
-//           + Cbz_[mid] * (hy_[idx-1] - hy_[idx]);
-        
-//        idx++;
-//        idx2++;
         ex++;
         hz1++;
         hz2++;

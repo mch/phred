@@ -732,3 +732,8 @@ void Pml::add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface)
   sd->add_tx_rx_data(ret);
 
 }
+
+BoundaryCondition get_type()
+{
+  return PML;
+}

@@ -208,6 +208,11 @@ public:
    */
   void add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface);
 
+  /**
+   * Returns a BoundayCondition type so the grid knows this is a pml.
+   */
+  virtual BoundaryCondition get_type();
+
 protected: // Only called by apply().
 
   /**

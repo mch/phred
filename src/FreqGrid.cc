@@ -47,7 +47,40 @@ void FreqGrid::free_material()
 }
 
 void FreqGrid::update_ex()
-{}
+{
+ unsigned int mid, idx, idx2;
+  int i, j, k;
+  field_t *ex, *hz1, *hz2, *hy;
+
+  // Inner part
+  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+    for (j = update_r_.ymin + 1; j < update_r_.ymax; j++) {
+      
+      idx = pi(i, j, update_r_.zmin + 1);
+      idx2 = pi(i, j-1, update_r_.zmin + 1);
+      ex = &(ex_[idx]);
+      hz1 = &(hz_[idx]);
+      hz2 = &(hz_[idx2]);
+      hy = &(hy_[idx]);
+
+#ifdef USE_OPENMP
+#pragma omp parallel for
+#endif
+      for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
+        mid = material_[idx];
+        
+        *ex = Ca_[mid] * *ex
+          + Cby_[mid] * (*hz1 - *hz2)
+          + Cbz_[mid] * (*(hy - 1) - *hy);
+
+        ex++;
+        hz1++;
+        hz2++;
+        hy++;
+      }
+    }
+  }
+}
 
 void FreqGrid::update_ey()
 {}

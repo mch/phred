@@ -6,8 +6,7 @@
 /**
  * An excitation that is windowed in 3 space by some windowing function. 
  */
-template<class T>
-class WindowedExcitation : public Excitation<T>
+class WindowedExcitation : public Excitation
 {
 private:
 protected:
@@ -22,8 +21,8 @@ protected:
                          unsigned int z) = 0;
 
 public:
-  WindowedExcitation(T &sf) 
-    : Excitation<T>(sf)
+  WindowedExcitation(SourceFunction *sf) 
+    : Excitation(sf)
   {}
 
   virtual ~WindowedExcitation()
@@ -45,7 +44,7 @@ public:
 
     region_t r = grid.global_to_local(region_);
 
-    field_t sf = sf_.source_function(grid, time_step);
+    field_t sf = sf_->source_function(grid, time_step);
     field_t fld[3];
 
     // Bartlett window coefficients

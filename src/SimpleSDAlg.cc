@@ -111,53 +111,60 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
   SubdomainBc *sdbc = 0;
 
   if (x != 0) { // BACK
-    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(BACK, 
-                                                            SUBDOMAIN)));
+    sdbc = new SubdomainBc();
+
     sdbc->set_neighbour((z*m + y) * n + (x-1));
     sdbc->set_rank(rank);
+    result.set_boundary(BACK, sdbc, true);
+
     result.dimx_++;
     result.start_x_--;
   }
 
   if (x != n - 1) { // FRONT
-    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(FRONT, 
-                                                            SUBDOMAIN)));
+    sdbc = new SubdomainBc();
+
     sdbc->set_neighbour((z*m + y) * n + (x+1));
     sdbc->set_rank(rank);
+    result.set_boundary(FRONT, sdbc, true);
     result.dimx_++;
   } 
 
   if (y != 0) { // LEFT 
-    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(LEFT, 
-                                                            SUBDOMAIN)));
+    sdbc = new SubdomainBc();
+
     sdbc->set_neighbour((z*m + (y-1)) * n + x);
     sdbc->set_rank(rank);
+    result.set_boundary(LEFT, sdbc, true);
     result.dimy_++;
     result.start_y_--;
   } 
 
   if (y != m - 1) { // RIGHT
-    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(RIGHT, 
-                                                             SUBDOMAIN)));
+    sdbc = new SubdomainBc();
+
     sdbc->set_neighbour((z*m + (y+1)) * n + x);
     sdbc->set_rank(rank);
+    result.set_boundary(RIGHT, sdbc, true);
     result.dimy_++;
   }
 
   if (z != 0) { // BOTTOM
-    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(BOTTOM, 
-                                                             SUBDOMAIN)));
+    sdbc = new SubdomainBc();
+
     sdbc->set_neighbour(((z-1)*m + y) * n + x);
     sdbc->set_rank(rank);
+    result.set_boundary(BOTTOM, sdbc, true);
     result.dimz_++;
     result.start_z_--;
   }
 
   if (z != p - 1) { // TOP
-    sdbc = (dynamic_cast<SubdomainBc *>(result.set_boundary(TOP, 
-                                                             SUBDOMAIN)));
+    sdbc = new SubdomainBc();
+
     sdbc->set_neighbour(((z+1)*m + y) * n + x);
     sdbc->set_rank(rank);
+    result.set_boundary(TOP, sdbc, true);
     result.dimz_++;
   }
 

@@ -23,12 +23,14 @@ AM_YFLAGS = -d
 
 phred_LDADD += @LEXLIB@
 
-phred_SOURCES=phred.cc \
+phred_SOURCES=\
 	jan-grammer.yy \
 	jan-grammer-flex.ll \
 	system.h \
 	LifeCycle.hh \
 	LifeCycle.cc \
+	FDTD.hh \
+	FDTD.cc \
 	Geometry.hh \
 	Grid.cc \
 	Grid.hh \
@@ -89,6 +91,7 @@ phred_SOURCES=phred.cc \
 	SourceTimeResult.hh \
 	SourceTimeResult.cc \
 	SourceDFTResult.hh \
-	SourceDFTResult.cc $(phred_cond)
+	SourceDFTResult.cc \
+	phred.cc $(phred_cond)
 
 #	SpaceExcitation.cc 

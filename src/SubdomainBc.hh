@@ -88,5 +88,10 @@ public:
    */
   void add_tx_rx_data(const RxTxData &x);
 
+  /**
+   * Returns a BoundayCondition type so the grid knows this is a pml.
+   */
+  virtual BoundaryCondition get_type();
+
 };
 #endif // SUBDOMAIN_BC_H
