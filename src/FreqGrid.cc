@@ -212,7 +212,7 @@ void FreqGrid::update_ex()
 
   // Inner part
 #ifdef USE_OPENMP
-#pragma parallel  private(mid, i, j, k, idx, idx2, ex, hz1, hz2, hy)
+#pragma omp parallel private(mid, i, j, k, idx, idx2, ex, hz1, hz2, hy)
 #endif
   {
 #ifdef USE_OPENMP
@@ -278,7 +278,7 @@ void FreqGrid::update_ey()
 
   // Inner part
 #ifdef USE_OPENMP
-#pragma parallel private(mid, i, j, k, idx, ey, hx, hz1, hz2)
+#pragma omp parallel private(mid, i, j, k, idx, ey, hx, hz1, hz2)
 #endif
   {
 #ifdef USE_OPENMP
@@ -344,7 +344,7 @@ void FreqGrid::update_ez()
   
   // Inner part
 #ifdef USE_OPENMP
-#pragma parallel private(mid, k, idx, ez, hy1, hy2, hx1, hx2)
+#pragma omp parallel private(mid, k, idx, ez, hy1, hy2, hx1, hx2)
 #endif
   {
 #ifdef USE_OPENMP

@@ -655,7 +655,7 @@ void Grid::update_ex()
 
   // Inner part
 #ifdef USE_OPENMP
-#pragma parallel  private(mid, i, j, k, idx, idx2, ex, hz1, hz2, hy)
+#pragma omp parallel  private(mid, i, j, k, idx, idx2, ex, hz1, hz2, hy)
 #endif
   {
 #ifdef USE_OPENMP
@@ -700,7 +700,7 @@ void Grid::update_ey()
 
   // Inner part
 #ifdef USE_OPENMP
-#pragma parallel private(mid, i, j, k, idx, ey, hx, hz1, hz2)
+#pragma omp parallel private(mid, i, j, k, idx, ey, hx, hz1, hz2)
 #endif
   {
 #ifdef USE_OPENMP
@@ -743,7 +743,7 @@ void Grid::update_ez()
   
   // Inner part
 #ifdef USE_OPENMP
-#pragma parallel private(mid, i, j, k, idx, ez, hy1, hy2, hx1, hx2)
+#pragma omp parallel private(mid, i, j, k, idx, ez, hy1, hy2, hx1, hx2)
 #endif
   {
 #ifdef USE_OPENMP
@@ -784,7 +784,7 @@ void Grid::update_hx()
   field_t *hx, *ez1, *ez2, *ey;
 
 #ifdef USE_OPENMP
-#pragma parallel  private(mid, i, j, k, idx, hx, ez1, ez2, ey)
+#pragma omp parallel  private(mid, i, j, k, idx, hx, ez1, ez2, ey)
 #endif
   {
 #ifdef USE_OPENMP
@@ -825,7 +825,7 @@ void Grid::update_hy()
 
 
 #ifdef USE_OPENMP
-#pragma parallel private(mid, i, j, k, idx, hy, ex, ez1, ez2)
+#pragma omp parallel private(mid, i, j, k, idx, hy, ex, ez1, ez2)
 #endif
   {
 #ifdef USE_OPENMP
@@ -864,7 +864,7 @@ void Grid::update_hz()
   field_t *hz1, *ey1, *ey2, *ex1, *ex2;
 
 #ifdef USE_OPENMP
-#pragma parallel private(mid, i, j, k, idx, hz1, ey1, ey2, ex1, ex2)
+#pragma omp parallel private(mid, i, j, k, idx, hz1, ey1, ey2, ex1, ex2)
 #endif
   {
 #ifdef USE_OPENMP
