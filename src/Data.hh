@@ -18,7 +18,6 @@ protected:
   void *ptr_;
   unsigned int num_; /**< Number of items of type_ that can be
                         accessed by ptr_ */ 
-  unsigned int num_bytes_; /**< Number of bytes per item */
   string var_name_; /**< The name of the variable this data belongs
                        to. */ 
 
@@ -29,34 +28,16 @@ public:
     MPI_Type_contiguous(1, GRID_MPI_TYPE, &type_);
     MPI_Type_commit(&type_);
     var_name_ = var_name;
-    num_bytes_ = sizeof(field_t);
   }
 
   Data()
   {
     MPI_Type_contiguous(1, GRID_MPI_TYPE, &type_);
     MPI_Type_commit(&type_);
-    num_bytes_ = sizeof(field_t);
   }
 
   ~Data()
   {}
-
-  /**
-   * Get the number of bytes per item
-   */
-  inline unsigned int get_num_bytes()
-  {
-    return num_bytes_;
-  }
-
-  /**
-   * Set the number of bytes per item.
-   */
-  inline void set_num_bytes(unsigned int nb)
-  {
-    num_bytes_ = nb;
-  }
 
   /**
    * Get the variable name for this data. 

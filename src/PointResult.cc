@@ -6,7 +6,6 @@ PointResult::PointResult()
   MPI_Type_contiguous(7, GRID_MPI_TYPE, &temp);
   MPI_Type_commit(&temp);
   data_.set_datatype(temp);
-  data_.set_num_bytes(sizeof(field_t) * 7);
 
   num_dims_ = 1;
   dim_lens_ = new unsigned int[1];

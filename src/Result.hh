@@ -52,7 +52,7 @@ protected:
   inline bool result_time(unsigned int time_step) 
   {
     if (time_step >= time_start_ && time_step <= time_stop_
-        && (time_step - time_start_) % time_space_)
+        && (time_space_ == 0 || (time_step - time_start_) % time_space_))
       return true;
     else 
       return false; 
@@ -60,7 +60,8 @@ protected:
 
 public:
   Result() 
-    : num_dims_(0), dim_lens_(0) //, dw_(0)
+    : num_dims_(0), dim_lens_(0), time_start_(0), time_stop_(~0),
+      time_space_(0) //, dw_(0)
   {}
 
   virtual ~Result()

@@ -98,7 +98,7 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "Hwall.hh"
 #include "PointResult.hh"
 #include "AsciiDataWriter.hh"
-
+#include "PlaneResult.hh"
 
 #define EXIT_FAILURE 1
 
@@ -124,6 +124,208 @@ static int decode_switches (int argc, char **argv);
 string inputfile;
 const char *program_name;
 
+
+static void test_yz_plane(field_t *ptr, MPI_Datatype t, int xpos, int rank)
+{
+  int sz, pos, floats,j,k,i;
+  field_t *r, *sum, *sum2, **sums;
+  MPI_Status status;
+  MPI_Datatype rt;
+
+  MPI_Type_size(t, &sz);
+
+  floats = sz / sizeof(field_t);
+
+  r = new field_t[floats];
+  
+  cout << "Testing MPI yz plane datatype at x = " << xpos << endl;
+
+  ptr += 0 + (0 + xpos*50)*50;
+
+  MPI_Type_contiguous(floats, MPI_FLOAT, &rt);
+  MPI_Type_commit(&rt);
+
+  MPI_Sendrecv(static_cast<void *>(ptr), 1, t, rank, 1,
+               static_cast<void *>(r), 1, rt, rank, 1,
+               MPI_COMM_WORLD, &status);  
+  
+  int idx = 0;
+  for (i = 0; i < 50; i++) {
+    for (j = 0; j < 50; j++) {
+      cout.width(4);
+      cout << r[idx++];
+    }
+    cout << endl;
+  }
+
+  cout << endl;
+
+  delete[] r;    
+  
+}
+
+// This one works
+static void test2(field_t *ptr, MPI_Datatype t)
+{
+  int sz, pos, floats;
+  field_t *r;
+
+  MPI_Type_size(t, &sz);
+
+  floats = sz / sizeof(field_t);
+
+  cout << "Simple loop: Subdomain plane is some " << sz << " bytes in size, or "
+       << floats << " floats..." << endl;
+
+  unsigned int i, j, k;
+  for (j=0; j < 50; j++) {
+    for (k=0; k < 50; k++) {
+      cout << ptr[k + j*50] << " ";
+      if ((k+j*50) % 50 == 0) 
+        cout << endl;
+    }
+  }
+  
+}
+
+// This one works
+static void test3_yz(Grid &grid, int i)
+{
+  int sz, pos, floats;
+
+  unsigned int j, k;
+
+  cout << "Another simple loop, calling grid functions..." << endl;
+  for (j=0; j < 50; j++) {
+    for (k=0; k < 50; k++) {
+      cout << grid.get_ey(i, j, k) << " ";
+      if ((k+j*50) % 50 == 0) 
+        cout << endl;
+    }
+  }
+}
+
+// This one works
+static void test4_z_vec(field_t *ptr, MPI_Datatype t)
+{
+  int sz, pos, floats, k, j;
+  field_t *r;
+
+  MPI_Type_size(t, &sz);
+
+  floats = sz / sizeof(field_t);
+
+  cout << "Z: Vector is some " << sz << " bytes in size, or "
+       << floats << " floats..." << endl;
+
+  ptr += (25 + 4*50)*50;
+
+  for (k=0; k < 50; k++) {
+    cout << ptr[k] << " ";
+    if ((k % 50 == 0))
+      cout << endl;
+  }
+  cout << endl << "Z: And the MPI way: " << endl;
+
+  r = new field_t[floats];
+  pos = 0;
+  MPI_Pack(static_cast<void *>(ptr), 1, t, 
+           static_cast<void *>(r), sz, &pos, MPI_COMM_WORLD);
+
+  cout << "Z: And here it is, pos = " << pos << "... " << endl;
+
+  for (int i = 0; i < floats; i++) {
+    cout << r[i] << " ";
+    if (i % 50 == 0)
+      cout << endl;
+  }
+  cout << endl;
+
+  delete[] r;
+}
+
+// This one works
+static void test5_y_vec(field_t *ptr, MPI_Datatype t)
+{
+  int sz, pos, floats, k, j;
+  field_t *r;
+
+  MPI_Type_size(t, &sz);
+
+  floats = sz / sizeof(field_t);
+
+  cout << "Y: Vector is some " << sz << " bytes in size, or "
+       << floats << " floats..." << endl;
+
+  ptr += 25 + (0 + 4*50)*50;
+
+  for (j=0; j < 50; j++) {
+    cout << ptr[j*50] << " ";
+    if ((j % 50 == 0))
+      cout << endl;
+  }
+  cout << endl;
+
+  cout << endl << "And the MPI way: " << endl;
+
+  r = new field_t[floats];
+  pos = 0;
+  MPI_Pack(static_cast<void *>(ptr), 1, t, 
+           static_cast<void *>(r), sz, &pos, MPI_COMM_WORLD);
+
+  cout << "Y: And here it is, pos = " << pos << "... " << endl;
+
+  for (int i = 0; i < floats; i++) {
+    cout << r[i] << " ";
+    if (i % 50 == 0)
+      cout << endl;
+  }
+  cout << endl;
+
+  delete[] r;
+}
+
+// This one works
+static void test6_x_vec(field_t *ptr, MPI_Datatype t)
+{
+  int sz, pos, floats, k, j, i;
+  field_t *r;
+
+  MPI_Type_size(t, &sz);
+
+  floats = sz / sizeof(field_t);
+
+  cout << "X: Vector is some " << sz << " bytes in size, or "
+       << floats << " floats..." << endl;
+
+  ptr += 25 + (25 + 0*50)*50;
+
+  for (i=0; i < 50; i++) {
+    cout << ptr[i*50*50] << " ";
+    if ((i % 50 == 0))
+      cout << endl;
+  }
+  cout << endl;
+
+  cout << endl << "And the MPI way: " << endl;
+
+  r = new field_t[floats];
+  pos = 0;
+  MPI_Pack(static_cast<void *>(ptr), 1, t, 
+           static_cast<void *>(r), sz, &pos, MPI_COMM_WORLD);
+
+  cout << "X: And here it is, pos = " << pos << "... " << endl;
+
+  for (int i = 0; i < floats; i++) {
+    cout << r[i] << " ";
+    if (i % 50 == 0)
+      cout << endl;
+  }
+  cout << endl;
+
+  delete[] r;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -145,48 +347,6 @@ main (int argc, char **argv)
     // args, although MPICH does.
     i = decode_switches (argc, argv);
   } 
-
-  // Our first try at MPI
-//   MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-//   if (rank != 0) {
-//     temp = new char(len + 1);
-//   } else {
-//     temp = const_cast<char *>(prog_name.c_str());
-//   }
-
-//   MPI_Bcast(temp, len + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
-
-//   if (rank != 0)
-//   {
-//     prog_name = temp;
-//     delete[] temp;
-//   }
-
-//   // Please sir, what file should I load? 
-//   if (rank == 0)
-//   {
-//     len = inputfile.size();
-//     temp = const_cast<char *>(inputfile.c_str());
-//   }
-
-//   MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-//   if (rank != 0) {
-//     temp = new char(len + 1);
-//   }
-
-//   MPI_Bcast(temp, len + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
-
-//   if (rank != 0) {
-//     inputfile = temp;
-//     delete[] temp;
-//   }
-
-//   cout << "My rank is " << rank << ", and my program name is " 
-//        << prog_name << " which is " << len << " chars long." << endl;
-//   cout << "I'm going to load data from the file '" << inputfile << "'."
-//        << endl;
 
   cout << "phread version " << PACKAGE_VERSION << " starting. " 
        << "Rank " << rank << " of " << size << "." << endl;
@@ -276,6 +436,18 @@ main (int argc, char **argv)
   adw3.set_filename("t_ey_30.txt");
   adw3.add_variable(res3);
 
+  point_t p2;
+  p2.x = 2;
+  p2.y = 25;
+  p2.z = 25;
+ 
+  AsciiDataWriter adw4(rank, size);
+  PlaneResult pr1;
+  pr1.set_plane(p2, BACK);
+  pr1.set_size(grid.get_ldy(), grid.get_ldz());
+  adw4.set_filename("yz_plane.txt");
+  adw4.add_variable(pr1);
+
   grid.set_define_mode(false);
   
   // Main loop
@@ -284,7 +456,8 @@ main (int argc, char **argv)
 
   //ex.excite(grid, ts, BOTH);
   grid.apply_boundaries();
-    
+
+
   cout << "main loop begins." << endl;  
   for (ts = 1; ts < num_time_steps; ts++) {
     cout << "phred, time step " << ts << ", excitation: " 
@@ -299,8 +472,29 @@ main (int argc, char **argv)
     ex.excite(grid, ts, E);
     ex.excite(grid, ts, H);
 
-    ex2.excite(grid, ts, E);
-    ex2.excite(grid, ts, H);
+    //ex2.excite(grid, ts, E);
+    //ex2.excite(grid, ts, H);
+
+    //test6_x_vec(grid.get_face_start(BACK, EY, 0), grid.get_x_vector_dt());
+    //test5_y_vec(grid.get_face_start(BACK, EY, 0), grid.get_y_vector_dt());
+    //test4_z_vec(grid.get_face_start(BACK, EY, 0), grid.get_z_vector_dt());
+    //test(grid.get_face_start(FRONT, EY, p2), grid.get_plane_dt(FRONT));
+    //cout << "\nTest2: " << endl;
+    //test2(grid.get_face_start(BACK, EY, 2), grid.get_plane_dt(FRONT));
+    //test3_yz(grid, 2);
+    //cout << "\nTest trans: " << endl;
+    //test_trans(grid.get_face_start(BACK, EY), grid.get_plane_dt(BACK));
+    //if (rank == 0)
+    //  test3(grid, 25);
+    //else
+    //test3(grid, 0);
+
+    //if (rank == 0)
+    //  test_yz_plane(grid.get_face_start(BACK, EY, 0), 
+    //                grid.get_plane_dt(BACK), 23, rank);
+    //else if (rank == 1)
+    //  test_yz_plane(grid.get_face_start(BACK, EY, 0), 
+    //                grid.get_plane_dt(BACK), 0, rank);
 
     // Boundary condition application
     grid.apply_boundaries();
@@ -308,6 +502,7 @@ main (int argc, char **argv)
     // Total / Scattered field interface confditions
 
     // Results
+    adw4.handle_data(ts, pr1.get_result(grid, ts));
     adw1.handle_data(ts, res1.get_result(grid, ts));
     adw2.handle_data(ts, res2.get_result(grid, ts));
     adw3.handle_data(ts, res3.get_result(grid, ts));

@@ -4,6 +4,8 @@
 #include "Hwall.hh"
 #include "Constants.hh"
 
+#include <mpi.h>
+
 Grid::Grid() 
   : num_materials_(0),
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
@@ -161,14 +163,15 @@ void Grid::init_datatypes()
                   GRID_MPI_TYPE, &x_vector_);
   MPI_Type_commit(&x_vector_);
 
-  // Not 100% sure about these:
-  MPI_Type_vector(get_ldy(), 1, 0, z_vector_, &yz_plane_);
+  MPI_Type_contiguous(get_ldz() * get_ldy(), GRID_MPI_TYPE, &yz_plane_);
   MPI_Type_commit(&yz_plane_);
 
-  MPI_Type_vector(get_ldx(), 1, get_ldy(), z_vector_, &xz_plane_);
+  // Not 100% sure about these:
+  MPI_Type_vector(get_ldx(), get_ldz(), get_ldy() * get_ldz(), 
+                  GRID_MPI_TYPE, &xz_plane_);
   MPI_Type_commit(&xz_plane_);
 
-  MPI_Type_vector(get_ldx(), 1, 0, y_vector_, &xy_plane_);
+  MPI_Type_vector(get_ldx(), 1, get_ldz(), y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
 
   // TEST:
@@ -485,7 +488,7 @@ void Grid::update_ez()
 void Grid::update_hx()
 {
   unsigned int mid, i, j, k, idx;
-  float_t *hx, *ez1, *ez2, *ey;
+  field_t *hx, *ez1, *ez2, *ey;
 
   for (i = 0; i < get_ldx(); i++) {
     for (j = 0; j < get_ldy() - 1; j++) {
@@ -514,7 +517,7 @@ void Grid::update_hx()
 void Grid::update_hy()
 {
   unsigned int mid, i, j, k, idx;
-  float_t *hy, *ex, *ez1, *ez2;
+  field_t *hy, *ex, *ez1, *ez2;
 
   for (i = 0; i < get_ldx() - 1; i++) {
     for (j = 0; j < get_ldy(); j++) {
@@ -543,7 +546,7 @@ void Grid::update_hy()
 void Grid::update_hz()
 {
   unsigned int mid, i, j, k, idx;
-  float_t *hz, *ey1, *ey2, *ex1, *ex2;
+  field_t *hz, *ey1, *ey2, *ex1, *ex2;
 
   for (i = 0; i < get_ldx() - 1; i++) {
     for (j = 0; j < get_ldy() - 1; j++) {

@@ -69,6 +69,14 @@ public:
     return face_;
   }
 
+  /**
+   * Set the size of the plane. Call this before adding this result to
+   * a DataWriter. 
+   * @param x size of first dimension
+   * @param y size of second dimension
+   */
+  void set_size(unsigned int x, unsigned int y);
+
 };
 
 #endif // PLANE_RESULT_H

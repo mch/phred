@@ -25,7 +25,17 @@ protected:
    * Does recursive writing of packed data. Increments the pointer
    * after writing each value, and returns it. 
    */
-  void *write_data(MPI_Datatype t, void *ptr);
+  void *write_data(MPI_Datatype t, void *ptr, 
+                   unsigned int len);
+
+  /**
+   * Write an array of data
+   * @param ptr location of start of array
+   * @param len number of items in array
+   * @return the advanced ptr
+   */
+  template<class T>
+  void *write_array(void *ptr, unsigned int len);
 
 public:
   AsciiDataWriter(int rank, int size);
