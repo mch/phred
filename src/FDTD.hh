@@ -105,6 +105,11 @@ protected:
    */
   MaterialLib *mlib_;
 
+  /**
+   * Number of time steps to go for. 
+   */ 
+  unsigned int time_steps_; 
+
   /** 
    * Call LifeCycle::init() 
    */
@@ -128,6 +133,11 @@ protected:
 public:
   FDTD();
   virtual ~FDTD();
+
+  /**
+   * Set the number of time steps to run the simulation for. 
+   */ 
+  void set_time_steps(unsigned int t);
 
   /**
    * Set the global (entire problem) grid size
@@ -204,9 +214,8 @@ public:
    *
    * @param rank the process rank in MPI
    * @param size the number of ranks in the MPI communicator
-   * @param steps number of timesteps to run for. 
    */
-  void run(int rank, int size, unsigned int steps);
+  void run(int rank, int size);
 
 };
 

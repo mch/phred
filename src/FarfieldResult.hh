@@ -102,6 +102,9 @@ protected:
 
   Variable data_; /**< ff data */ 
 
+  MPI_Datatype data_type_;
+  MPI_Datatype angle_type_;
+
   /**
    * Helper function to calculate the result. 
    */

@@ -33,6 +33,8 @@ phred_SOURCES=\
 	LifeCycle.cc \
 	FDTD.hh \
 	FDTD.cc \
+	JanFDTD.hh \
+	JanFDTD.cc \
 	Geometry.hh \
 	Box.hh \
 	Box.cc \

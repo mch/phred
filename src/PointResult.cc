@@ -49,12 +49,10 @@ map<string, Variable *> &PointResult::get_result(const Grid &grid,
     field_data_[5] = grid.get_hy(l_.x, l_.y, l_.z);
     field_data_[6] = grid.get_hz(l_.x, l_.y, l_.z);
     
-    var_.set_ptr(field_data_);
     var_.set_num(1);
   } 
   else
   {
-    var_.set_ptr(0);
     var_.set_num(0);
   }
   
@@ -89,6 +87,8 @@ void PointResult::init(const Grid &grid)
   var_.set_datatype(temp);
 
   var_.add_dimension("field components", 7, 0);
+  var_.set_name("point_fields");
+  var_.set_ptr(field_data_);
 }
 
 void PointResult::deinit(const Grid &grid)

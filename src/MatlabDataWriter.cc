@@ -234,30 +234,31 @@ void MatlabElement::write_buffer(ostream &stream)
 
 void MatlabElement::reshape_buffer(int N, int M, MPI_Datatype type)
 {
-  MPI_Datatype new_t, flat_t;
+  MPI_Datatype new_t, flat_t, new2_t;
   MPI_Status status;
-
-  MPI_Type_vector(N, 1, M, type, &new_t);
-  MPI_Type_commit(&new_t);
-
-  MPI_Type_contiguous(N, type, &flat_t);
-  MPI_Type_commit(&flat_t);
 
   char *new_buf = new char[buffer_size_];
   int type_size;
   MPI_Type_size(type, &type_size);
 
-  for (int i = 0; i < M; i++)
-  {
-    MPI_Sendrecv(buffer_ + i * type_size, 1, new_t, 
-                 0, 0, new_buf + i * N * type_size, 1, flat_t, 
-                 0, 0, MPI_COMM_WORLD, &status);
-  }
+  MPI_Type_vector(N, 1, M, type, &new_t);
+  MPI_Type_commit(&new_t);
+
+  MPI_Type_hvector(M, 1, type_size, new_t, &new2_t);
+  MPI_Type_commit(&new2_t);
+
+  MPI_Type_contiguous(N * M, type, &flat_t);
+  MPI_Type_commit(&flat_t);
+
+  MPI_Sendrecv(buffer_, 1, new2_t, 0, 0, 
+               new_buf, 1, flat_t, 0, 0, 
+               MPI_COMM_WORLD, &status);
 
   delete[] buffer_;
   buffer_ = new_buf;
 
   MPI_Type_free(&new_t);
+  MPI_Type_free(&new2_t);
   MPI_Type_free(&flat_t);
 }
 
@@ -269,6 +270,11 @@ MatlabArray::MatlabArray(const char *name,
                          MPI_Datatype type,
                          bool complex)
 {
+  vector<int>::const_iterator iter;
+  vector<int>::const_iterator iter_e = dim_lens.end();
+  int i = 0;
+  int sz = 0;
+  
   name_ = name;
   time_dim_ = time_dim;
   mpi_type_ = type;
@@ -302,12 +308,16 @@ MatlabArray::MatlabArray(const char *name,
   if (time_dim)
     num_dims_++;
 
+  if (num_dims_ < 2)
+  {
+    i++;
+    num_dims_++;
+  }
+
   dim_lengths_ = new int32_t[num_dims_];
-  
-  vector<int>::const_iterator iter;
-  vector<int>::const_iterator iter_e = dim_lens.end();
-  int i = 0;
-  int sz = 0;
+
+  if (i > 0)
+    dim_lengths_[0] = 1;
   
   if (time_dim)
   {
@@ -460,7 +470,7 @@ void MatlabDataWriter::header_setup()
 
 void MatlabDataWriter::init(const Grid &grid)
 {
-  //test();
+  test();
 
   if (filename_.length() > 0 && rank_ == 0)
   {
@@ -526,8 +536,12 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
 
   try {
     if (len > 0)
-      vars_[variable.get_name()]->append_buffer(len, ptr);
+    {
+      cout << "Buffering data for matlab output from " << 
+        variable.get_name() << ", " << len << " bytes. " << endl;
 
+      vars_[variable.get_name()]->append_buffer(len, ptr);
+    }
   } catch (MemoryException e) {
     if (rank_ == 0 && file_.is_open())
     {
@@ -537,8 +551,10 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
       map<string, MatlabArray *>::iterator iter_e = vars_.end();
 
       for(iter = vars_.begin(); iter != iter_e; ++iter)
+      {
         iter->second->write_buffer(file_);
-      
+      }
+
       file_.close();
     }
     throw MemoryException();

@@ -27,7 +27,15 @@ FDTD::FDTD()
 {}
 
 FDTD::~FDTD()
-{}
+{
+  if (grid_)
+    delete grid_;
+}
+
+void FDTD::set_time_steps(unsigned int t)
+{
+  time_steps_ = t;
+}
 
 void FDTD::set_grid_size(unsigned int x, unsigned int y,
                          unsigned int z)
@@ -77,6 +85,8 @@ void FDTD::add_h_excitation(const char *name, Excitation *ex)
 void FDTD::add_result(const char *name, Result *r)
 {
   results_[string(name)] = r;
+  if (r->get_name().length() == 0)
+    r->set_name(name);
 }
 
 void FDTD::add_datawriter(const char *name, DataWriter *dw)
@@ -125,7 +135,7 @@ void FDTD::setup_datawriters()
 }
 
 // CHOP THIS UP; make helper functions
-void FDTD::run(int rank, int size, unsigned int steps)
+void FDTD::run(int rank, int size)
 {
   // Grid setup
   SimpleSDAlg dd;
@@ -147,6 +157,9 @@ void FDTD::run(int rank, int size, unsigned int steps)
     }
     miter++;
   }
+
+  if (grid_)
+    delete grid_;
 
   if (freqgrid)
     {
@@ -221,7 +234,7 @@ void FDTD::run(int rank, int size, unsigned int steps)
   // Run
   unsigned int ts = 0;
 
-  for (ts = 1; ts < steps; ts++) {
+  for (ts = 1; ts <= time_steps_; ts++) {
     cout << "phred time step " << ts << endl;
 
     // Fields update

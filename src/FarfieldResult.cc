@@ -46,8 +46,9 @@ FarfieldResult::FarfieldResult()
   angles_.set_datatype(MPI_FLOAT);
   // data_'s datatype is different, calculated in init().
 
-  data_.set_name("ff_data");
-
+  freqs_.set_name("frequecies");
+  angles_.set_name("angles");
+  
   angles_.has_time_dimension(false);
   freqs_.has_time_dimension(false);
   data_.has_time_dimension(false);
@@ -166,6 +167,12 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
   
     angles_.set_ptr(theta_);
     freqs_.set_ptr(freqs_buffer_);
+  }
+  else
+  {
+    data_.set_num(0);
+    angles_.set_num(0);
+    freqs_.set_num(0);
   }
 
   return variables_;
@@ -302,8 +309,8 @@ void FarfieldResult::init(const Grid &grid)
   
   freqs_.add_dimension("frequency", num_freqs_, 0);
 
-  angles_.add_dimension("theta and phi", 2, 0);
   angles_.add_dimension("angles", num_pts_, 0);
+  angles_.add_dimension("theta and phi", 2, 0);
 
   data_.add_dimension("data", num_cols, 0);
   data_.add_dimension("points", num_pts_, 0);
@@ -317,17 +324,22 @@ void FarfieldResult::init(const Grid &grid)
   }
   memset(result_, 0, num_cols * num_freqs_ * num_pts_);
   
-  MPI_Datatype temp;
   MPI_Type_contiguous(num_cols * num_freqs_ * num_pts_, 
-                      MPI_FLOAT, &temp);
-  MPI_Type_commit(&temp);
-  data_.set_datatype(temp);
+                      MPI_FLOAT, &data_type_);
+  MPI_Type_commit(&data_type_);
+  data_.set_datatype(data_type_);
   data_.set_num(0);
 
-  MPI_Datatype angle_type;
-  MPI_Type_vector(num_pts_, 1, num_pts_, MPI_FLOAT, &angle_type);
-  MPI_Type_commit(&angle_type);
+  // THIS IS WRONG!
+  int t_sz; 
+  //MPI_Type_size(MPI_FLOAT, &t_sz);
+  //MPI_Datatype temp_type;
+  //MPI_Type_vector(num_pts_, 1, num_pts_, MPI_FLOAT, &temp_type);
+  //MPI_Type_hvector(2, 1, t_sz, temp_type, &angle_type_);
+  //MPI_Type_commit(&angle_type_);
   
+  //angles_.set_datatype(angle_type_);
+  angles_.set_datatype(MPI_FLOAT);
 }
   
 void FarfieldResult::deinit(const Grid &grid)
@@ -428,12 +440,6 @@ void FarfieldResult::deinit(const Grid &grid)
     theta_ = 0;
   }
 
-  if (phi_)
-  {
-    delete[] phi_;
-    phi_ = 0;
-  }
-
   if (result_)
   {
     delete[] result_;
@@ -445,6 +451,9 @@ void FarfieldResult::deinit(const Grid &grid)
     delete[] freqs_buffer_;
     freqs_buffer_ = 0;
   }
+
+  MPI_Type_free(&angle_type_);
+  MPI_Type_free(&data_type_);
 }
 
 void FarfieldResult::arc_connect()

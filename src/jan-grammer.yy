@@ -25,10 +25,16 @@
 #include <iostream>
 using namespace std;
 
+#include "JanFDTD.hh"
+#include "Exceptions.hh"
+
 #define YYERROR_VERBOSE = 1
+
+JanFDTD *janfdtd;
 
 int yylex();
 void yyerror(const char *s);
+void yyset_in(FILE *in_str);
 %}
 
 %union {
@@ -70,6 +76,7 @@ void yyerror(const char *s);
 %token JAN_ABC_ZMAX_TYPE
 
 %token JAN_PML
+%token JAN_UPML
 %token JAN_EWALL
 %token JAN_MWALL
 %token JAN_MUR2
@@ -115,41 +122,27 @@ line: JAN_NEWLINE
       ;
 
 exprm: exprd exprd exprd exprd exprd {
-       $$ = $1; cout << "mat # " << $1 << "eps: "
-       << $2 << ", " << $3 << ", etc.\n"; }
+       $$ = $1; janfdtd->add_material($2, $3, $4, $5, $6); }
        ;
 
 exprs: JAN_STR { $$ = $1; }
-       | JAN_COMMENT { $$ = ""; cout << "parser comment." << endl; }
-       | JAN_PROGRAM_MODE JAN_STR { $$ = $2; cout << "program_mode " <<
-       $2 << endl; }
-       | JAN_STRUCTURE_MODE JAN_STR { $$ = $2; cout <<
-       "structure_mode " << $2 << endl; }
-       | JAN_TIMESTEP_MODE JAN_STR { $$ = $2; cout <<
-       "timestep_mode " << $2 << endl; }
+       | JAN_COMMENT { $$ = ""; }
+       | JAN_PROGRAM_MODE JAN_STR { $$ = $2; janfdtd->set_program_mode($2); }
+       | JAN_STRUCTURE_MODE JAN_STR { $$ = $2; janfdtd->set_structure_mode($2); }
+       | JAN_TIMESTEP_MODE JAN_STR { $$ = $2; janfdtd->set_timestep_mode($2); }
        ;
 
 exprd: JAN_NUM
-       | JAN_DELTAX exprd { $$ = $2; cout << "deltax " <<
-       $2 << endl; }
-       | JAN_DELTAY exprd { $$ = $2; cout << "deltay " <<
-       $2 << endl; }
-       | JAN_DELTAZ exprd { $$ = $2; cout << "deltaz " <<
-       $2 << endl; }
-       | JAN_DELTAT exprd { $$ = $2; cout << "deltat " <<
-       $2 << endl; }
-       | JAN_DIMX exprd { $$ = $2; cout << "dimx " <<
-       $2 << endl; }
-       | JAN_DIMY exprd { $$ = $2; cout << "dimy " <<
-       $2 << endl; }
-       | JAN_DIMZ exprd { $$ = $2; cout << "dimz " <<
-       $2 << endl; }
-       | JAN_TIME_MODULO exprd { $$ = $2; cout << "time_modulo " <<
-       $2 << endl; }
-       | JAN_RUNTIME exprd { $$ = $2; cout << "runtime " <<
-       $2 << endl; }
-       | JAN_NR_OF_MATERIALS exprd { $$ = $2; cout << "num mat: " <<
-       $2 << endl; }
+       | JAN_DELTAX exprd { $$ = $2; janfdtd->set_deltax($2); }
+       | JAN_DELTAY exprd { $$ = $2; janfdtd->set_deltay($2); }
+       | JAN_DELTAZ exprd { $$ = $2; janfdtd->set_deltaz($2); }
+       | JAN_DELTAT exprd { $$ = $2; janfdtd->set_deltat($2); }
+       | JAN_DIMX exprd { $$ = $2; janfdtd->set_dimx($2); }
+       | JAN_DIMY exprd { $$ = $2; janfdtd->set_dimy($2); }
+       | JAN_DIMZ exprd { $$ = $2; janfdtd->set_dimz($2); }
+       | JAN_TIME_MODULO exprd { $$ = $2; janfdtd->set_tim_modulo($2); }
+       | JAN_RUNTIME exprd { $$ = $2; janfdtd->set_runtime($2); }
+       | JAN_NR_OF_MATERIALS exprd { $$ = $2; janfdtd->set_num_materials($2); }
        ;
 
 expri: JAN_INT { $$ = $1; }
@@ -157,13 +150,18 @@ expri: JAN_INT { $$ = $1; }
 
 %%
 
-void parse_jan_grammer()
+void parse_jan_grammer(const char *filename, JanFDTD *jfdtd)
 {
   //yydebug=1;
+
+  janfdtd = jfdtd;
+  FILE *fp = fopen(filename, "r");
+  yyset_in(fp);
+ 
   yyparse();
 }
 
 void yyerror(const char *s)
 {
-  cout << "Parser error: " << s << endl;
+  throw ParserException(s);
 }

@@ -107,6 +107,7 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "Excitation.hh"
 #include "BartlettExcitation.hh"
 #include "FDTD.hh"
+#include "JanFDTD.hh"
 #include "Box.hh"
 #include "SphereGeom.hh"
 #include "FarfieldResult.hh"
@@ -138,6 +139,8 @@ static struct poptOption options[] =
 #endif
 
 static int decode_switches (int argc, char **argv);
+
+static string get_extension(string filename);
 
 // Ugly globals
 string inputfile;
@@ -193,15 +196,34 @@ main (int argc, char **argv)
 #endif
     if (!interactive) {
       cout << "non interactive mode; calling takakura_test. " << endl;
-      // If the file extension is .py, run it in the python interpreter. 
 
-      // If there is no extension, look for files named fn.in, fn.str,
-      // and fn.out, per Jan's grammer, and load them instead. 
+      if (argc > 1)
+      {
+        string ext = get_extension(argv[argc - 1]);
+        cout << "Got extension '" << ext << "'." << endl;
 
-      // TESTS, TEMPORARY
-      //point_test(rank, size);
-      pml_test(rank, size);
-      //takakura_test(rank, size);
+        // If the file extension is .py, run it in the python interpreter. 
+        // If the extension is .jan and load it using Jan's grammer. 
+
+        if (ext.compare("jan") == 0)
+        {
+          JanFDTD jfdtd;
+          jfdtd.parse_file(argv[argc - 1]);
+          jfdtd.run(rank, size);
+        }
+        else if (ext.compare("py") == 0)
+        {
+          cout << "Python thingy not ready yet. " << endl;
+        }
+
+      } else {
+        // TESTS, TEMPORARY
+        //point_test(rank, size);
+        pml_test(rank, size);
+        //takakura_test(rank, size);
+
+        cout << "No filename given to load problem set up from. " << endl;
+      }
     }
   } catch (const std::exception &e) {
     cout << "Caught exception: " << e.what() << endl;
@@ -305,6 +327,16 @@ FILENAME is the file containing the description of the proble to simulate.\n\
   exit (status);
 }
 
+string get_extension(string filename)
+{
+  int pos = filename.rfind('.');
+  string ext;
+
+  if (pos != string::npos)
+    ext = filename.substr(pos + 1, filename.length() - pos);
+
+  return ext;
+}
 
 // Test runs
 static void point_test(int rank, int size)
@@ -409,7 +441,8 @@ static void point_test(int rank, int size)
   
   fdtd.map_result_to_datawriter("sdftr", "adw5");
 
-  fdtd.run(rank, size, 100);
+  fdtd.set_time_steps(100);
+  fdtd.run(rank, size);
 }
 
 static void pml_test(int rank, int size)
@@ -565,7 +598,7 @@ static void pml_test(int rank, int size)
   MatlabDataWriter mdw(rank, size);
   mdw.set_filename("test.mat");
   fdtd.add_datawriter("mdw", &mdw);
-  fdtd.map_result_to_datawriter("pres60", "mdw");
+  //fdtd.map_result_to_datawriter("pres60", "mdw");
 
   FarfieldResult farfield; 
   farfield.set_mpi_rank_size(rank, size);
@@ -643,7 +676,8 @@ static void pml_test(int rank, int size)
 
    fdtd.map_result_to_datawriter("srctr", "adw8");
 
-   fdtd.run(rank, size, 50);
+   fdtd.set_time_steps(50);
+   fdtd.run(rank, size);
 }
 
 static void takakura_test(int rank, int size)
@@ -773,5 +807,6 @@ static void takakura_test(int rank, int size)
   fdtd.add_result("pr1", &pr1);
   fdtd.map_result_to_datawriter("pr1", "ncdw");
 
-  fdtd.run(rank, size, 5000);
+  fdtd.set_time_steps(5000);
+  fdtd.run(rank, size);
 }
