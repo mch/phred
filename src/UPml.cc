@@ -22,8 +22,10 @@
 #include "UPml.hh"
 #include "Exceptions.hh"
 #include "Grid.hh"
+#include "Constants.hh"
 
 UPml::UPml()
+  : d_(0), h_(0), sigmas_(0), poly_order_(4)
 {
 
 }
@@ -53,11 +55,56 @@ void UPml::init(const Grid &grid, Face face)
   memset(h_, 0, sizeof(field_t) * sz);
 
   // Compute the material constants...
+  field_t delta = 0;
+  switch (face)
+  {
+  case FRONT:
+  case BACK:
+    delta = grid.get_deltax();
+    break;
+  case TOP:
+  case BOTTOM:
+    delta = grid.get_deltaz();
+    break;
+  case LEFT:
+  case RIGHT:
+    delta = grid.get_deltay();
+    break;
+  }
+
+  mat_coef_t sigma_max = (poly_order_ + 1) 
+    / (150 * PI * delta * sqrt(EPS_0));
+
+  sigmas_ = new mat_coef_t[thickness];
+
+  for (int idx = 0; idx < thickness; idx++)
+    sigmas_[idx] = sigma_max * pow(static_cast<float>(idx), 
+                                   static_cast<float>(poly_order_)) 
+      / pow(static_cast<float>(thickness),
+            static_cast<float>(poly_order_));
+
+  
 }
 
 void UPml::deinit(const Grid &grid, Face face)
 {
+  if (d_)
+  {
+    delete[] d_;
+    d_ = 0;
+  }
 
+  if (h_)
+  {
+    delete[] h_;
+    h_ = 0;
+  }
+
+  if (sigmas_)
+  {
+    delete[] sigmas_;
+    sigmas_ = 0;
+  }
 }
 
 void UPml::add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface)
@@ -73,23 +120,23 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     {
     case FRONT:
     case BACK:
-      //upml_update_ex(grid);   
-      update_ey(grid);
-      update_ez(grid);
+      update_ex(grid);   
+      grid.update_ey(grid_ey_r_);
+      grid.update_ez(grid_ez_r_);
       break;
 
     case LEFT:
     case RIGHT:
-      update_ex(grid);   
-      //upml_update_ey(grid);
-      update_ez(grid);
+      grid.update_ex(grid_ex_r_);   
+      update_ey(grid);
+      grid.update_ez(grid_ez_r_);
       break;
 
     case TOP:
     case BOTTOM:
-      update_ex(grid);   
-      update_ey(grid);
-      //upml_update_ez(grid);
+      grid.update_ex(grid_ex_r_);   
+      grid.update_ey(grid_ey_r_);
+      update_ez(grid);
       break;
     }
   }
@@ -99,23 +146,23 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     {
     case FRONT:
     case BACK:
-      //upml_update_hx(grid);   
-      update_hy(grid);
-      update_hz(grid);
+      update_hx(grid);   
+      grid.update_hy(grid_hy_r_);
+      grid.update_hz(grid_hz_r_);
       break;
 
     case LEFT:
     case RIGHT:
-      update_hx(grid);   
-      //upml_update_hy(grid);
-      update_hz(grid);
+      grid.update_hx(grid_hx_r_);   
+      update_hy(grid);
+      grid.update_hz(grid_hz_r_);
       break;
 
     case TOP:
     case BOTTOM:
-      update_hx(grid);   
-      update_hy(grid);
-      //upml_update_hz(grid);
+      grid.update_hx(grid_hx_r_);   
+      grid.update_hy(grid_hy_r_);
+      update_hz(grid);
       break;
     }
   } 
@@ -128,21 +175,25 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
 
 void UPml::update_ex(Grid &grid) 
 {
-  unsigned int grid_idx, pml_idx, mid; 
+  unsigned int grid_idx, pml_idx, mid, sig_idx; 
 
   unsigned int i,j,k; 	/* indices in PML-layer */
   unsigned int it,jt,kt;/* indices in total computational domain (FDTD grid) */
 
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_ex_r_); 
+  
+  field_t d_temp = 0;
 
 #ifdef USE_OPENMP
-#pragam omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt)
+#pragam omp parallel private(mid, grid_idx, pml_idx, sig_idx, i, j, k, it, jt, kt)
   {
 #pragam omp for
 #endif
     for(i = pml_r.xmin, it = grid_ex_r_.xmin; it < grid_ex_r_.xmax; i++, it++)
+    {
       for(j = pml_r.ymin, jt = grid_ex_r_.ymin; jt < grid_ex_r_.ymax; j++, jt++)
+      {
         for(k = pml_r.zmin, kt = grid_ex_r_.zmin; kt < grid_ex_r_.zmax; k++, kt++)
         {
           grid_idx = grid.pi(it, jt, kt);
@@ -150,14 +201,20 @@ void UPml::update_ex(Grid &grid)
           
           mid = grid.material_[grid_idx];
           
-          d_[pml_idx] = d_[pml_idx] + grid.get_dt() 
+          d_temp = d_[pml_idx] + grid.get_delta() 
             * ((grid.hy_[grid.pi(it, jt, kt-1)] 
-                - grid.hy_[grid_idx]) / grid.get_dz() 
+                - grid.hy_[grid_idx]) / grid.get_delta() 
                - (grid.hz_[grid_idx] 
-                  - grid.hz_[grid.pi(it, jt-1, kt)]) / grid.get_dy());
+                  - grid.hz_[grid.pi(it, jt-1, kt)]) / grid.get_delta());
 
-          grid.ex_[grid_idx] = grid.ex_[grid_idx] + 1/(EPS_0 * 
+          grid.ex_[grid_idx] = grid.ex_[grid_idx] + 1/(EPS_0) 
+            * (d_temp * (1 + (sigmas_[sig_idx] * grid.get_delta())/(2 * EPS_0))
+               - d_[pml_idx] * (1 - (sigmas_[sig_idx] * grid.get_delta())/(2 * EPS_0)));
+
+          d_[pml_idx] = d_temp;
         }
+      }
+    }
 #ifdef USE_OPENMP
   }
 #endif

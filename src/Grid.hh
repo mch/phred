@@ -158,38 +158,55 @@ class Grid {
    * problem. 
    */ 
   Geometry **geometries_;
-
   unsigned int num_geoms_;
 
   /**
    * Compute the update equatations for the Ex field component. 
+   *
+   * @param update_r the region to update. A param in case a boundary
+   * condition wants to call it. 
    */
-  virtual void update_ex();
+  virtual void update_ex(region_t update_r);
 
   /**
    * Compute the update equatations for the Ey field component. 
+   *
+   * @param update_r the region to update. A param in case a boundary
+   * condition wants to call it. 
    */
-  virtual void update_ey();
+  virtual void update_ey(region_t update_r);
 
   /**
    * Compute the update equatations for the Ez field component. 
+   *
+   * @param update_r the region to update. A param in case a boundary
+   * condition wants to call it. 
    */
-  virtual void update_ez();
+  virtual void update_ez(region_t update_r);
 
   /**
    * Compute the update equatations for the Hx field component. 
+   *
+   * @param update_r the region to update. A param in case a boundary
+   * condition wants to call it. 
    */
-  virtual void update_hx();
+  virtual void update_hx(region_t update_r);
 
   /**
    * Compute the update equatations for the Hy field component. 
+   *
+   * @param update_r the region to update. A param in case a boundary
+   * condition wants to call it. 
    */
-  virtual void update_hy();
+  virtual void update_hy(region_t update_r);
 
   /**
    * Compute the update equatations for the Hz field component. 
+   *
+   * @param update_r the region to update. A param in case a boundary
+   * condition wants to call it. 
    */
-  virtual void update_hz();
+  virtual void update_hz(region_t update_r);
 
   /** 
    * Allocate memory for the grid. This function is called when

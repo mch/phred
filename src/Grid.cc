@@ -639,9 +639,9 @@ void Grid::update_e_field()
     return;
   }
 
-  update_ex();
-  update_ey();
-  update_ez();
+  update_ex(update_ex_r_);
+  update_ey(update_ey_r_);
+  update_ez(update_ez_r_);
 }
 
 void Grid::update_h_field()
@@ -652,14 +652,14 @@ void Grid::update_h_field()
     return;
   }
 
-  update_hx();
-  update_hy();
-  update_hz();
+  update_hx(update_hx_r_);
+  update_hy(update_hy_r_);
+  update_hz(update_hz_r_);
 
 }
 
 // Straight out of Taflove.
-void Grid::update_ex() 
+void Grid::update_ex(region_t update_r) 
 {
   unsigned int mid, idx, idx2;
   int i, j, k;
@@ -673,18 +673,18 @@ void Grid::update_ex()
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_ex_r_.xmin; i < update_ex_r_.xmax; i++) {
-      for (j = update_ex_r_.ymin; j < update_ex_r_.ymax; j++) {
+    for (i = update_r.xmin; i < update_r.xmax; i++) {
+      for (j = update_r.ymin; j < update_r.ymax; j++) {
         
-        idx = pi(i, j, update_ex_r_.zmin);
-        idx2 = pi(i, j-1, update_ex_r_.zmin);
+        idx = pi(i, j, update_r.zmin);
+        idx2 = pi(i, j-1, update_r.zmin);
 
         ex = &(ex_[idx]);
         hz1 = &(hz_[idx]);
         hz2 = &(hz_[idx2]);
         hy = &(hy_[idx]);
         
-        for (k = update_ex_r_.zmin; k < update_ex_r_.zmax; k++) {
+        for (k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *ex = Ca_[mid] * *ex
@@ -704,7 +704,7 @@ void Grid::update_ex()
 }
 
 // Straight out of Taflove.
-void Grid::update_ey() 
+void Grid::update_ey(region_t update_r) 
 {
   unsigned int mid, idx;
   int i, j, k;
@@ -718,17 +718,17 @@ void Grid::update_ey()
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_ey_r_.xmin; i < update_ey_r_.xmax; i++) {
-      for (j = update_ey_r_.ymin; j < update_ey_r_.ymax; j++) {
+    for (i = update_r.xmin; i < update_r.xmax; i++) {
+      for (j = update_r.ymin; j < update_r.ymax; j++) {
         
-        idx = pi(i, j, update_ey_r_.zmin);
-        hz1 = &(hz_[pi(i-1, j, update_ey_r_.zmin)]);
+        idx = pi(i, j, update_r.zmin);
+        hz1 = &(hz_[pi(i-1, j, update_r.zmin)]);
 
         hz2 = &(hz_[idx]);
         ey = &(ey_[idx]);
         hx = &(hx_[idx]);
 
-        for (k = update_ey_r_.zmin; k < update_ey_r_.zmax; k++) {
+        for (k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *ey = Ca_[mid] * *ey
@@ -747,7 +747,7 @@ void Grid::update_ey()
 }
 
 // Straight out of Taflove.
-void Grid::update_ez() 
+void Grid::update_ez(region_t update_r) 
 {
   unsigned int mid, idx;
   int i, j, k;
@@ -761,18 +761,18 @@ void Grid::update_ez()
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_ez_r_.xmin; i < update_ez_r_.xmax; i++) {
-      for (j = update_ez_r_.ymin; j < update_ez_r_.ymax; j++) {
+    for (i = update_r.xmin; i < update_r.xmax; i++) {
+      for (j = update_r.ymin; j < update_r.ymax; j++) {
 
-        idx = pi(i, j, update_ez_r_.zmin);
-        hy2 = &(hy_[pi(i-1, j, update_ez_r_.zmin)]);
-        hx1 = &(hx_[pi(i, j-1, update_ez_r_.zmin)]);
+        idx = pi(i, j, update_r.zmin);
+        hy2 = &(hy_[pi(i-1, j, update_r.zmin)]);
+        hx1 = &(hx_[pi(i, j-1, update_r.zmin)]);
 
         hx2 = &(hx_[idx]);
         ez = &(ez_[idx]);
         hy1 = &(hy_[idx]);
 
-        for (k = update_ez_r_.zmin; k < update_ez_r_.zmax; k++) {
+        for (k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *ez = Ca_[mid] * *ez
@@ -789,7 +789,7 @@ void Grid::update_ez()
 }
 
 // Straight out of Taflove.
-void Grid::update_hx()
+void Grid::update_hx(region_t update_r)
 {
   unsigned int mid, idx;
   int i, j, k;
@@ -802,17 +802,17 @@ void Grid::update_hx()
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_hx_r_.xmin; i < update_hx_r_.xmax; i++) {
-      for (j = update_hx_r_.ymin; j < update_hx_r_.ymax; j++) {
+    for (i = update_r.xmin; i < update_r.xmax; i++) {
+      for (j = update_r.ymin; j < update_r.ymax; j++) {
         
-        idx = pi(i, j, update_hx_r_.zmin);
-        ez2 = &(ez_[pi(i, j+1, update_hx_r_.zmin)]);
+        idx = pi(i, j, update_r.zmin);
+        ez2 = &(ez_[pi(i, j+1, update_r.zmin)]);
 
         ey = &(ey_[idx]);
         hx = &(hx_[idx]);
         ez1 = &(ez_[idx]);
 
-        for (k = update_hx_r_.zmin; k < update_hx_r_.zmax; k++) {
+        for (k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *hx = Da_[mid] * *hx
@@ -829,7 +829,7 @@ void Grid::update_hx()
 }
 
 // Straight out of Taflove.
-void Grid::update_hy()
+void Grid::update_hy(region_t update_r)
 {
   unsigned int mid, idx;
   int i, j, k;
@@ -843,17 +843,17 @@ void Grid::update_hy()
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_hy_r_.xmin; i < update_hy_r_.xmax; i++) {
-      for (j = update_hy_r_.ymin; j < update_hy_r_.ymax; j++) {
+    for (i = update_r.xmin; i < update_r.xmax; i++) {
+      for (j = update_r.ymin; j < update_r.ymax; j++) {
 
-        idx = pi(i, j, update_hy_r_.zmin);
-        ez1 = &(ez_[pi(i+1, j, update_hy_r_.zmin)]);
+        idx = pi(i, j, update_r.zmin);
+        ez1 = &(ez_[pi(i+1, j, update_r.zmin)]);
 
         hy = &(hy_[idx]);
         ex = &(ex_[idx]);
         ez2 = &(ez_[idx]);
 
-        for (k = update_hy_r_.zmin; k < update_hy_r_.zmax; k++) {
+        for (k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *hy = Da_[mid] * *hy
@@ -869,7 +869,7 @@ void Grid::update_hy()
 }
 
 // Straight out of Taflove.
-void Grid::update_hz()
+void Grid::update_hz(region_t update_r)
 {
   unsigned int mid, idx;
   int i, j, k;
@@ -882,18 +882,18 @@ void Grid::update_hz()
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_hz_r_.xmin; i < update_hz_r_.xmax; i++) {
-      for (j = update_hz_r_.ymin; j < update_hz_r_.ymax; j++) {
+    for (i = update_r.xmin; i < update_r.xmax; i++) {
+      for (j = update_r.ymin; j < update_r.ymax; j++) {
         
-        idx = pi(i, j, update_hz_r_.zmin);
-        ey2 = &(ey_[pi(i+1, j, update_hz_r_.zmin)]);
-        ex1 = &(ex_[pi(i, j+1, update_hz_r_.zmin)]);
+        idx = pi(i, j, update_r.zmin);
+        ey2 = &(ey_[pi(i+1, j, update_r.zmin)]);
+        ex1 = &(ex_[pi(i, j+1, update_r.zmin)]);
 
         ex2 = &(ex_[idx]);
         hz1 = &(hz_[idx]);
         ey1 = &(ey_[idx]);
 
-        for (k = update_hz_r_.zmin; k < update_hz_r_.zmax; k++) {
+        for (k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *hz1 = Da_[mid] * *hz1
