@@ -83,6 +83,12 @@ public:
    */
   field_t source_function(float time);
 
+  /**
+   * Returns the amount of time it will take for the Gaussian to rise
+   * and fall.
+   */ 
+  field_t length();
+
 };
 
 #endif // EXCITE_GAUSSM_H

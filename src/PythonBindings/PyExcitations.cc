@@ -154,7 +154,8 @@ void export_excitations()
     .def("get_alpha", &Gaussm::get_alpha)
     .def("get_deltaf", &Gaussm::get_deltaf)
     .def("get_f0", &Gaussm::get_f0)
-    .def("source_function", &Gaussm::source_function)
+    .def("length", &Gaussm::length)
+    //.def("source_function", &Gaussm::source_function) // in SourceFunction
     ;
 
   class_<ExpSine, bases<SourceFunction> >("ExpSine", "Ramping up sine function")

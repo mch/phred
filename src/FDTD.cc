@@ -56,6 +56,11 @@ void FDTD::set_time_steps(unsigned int t)
   time_steps_ = t;
 }
 
+void FDTD::set_time(float t)
+{
+  time_steps_ = static_cast<unsigned int>(t / global_ginfo_.deltat_);
+}
+
 void FDTD::set_grid_size(float x, float y, float z)
 {
   geometry_.set_grid_size(x, y, z);

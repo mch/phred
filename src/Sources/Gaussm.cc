@@ -58,4 +58,7 @@ field_t Gaussm::get_f0()
   return f0_;
 }
 
-
+field_t Gaussm::length()
+{
+  return 8.0 / (PI * deltaf_);
+}

@@ -67,6 +67,12 @@ public:
   void set_time_steps(unsigned int t);
 
   /**
+   * Set the length of time the simulation should run for. 
+   * The number of time steps is automatically calculated.
+   */ 
+  void set_time(float t);
+
+  /**
    * Set the global (entire problem) grid size, in meters. 
    */
   void set_grid_size(float x, float y, float z);
@@ -75,6 +81,19 @@ public:
    * Set the center of the grid. Defaults to (0,0,0).
    */ 
   void set_grid_centre(float x, float y, float z);
+
+  /**
+   * Returns the grid center as a point.
+   */ 
+  inline point get_grid_centre()
+  { return geometry_.get_grid_centre(); }
+
+  /**
+   * Returns the grid size as a point representing the length along
+   * each axis.
+   */ 
+  inline point get_grid_size()
+  { return geometry_.get_grid_size(); }
 
   /**
    * Set the grid deltas, the size of the cells. The time delta is
