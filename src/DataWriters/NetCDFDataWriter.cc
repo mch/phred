@@ -428,8 +428,6 @@ int NetCDFDataWriter::get_dim(int i, int size, string basename)
 
   sz = size; 
 
-  ostringstream name;
-
   if (basename.length() == 0)
   {
     switch (i) 
@@ -466,7 +464,7 @@ int NetCDFDataWriter::get_dim(int i, int size, string basename)
     {
       idx = 0;
       while (idx < 100) {
-        name.str().clear();
+        ostringstream name;
         name << basename << idx++;
         status = nc_inq_dimid(ncid_, name.str().c_str(), &dimid);
 

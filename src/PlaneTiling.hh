@@ -127,10 +127,10 @@ public:
 
     // Check against the grid to ensure that we have enough room to
     // compute averages. 
-    if (zmax >= grid.get_ldz_sd())
+    if (zmax >= grid.get_ldz_sd() - 1)
       zmax--;
 
-    if (ymax >= grid.get_ldy_sd())
+    if (ymax >= grid.get_ldy_sd() - 1)
       ymax--;
 
     if (x <= 0)
@@ -192,10 +192,10 @@ public:
 
     // Check against the grid to ensure that we have enough room to
     // compute averages. 
-    if (zmax >= grid.get_ldz_sd())
+    if (zmax >= grid.get_ldz_sd() - 1)
       zmax--;
 
-    if (xmax >= grid.get_ldx_sd())
+    if (xmax >= grid.get_ldx_sd() - 1)
       xmax--;
 
     if (y <= 0)
@@ -257,10 +257,10 @@ public:
 
     // Check against the grid to ensure that we have enough room to
     // compute averages. 
-    if (ymax >= grid.get_ldy_sd())
+    if (ymax >= grid.get_ldy_sd() - 1)
       ymax--;
 
-    if (xmax >= grid.get_ldx_sd())
+    if (xmax >= grid.get_ldx_sd() - 1)
       xmax--;
 
     if (z <= 0)
