@@ -58,11 +58,26 @@ void MetaFDTD::run()
     cout << "Performing domain decomposition..." << endl;
 
   SubdomainAlg *alg = 0;
-  if (MPI_SIZE == 1 || MPI_SIZE == 2 || MPI_SIZE == 4 || MPI_SIZE == 8)
-    alg = new SimpleSDAlg();
-  else
+  if (ddalg_ == DDA_UNDEFINED) 
   {
-    //  alg = new StripSDAlg();
+    if (MPI_SIZE == 1 || MPI_SIZE == 2 || MPI_SIZE == 4 || MPI_SIZE == 8)
+      alg = new SimpleSDAlg();
+    else
+    {
+      //  alg = new StripSDAlg();
+      cerr << "Striping sub-domaining algorithm is not implemented yet!"
+           << endl;
+      return;
+    }
+  } 
+  else if (ddalg_ == DDA_SIMPLE)
+    alg = new SimpleSDAlg();
+
+  else if (ddalg_ == DDA_MPICART)
+    alg = new MPISubdomainAlg();
+
+  else if (ddalg_ == DDA_STRIPING)
+  {
     cerr << "Striping sub-domaining algorithm is not implemented yet!"
          << endl;
     return;
@@ -285,7 +300,8 @@ void MetaFDTD::run()
   e_update_r_.xmin = grid_->update_ey_r_.xmin;
 
   h_update_r_ = grid_->update_hx_r_;
-  h_update_r_.xmax = grid_->update_hy_r_.xmax;
+  h_update_r_.ymin = grid_->update_hy_r_.ymin;
+  h_update_r_.zmin = grid_->update_hz_r_.zmin;
 
 #ifdef DEBUG
   cout << "E 3 update region: " << e_update_r_;
@@ -489,9 +505,85 @@ void MetaFDTD::run()
 
 }
 
+template<class Update>
+static inline void component_correct(region_t update_r, region_t update_start,
+                                     GridUpdateData &gud, Grid &grid_)
+{
+  // Oh man, so much code! The ranges should be in vectors so it's
+  // possible to loop over them. This is super ugly. 
+  region_t temp_update;
+
+  if (update_r.xmin > update_start.xmin)
+  {
+    temp_update = update_start;
+    temp_update.xmax = temp_update.xmin + 1;
+
+    GridUpdateTiling<Update, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, grid_);
+      
+    update_start.xmin++;
+  }
+
+  if (update_r.ymin > update_start.ymin)
+  {
+    temp_update = update_start;
+    temp_update.ymax = temp_update.ymin + 1;
+
+    GridUpdateTiling<Update, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, grid_);
+
+    update_start.ymin++;
+  }
+
+  if (update_r.zmin > update_start.zmin)
+  {
+    temp_update = update_start;
+    temp_update.zmax = temp_update.zmin + 1;
+
+    GridUpdateTiling<Update, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, grid_);
+
+    update_start.zmin++;
+  }
+
+  if (update_r.xmax < update_start.xmax)
+  {
+    temp_update = update_start;
+    temp_update.xmin = temp_update.xmax - 1;
+
+    GridUpdateTiling<Update, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, grid_);
+      
+    update_start.xmax--;
+  }
+
+  if (update_r.ymax < update_start.ymax)
+  {
+    temp_update = update_start;
+    temp_update.ymin = temp_update.ymax - 1;
+
+    GridUpdateTiling<Update, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, grid_);
+
+    update_start.ymax--;
+  }
+
+  if (update_r.zmax < update_start.zmax)
+  {
+    temp_update = update_start;
+    temp_update.zmin = temp_update.zmax - 1;
+
+    GridUpdateTiling<Update, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, grid_);
+
+    update_start.zmax--;
+  }
+
+}
+
 void MetaFDTD::update_e(GridUpdateData &gud)
 {
-  region_t temp_update;
+  region_t temp_update, update_start;
 
   switch (mt_)
   {
@@ -512,24 +604,14 @@ void MetaFDTD::update_e(GridUpdateData &gud)
     GridUpdateTiling<ElectricGridUpdate, GridUpdateData, PrivateGridUpdateData>
       ::grid_loop(e_update_r_, gud, *grid_);
 
-    // Clean up the edges
-    temp_update = grid_->update_ex_r_;
-    temp_update.xmax = temp_update.xmin + 1;
+    component_correct<ExGridUpdate>(e_update_r_, grid_->update_ex_r_, 
+                                    gud, *grid_);
 
-    GridUpdateTiling<ExGridUpdate, GridUpdateData, PrivateGridUpdateData>
-      ::grid_loop(temp_update, gud, *grid_);
+    component_correct<EyGridUpdate>(e_update_r_, grid_->update_ey_r_, 
+                                    gud, *grid_);
 
-    temp_update = grid_->update_ey_r_;
-    temp_update.ymax = temp_update.ymin + 1;
-
-    GridUpdateTiling<EyGridUpdate, GridUpdateData, PrivateGridUpdateData>
-      ::grid_loop(temp_update, gud, *grid_);
-
-    temp_update = grid_->update_ez_r_;
-    temp_update.zmax = temp_update.zmin + 1;
-
-    GridUpdateTiling<EzGridUpdate, GridUpdateData, PrivateGridUpdateData>
-      ::grid_loop(temp_update, gud, *grid_);
+    component_correct<EzGridUpdate>(e_update_r_, grid_->update_ez_r_, 
+                                    gud, *grid_);
 
     break;
 
@@ -561,25 +643,15 @@ void MetaFDTD::update_h(GridUpdateData &gud)
     GridUpdateTiling<MagneticGridUpdate, GridUpdateData, PrivateGridUpdateData>
       ::grid_loop(h_update_r_, gud, *grid_);
 
-    // Clean up the edges
-    temp_update = grid_->update_hx_r_;
-    temp_update.xmin = temp_update.xmax - 1;
+    component_correct<HxGridUpdate>(h_update_r_, grid_->update_hx_r_, 
+                                    gud, *grid_);
 
-    GridUpdateTiling<HxGridUpdate, GridUpdateData, PrivateGridUpdateData>
-      ::grid_loop(temp_update, gud, *grid_);
+    component_correct<HyGridUpdate>(h_update_r_, grid_->update_hy_r_, 
+                                    gud, *grid_);
 
-    temp_update = grid_->update_hy_r_;
-    temp_update.ymin = temp_update.ymax - 1;
+    component_correct<HzGridUpdate>(h_update_r_, grid_->update_hz_r_, 
+                                    gud, *grid_);
 
-    GridUpdateTiling<HyGridUpdate, GridUpdateData, PrivateGridUpdateData>
-      ::grid_loop(temp_update, gud, *grid_);
-
-    temp_update = grid_->update_hz_r_;
-    temp_update.zmin = temp_update.zmax - 1;
-
-    GridUpdateTiling<HzGridUpdate, GridUpdateData, PrivateGridUpdateData>
-      ::grid_loop(temp_update, gud, *grid_);
-    
     break;
 
   case METAFDTD_SGI_ORIGIN:

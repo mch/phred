@@ -32,7 +32,6 @@ using namespace std;
 /**
  * This boundary condition talks to another rank and exchanges
  * information about the overlapping region with it. 
- * 
  */
 class SubdomainBc : public BoundaryCond
 {

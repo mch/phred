@@ -152,6 +152,22 @@ enum FieldType {
 };
 
 /**
+ * Available domain decomposition algorithms.
+ */ 
+enum DomainDecompAlg {
+  DDA_UNDEFINED, /**< The FDTD object chooses one based on #
+                      processors */  
+  DDA_SIMPLE,    /**< My simple algorithm, which only works for 1, 2,
+                      4, and 8 processors */ 
+  DDA_MPICART,   /**< Uses MPI functions to calculate the
+                      decomposition, also attaches topology
+                      information to the MPI communicator for more
+                      effective process -> hardware mapping */ 
+  DDA_STRIPING   /**< UNIMPLEMENTED algorithm, partitions in one plane
+                      only along the longest grid dimension */ 
+};
+
+/**
  * This is the type used to iterate across loops. Strictly speaking, 
  * this should be unsigned, but some architectures need to have
  * it signed for vectorization to work. OpenMP on an RS/6000 SP

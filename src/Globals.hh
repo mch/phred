@@ -19,9 +19,11 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
+#include <mpi.h>
 
 // Globals from phred.cc
 extern bool interactive, estimate_memory, mnps, quiet, setup_only;
 
 // Shouldn't be any harm in making these global...
 extern int MPI_RANK, MPI_SIZE;
+extern MPI_Comm MPI_COMM_PHRED;

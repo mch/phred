@@ -59,6 +59,8 @@ phred_SOURCES=\
 	SubdomainAlg.hh \
 	SimpleSDAlg.cc \
 	SimpleSDAlg.hh \
+	MPISubdomainAlg.cc \
+	MPISubdomainAlg.hh \
 	Contiguous.hh \
 	Interval.hh \
 	Tests.hh \

@@ -75,6 +75,13 @@ void export_types()
     .export_values()
     ;
 
+  enum_<DomainDecompAlg>("DomainDecompAlg")
+    .value("DDA_UNDEFINED", DDA_UNDEFINED)
+    .value("DDA_SIMPLE", DDA_SIMPLE)
+    .value("DDA_MPICART", DDA_MPICART)
+    .value("DDA_STRIPING", DDA_STRIPING)
+    .export_values();
+
   class_<region_t>("region")
     .def_readwrite("xmin", &region_t::xmin)
     .def_readwrite("ymin", &region_t::ymin)

@@ -19,31 +19,29 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef SUBDOMAIN_ALG_H
-#define SUBDOMAIN_ALG_H
+#ifndef MPI_SUBDOMAIN_ALG_H
+#define MPI_SUBDOMAIN_ALG_H
 
-#include "GridInfo.hh"
+#include "SubdomainAlg.hh"
 
 /**
- * This is an abstract base class which defines an interface for any
- * algorithm that produces a grid for a particular node. All
- * processors are intended to run this algorithm. 
+ * This class implements what I should have done in the first place:
+ * it uses the MPI_Cart_Create and MPI_Dims_create functions to
+ * compute the subdomain distribution. Minor adjustments are made for
+ * ghost cells. 
  *
- * This ABC and it's subclasses implement the Strategy pattern from pg
- * 315 of gof1995. The GridInfo object is the Context the individual
- * strategies work with.
+ * Unlike SimpleSubdomainAlg, this does not attempt to optimize the
+ * domain decomposition in any way.
  */
-class SubdomainAlg
-{
-private:
-protected:
+class MPISubdomainAlg : public SubdomainAlg {
 public:
-  SubdomainAlg() {}
-  virtual ~SubdomainAlg() {}
+  MPISubdomainAlg();
+  ~MPISubdomainAlg();
 
   /**
-   * Subclasses must override this method and implement an algorithm
-   * for domain decomposition. 
+   * Implements an algorithm for domain decomposition using MPI
+   * functions. Also creats a MPI_Communicator to help map processes
+   * to hardware topology.
    *
    * @param grid_info an object containing information about the
    * global grid as determined by parsing the input file. 
@@ -51,8 +49,10 @@ public:
    * @return a Grid object (class instance) which has its sizes set
    * but which has not yet allocated any memory.
    */
-  virtual GridInfo decompose_domain(GridInfo &info) = 0;
+  GridInfo decompose_domain(GridInfo &info);
+
+private:
 
 };
 
-#endif // SUBDOMAIN_ALG_H
+#endif // MPI_SUBDOMAIN_ALG_H

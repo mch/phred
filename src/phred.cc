@@ -79,6 +79,8 @@
 
 /* MPI (rocks your socks right off) */
 #include <mpi.h>
+MPI_Comm MPI_COMM_PHRED; /**< Our own communicator, with topology info
+                            attached. */ 
 
 /* Let's use C++ for things that aren't speed critical, because life
    is just so much easier that way. And safer. Practice safe hex. */
@@ -458,6 +460,7 @@ int main (int argc, char **argv)
 
   //std::set_terminate (__gnu_cxx::__verbose_terminate_handler);
 
+  MPI_COMM_PHRED = MPI_COMM_WORLD;
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &MPI_RANK);
   MPI_Comm_size(MPI_COMM_WORLD, &MPI_SIZE);

@@ -41,6 +41,7 @@ using namespace boost;
 #include "Constants.hh"
 #include "Exceptions.hh"
 #include "SimpleSDAlg.hh"
+#include "MPISubdomainAlg.hh"
 #include "ProblemGeometry.hh"
 #include "FreqGrid.hh"
 
@@ -193,6 +194,20 @@ public:
   inline shared_ptr<Grid> get_grid()
   { return grid_; }
 
+  /**
+   * Set the domain decomposition algorithm to use. Defaults to the
+   * origional simple algorithm which only works for 1, 2, 4, and 8
+   * processes.
+   */ 
+  inline void set_decomp_alg(DomainDecompAlg a)
+  { ddalg_ = a; }
+
+  /**
+   * Returns the domain decomposition algorithm being used. 
+   */ 
+  inline DomainDecompAlg get_decomp_alg()
+  { return ddalg_; }
+
 protected:
   /**
    * The grid to operate on; what kind of grid specifically is decided
@@ -277,6 +292,11 @@ protected:
    * Print out the elapsed time
    */ 
   void print_elapsed_time(int secs);
+
+  /**
+   * The domain decomposition algorithm to use
+   */ 
+  DomainDecompAlg ddalg_;
 
 };
 
