@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -24,6 +24,7 @@
 
 #include "Result.hh"
 #include "../Types.hh"
+#include "../CSG/CSGBox.hh"
 
 #include <mpi.h>
 
@@ -54,20 +55,10 @@ public:
    *
    * @param p
    */
-  inline void set_plane(grid_point p, Face face)
+  inline void set_plane(shared_ptr<CSGBox> box, Face face)
   {
-    plane_ = p;
+    box_ = box;
     face_ = face;
-  }
-
-  /**
-   * Get the position of the plane in global coordinates
-   *
-   * @return grid_point
-   */
-  inline grid_point get_plane()
-  {
-    return plane_;
   }
 
   /**
@@ -114,17 +105,28 @@ private:
 protected:
   // Position of the plane in global space. Have to translate it to
   // the local grid.
-  grid_point plane_;
+  shared_ptr<CSGBox> box_;
 
   // The face the plane is parallel to
   Face face_;
 
+  // Local grid region
+  shared_ptr<Block> region_;
+  
   // The field component we are interested in. 
   FieldComponent field_;
 
   Variable var_; /**< Our variable */
 
   MPI_Datatype datatype_; 
+
+  bool average_; /**< Output data which has been averaged to the
+                    plane, rather that just the data at the
+                    plane. This gives the same data which is used in
+                    the calculation of power and near to farfield
+                    results. */ 
+
+  field_t avg_data_; /**< Averaged data, only used when average_ == true */
 
   bool have_data_; /**< True if the node has data to contribute. */ 
 

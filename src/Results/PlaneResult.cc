@@ -54,6 +54,9 @@ void PlaneResult::init(const Grid &grid)
   // planes, then this PlaneResult can only return data if the point
   // is located in the local subdomain.
 
+  region_ = grid.get_local_region(*box_);
+  shared_pre<Block> global_b_ = grid.get_global_region(*box_);
+
 //   cerr << "PlaneResult global point location: " << plane_.x 
 //        << " x " << plane_.y << " x " << plane_.z << endl;
 //   grid_point l_point = grid.global_to_local(plane_);

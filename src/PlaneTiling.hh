@@ -138,6 +138,11 @@ public:
 
     YZPlane plane(const_cast<Grid &>(grid));
 
+// #ifdef DEBUG
+//     cerr << "Looping over a YZ plane, y=" << ymin << "->" << ymax
+//          << ", z=" << zmin << "->" << zmax << ", x=" << x << endl;
+// #endif
+
     Fields_t f;
 
     for (yidx = ymin; yidx < ymax; yidx++)
@@ -198,6 +203,11 @@ public:
 
     XZPlane plane(const_cast<Grid &>(grid));
 
+// #ifdef DEBUG
+//     cerr << "Looping over a ZX plane, z=" << zmin << "->" << zmax
+//          << ", x=" << xmin << "->" << xmax << ", y=" << y << endl;
+// #endif
+
     Fields_t f;
 
     for (xidx = xmin; xidx < xmax; xidx++)
@@ -257,6 +267,11 @@ public:
       z++;
 
     XYPlane plane(const_cast<Grid &>(grid));
+
+// #ifdef DEBUG
+//     cerr << "Looping over a XY plane, x=" << xmin << "->" << xmax
+//          << ", y=" << ymin << "->" << ymax << ", z=" << z << endl;
+// #endif
 
     Fields_t f;
 
