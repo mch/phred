@@ -31,12 +31,18 @@
  * objects. Boxes and spheres and stuff. You know. Each object must
  * know how to iterate over the cells it constains, so that you can
  * do things to it. 
+ *
+ * Geometry objects can store auxilary data that may be required for
+ * dispersion relationships. 
  */
 class Geometry : public LifeCycle
 {
 private:
 protected:
   unsigned int material_id_;
+
+  field_t **aux; /**< Auxilariy data required for dispersion
+                    relationships that happen inside the geometry. */ 
 
 public:
   Geometry() {}
@@ -96,6 +102,22 @@ public:
    * Update the material indicies of the grid 
    */
   virtual void set_material(Grid &grid) = 0;
+
+  /**
+   * Returns true if the given point is inside this geometry, with
+   * respect to local grid coordinates. 
+   */ 
+  virtual void local_point_inside(unsigned int x,
+                                  unsigned int y, 
+                                  unsigned int y) = 0;
+
+  /**
+   * Returns true if the given point is inside this geometry, with
+   * respect to global grid coordinates. 
+   */ 
+  virtual void global_point_inside(unsigned int x,
+                                   unsigned int y, 
+                                   unsigned int y) = 0;
 };
 
 #endif // GEOMETRY_H
