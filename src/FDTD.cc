@@ -502,7 +502,7 @@ void FDTD::run()
       (*e_eiter).second->excite(*grid_, ts, E);
       ++e_eiter;
     }
-    
+
     // Boundary condition application
     grid_->apply_boundaries(E);
 
@@ -521,7 +521,7 @@ void FDTD::run()
 
 
       ++iter;
-   }
+    }
     
   } // End of main loop
 

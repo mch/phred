@@ -118,7 +118,7 @@ void no_memory()
 {
   //throw MemoryException();
   cerr << "Out of memory. Aborting program.";
-  MPI_Abort(MPI_COMM_WORLD, 1);
+  MPI_Abort(MPI_COMM_PHRED, 1);
 }
 
 // TESTING ONLY! REMOVE AT SOME POINT
@@ -133,7 +133,7 @@ static void usage (int status);
 #undef HAVE_LIBPOPT 
 #ifdef HAVE_LIBPOPT
 
-/* popt plays way nicer with MPI than getopt. Trust me. */
+/* popt plays way nicer with MPI than getopt. Trust me. !?!?!?!? WTF */
 #include <popt.h>
 
 static struct poptOption options[] = 
@@ -462,8 +462,8 @@ int main (int argc, char **argv)
 
   MPI_COMM_PHRED = MPI_COMM_WORLD;
   MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &MPI_RANK);
-  MPI_Comm_size(MPI_COMM_WORLD, &MPI_SIZE);
+  MPI_Comm_rank(MPI_COMM_PHRED, &MPI_RANK);
+  MPI_Comm_size(MPI_COMM_PHRED, &MPI_SIZE);
 
   //if (MPI_RANK == 0)
   {
@@ -684,7 +684,7 @@ int main (int argc, char **argv)
   } catch (const std::exception &e) {
     cout << "Caught exception: " << e.what() << endl;
     cout << "Phred terminated with an error. " << endl;
-    MPI_Abort(MPI_COMM_WORLD, 1);
+    MPI_Abort(MPI_COMM_PHRED, 1);
   }
 
   now = time(NULL);
@@ -748,7 +748,7 @@ int main (int argc, char **argv)
 #endif
 
   // Thank you and goodnight
-  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_PHRED);
   MPI_Finalize();
 
   exit (0);

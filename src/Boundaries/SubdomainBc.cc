@@ -22,6 +22,7 @@
 
 #include "SubdomainBc.hh"
 #include "../Grid.hh"
+#include "../Globals.hh"
 
 void SubdomainBc::apply(Face face, Grid &grid, FieldType type)
 {
@@ -37,6 +38,18 @@ void SubdomainBc::apply(Face face, Grid &grid, FieldType type)
       send_recv((*iter).get_tx_ptr(), 
                 (*iter).get_rx_ptr(), 
                 dtype);
+
+// #ifdef DEBUG
+//       int sz;
+//       MPI_Aint ext;
+//       MPI_Type_size((*iter).get_datatype(), &sz);
+//       MPI_Type_extent((*iter).get_datatype(), &ext);
+      
+//       cout << "SubdomainBc::apply(), extent: " << ext << ", sent " 
+//            << sz << " bytes from " 
+//            << (*iter).get_tx_ptr() << "\nrecieved same number at " 
+//            << (*iter).get_rx_ptr() << endl;
+// #endif
     }
 
     ++iter;
@@ -48,11 +61,11 @@ void SubdomainBc::send_recv(const void *tx_ptr, void *rx_ptr, MPI_Datatype &t)
   MPI_Status status;
 
   if (rank_ > neighbour_) {
-    MPI_Send(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, MPI_COMM_WORLD);
-    MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD, &status);
+    MPI_Send(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, MPI_COMM_PHRED);
+    MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_PHRED, &status);
   } else {
-    MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD, &status);
-    MPI_Send(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, MPI_COMM_WORLD);
+    MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_PHRED, &status);
+    MPI_Send(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, MPI_COMM_PHRED);
   }
 }
 

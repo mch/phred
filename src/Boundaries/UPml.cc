@@ -98,24 +98,6 @@ void UPml::compute_regions(Face face, const Grid &grid)
       grid_ey_r_.xmax--;
       grid_ez_r_.xmax--;
 
-      // TEST
-//       grid_ex_r_.ymax--;
-//       grid_ez_r_.ymax--;
-
-//       grid_ex_r_.zmax--;
-//       grid_ey_r_.zmax--;
-      break;
-
-    case BACK:
-      // TEST
-//       grid_ex_r_.ymax--;
-//       grid_ez_r_.ymax--;
-
-//       grid_ex_r_.zmax--;
-//       grid_ey_r_.zmax--;
-
-      break;
-
     case TOP:
       grid_ex_r_.zmin--;
       grid_ey_r_.zmin--;
@@ -123,30 +105,6 @@ void UPml::compute_regions(Face face, const Grid &grid)
       grid_ex_r_.zmax--;
       grid_ey_r_.zmax--;
 
-      // TEST
-//       grid_ey_r_.xmax--;
-//       grid_ez_r_.xmax--;
-
-//       grid_ez_r_.ymax--;
-//       grid_ex_r_.ymax--;
-      break;
-
-    case BOTTOM:
-      // TEST
-//       grid_ey_r_.xmax--;
-//       grid_ez_r_.xmax--;
-
-//       grid_ez_r_.ymax--;
-//       grid_ex_r_.ymax--;
-      break;
-
-    case LEFT:
-      // TEST
-//       grid_ey_r_.xmax--;
-//       grid_ez_r_.xmax--;
-
-//       grid_ex_r_.zmax--;
-//       grid_ey_r_.zmax--;     
       break;
 
     case RIGHT:
@@ -156,12 +114,6 @@ void UPml::compute_regions(Face face, const Grid &grid)
       grid_ez_r_.ymax--;
       grid_ex_r_.ymax--;
 
-      // TEST
-//       grid_ey_r_.xmax--;
-//       grid_ez_r_.xmax--;
-
-//       grid_ex_r_.zmax--;
-//       grid_ey_r_.zmax--;
       break;
     }
 
@@ -181,6 +133,8 @@ void UPml::compute_regions(Face face, const Grid &grid)
         grid_hz_r_.xmin += thickness;
       }
 
+      // Could this block of code be causing the BOTTOM and FRONT
+      // problem when divided along the Z axis?
       if (grid.get_boundary(FRONT).get_type() == UPML)
       {
         unsigned int thickness = grid.get_boundary(FRONT).get_thickness();
@@ -224,15 +178,19 @@ void UPml::compute_regions(Face face, const Grid &grid)
       }
     }
 
-    // Compensate for the commented out stuff in compute_regions
+    // Clean up, make E walls on outer edges
     switch (face) {
+
     case FRONT:
     case BACK:
       if (grid.get_boundary(RIGHT).get_type() == UPML)
       {
         grid_ex_r_.ymax--;
         grid_ez_r_.ymax--;
-      
+      }
+
+      if (grid.get_boundary(TOP).get_type() == UPML)
+      {
         grid_ex_r_.zmax--;
         grid_ey_r_.zmax--;
       }
@@ -285,8 +243,11 @@ void UPml::init(const Grid &grid, Face face)
 
   compute_regions(face, grid);
 
-  unsigned int sz = (grid_r_.xmax - grid_r_.xmin) 
-    * (grid_r_.ymax - grid_r_.ymin) * (grid_r_.zmax - grid_r_.zmin);
+  // A bit of a waste since some can be eliminated because there is no
+  // overlap.
+  unsigned int sz = (grid_r_.xmax - grid_r_.xmin + 1) 
+    * (grid_r_.ymax - grid_r_.ymin + 1) 
+    * (grid_r_.zmax - grid_r_.zmin + 1);
   
   // new gleefully throws exceptions on low memory.
   dx_ = new field_t[sz];
@@ -296,6 +257,13 @@ void UPml::init(const Grid &grid, Face face)
   bx_ = new field_t[sz];
   by_ = new field_t[sz];
   bz_ = new field_t[sz];
+
+  cout << "UPml::init(). sz = " << sz << " field_t's. \ndx_ = " 
+       << dx_ << " -> " << dx_ + sz << "\ndy_ = " << dy_ 
+       << " -> " << dy_ + sz << "\ndz_ = " << dz_ << " -> " 
+       << dz_ + sz << "\nbx_ = " 
+       << bx_ << " -> " << bx_ + sz << "\nby_ = " << by_ << " -> " 
+       << by_ + sz << "\nbz_ = " << bz_ << " -> " << bz_ + sz << endl;
 
   memset(dx_, 0, sizeof(field_t) * sz);
   memset(dy_, 0, sizeof(field_t) * sz);
@@ -399,29 +367,53 @@ void UPml::init(const Grid &grid, Face face)
        << grid_hz_r_.zmax << endl;
 
 
-  cout << endl << "br_r_: " << bc_r_ << endl;
+  cout << endl << "br_r_: " << bc_r_;
+  cout << "grid_r_: " << grid_r_ << endl;
 #endif
 
   MPI_Type_contiguous(bc_r_.zmax, GRID_MPI_TYPE, &z_vector_);
   MPI_Type_commit(&z_vector_);
 
+  cout << "UPml::init(): z vector is " << bc_r_.zmax << " long. " << endl;
+
   MPI_Type_vector(bc_r_.ymax, 1, bc_r_.zmax, GRID_MPI_TYPE, &y_vector_);
   MPI_Type_commit(&y_vector_);
+
+  cout << "UPml::init(): y vector is " << bc_r_.ymax 
+       << " long, stride is " << bc_r_.zmax << endl;
   
   MPI_Type_vector(bc_r_.xmax, 1, bc_r_.ymax * bc_r_.zmax, 
                   GRID_MPI_TYPE, &x_vector_);
   MPI_Type_commit(&x_vector_);
 
+  cout << "UPml::init(): x vector is " << bc_r_.xmax 
+       << " long, stride is " << bc_r_.ymax * bc_r_.zmax << endl;
+
   MPI_Type_contiguous(bc_r_.zmax * bc_r_.ymax, GRID_MPI_TYPE, &yz_plane_);
   MPI_Type_commit(&yz_plane_);
+
+  cout << "UPml::init(): yz plane is a contiguous chunk of memory, " 
+       << bc_r_.zmax * bc_r_.ymax << " total cells, " << bc_r_.zmax 
+       << " by " << bc_r_.ymax << endl;
 
   MPI_Type_vector(bc_r_.xmax, bc_r_.zmax, bc_r_.ymax * bc_r_.zmax, 
                   GRID_MPI_TYPE, &xz_plane_);
   MPI_Type_commit(&xz_plane_);
 
+  cout << "UPml::init(): xz plane is " << bc_r_.xmax << " by " << bc_r_.zmax 
+       << ", stride is " << bc_r_.ymax * bc_r_.zmax << endl;
+
+
+  // SUSPECT!
   MPI_Type_hvector(bc_r_.xmax, 1, sizeof(field_t) * bc_r_.zmax * bc_r_.ymax, 
                    y_vector_, &xy_plane_);
+//   MPI_Type_vector(bc_r_.xmax, 1, bc_r_.zmax, 
+//                   y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
+
+  cout << "UPml::init(): xy plane is " << bc_r_.xmax << " by " << bc_r_.ymax 
+       << ", stride is " << bc_r_.ymax * bc_r_.zmax << endl;
+  
 }
 
 void UPml::deinit(const Grid &grid, Face face)
@@ -1322,26 +1314,31 @@ void UPml::add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface)
     r_idx = pi(0, 0, 0);
     ret.set_datatype(yz_plane_);
     break;
+
   case FRONT:
     s_idx = pi(bc_r_.xmax - 2, 0, 0);
     r_idx = pi(bc_r_.xmax - 1, 0, 0);
     ret.set_datatype(yz_plane_);
     break;
+
   case LEFT:
     s_idx = pi(0, 1, 0);
     r_idx = pi(0, 0, 0);
     ret.set_datatype(xz_plane_);
     break;
+
   case RIGHT:
     s_idx = pi(0, bc_r_.ymax - 2, 0);
     r_idx = pi(0, bc_r_.ymax - 1, 0);
     ret.set_datatype(xz_plane_);
     break;
+
   case BOTTOM:
     s_idx = pi(0, 0, 1);
     r_idx = pi(0, 0, 0);
     ret.set_datatype(xy_plane_);
     break;
+
   case TOP:
     s_idx = pi(0, 0, bc_r_.zmax - 2);
     r_idx = pi(0, 0, bc_r_.zmax - 1);
@@ -1355,13 +1352,24 @@ void UPml::add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface)
   ret.set_tx_ptr(&(dx_[s_idx]));
   sd->add_tx_rx_data(ret);
 
+//   cout << "UPml::add_sd_bcs, bcface = " << face_string(bcface) 
+//        << ", sdface = " << face_string(sdface) 
+//        << ", dx, rx_ptr = " << &(dx_[r_idx]) << ", sx_ptr = "
+//        << &(dx_[s_idx]) << endl;
+
   ret.set_rx_ptr(&(dy_[r_idx]));
   ret.set_tx_ptr(&(dy_[s_idx]));
   sd->add_tx_rx_data(ret);
 
+//   cout << "UPml::add_sd_bcs, dy, rx_ptr = " << &(dy_[r_idx]) << ", sx_ptr = "
+//        << &(dy_[s_idx]) << endl;
+
   ret.set_rx_ptr(&(dz_[r_idx]));
   ret.set_tx_ptr(&(dz_[s_idx]));
   sd->add_tx_rx_data(ret);
+
+//   cout << "UPml::add_sd_bcs, dz, rx_ptr = " << &(dz_[r_idx]) << ", sx_ptr = "
+//        << &(dz_[s_idx]) << endl;
 
   ret.set_field_type(H);
 

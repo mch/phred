@@ -36,9 +36,9 @@ PowerResult::PowerResult()
   freq_var_.has_time_dimension(false);
   power_var_.has_time_dimension(true);
 
-  variables_["real_power"] = &real_var_;
-  variables_["imag_power"] = &imag_var_;
-  variables_["freqs"] = &freq_var_;
+  post_vars_["real_power"] = &real_var_;
+  post_vars_["imag_power"] = &imag_var_;
+  pre_vars_["freqs"] = &freq_var_;
   variables_["time_power"] = &power_var_;
 }
 
@@ -53,9 +53,9 @@ PowerResult::PowerResult(field_t freq_start, field_t freq_stop,
   freq_var_.has_time_dimension(false);
   power_var_.has_time_dimension(true);
 
-  variables_["real_power"] = &real_var_;
-  variables_["imag_power"] = &imag_var_;
-  variables_["freqs"] = &freq_var_;
+  post_vars_["real_power"] = &real_var_;
+  post_vars_["imag_power"] = &imag_var_;
+  pre_vars_["freqs"] = &freq_var_;
   variables_["time_power"] = &power_var_;
 }
 
@@ -300,6 +300,8 @@ public:
 /**
  * This class is a meta-program template which calculates the power
  * through plane in the frequency domain.
+ *
+ * THIS IS TOTALLY WRONG! 
  */ 
 class DFTPowerAlg
 {
@@ -345,11 +347,11 @@ public:
 
     complex<field_t> temp = (data.et1_[data.idx] * conj(data.ht2_[data.idx])
       - data.et2_[data.idx] * conj(data.ht1_[data.idx])) * data.cell_area;
-
+ 
     // Cheap, approximate integration.
     data.p_real += temp.real();
     data.p_imag += temp.imag();
-
+   
     ++data.idx;
   }
 };
@@ -405,6 +407,8 @@ void PowerResult::calculate_result(const Grid &grid,
   dftdata.cell_area = cell_area_;
 
   delta_t dt = grid.get_deltat();
+
+  // I think these may be backwards
   delta_t e_time = dt * time_step;
   delta_t h_time = dt * (static_cast<delta_t>(time_step) - 0.5);
 
@@ -422,33 +426,36 @@ void PowerResult::calculate_result(const Grid &grid,
     dftdata.p_real = 0;
     dftdata.p_imag = 0;
 
-    if (has_data_)
-    {
-      dftdata.e_cos_temp = cos(-2 * PI * frequencies_.get(i) * e_time);
-      dftdata.e_sin_temp = sin(-2 * PI * frequencies_.get(i) * e_time);
+//     if (has_data_)
+//     {
+//       dftdata.e_cos_temp = cos(-2 * PI * frequencies_.get(i) * e_time);
+//       dftdata.e_sin_temp = sin(-2 * PI * frequencies_.get(i) * e_time);
 
-      dftdata.h_cos_temp = cos(-2 * PI * frequencies_.get(i) * h_time);
-      dftdata.h_sin_temp = sin(-2 * PI * frequencies_.get(i) * h_time);
+//       dftdata.h_cos_temp = cos(-2 * PI * frequencies_.get(i) * h_time);
+//       dftdata.h_sin_temp = sin(-2 * PI * frequencies_.get(i) * h_time);
 
-      dftdata.p_real = 0;
-      dftdata.p_imag = 0;
+//       dftdata.p_real = 0;
+//       dftdata.p_imag = 0;
 
-      dftdata.idx = i * x_size_ * y_size_ * z_size_;
+//       dftdata.idx = i * x_size_ * y_size_ * z_size_;
       
-      PlaneTiling<DFTPowerAlg, DFTPowerAlg::Data>::loop(grid, (*region_),
-                                                        face_, dftdata);
-    }
+//       PlaneTiling<DFTPowerAlg, DFTPowerAlg::Data>::loop(grid, (*region_),
+//                                                         face_, dftdata);
+//     }
     
-    MPI_Reduce(&dftdata.p_real, &dftdata.p_real, 1, 
-               GRID_MPI_TYPE, MPI_SUM, 0, 
-               MPI_COMM_WORLD);
+//     MPI_Reduce(&dftdata.p_real, &dftdata.p_real, 1, 
+//                GRID_MPI_TYPE, MPI_SUM, 0, 
+//                MPI_COMM_WORLD);
     
-    MPI_Reduce(&dftdata.p_imag, &dftdata.p_imag, 1, 
-               GRID_MPI_TYPE, MPI_SUM, 0, 
-               MPI_COMM_WORLD);
+//     MPI_Reduce(&dftdata.p_imag, &dftdata.p_imag, 1, 
+//                GRID_MPI_TYPE, MPI_SUM, 0, 
+//                MPI_COMM_WORLD);
 
-    power_real_[i] = dftdata.p_real;
-    power_imag_[i] = dftdata.p_imag;
+//     power_real_[i] = dftdata.p_real;
+//     power_imag_[i] = dftdata.p_imag;
+
+    power_real_[i] += time_power_ * cos(-2 * PI * frequencies_.get(i) * e_time);
+    power_imag_[i] += time_power_ * sin(-2 * PI * frequencies_.get(i) * e_time);
   }
 
   // Store the current value of Et1, Et2
