@@ -44,39 +44,48 @@ map<string, Variable *> &call_get_result(Result &r,
 /**
  * This allows for results written in Python
  */
-class ResultWrap : public Result
-{
-private:
-  PyObject *self_;
+// class ResultWrap : public Result
+// {
+// private:
+//   PyObject *self_;
 
-public:
-  ResultWrap(PyObject *self)
-    : self_(self) {}
+// public:
+//   ResultWrap(PyObject *self)
+//     : self_(self) {}
 
-  map<string, Variable *> &get_result(const Grid &grid, unsigned int time_step)
-  { return call_method<map<string, Variable *> &, Result&, const Grid &, unsigned int>(self_, "get_result", grid, time_step); }
+//   ResultWrap(PyObject *self, const Result &r)
+//     : Result(r), self_(self) {}
 
-};
+//   map<string, Variable *> &get_result(const Grid &grid, unsigned int time_step)
+//   {}
+//   //{ return call_method<map<string, Variable *>& >(self_, "get_result", grid, time_step); }
+
+// };
 
 BOOST_PYTHON_MODULE(Results)
 {
-  def("call_get_result", call_get_result);
-
-  class_<Result, ResultWrap, boost::noncopyable>("Result", "Result data derieved from the Grid")
-    .add_property("has_time_dimension", 
-                  (bool(Result::*)(void))&Result::has_time_dimension, 
-                  (void(Result::*)(bool))&Result::has_time_dimension)
+  //def("call_get_result", call_get_result);
+  
+  class_<Result, boost::noncopyable>("Result", no_init)
     .def("set_time_param", &Result::set_time_param)
-    .def("set_dw_name", &Result::set_dw_name)
-    .def("get_dw_name", &Result::get_dw_name)
-    .add_property("dw_name", &Result::get_dw_name,
-                  &Result::set_dw_name)
     .def("set_name", &Result::set_name)
-    .def("get_name", &Result::get_name)
-    .add_property("name", &Result::get_name, &Result::set_name)     
+    //.def("get_name", &Result::get_name)
+    .def("set_dw_name", &Result::set_dw_name)
+    ;
+
+  //class_<Result, boost::noncopyable>("Result", no_init) //, "Result data derieved from the Grid")
+//     .def("set_time_param", &Result::set_time_param)
+//     .def("set_dw_name", &Result::set_dw_name)
+//     .def("get_dw_name", &Result::get_dw_name)
+//     .add_property("dw_name", &Result::get_dw_name,
+//                   &Result::set_dw_name)
+//     .def("set_name", &Result::set_name)
+//     .def("get_name", &Result::get_name)
+//     .add_property("name", &Result::get_name, &Result::set_name)
+    //.def("get_result", &Result::get_result)
     //.def("get_dim_lengths", &Result::get_dim_lengths)
     //.def("get_dim_names", &Result::get_dim_names)
-    ;
+    //;
 
   //   def("call_get_result", call_get_result);
 

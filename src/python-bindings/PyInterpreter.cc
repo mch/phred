@@ -34,7 +34,7 @@
 
 static struct _inittab modules_[] = 
   {
-    {"Results", &initResults},
+    //{"Results", &initResults},
     {"Excitations", &initExcitations},
     {"FDTD", &initFDTD},
     {"Boundaries", &initBoundaries},
@@ -227,9 +227,9 @@ void PyInterpreter::add_modules()
   handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
   handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
   
-  handle<> rname ( PyString_FromString("Results") );
-  handle<> res( PyImport_Import(rname.get()) );
-  PyDict_SetItemString(main_namespace.get(), "Results", res.get());
+//   handle<> rname ( PyString_FromString("Results") );
+//   handle<> res( PyImport_Import(rname.get()) );
+//   PyDict_SetItemString(main_namespace.get(), "Results", res.get());
 
   handle<> ename ( PyString_FromString("Excitations") );
   handle<> ex( PyImport_Import(ename.get()) );

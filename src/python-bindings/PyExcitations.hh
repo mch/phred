@@ -52,14 +52,17 @@ public:
   ExcitationWrap(PyObject* self, SourceFunction *sf)
     :  Excitation(sf), self_(self) {}
 
+  ExcitationWrap(PyObject *self, const Excitation &e)
+    : Excitation(e), self_(self)
+  {}
+
   void excite(Grid &grid, unsigned int time_step,
               FieldType type) 
-  { call_method<void, Grid&, unsigned int, FieldType>(self_, "excite", grid, time_step, type); }
+  { call_method<void>(self_, "excite", grid, time_step, type); }
 
   void default_excite(Grid &grid, unsigned int time_step,
                       FieldType type) 
-  { Excitation::excite(grid, time_step,
-                       type); }
+  { Excitation::excite(grid, time_step, type); }
 };
 
 /**
@@ -85,16 +88,15 @@ public:
 
   void excite(Grid &grid, unsigned int time_step,
               FieldType type) 
-  { return call_method<void>(self_, "excite"); }
+  { return call_method<void>(self_, "excite", time_step, type); }
 
   void default_excite(Grid &grid, unsigned int time_step,
                       FieldType type) 
-  { WindowedExcitation::excite(grid, time_step,
-                               type); }  
+  { WindowedExcitation::excite(grid, time_step, type); }  
 
   field_t window(region_t r, unsigned int x, unsigned int y, 
                  unsigned int z)
-  { return call_method<field_t>(self_, "window"); }
+  { return call_method<field_t>(self_, "window", x, y, z); }
 };
 
 /**
@@ -117,23 +119,26 @@ public:
 
 BOOST_PYTHON_MODULE(Excitations)
 {
-  def("call_excite", call_excite);
-  def("call_source_function", call_source_function);
+  //def("call_excite", call_excite);
+  //def("call_source_function", call_source_function);
     
-  class_<Excitation, ExcitationWrap, boost::noncopyable>("Excitation", "Excitations applied to the FDTD grid", init<SourceFunction *>())
-    //.def("excite", &Excitation::excite, &ExcitationWrap::default_excite)
-    .def("excite", &Excitation::excite)
+  class_<Excitation, ExcitationWrap>("Excitation", "Excitations applied to the FDTD grid", init<SourceFunction *>())
+    .def("excite", &ExcitationWrap::excite)
+    .def("excite", &ExcitationWrap::default_excite)
     .def("set_polarization", &Excitation::set_polarization)
     .def("set_type", &Excitation::set_type)
     .def("set_soft", &Excitation::set_soft)
     .def("get_soft", &Excitation::get_soft)
-    //.def("set_region", &Excitation::set_region(region_t))
+    .def("set_region", (void(Excitation::*)(region_t))&Excitation::set_region)
     .def("set_region", (void(Excitation::*)(unsigned int, unsigned int, 
                                             unsigned int, unsigned int,
                                             unsigned int, unsigned int))&Excitation::set_region)
     ;
 
-  class_<WindowedExcitation, WindowedExcitationWrap, bases<Excitation>, boost::noncopyable>("WindowedExcitation", "Excitations that apply a windowing function to the excitation in the FDTD grid", init<SourceFunction *>())
+  class_<WindowedExcitation, WindowedExcitationWrap, bases<Excitation>,
+    boost::noncopyable>("WindowedExcitation", 
+                        "Excitations that apply a windowing function to the excitation in the FDTD grid", 
+                        init<SourceFunction *>())
     .def("excite", &WindowedExcitation::excite, 
          &WindowedExcitationWrap::default_excite)
     ;
@@ -141,7 +146,7 @@ BOOST_PYTHON_MODULE(Excitations)
   class_<SourceFunction, SourceFunctionWrap, boost::noncopyable>("SourceFunction", "Make derived classes from this to create source functions for excitations")
     .def("source_function", &SourceFunction::source_function)
     ;
-  //    .def("call_sf", call_sf)
+  //.def("call_sf", call_sf)
 
   class_<Gaussm, bases<SourceFunction> >("Gaussm", "Gaussian modulated sine function")
     .def("set_parameters", &Gaussm::set_parameters)

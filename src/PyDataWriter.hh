@@ -22,14 +22,14 @@
 #ifndef PY_DATA_WRITER_H
 #define PY_DATA_WRITER_H
 
+#ifdef USE_PY_BINDINGS
+#include <Python.h>
+#endif
+
 #include "DataWriter.hh"
 #include "Exceptions.hh"
 
 #include "config.h"
-
-#ifdef USE_PY_BINDINGS
-#include <Python.h>
-#endif
 
 #include <map>
 #include <vector>
