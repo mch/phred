@@ -2,6 +2,7 @@
 #include "Exceptions.hh"
 
 #include <string.h> // for memset()
+#include <math.h>
 
 FreqGrid::FreqGrid()
   : vcdt_(0), omegapsq_(0), dx_(0), sx_(0), sxm1_(0), sxm2_(0),
@@ -198,32 +199,33 @@ void FreqGrid::update_ex()
         }
         else
         {
-          *ex = Ca_[mid] * dx_[plasma_idx]
+          *ex = Ca_[mid] * dx_[idx]
             + Cby_[mid] * (*hz1 - *hz2)
             + Cbz_[mid] * (*(hy - 1) - *hy);
 
-          dx_[plasma_idx] = *ex;
+          dx_[idx] = *ex;
 
-          *ex = dx_[plasma_idx] - sx_[plasma_idx];
+          *ex = dx_[idx] - sx_[idx];
           
-          if (abs(*ex) > abs(dx_[plasma_idx]))
+          if (abs(*ex) > abs(dx_[idx]))
             cout << "WARNING: new ex larger than old ex at "
                  << i << ", " << j << ", " << k << "!" << endl;
 
-          sx_[plasma_idx] = (1 + vcdt_[mid]) * sxm1_[plasma_idx]
-            - vcdt_[mid] * sxm2_[plasma_idx]
+          sx_[idx] = (1 + vcdt_[mid]) * sxm1_[idx]
+            - vcdt_[mid] * sxm2_[idx]
             + omegapsq_[mid] * (1 - vcdt_[mid]) * *ex;
           
-          sxm2_[plasma_idx] = sxm1_[plasma_idx];
-          sxm1_[plasma_idx] = sx_[plasma_idx];
+          sxm2_[idx] = sxm1_[idx];
+          sxm1_[idx] = sx_[idx];
 
-          ++plasma_idx;
+          //++plasma_idx;
         }
 
         ex++;
         hz1++;
         hz2++;
         hy++;
+        idx++;
       }
     }
   }
@@ -260,24 +262,24 @@ void FreqGrid::update_ey()
         }
         else
         {
-          *ey = Ca_[mid] * dy_[plasma_idx]
+          *ey = Ca_[mid] * dy_[idx]
             + Cbz_[mid] * (*hx - *(hx-1))
             + Cbx_[mid] * (*hz1 - *hz2);
 
-          dy_[plasma_idx] = *ey;
+          dy_[idx] = *ey;
 
-          *ey = dy_[plasma_idx] - sy_[plasma_idx];
+          *ey = dy_[idx] - sy_[idx];
           
-          if (abs(*ey) > abs(dy_[plasma_idx]))
+          if (abs(*ey) > abs(dy_[idx]))
             cout << "WARNING: new ey larger than old ey at "
                  << i << ", " << j << ", " << k << "!" << endl;
 
-          sy_[plasma_idx] = (1 + vcdt_[mid]) * sym1_[plasma_idx]
-            - vcdt_[mid] * sym2_[plasma_idx]
+          sy_[idx] = (1 + vcdt_[mid]) * sym1_[idx]
+            - vcdt_[mid] * sym2_[idx]
             + omegapsq_[mid] * (1 - vcdt_[mid]) * *ey;
           
-          sym2_[plasma_idx] = sym1_[plasma_idx];
-          sym1_[plasma_idx] = sy_[plasma_idx];
+          sym2_[idx] = sym1_[idx];
+          sym1_[idx] = sy_[idx];
 
           ++plasma_idx;
         }
@@ -314,7 +316,7 @@ void FreqGrid::update_ez()
 #pragma omp parallel for
 #endif
       for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-        mid = material_[pi(i, j, k)];
+        mid = material_[idx];
 
         // Is this a plasma?
         if (vcdt_[mid] == 0.0) 
@@ -325,26 +327,26 @@ void FreqGrid::update_ez()
         }
         else
         {
-          *ez = Ca_[mid] * dz_[plasma_idx]
+          *ez = Ca_[mid] * dz_[idx]
             + Cbx_[mid] * (*hy1 - *hy2)
             + Cby_[mid] * (*hx1 - *hx2);
           
-          dz_[plasma_idx] = *ez;
+          dz_[idx] = *ez;
 
-          *ez = dz_[plasma_idx] - sz_[plasma_idx];
+          *ez = dz_[idx] - sz_[idx];
           
-          if (abs(*ez) > abs(dz_[plasma_idx]))
+          if (abs(*ez) > abs(dz_[idx]))
             cout << "WARNING: new ez larger than old ez at "
                  << i << ", " << j << ", " << k << "!" << endl;
 
-          sz_[plasma_idx] = (1 + vcdt_[mid]) * szm1_[plasma_idx]
-            - vcdt_[mid] * szm2_[plasma_idx]
+          sz_[idx] = (1 + vcdt_[mid]) * szm1_[idx]
+            - vcdt_[mid] * szm2_[idx]
             + omegapsq_[mid] * (1 - vcdt_[mid]) * *ez;
           
-          szm2_[plasma_idx] = szm1_[plasma_idx];
-          szm1_[plasma_idx] = sz_[plasma_idx];
+          szm2_[idx] = szm1_[idx];
+          szm1_[idx] = sz_[idx];
 
-          ++plasma_idx;
+          //++plasma_idx;
         }
 
         ez++;

@@ -596,7 +596,7 @@ void Grid::update_ez()
 #pragma omp parallel for
 #endif
       for (k = update_r_.zmin; k < update_r_.zmax; k++) {
-        mid = material_[pi(i, j, k)];
+        mid = material_[idx];
 
         *ez = Ca_[mid] * *ez
           + Cbx_[mid] * (*hy1 - *hy2)

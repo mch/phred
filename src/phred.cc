@@ -438,7 +438,7 @@ static void pml_test(int rank, int size)
 
   Box metal1;
   //metal1.set_region(45, 55, 5, 46, 5, 56); // UNSTABLE
-  metal1.set_region(45, 55, 7, 44, 7, 54);
+  metal1.set_region(45, 55, 14, 37, 14, 47);
   //metal1.set_region(45, 55, 23, 27, 28, 33); // STABLE!?!
   metal1.set_material_id(3);
 
