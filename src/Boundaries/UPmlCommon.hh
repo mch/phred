@@ -63,6 +63,9 @@ protected:
    */
   float *sigma_z_;
 
+  // Evenescant wave attenuation term
+  float *kx_, *ky_, *kz_;
+
   // Ax(x) = ( 2*eps_0*Kx(x) - dt*sigma_x(x) ) 
   //         / ( 2*eps_0*Kx(x) + dt*sigma_x(x) )
   // etc.
@@ -82,82 +85,83 @@ protected:
   //         / 2*eps_0*dt
   float *Dx_, *Dy_, *Dz_;
 
-  // Inverse permittivity
+  // Inverse permittivity, one for each material
   float *er_;
 
-  // Inverse permeability
+  // Inverse permeability, one for each material
   float *ur_;
 
-  /**
-   * Returns a sigma value along the x axis.
-   *
-   * @param mid material id
-   * @param x x coordinate
-   */
-  inline float sigma_x(unsigned int mid, unsigned int x)
-  {
-    unsigned int xcoord = 0; 
-    float ret = 0.0;
+//   /**
+//    * Returns a sigma value along the x axis.
+//    *
+//    * @param mid material id
+//    * @param x x coordinate
+//    */
+//   inline float sigma_x(unsigned int mid, unsigned int x)
+//   {
+//     unsigned int xcoord = 0; 
+//     float ret = 0.0;
 
-    if (x < thicknesses_[BACK])
-      xcoord = x;
-    if (x > (grid_.get_ldx() - thicknesses_[FRONT]))
-      xcoord = thicknesses_[BACK]
-        + (x - (grid_.get_ldx() - thicknesses_[FRONT]));
+//     if (x < thicknesses_[BACK])
+//       xcoord = x;
+//     if (x > (grid_.get_ldx() - thicknesses_[FRONT]))
+//       xcoord = thicknesses_[BACK]
+//         + (x - (grid_.get_ldx() - thicknesses_[FRONT]));
 
-    if (mid > 0)
-      ret = sigma_x_[xcoord + ((mid - 1) * num_materials_)];
+//     if (mid > 0)
+//       ret = sigma_x_[xcoord + ((mid - 1) * num_materials_)];
 
-    return ret;
-  }
+//     return ret;
+//   }
 
-  /**
-   * Returns a sigma value along the y axis.
-   *
-   * @param mid material id
-   * @param y y coordinate
-   */
-  inline float sigma_y(unsigned int mid, unsigned int y)
-  {
-    unsigned int ycoord = 0; 
-    float ret = 0.0;
+//   /**
+//    * Returns a sigma value along the y axis.
+//    *
+//    * @param mid material id
+//    * @param y y coordinate
+//    */
+//   inline float sigma_y(unsigned int mid, unsigned int y)
+//   {
+//     unsigned int ycoord = 0; 
+//     float ret = 0.0;
 
-    if (y < thicknesses_[LEFT])
-      ycoord = y;
-    if (y > (grid_.get_ldy() - thicknesses_[RIGHT]))
-      ycoord = thicknesses_[LEFT]
-        + (y - (grid_.get_ldy() - thicknesses_[RIGHT]));
+//     if (y < thicknesses_[LEFT])
+//       ycoord = y;
+//     if (y > (grid_.get_ldy() - thicknesses_[RIGHT]))
+//       ycoord = thicknesses_[LEFT]
+//         + (y - (grid_.get_ldy() - thicknesses_[RIGHT]));
 
-    if (mid > 0)
-      ret = sigma_y_[ycoord + ((mid - 1) * num_materials_)];
+//     if (mid > 0)
+//       ret = sigma_y_[ycoord + ((mid - 1) * num_materials_)];
 
-    return ret;
-  }
+//     return ret;
+//   }
 
-  /**
-   * Returns a sigma value along the z axis.
-   *
-   * @param mid material id
-   * @param z z coordinate
-   */
-  inline float sigma_z(unsigned int mid, unsigned int z)
-  {
-    unsigned int zcoord = 0; 
-    float ret = 0.0;
+//   /**
+//    * Returns a sigma value along the z axis.
+//    *
+//    * @param mid material id
+//    * @param z z coordinate
+//    */
+//   inline float sigma_z(unsigned int mid, unsigned int z)
+//   {
+//     unsigned int zcoord = 0; 
+//     float ret = 0.0;
 
-    if (z < thicknesses_[BOTTOM])
-      zcoord = z;
-    if (z > (grid_.get_ldz() - thicknesses_[TOP]))
-      zcoord = thicknesses_[BOTTOM]
-        + (z - (grid_.get_ldz() - thicknesses_[TOP]));
+//     if (z < thicknesses_[BOTTOM])
+//       zcoord = z;
+//     if (z > (grid_.get_ldz() - thicknesses_[TOP]))
+//       zcoord = thicknesses_[BOTTOM]
+//         + (z - (grid_.get_ldz() - thicknesses_[TOP]));
 
-    if (mid > 0)
-      ret = sigma_z_[zcoord + ((mid - 1) * num_materials_)];
+//     if (mid > 0)
+//       ret = sigma_z_[zcoord + ((mid - 1) * num_materials_)];
 
-    return ret;
-  }
+//     return ret;
+//   }
 
-  void init_coeffs(Grid &grid);
+  void init_coeffs();
+  void init_constants();
 
   void free_sigmas();
   void init_sigmas();
@@ -229,12 +233,15 @@ public:
     return Dz_[i];
   }
 
-  inline const float er(loop_idx_t i, loop_idx_t j, 
-                        loop_idx_t k)
+  inline const float er(mat_idx_t mid)
   {
-    return er_[pi(i,j,k)];
+    return er_[mid];
   }
 
+  inline const float ur(mat_idx_t mid)
+  {
+    return ur_[mid];
+  }
 };
 
 #endif // UPML_COMMON_H

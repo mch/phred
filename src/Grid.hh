@@ -818,6 +818,46 @@ class Grid {
                              FieldComponent field_comp) const;
 
   /**
+   * Return a pointer to a point in the grid for a particular field
+   * component. DANGER!! Clients must take care when using this
+   * pointer! It's non-const, so heavy damage is possible. 
+   *
+   * Intended for boundary condition update loops. 
+   *
+   * @param idx the pre-calculated index (using pi(i,j,k) of the point to return
+   * @return a pointer, which may be null if something went wrong. 
+   */
+  inline field_t *get_ex_ptr(int idx)
+  {
+    return &(ex_[idx]);
+  }
+
+  inline field_t *get_ey_ptr(int idx)
+  {
+    return &(ey_[idx]);
+  }
+
+  inline field_t *get_ez_ptr(int idx)
+  {
+    return &(ez_[idx]);
+  }
+
+  inline field_t *get_hx_ptr(int idx)
+  {
+    return &(hx_[idx]);
+  }
+
+  inline field_t *get_hy_ptr(int idx)
+  {
+    return &(hy_[idx]);
+  }
+
+  inline field_t *get_hz_ptr(int idx)
+  {
+    return &(hz_[idx]);
+  }
+  
+  /**
    * Return a pointer to the material array.
    *
    * @param point the point to get the material pointer

@@ -855,7 +855,7 @@ void Grid::update_hx(region_t update_r)
   field_t *hx, *ez1, *ez2, *ey;
 
 #ifdef USE_OPENMP
-#pragma omp parallel  private(mid, i, j, k, idx, hx, ez1, ez2, ey)
+#pragma omp parallel private(mid, i, j, k, idx, hx, ez1, ez2, ey)
 #endif
   {
 #ifdef USE_OPENMP

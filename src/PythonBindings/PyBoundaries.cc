@@ -25,7 +25,6 @@
 #include "../Boundaries/Ewall.hh"
 #include "../Boundaries/Hwall.hh"
 #include "../Boundaries/UPml.hh"
-#include "../Boundaries/GPml.hh"
 #include "../Boundaries/Pml.hh"
 #include "../Types.hh"
 
@@ -131,13 +130,6 @@ void export_boundaries()
     .def("apply", &UPml::apply)
     .def("get_type", &UPml::get_type)
     .def("set_thickness", &UPml::set_thickness)
-    ;
-
-  class_<GPml, bases<BoundaryCond>, boost::noncopyable >("GPml", 
-                                                         "Generalized PML")
-    .def("apply", &GPml::apply)
-    .def("get_type", &GPml::get_type)
-    .def("set_thickness", &GPml::set_thickness)
     ;
                                      
 }

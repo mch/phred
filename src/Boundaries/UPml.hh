@@ -42,8 +42,8 @@ protected:
    * Stored flux values from the last time step, used to compute a
    * second-order accurate frequency dependence.  
    */ 
-  field_t *d_;
-  field_t *h_;
+  field_t *dx_, *dy_, *dz_;
+  field_t *bx_, *by_, *bz_;
 
   // Bools are ugly
   void update_ex(Grid &grid);

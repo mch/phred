@@ -34,7 +34,8 @@
 #endif
 
 UPml::UPml()
-  : common_(0), d_(0), h_(0)
+  : common_(0), dx_(0), dy_(0), dz_(0), 
+    bx_(0), by_(0), bz_(0)
 {
 
 }
@@ -274,17 +275,21 @@ void UPml::init(const Grid &grid, Face face)
   unsigned int sz = (grid_r_.xmax - grid_r_.xmin) 
     * (grid_r_.ymax - grid_r_.ymin) * (grid_r_.zmax - grid_r_.zmin);
   
-  d_ = new field_t[sz];
-  h_ = new field_t[sz];
+  // new gleefully throws exceptions on low memory.
+  dx_ = new field_t[sz];
+  dy_ = new field_t[sz];
+  dz_ = new field_t[sz];
 
-  if (!d_ || !h_)
-  {
-    deinit(grid, face);
-    throw MemoryException();
-  }
+  bx_ = new field_t[sz];
+  by_ = new field_t[sz];
+  bz_ = new field_t[sz];
 
-  memset(d_, 0, sizeof(field_t) * sz);
-  memset(h_, 0, sizeof(field_t) * sz);
+  memset(dx_, 0, sizeof(field_t) * sz);
+  memset(dy_, 0, sizeof(field_t) * sz);
+  memset(dz_, 0, sizeof(field_t) * sz);
+  memset(bx_, 0, sizeof(field_t) * sz);
+  memset(by_, 0, sizeof(field_t) * sz);
+  memset(bz_, 0, sizeof(field_t) * sz);
 
   cout << "UPML Update region for face " << face << ":"
        << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
@@ -328,16 +333,20 @@ void UPml::init(const Grid &grid, Face face)
 
 void UPml::deinit(const Grid &grid, Face face)
 {
-  if (d_)
+  if (dx_)
   {
-    delete[] d_;
-    d_ = 0;
+    delete[] dx_;
+    delete[] dy_;
+    delete[] dz_;
+    dx_ = 0;
   }
 
-  if (h_)
+  if (bx_)
   {
-    delete[] h_;
-    h_ = 0;
+    delete[] bx_;
+    delete[] by_;
+    delete[] bz_;
+    bx_ = 0;
   }
 }
 
@@ -349,23 +358,23 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     {
     case FRONT:
     case BACK:
-      update_ex(grid, true);   
-      update_ey(grid, false);
-      update_ez(grid, false);
+      update_ex(grid);   
+      update_ey(grid);
+      update_ez(grid);
       break;
 
     case LEFT:
     case RIGHT:
-      update_ex(grid, false);   
-      update_ey(grid, true);
-      update_ez(grid, false);
+      update_ex(grid);   
+      update_ey(grid);
+      update_ez(grid);
       break;
 
     case TOP:
     case BOTTOM:
-      update_ex(grid, false);   
-      update_ey(grid, false);
-      update_ez(grid, true);
+      update_ex(grid);   
+      update_ey(grid);
+      update_ez(grid);
       break;
     }
   }
@@ -375,23 +384,23 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     {
     case FRONT:
     case BACK:
-      update_hx(grid, true);   
-      update_hy(grid, false);
-      update_hz(grid, false);
+      update_hx(grid);   
+      update_hy(grid);
+      update_hz(grid);
       break;
 
     case LEFT:
     case RIGHT:
-      update_hx(grid, false);   
-      update_hy(grid, true);
-      update_hz(grid, false);
+      update_hx(grid);   
+      update_hy(grid);
+      update_hz(grid);
       break;
 
     case TOP:
     case BOTTOM:
-      update_hx(grid, false);   
-      update_hy(grid, false);
-      update_hz(grid, true);
+      update_hx(grid);   
+      update_hy(grid);
+      update_hz(grid);
       break;
     }
   } 
@@ -404,7 +413,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
 
 void UPml::update_ex(Grid &grid) 
 {
-  unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
+  unsigned int grid_idx, grid_idx2, pml_idx, mid, sig_idx = 0; 
 
   loop_idx_t i,j,k; 	/* indices in PML-layer */
   loop_idx_t it,jt,kt;/* indices in total computational domain (FDTD grid) */
@@ -415,11 +424,12 @@ void UPml::update_ex(Grid &grid)
   field_t d_temp = 0;
 
   // Pointers
-  const field_t *ex, *hz1, *hz2, *hy, *d;
+  field_t *ex, *hz1, *hz2, *hy, *dx;
 
   sig_idx = 0;
 
-  // Why is this outside of the for loop? OpenMP thing? 
+  // This is outside of the for() statement so that OpenMP can
+  // parallelize the loop.
   i = pml_r.xmin;
 
 #ifdef USE_OPENMP
@@ -428,20 +438,21 @@ void UPml::update_ex(Grid &grid)
 #pragma omp for
 #endif
     for(it = grid_ex_r_.xmin; 
-        it < grid_ex_r_.xmax; i++, it++)
+        it < grid_ex_r_.xmax; it++)
     {
       for(j = pml_r.ymin, jt = grid_ex_r_.ymin; 
           jt < grid_ex_r_.ymax; j++, jt++)
       {
-        grid_idx = grid.pi(it, jt, kt);
-        pml_idx = pi(i, j, k);
+        grid_idx = grid.pi(it, jt, grid_ex_r_.zmin);
+        grid_idx2 = grid.pi(it, jt - 1, grid_ex_r_.zmin);
+        pml_idx = pi(i, j, pml_r.zmin);
           
-        ex = grid.get_pointer(grid_point(it,jt,kt), FC_EX);
-        hz1 = grid.get_pointer(grid_point(it,jt,kt), FC_HZ);
-        hz2 = grid.get_pointer(grid_point(it,jt-1,kt), FC_HZ);
-        hy = grid.get_pointer(grid_point(it,jt,kt), FC_HY);
+        ex = grid.get_ex_ptr(grid_idx);
+        hz1 = grid.get_hz_ptr(grid_idx);
+        hz2 = grid.get_hz_ptr(grid_idx2);
+        hy = grid.get_hy_ptr(grid_idx);
 
-        d = &(d_[pml_idx]);
+        dx = &(dx_[pml_idx]);
 
         for(k = pml_r.zmin, kt = grid_ex_r_.zmin; 
             kt < grid_ex_r_.zmax; k++, kt++)
@@ -449,19 +460,24 @@ void UPml::update_ex(Grid &grid)
           mid = grid.material_[grid_idx];
 
           // Update equations go here!
-          d_temp = *d * common_->Ay(j) 
-            + common_->By(j) * ( (*hz1 - *hz2) - (*(hy - 1) - *hy) );
+          d_temp = *dx * common_->Ay(jt) 
+            + common_->By(jt) * ( (*hz1 - *hz2) - (*(hy - 1) - *hy) );
 
-          *ex = *ex * common_->Az(k) 
-            + common_->Bz(k) * common_->er(i,j,k) 
-            * (d_temp * common_->Cx(i) - *d * common_->Dx(i));
+          *ex = *ex * common_->Az(kt) 
+            + common_->Bz(kt) * common_->er(mid) 
+            * (d_temp * common_->Cx(it) - *dx * common_->Dx(it));
 
+          *dx = d_temp;
+
+          dx++;
           ex++;
           hz1++;
           hz2++;
           hy++;
+          grid_idx++;
         }
       }
+      i++;
     }
 #ifdef USE_OPENMP
   }
@@ -480,6 +496,8 @@ void UPml::update_ey(Grid &grid)
   
   field_t d_temp = 0;
 
+  field_t *ey, *hx, *hz1, *hz2, *dy;
+
   i = pml_r.xmin;
 
 #ifdef USE_OPENMP
@@ -493,19 +511,40 @@ void UPml::update_ey(Grid &grid)
       for(sig_idx = 0, j = pml_r.ymin, jt = grid_ey_r_.ymin; 
           jt < grid_ey_r_.ymax; j++, jt++, sig_idx++)
       {
-        
+        grid_idx = grid.pi(it, jt, grid_ey_r_.zmin);
+        pml_idx = pi(i, j, pml_r.zmin);
+          
+        ey = grid.get_ey_ptr(grid_idx);
+        hz1 = grid.get_hz_ptr(grid.pi(it-1, jt, grid_ey_r_.zmin));
+        hz2 = grid.get_hz_ptr(grid_idx);
+        hx = grid.get_hx_ptr(grid_idx);
+
+        dy = &(dy_[pml_idx]);
+
         for(k = pml_r.zmin, kt = grid_ey_r_.zmin; 
             kt < grid_ey_r_.zmax; k++, kt++)
         {
-          grid_idx = grid.pi(it, jt, kt);
-          pml_idx = pi(i, j, k);
-          
           mid = grid.material_[grid_idx];
           
           // Update equations go here!
+          d_temp = *dy * common_->Az(kt) 
+            + common_->Bz(kt) * ( (*hx - *(hx-1)) - (*hz1 - *hz2));
+
+          *ey = *ey * common_->Ax(it) 
+            + common_->Bx(it) * common_->er(mid)
+            * ( d_temp * common_->Cy(jt) - *dy * common_->Dy(jt) );
+
+          *dy = d_temp;
+
+          // Increment
+          ey++;
+          hz1++;
+          hz2++;
+          hx++;
+          dy++;
+          grid_idx++;
         }
       }
-
       i++;
     }
 #ifdef USE_OPENMP
@@ -524,6 +563,8 @@ void UPml::update_ez(Grid &grid)
   region_t pml_r = find_local_region(grid_ez_r_); 
   
   field_t d_temp = 0;
+  
+  field_t *ez, *hy1, *hy2, *hx1, *hx2, *dz;
 
   i = pml_r.xmin;
 
@@ -538,16 +579,40 @@ void UPml::update_ez(Grid &grid)
       for(j = pml_r.ymin, jt = grid_ez_r_.ymin; 
           jt < grid_ez_r_.ymax; j++, jt++)
       {
-        
+        grid_idx = grid.pi(it, jt, grid_ez_r_.zmin);
+        pml_idx = pi(i, j, pml_r.zmin);
+          
+        ez = grid.get_ez_ptr(grid_idx);
+
+        hy1 = grid.get_hy_ptr(grid_idx);
+        hy2 = grid.get_hy_ptr(grid.pi(it-1, jt, grid_ez_r_.zmin));
+        hx1 = grid.get_hx_ptr(grid.pi(it, jt-1, grid_ez_r_.zmin));
+        hx2 = grid.get_hx_ptr(grid_idx);
+
+        dz = &(dz_[pml_idx]);
+
         for(sig_idx = 0, k = pml_r.zmin, kt = grid_ez_r_.zmin; 
             kt < grid_ez_r_.zmax; k++, kt++, sig_idx++)
         {
-          grid_idx = grid.pi(it, jt, kt);
-          pml_idx = pi(i, j, k);
-          
           mid = grid.material_[grid_idx];
           
           // Update equations go here!
+          d_temp = *dz * common_->Ax(it)
+            + common_->Bx(it) * ( (*hy1 - *hy2) - (*hx1 - *hx2) );
+
+          *ez = *ez * common_->Ay(jt)
+            + common_->By(jt) * common_->er(mid) 
+            * (d_temp * common_->Cz(kt) - *dz * common_->Dz(kt));
+
+          *dz = d_temp;
+
+          ez++;
+          hy1++;
+          hy2++;
+          hx1++;
+          hx2++;
+          dz++;
+          grid_idx++;
         }
       }
       i++;
@@ -559,20 +624,21 @@ void UPml::update_ez(Grid &grid)
 
 void UPml::update_hx(Grid &grid)
 {
-  unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
+  unsigned int grid_idx, grid_idx2, pml_idx, mid; 
 
-  int i,j,k; 	/* indices in PML-layer */
-  int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+  loop_idx_t i,j,k;   /* indices in PML-layer */
+  loop_idx_t it,jt,kt;/* indices in total computational domain (FDTD grid) */
 
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_hx_r_); 
   
-  field_t h_temp = 0;
+  field_t b_temp = 0;
+  field_t *hx, *ez1, *ez2, *ey, *bx;
 
-  sig_idx = 0; i = pml_r.xmin;
+  i = pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, sig_idx, i, j, k, it, jt, kt, h_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, b_temp)
   {
 #pragma omp for
 #endif
@@ -582,19 +648,41 @@ void UPml::update_hx(Grid &grid)
       for(j = pml_r.ymin, jt = grid_hx_r_.ymin; 
           jt < grid_hx_r_.ymax; j++, jt++)
       {
+        grid_idx = grid.pi(it, jt, grid_hx_r_.zmin);
+        grid_idx2 = grid.pi(it, jt+1, grid_hx_r_.zmin);
+
+        pml_idx = pi(i, j, pml_r.zmin);
+          
+        hx = grid.get_hx_ptr(grid_idx);
+        ey = grid.get_ey_ptr(grid_idx);
+        ez1 = grid.get_ez_ptr(grid_idx);
+        ez2 = grid.get_ez_ptr(grid_idx2);
         
+        bx = &(bx_[pml_idx]);
+
         for(k = pml_r.zmin, kt = grid_hx_r_.zmin; 
             kt < grid_hx_r_.zmax; k++, kt++)
         {
-          grid_idx = grid.pi(it, jt, kt);
-          pml_idx = pi(i, j, k);
-          
           mid = grid.material_[grid_idx];
           
           // Update equations go here. 
+          b_temp = *bx * common_->Ay(jt)
+            + common_->By(jt) * ( (*ey - *(ey + 1)) - (*ez2 - *ez1) );
+
+          *hx = *hx * common_->Az(kt)
+            + common_->Bz(kt) * common_->ur(mid) 
+            * ( b_temp * common_->Cx(it) - *bx * common_->Dx(it) );
+
+          *bx = b_temp;
+
+          hx++;
+          ez1++;
+          ez2++;
+          ey++;
+          bx++;
+          grid_idx++;
         }
       }
-      sig_idx++;
       i++;
     }
 #ifdef USE_OPENMP
@@ -604,7 +692,7 @@ void UPml::update_hx(Grid &grid)
 
 void UPml::update_hy(Grid &grid)
 {
-  unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
+  unsigned int grid_idx, grid_idx2, pml_idx, mid, sig_idx = 0; 
 
   int i,j,k; 	/* indices in PML-layer */
   int it,jt,kt;/* indices in total computational domain (FDTD grid) */
@@ -612,11 +700,13 @@ void UPml::update_hy(Grid &grid)
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_hy_r_); 
   
-  field_t h_temp = 0;
+  field_t b_temp = 0;
+  field_t *hy, *ex, *ez1, *ez2, *by;
+
   i = pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, sig_idx, i, j, k, it, jt, kt, h_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, sig_idx, i, j, k, it, jt, kt, b_temp)
   {
 #pragma omp for
 #endif
@@ -626,16 +716,39 @@ void UPml::update_hy(Grid &grid)
       for(sig_idx = 0, j = pml_r.ymin, jt = grid_hy_r_.ymin; 
           jt < grid_hy_r_.ymax; j++, jt++, sig_idx++)
       {
+        grid_idx = grid.pi(it, jt, grid_hy_r_.zmin);
+        grid_idx2 = grid.pi(it+1, jt, grid_hy_r_.zmin);
+
+        pml_idx = pi(i, j, pml_r.zmin);
+          
+        hy = grid.get_hy_ptr(grid_idx);
+        ex = grid.get_ex_ptr(grid_idx);
+        ez1 = grid.get_ez_ptr(grid_idx2);
+        ez2 = grid.get_ez_ptr(grid_idx);
         
+        by = &(by_[pml_idx]);
+
         for(k = pml_r.zmin, kt = grid_hy_r_.zmin; 
             kt < grid_hy_r_.zmax; k++, kt++)
         {
-          grid_idx = grid.pi(it, jt, kt);
-          pml_idx = pi(i, j, k);
-          
           mid = grid.material_[grid_idx];
           
           // Update equations go here. 
+          b_temp = *by * common_->Az(kt)
+            + common_->Bz(kt) * ( (*ez2 - *ez1) - (*(ex + 1) - *ex) );
+
+          *hy = *hy * common_->Ax(it) 
+            + common_->Bx(it) * common_->ur(mid)
+            * (b_temp * common_->Cy(jt) - *by * common_->Dy(jt));
+
+          *by = b_temp;
+
+          hy++;
+          ex++;
+          ez1++;
+          ez2++;
+          by++;
+          grid_idx++;
         }
       }
       i++;
@@ -647,7 +760,7 @@ void UPml::update_hy(Grid &grid)
 
 void UPml::update_hz(Grid &grid)
 {
-  unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
+  unsigned int grid_idx, grid_idx2, grid_idx3, pml_idx, mid, sig_idx = 0; 
 
   int i,j,k; 	/* indices in PML-layer */
   int it,jt,kt;/* indices in total computational domain (FDTD grid) */
@@ -655,7 +768,9 @@ void UPml::update_hz(Grid &grid)
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_hz_r_); 
   
-  field_t h_temp = 0;
+  field_t b_temp = 0;
+  field_t *hz, *ey1, *ey2, *ex1, *ex2, *bz;
+
   i = pml_r.xmin;
 
 #ifdef USE_OPENMP
@@ -669,17 +784,41 @@ void UPml::update_hz(Grid &grid)
       for(j = pml_r.ymin, jt = grid_hz_r_.ymin; 
           jt < grid_hz_r_.ymax; j++, jt++)
       {
+        grid_idx = grid.pi(it, jt, grid_hz_r_.zmin);
+        grid_idx2 = grid.pi(it+1, jt, grid_hz_r_.zmin);
+        grid_idx3 = grid.pi(it, jt+1, grid_hz_r_.zmin);
+
+        pml_idx = pi(i, j, pml_r.zmin);
+          
+        hz = grid.get_hz_ptr(grid_idx);
+
+        ex1 = grid.get_ex_ptr(grid_idx3);
+        ex2 = grid.get_ex_ptr(grid_idx);
+        ey1 = grid.get_ey_ptr(grid_idx);
+        ey2 = grid.get_ey_ptr(grid_idx2);
         
+        bz = &(bz_[pml_idx]);
+
         for(sig_idx = 0, k = pml_r.zmin, kt = grid_hz_r_.zmin; 
             kt < grid_hz_r_.zmax; k++, kt++, sig_idx++)
         {
-          grid_idx = grid.pi(it, jt, kt);
-          pml_idx = pi(i, j, k);
-          
           mid = grid.material_[grid_idx];
           
           // Update equations go here. 
+          b_temp = *bz * common_->Ax(it)
+            + common_->Bx(it) * ( (*ex2 - *ex1) - (*ey2 - *ey1) );
 
+          *hz = *hz * common_->Ay(jt)
+            + common_->By(jt) * common_->ur(mid)
+            * ( b_temp * common_->Cz(kt) - *bz * common_->Dz(kt));
+
+          *bz = b_temp;
+
+          hz++;
+          ex1++; ex2++;
+          ey1++; ey2++;
+          bz++;
+          grid_idx++;
         }
       }
       i++;
