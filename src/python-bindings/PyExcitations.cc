@@ -47,6 +47,7 @@ BOOST_PYTHON_MODULE(Excitation)
     .def("get_alpha", &Gaussm::get_alpha)
     .def("get_deltaf", &Gaussm::get_deltaf)
     .def("get_f0", &Gaussm::get_f0)
-    .def("source_function", &Gaussm::source_function)
+    .def("source_function", call_sf)
+    .def("excite", call_excite)
     ;
 }

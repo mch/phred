@@ -53,6 +53,7 @@ protected:
 
 public:
   AsciiDataWriter(int rank, int size);
+  AsciiDataWriter(int rank, int size, const char *fn, Result &result);
   ~AsciiDataWriter();
 
   /**

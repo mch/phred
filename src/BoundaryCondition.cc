@@ -9,9 +9,9 @@ region_t BoundaryCond::find_face(Face face, Grid &grid)
 {
   region_t r;
   unsigned int temp = thickness_;
-
-  if (temp > 0)
-    temp--;
+  
+  //if (temp > 0)
+  //  temp--;
 
   switch (face) 
   {

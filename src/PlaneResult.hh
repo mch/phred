@@ -77,6 +77,14 @@ public:
    */
   void set_size(unsigned int x, unsigned int y);
 
+  /** 
+   * Set the field component to return. PlaneResult returns Ey by default. 
+   */
+  inline void set_field(FieldComponent field)
+  {
+    field_ = field;
+  }
+
 };
 
 #endif // PLANE_RESULT_H

@@ -22,8 +22,11 @@ void Hwall::condition(region_t r, Grid &grid)
   }
 }
 
-void Hwall::apply(Face face, Grid &grid)
+void Hwall::apply(Face face, Grid &grid, FieldType type)
 {
+  if (type != H || type != BOTH)
+    return;
+
   region_t r = find_face(face, grid);
 
   switch (face)

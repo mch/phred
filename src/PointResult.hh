@@ -26,6 +26,7 @@ protected:
 public:
 
   PointResult();
+  PointResult(point_t p);
   ~PointResult();
 
   /**

@@ -42,9 +42,11 @@ public:
    *
    * @param face the face to apply the boundary condition to. 
    * @param grid the grid to apply the boundary condition to. 
+   * @param the field components to affect. 
    */
   virtual void apply(Face face,
-                     Grid &grid) = 0;
+                     Grid &grid, 
+                     FieldType type) = 0;
 
   /**
    * Returns the thickness of the boundary condition. 
@@ -67,7 +69,7 @@ public:
   ~UnknownBc()
   {}
 
-  void apply(Face face, Grid &grid)
+  void apply(Face face, Grid &grid, FieldType type)
   {}
 
 };

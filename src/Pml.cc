@@ -76,6 +76,8 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
   unsigned int sz = (r.xmax - r.xmin) * (r.ymax - r.ymin) 
     * (r.zmax - r.zmin);
   
+  sz_ = sz;
+
   exy_ = new field_t[sz];
   exz_ = new field_t[sz];
 
@@ -213,70 +215,117 @@ void Pml::free_pml_fields()
   hyx_ = hyz_ = hzx_ = hzy_ = 0;
 }
 
-void Pml::apply(Face face, Grid &grid)
+void Pml::apply(Face face, Grid &grid, FieldType type)
 {
   if (!alloced_)
     throw exception(); // PML must be set up before applying it. 
 
   region_t grid_r = find_face(face, grid);
-  region_t e_grid_r = grid_r; 
-  region_t e_pml_r = pml_r_;
 
-  // Modify the grid region so that the outer walls are not computed;
-  // that they be electric walls. WARNING! Have to change the PML region too!!
-  switch (face)
-  {
-  case FRONT:
-    e_grid_r.xmax--;
-    e_pml_r.xmax--;
-    break;
-  case BACK:
-    e_grid_r.xmin++;
-    e_pml_r.xmin++;
-    break;
+//   if (eyx_[12055])
+//     cout << "1) EYX_ HAS BEEN CORRUPTED!!!" << endl;
+//   else 
+//     cout << "1) eyx_ ok." << endl;
 
-  case LEFT:
-    e_grid_r.ymin++;
-    e_pml_r.ymin++;
-    break;
+  if (type == E) {
 
-  case RIGHT:
-    e_grid_r.ymax--;
-    e_pml_r.ymax--;
-    break;
+    region_t e_grid_r = grid_r; 
+    region_t e_pml_r = pml_r_;
+    
+    // Modify the grid region so that the outer walls are not
+    // computed; that they be electric walls.
+    if (grid_r.xmin == 0) 
+    {
+      e_grid_r.xmin++;
+      e_pml_r.xmin++;
+    }
 
-  case TOP:
-    e_grid_r.zmax--;
-    e_pml_r.zmax--;
-    break;
+    if (grid_r.ymin == 0)
+    {
+      e_grid_r.ymin++;
+      e_pml_r.ymin++;
+    }
 
-  case BOTTOM:
-    e_grid_r.zmin++;
-    e_pml_r.zmin++;
-    break;
+    if (grid_r.zmin == 0)
+    {
+      e_grid_r.zmin++;
+      e_pml_r.zmin++;
+    }
+
+    if (grid_r.xmax == grid.get_ldx())
+    {
+      e_grid_r.xmax--;
+      e_pml_r.xmax--;
+    }
+
+    if (grid_r.ymax == grid.get_ldy())
+    {
+      e_grid_r.ymax--;
+      e_pml_r.ymax--;
+    }
+
+    if (grid_r.zmax == grid.get_ldz())
+    {
+      e_grid_r.zmax--;
+      e_pml_r.zmax--;
+    }
+
+//      cout << "Electric field Pml update on face " << static_cast<int>(face) 
+//           << " in grid ranges x={" << e_grid_r.xmin << "," 
+//          << e_grid_r.xmax << "}, y={" << e_grid_r.ymin << "," 
+//          << e_grid_r.ymax << "}, z={" << e_grid_r.zmin << ","
+//          << e_grid_r.zmax << "}.\n"
+//          << "pml range x={" << e_pml_r.xmin << "," 
+//          << e_pml_r.xmax << "}, y={" << e_pml_r.ymin << "," 
+//          << e_pml_r.ymax << "}, z={" << e_pml_r.zmin << ","
+//          << e_pml_r.zmax << "}.\n";
+
+    pml_update_ex(e_pml_r, e_grid_r, grid_r, grid);
+//     if (eyx_[12055])
+//       cout << "2) EYX_ HAS BEEN CORRUPTED!!!" << endl;
+//     else 
+//       cout << "2) eyx_ ok." << endl;
+    
+    pml_update_ey(e_pml_r, e_grid_r, grid_r, grid);
+//     if (eyx_[12055])
+//       cout << "3) EYX_ HAS BEEN CORRUPTED!!!" << endl;
+//     else 
+//       cout << "3) eyx_ ok." << endl;
+
+    pml_update_ez(e_pml_r, e_grid_r, grid_r, grid);
+//     if (eyx_[12055])
+//       cout << "4) EYX_ HAS BEEN CORRUPTED!!!" << endl;
+//     else 
+//       cout << "4) eyx_ ok." << endl;
+
   }
+  else if (type == H)
+  {
+//     cout << "Magnetic field Pml update on face " << static_cast<int>(face) 
+//          << " in grid ranges x={" << grid_r.xmin << "," 
+//          << grid_r.xmax << "}, y={" << grid_r.ymin << "," 
+//          << grid_r.ymax << "}, z={" << grid_r.zmin << ","
+//          << grid_r.zmax << "}.\n"
+//          << "pml range x={" << pml_r_.xmin << "," 
+//          << pml_r_.xmax << "}, y={" << pml_r_.ymin << "," 
+//          << pml_r_.ymax << "}, z={" << pml_r_.zmin << ","
+//          << pml_r_.zmax << "}.\n";
 
-//   cout << "Pml update on face " << static_cast<int>(face) 
-//        << "in grid ranges x={" << grid_r.xmin << "," 
-//        << grid_r.xmax << "}, y={" << grid_r.ymin << "," 
-//        << grid_r.ymax << "}, z={" << grid_r.zmin << ","
-//        << grid_r.zmax << "}.\n"
-//        << "pml range x={" << pml_r_.xmin << "," 
-//        << pml_r_.xmax << "}, y={" << pml_r_.ymin << "," 
-//        << pml_r_.ymax << "}, z={" << pml_r_.zmin << ","
-//        << pml_r_.zmax << "}.\n";
-
-  pml_update_hx(grid_r, grid);
-  pml_update_hy(grid_r, grid);
-  pml_update_hz(grid_r, grid);
-
-  pml_update_ex(e_pml_r, e_grid_r, grid);
-  pml_update_ey(e_pml_r, e_grid_r, grid);
-  pml_update_ez(e_pml_r, e_grid_r, grid);
+    pml_update_hx(grid_r, grid);
+    pml_update_hy(grid_r, grid);
+    pml_update_hz(grid_r, grid);
+  } 
+  else
+  {
+    cout << "INCORRECT FIELD TYPE GIVEN TO UPDATE!" << endl;
+  }
+  
 }
 
-void Pml::pml_update_ex(const region_t &pml_r, 
-                        const region_t &grid_r, Grid &grid)
+void Pml::pml_update_ex(const region_t &e_pml_r, 
+                        const region_t &e_grid_r, 
+                        const region_t &grid_r, 
+                        Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
@@ -285,31 +334,45 @@ void Pml::pml_update_ex(const region_t &pml_r,
 
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r.xmin, it = grid_r.xmin; it < grid_r.xmax; i++, it++)
-    for(j = pml_r.ymin+1, jt = grid_r.ymin+1; jt < grid_r.ymax; j++, jt++)
-      for(k = pml_r.zmin+1, kt = grid_r.zmin+1; kt < grid_r.zmax; k++, kt++)
+  for(i = 0, it = grid_r.xmin; it < grid_r.xmax - 1; i++, it++)
+    for(j = e_pml_r.ymin, jt = e_grid_r.ymin; jt < e_grid_r.ymax; j++, jt++)
+      for(k = e_pml_r.zmin, kt = e_grid_r.zmin; kt < e_grid_r.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
 
         mid = grid.material_[grid_idx];
 
-        exz_[pml_idx] = com.e_z_coef1_[kt] * grid.Ca_[mid] *
-          exz_[pml_idx] + com.e_z_coef2_[kt] *
-          grid.Cbz_[mid] * (grid.hy_[grid.pi(it, jt, kt)] 
-                           - grid.hy_[grid.pi(it, jt, kt-1)]);
+        exz_[pml_idx] = 
+          com.get_e_z_coef1(kt) * grid.Ca_[mid] * exz_[pml_idx] 
+          + com.get_e_z_coef2(kt) * grid.Cbz_[mid] 
+            * (grid.hy_[grid.pi(it, jt, kt-1)] 
+               - grid.hy_[grid.pi(it, jt, kt)]);
         
-        exy_[pml_idx] = com.e_y_coef1_[jt] * grid.Ca_[mid] *
-          exy_[pml_idx] - com.e_y_coef2_[jt] *
-          grid.Cby_[mid] * (grid.hz_[pi(it, jt, kt)] 
-                           - grid.hz_[pi(it, jt-1, kt)]);
+        exy_[pml_idx] = 
+          com.get_e_y_coef1(jt) * grid.Ca_[mid] * exy_[pml_idx] 
+          + com.get_e_y_coef2(jt) * grid.Cby_[mid] 
+          * (grid.hz_[grid.pi(it, jt, kt)] 
+             - grid.hz_[grid.pi(it, jt-1, kt)]);
         
+//         if (grid.hy_[grid.pi(it, jt, kt)] 
+//             - grid.hy_[grid.pi(it, jt, kt-1)] > 0.0  || 
+//             grid.hz_[grid.pi(it, jt, kt)] 
+//             - grid.hz_[grid.pi(it, jt-1, kt)] > 0.0)
+//         {
+//           cout << "ex pml calc at " << it << "," << jt << "," << kt 
+//                << "; exz_ = " << exz_[pml_idx] << ", exy_ = "
+//                << exy_[pml_idx] << endl;
+//         }
+
         grid.ex_[grid_idx] = exz_[pml_idx] + exy_[pml_idx];
       }
 }
 
-void Pml::pml_update_ey(const region_t &pml_r, 
-                        const region_t &grid_r, Grid &grid)
+void Pml::pml_update_ey(const region_t &e_pml_r, 
+                        const region_t &e_grid_r, 
+                        const region_t &grid_r, 
+                        Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
@@ -318,31 +381,45 @@ void Pml::pml_update_ey(const region_t &pml_r,
 
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r.xmin+1, it = grid_r.xmin+1; it < grid_r.xmax; i++, it++)
-    for(j = pml_r.ymin, jt = grid_r.ymin; jt < grid_r.ymax; j++, jt++)
-      for(k = pml_r.zmin+1, kt = grid_r.zmin+1; kt < grid_r.zmax; k++, kt++)
+  for(i = e_pml_r.xmin, it = e_grid_r.xmin; it < e_grid_r.xmax; i++, it++)
+    for(j = 0, jt = grid_r.ymin; jt < grid_r.ymax - 1; j++, jt++)
+      for(k = e_pml_r.zmin, kt = e_grid_r.zmin; kt < e_grid_r.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
 
         mid = grid.material_[grid_idx];
 
-        eyx_[pml_idx] = com.e_x_coef1_[it] * grid.Ca_[mid] *
-          eyx_[pml_idx] + com.e_x_coef2_[it] *
-          grid.Cbx_[mid] * (grid.hz_[grid.pi(it, jt, kt)] 
-                           - grid.hz_[grid.pi(it-1, jt, kt)]);
+        eyx_[pml_idx] = 
+          com.get_e_x_coef1(it) * grid.Ca_[mid] * eyx_[pml_idx] 
+          + com.get_e_x_coef2(it) * grid.Cbx_[mid] 
+            * (grid.hz_[grid.pi(it-1, jt, kt)] 
+               - grid.hz_[grid.pi(it, jt, kt)]);
         
-        eyz_[pml_idx] = com.e_z_coef1_[kt] * grid.Ca_[mid] *
-          eyz_[pml_idx] - com.e_z_coef2_[kt] *
-          grid.Cbz_[mid] * (grid.hx_[pi(it, jt, kt)] 
-                           - grid.hx_[pi(it, jt, kt-1)]);
+        eyz_[pml_idx] = 
+          com.get_e_z_coef1(kt) * grid.Ca_[mid] * eyz_[pml_idx] 
+          + com.get_e_z_coef2(kt) * grid.Cbz_[mid] 
+            * (grid.hx_[grid.pi(it, jt, kt)] 
+               - grid.hx_[grid.pi(it, jt, kt-1)]);
         
+//         if (grid.hz_[grid.pi(it, jt, kt)] 
+//             - grid.hz_[grid.pi(it-1, jt, kt)] > 0.0  || 
+//             grid.hx_[grid.pi(it, jt, kt)] 
+//             - grid.hx_[grid.pi(it, jt, kt-1)] > 0.0)
+//         {
+//           cout << "ey pml calc at " << it << "," << jt << "," << kt 
+//                << "; eyx_ = " << eyx_[pml_idx] << ", eyz_ = " 
+//                << eyz_[pml_idx] << endl;
+//         }
+
         grid.ey_[grid_idx] = eyx_[pml_idx] + eyz_[pml_idx];
       }
 }
 
-void Pml::pml_update_ez(const region_t &pml_r, 
-                        const region_t &grid_r, Grid &grid)
+void Pml::pml_update_ez(const region_t &e_pml_r, 
+                        const region_t &e_grid_r, 
+                        const region_t &grid_r, 
+                        Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid; 
 
@@ -351,25 +428,37 @@ void Pml::pml_update_ez(const region_t &pml_r,
 
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r.xmin+1, it = grid_r.xmin+1; it < grid_r.xmax; i++, it++)
-    for(j = pml_r.ymin+1, jt = grid_r.ymin+1; jt < grid_r.ymax; j++, jt++)
-      for(k = pml_r.zmin, kt = grid_r.zmin; kt < grid_r.zmax; k++, kt++)
+  for(i = e_pml_r.xmin, it = e_grid_r.xmin; it < e_grid_r.xmax; i++, it++)
+    for(j = e_pml_r.ymin, jt = e_grid_r.ymin; jt < e_grid_r.ymax; j++, jt++)
+      for(k = 0, kt = grid_r.zmin; kt < grid_r.zmax - 1; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
 
         mid = grid.material_[grid_idx];
 
-        ezy_[pml_idx] = com.e_y_coef1_[jt] * grid.Ca_[mid] *
-          ezy_[pml_idx] + com.e_y_coef2_[jt] *
-          grid.Cby_[mid] * (grid.hx_[grid.pi(it, jt, kt)] 
-                           - grid.hx_[grid.pi(it, jt-1, kt)]);
+        ezy_[pml_idx] = 
+          com.get_e_y_coef1(jt) * grid.Ca_[mid] * ezy_[pml_idx] 
+          + com.get_e_y_coef2(jt) * grid.Cby_[mid] 
+          * (grid.hx_[grid.pi(it, jt-1, kt)] 
+             - grid.hx_[grid.pi(it, jt, kt)]);
         
-        ezx_[pml_idx] = com.e_x_coef1_[it] * grid.Ca_[mid] *
-          ezx_[pml_idx] - com.e_x_coef2_[it] *
-          grid.Cbx_[mid] * (grid.hy_[pi(it, jt, kt)] 
-                           - grid.hy_[pi(it-1, jt, kt)]);
+        ezx_[pml_idx] = 
+          com.get_e_x_coef1(it) * grid.Ca_[mid] * ezx_[pml_idx] 
+          + com.get_e_x_coef2(it) * grid.Cbx_[mid] 
+          * (grid.hy_[grid.pi(it, jt, kt)] 
+             - grid.hy_[grid.pi(it-1, jt, kt)]);
         
+//         if (grid.hy_[grid.pi(it, jt, kt)] 
+//             - grid.hy_[grid.pi(it-1, jt, kt)] > 0.0  || 
+//             grid.hx_[grid.pi(it, jt, kt)] 
+//             - grid.hx_[grid.pi(it, jt-1, kt)] > 0.0)
+//         {
+//           cout << "ez pml calc at " << it << "," << jt << "," << kt 
+//                << "; ezy_ = " << ezy_[pml_idx] << ", ezx_ = "
+//                << ezx_[pml_idx] << endl;
+//         }
+
         grid.ez_[grid_idx] = ezx_[pml_idx] + ezy_[pml_idx];
       }
 }
@@ -392,16 +481,28 @@ void Pml::pml_update_hx(const region_t &grid_r, Grid &grid)
 
         mid = grid.material_[grid_idx];
 
-        hxz_[pml_idx] = com.h_z_coef1_[kt] * grid.Da_[mid] *
-          hxz_[pml_idx] + com.h_z_coef2_[kt] *
-          grid.Dbz_[mid] * (grid.ey_[grid.pi(it, jt, kt+1)] 
-                           - grid.ey_[grid.pi(it, jt, kt)]);
+        hxz_[pml_idx] = 
+          com.get_h_z_coef1(kt) * grid.Da_[mid] * hxz_[pml_idx] 
+          + com.get_h_z_coef2(kt) * grid.Dbz_[mid] 
+          * (grid.ey_[grid.pi(it, jt, kt+1)] 
+             - grid.ey_[grid.pi(it, jt, kt)]);
         
-        hxy_[pml_idx] = com.h_y_coef1_[jt] * grid.Da_[mid] *
-          hxy_[pml_idx] - com.h_y_coef2_[jt] *
-          grid.Dby_[mid] * (grid.ez_[pi(it, jt+1, kt)] 
-                           - grid.ez_[pi(it, jt, kt)]);
+        hxy_[pml_idx] = 
+          com.get_h_y_coef1(jt) * grid.Da_[mid] * hxy_[pml_idx] 
+          + com.get_h_y_coef2(jt) * grid.Dby_[mid] 
+          * (grid.ez_[grid.pi(it, jt, kt)] 
+             - grid.ez_[grid.pi(it, jt+1, kt)]);
         
+//         if (grid.ey_[grid.pi(it, jt, kt+1)] 
+//             - grid.ey_[grid.pi(it, jt, kt)] > 0.0  || 
+//             grid.ez_[grid.pi(it, jt+1, kt)] 
+//             - grid.ez_[grid.pi(it, jt, kt)] > 0.0)
+//         {
+//           cout << "hx pml calc at " << it << "," << jt << "," << kt 
+//                << "; hxz_ = " << hxz_[pml_idx] << ", hxy_ = " 
+//                << hxy_[pml_idx] << endl;
+//         }
+
         grid.hx_[grid_idx] = hxz_[pml_idx] + hxy_[pml_idx];
       }
 }
@@ -424,16 +525,28 @@ void Pml::pml_update_hy(const region_t &grid_r, Grid &grid)
 
         mid = grid.material_[grid_idx];
 
-        hyx_[pml_idx] = com.h_x_coef1_[it] * grid.Da_[mid] *
-          hyx_[pml_idx] + com.h_x_coef2_[it] *
-          grid.Dbx_[mid] * (grid.ez_[grid.pi(it+1, jt, kt)] 
-                           - grid.ez_[grid.pi(it, jt, kt)]);
+        hyx_[pml_idx] = 
+          com.get_h_x_coef1(it) * grid.Da_[mid] * hyx_[pml_idx] 
+          + com.get_h_x_coef2(it) * grid.Dbx_[mid] 
+          * (grid.ez_[grid.pi(it+1, jt, kt)] 
+             - grid.ez_[grid.pi(it, jt, kt)]);
         
-        hyz_[pml_idx] = com.h_z_coef1_[kt] * grid.Da_[mid] *
-          hyz_[pml_idx] - com.h_z_coef2_[kt] *
-          grid.Dbz_[mid] * (grid.ex_[pi(it, jt, kt+1)] 
-                           - grid.ex_[pi(it, jt, kt)]);
+        hyz_[pml_idx] = 
+          com.get_h_z_coef1(kt) * grid.Da_[mid] * hyz_[pml_idx] 
+          + com.get_h_z_coef2(kt) * grid.Dbz_[mid] 
+          * (grid.ex_[grid.pi(it, jt, kt)] 
+             - grid.ex_[grid.pi(it, jt, kt+1)]);
         
+//         if (grid.ez_[grid.pi(it+1, jt, kt)] 
+//             - grid.ez_[grid.pi(it, jt, kt)] > 0.0  || 
+//             grid.ex_[grid.pi(it, jt, kt+1)] 
+//             - grid.ex_[grid.pi(it, jt, kt)] > 0.0)
+//         {
+//           cout << "hy pml calc at " << it << "," << jt << "," << kt 
+//                << "; hyx_ = " << hyx_[pml_idx] << ", hyz_ = "
+//                << hyz_[pml_idx] << endl;
+//         }
+
         grid.hy_[grid_idx] = hyx_[pml_idx] + hyz_[pml_idx];
       }
 }
@@ -456,16 +569,28 @@ void Pml::pml_update_hz(const region_t &grid_r, Grid &grid)
 
         mid = grid.material_[grid_idx];
 
-        hzy_[pml_idx] = com.h_y_coef1_[jt] * grid.Da_[mid] *
-          hzy_[pml_idx] + com.h_y_coef2_[jt] *
-          grid.Dby_[mid] * (grid.ex_[grid.pi(it, jt+1, kt)] 
-                           - grid.ex_[grid.pi(it, jt, kt)]);
+        hzy_[pml_idx] = 
+          com.get_h_y_coef1(jt) * grid.Da_[mid] * hzy_[pml_idx] 
+          + com.get_h_y_coef2(jt) * grid.Dby_[mid] 
+          * (grid.ex_[grid.pi(it, jt+1, kt)] 
+             - grid.ex_[grid.pi(it, jt, kt)]);
         
-        hzx_[pml_idx] = com.h_x_coef1_[it] * grid.Da_[mid] *
-          hzx_[pml_idx] - com.h_x_coef2_[it] *
-          grid.Dbx_[mid] * (grid.ey_[pi(it+1, jt, kt)] 
-                           - grid.ey_[pi(it, jt, kt)]);
+        hzx_[pml_idx] = 
+          com.get_h_x_coef1(it) * grid.Da_[mid] * hzx_[pml_idx] 
+          + com.get_h_x_coef2(it) * grid.Dbx_[mid] 
+          * (grid.ey_[grid.pi(it, jt, kt)] 
+             - grid.ey_[grid.pi(it+1, jt, kt)]);
         
+//         if (grid.ex_[grid.pi(it, jt+1, kt)] 
+//             - grid.ex_[grid.pi(it, jt, kt)] > 0.0  || 
+//             grid.ey_[grid.pi(it+1, jt, kt)] 
+//             - grid.ey_[grid.pi(it, jt, kt)] > 0.0)
+//         {
+//           cout << "hz pml calc at " << it << "," << jt << "," << kt 
+//                << "; hzy_ = " << hzy_[pml_idx] << ", hzx_ = "
+//                << hzx_[pml_idx] << endl;
+//         }
+
         grid.hz_[grid_idx] = hzx_[pml_idx] + hzy_[pml_idx];
       }
 }
@@ -519,4 +644,6 @@ RxTxData Pml::get_rx_tx_data(Face pmlface, Face sdface)
   case TOP:
     break;
   }
+
+  return ret;
 }

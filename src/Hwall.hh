@@ -32,9 +32,10 @@ public:
    *
    * @param face the face to apply the boundary condition to. 
    * @param grid the grid to apply the boundary condition to. 
+   * @param the field components to affect. 
    */
   void apply(Face face,
-             Grid &grid);
+             Grid &grid, FieldType type);
 
 };
 

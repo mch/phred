@@ -6,6 +6,9 @@
 #include "Data.hh"
 #include <mpi.h>
 
+#include "config.h"
+#include <assert.h>
+
 /**
  * PML Variation types. Not that I know what they mean or anything. 
  */
@@ -74,6 +77,8 @@ protected:
 
   region_t pml_r_; // A region
 
+  unsigned int sz_; // TEMP, for debugging; the size of allocated memory.
+
   // MPI Derived data types for moving split field data across
   // subdomain boundaries
   MPI_Datatype xy_plane_;
@@ -126,8 +131,12 @@ public:
   inline unsigned int pi(unsigned int x, unsigned int y, 
                          unsigned int z)
   {
-    return z + (y + x*(pml_r_.ymax - pml_r_.ymin) 
-                * (pml_r_.zmax - pml_r_.zmin));
+    assert(x < pml_r_.xmax && y < pml_r_.ymax && z < pml_r_.zmax);
+    assert(z + (y + x*(pml_r_.ymax - pml_r_.ymin) 
+                * (pml_r_.zmax - pml_r_.zmin)) < sz_);
+
+    return z + (y + x*(pml_r_.ymax - pml_r_.ymin)) 
+                * (pml_r_.zmax - pml_r_.zmin);
   }
 
   /**
@@ -143,8 +152,9 @@ public:
    *
    * @param face the face to apply the boundary condition to. 
    * @param grid the grid to apply the boundary condition to. 
+   * @param the field components to affect. 
    */
-  void apply(Face face, Grid &grid);  
+  void apply(Face face, Grid &grid, FieldType type);  
 
   /**
    * Set the thickness of the PML. I.e. the number of cells devoted to
@@ -199,35 +209,44 @@ protected: // Only called by apply().
   /**
    * Update the Ex field component inside the PML
    */
-  void pml_update_ex(const region_t &pml_r, 
-                     const region_t &grid_r, Grid &grid);
+  void pml_update_ex(const region_t &e_pml_r, 
+                     const region_t &e_grid_r, 
+                     const region_t &grid_r, 
+                     Grid &grid);
 
   /**
    * Update the Ey field component inside the PML
    */
-  void pml_update_ey(const region_t &pml_r, 
-                     const region_t &grid_r, Grid &grid);
+  void pml_update_ey(const region_t &e_pml_r, 
+                     const region_t &e_grid_r, 
+                     const region_t &grid_r, 
+                     Grid &grid);
 
   /**
    * Update the Ez field component inside the PML
    */
-  void pml_update_ez(const region_t &pml_r, 
-                     const region_t &grid_r, Grid &grid);
+  void pml_update_ez(const region_t &e_pml_r, 
+                     const region_t &e_grid_r, 
+                     const region_t &grid_r, 
+                     Grid &grid);
 
   /**
    * Update the Hx field component inside the PML
    */
-  void pml_update_hx(const region_t &grid_r, Grid &grid);
+  void pml_update_hx(const region_t &grid_r, 
+                     Grid &grid);
 
   /**
    * Update the Hy field component inside the PML
    */
-  void pml_update_hy(const region_t &grid_r, Grid &grid);
+  void pml_update_hy(const region_t &grid_r, 
+                     Grid &grid);
 
   /**
    * Update the Hz field component inside the PML
    */
-  void pml_update_hz(const region_t &grid_r, Grid &grid);
+  void pml_update_hz(const region_t &grid_r, 
+                     Grid &grid);
 
 };
 

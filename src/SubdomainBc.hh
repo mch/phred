@@ -47,8 +47,9 @@ public:
    *
    * @param face the face to apply the boundary condition to. 
    * @param grid the grid to apply the boundary condition to. 
+   * @param type the field to update
    */
-  void apply(Face face, Grid &grid);
+  void apply(Face face, Grid &grid, FieldType type);
 
   /**
    * Set the neighbour to talk to.

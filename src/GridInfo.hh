@@ -152,7 +152,7 @@ public:
    *
    * @param the grid to apply to 
    */
-  void apply_boundaries(Grid &grid);
+  void apply_boundaries(Grid &grid, FieldType type);
 
 };
 

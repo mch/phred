@@ -134,10 +134,10 @@ void Grid::set_define_mode(bool d)
       }
     }
     
-    cout << "Grid update region: x={" << update_r_.xmin << "," 
-         << update_r_.xmax << "}, y={" << update_r_.ymin << "," 
-         << update_r_.ymax << "}, z={" << update_r_.zmin << ","
-         << update_r_.zmax << "}.\n";
+//     cout << "Grid update region: x={" << update_r_.xmin << "," 
+//          << update_r_.xmax << "}, y={" << update_r_.ymin << "," 
+//          << update_r_.ymax << "}, z={" << update_r_.zmin << ","
+//          << update_r_.zmax << "}.\n";
 
     // Calculate common PML coefficients. 
     pml_common_.init_coeffs(*this);
@@ -204,7 +204,7 @@ void Grid::free_material()
   if (Dbx_)
     delete[] Dbx_;
 
-  if (get_ldx() != get_ldy())
+  if (get_deltay() != get_deltax())
   {
     if (Cby_)
       delete[] Cby_;
@@ -213,7 +213,7 @@ void Grid::free_material()
       delete[] Dby_;
   }
   
-  if (get_ldz() != get_ldy() && get_ldz() != get_ldx())
+  if (get_deltaz() != get_deltay() && get_deltaz() != get_deltax())
   {
     if (Cbz_)
       delete[] Cbz_;
@@ -479,7 +479,20 @@ void Grid::define_box(unsigned int x_start, unsigned int x_stop,
 }
 
 // Straight out of Taflove.
-void Grid::update_fields()
+void Grid::update_e_field()
+{
+  if (define_)
+  {
+    cerr << "Unable to update fields; the grid is in define mode." << endl;
+    return;
+  }
+
+  update_ex();
+  update_ey();
+  update_ez();
+}
+
+void Grid::update_h_field()
 {
   if (define_)
   {
@@ -491,9 +504,6 @@ void Grid::update_fields()
   update_hy();
   update_hz();
 
-  update_ex();
-  update_ey();
-  update_ez();
 }
 
 // Straight out of Taflove.
@@ -680,7 +690,7 @@ void Grid::update_hz()
   }
 }
 
-void Grid::apply_boundaries()
+void Grid::apply_boundaries(FieldType type)
 {
   if (define_)
   {
@@ -688,7 +698,7 @@ void Grid::apply_boundaries()
     return;
   }
 
-  info_.apply_boundaries(*this);
+  info_.apply_boundaries(*this, type);
 }
 
 

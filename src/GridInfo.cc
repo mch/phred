@@ -146,12 +146,12 @@ unsigned int GridInfo::get_face_thickness(Face face)
   return ret;
 }
 
-void GridInfo::apply_boundaries(Grid &grid)
+void GridInfo::apply_boundaries(Grid &grid, FieldType type)
 {
   for (unsigned int i = 0; i < 6; i++)
   {
     if (face_bc_[i]) {
-      face_bc_[i]->apply(static_cast<Face>(i), grid);
+      face_bc_[i]->apply(static_cast<Face>(i), grid, type);
     }
   }
 }

@@ -2,6 +2,12 @@
 #define PML_COMMON_H
 
 #include "Types.hh"
+#include "config.h"
+
+#include <assert.h>
+
+class Pml;
+class Grid;
 
 /**
  * Data common to a set of PML's. This holds coefficients and stuff
@@ -12,8 +18,8 @@
  */
 class PmlCommon 
 {
-  friend class Pml;
-  friend class Grid;
+  //friend class Pml;
+  //friend class Grid;
 
 private:
   float *ratio_x_;
@@ -42,6 +48,13 @@ private:
   
   float *h_z_coef1_;
   float *h_z_coef2_;
+
+#ifndef NDEBUG
+  // For assertions, so we know when we step out of bounds
+  unsigned int dimx_;
+  unsigned int dimy_;
+  unsigned int dimz_;
+#endif
 
   /**
    * Setup the coefficients 
@@ -77,6 +90,115 @@ public:
    * @param grid The grid the PML is being applied to. 
    */
   void init_coeffs(Grid &grid);
+
+  /**
+   * Return a e_x_coef1 coefficient
+   */
+  inline float get_e_x_coef1(unsigned int i)
+  {
+    assert(i < dimx_);
+    return e_x_coef1_[i];
+  }
+
+  /**
+   * Return a e_y_coef1 coefficient
+   */
+  inline float get_e_y_coef1(unsigned int j)
+  {
+    assert(j < dimy_);
+    return e_y_coef1_[j];
+  }
+
+  /**
+   * Return a e_z_coef1 coefficient
+   */
+  inline float get_e_z_coef1(unsigned int k)
+  {
+    assert(k < dimz_);
+    return e_z_coef1_[k];
+  }
+
+  /**
+   * Return a e_x_coef2 coefficient
+   */
+  inline float get_e_x_coef2(unsigned int i)
+  {
+    assert(i < dimx_);
+    return e_x_coef2_[i];
+  }
+
+  /**
+   * Return a e_y_coef2 coefficient
+   */
+  inline float get_e_y_coef2(unsigned int j)
+  {
+    assert(j < dimy_);
+    return e_y_coef2_[j];
+  }
+
+  /**
+   * Return a e_z_coef2 coefficient
+   */
+  inline float get_e_z_coef2(unsigned int k)
+  {
+    assert(k < dimz_);
+    return e_z_coef2_[k];
+  }
+
+  /**
+   * Return a h_x_coef1 coefficient
+   */
+  inline float get_h_x_coef1(unsigned int i)
+  {
+    assert(i < dimx_);
+    return h_x_coef1_[i];
+  }
+
+  /**
+   * Return a h_y_coef1 coefficient
+   */
+  inline float get_h_y_coef1(unsigned int j)
+  {
+    assert(j < dimy_);
+    return h_y_coef1_[j];
+  }
+
+  /**
+   * Return a h_z_coef1 coefficient
+   */
+  inline float get_h_z_coef1(unsigned int k)
+  {
+    assert(k < dimz_);
+    return h_z_coef1_[k];
+  }
+
+  /**
+   * Return a h_x_coef2 coefficient
+   */
+  inline float get_h_x_coef2(unsigned int i)
+  {
+    assert(i < dimx_);
+    return h_x_coef2_[i];
+  }
+
+  /**
+   * Return a h_y_coef2 coefficient
+   */
+  inline float get_h_y_coef2(unsigned int j)
+  {
+    assert(j < dimy_);
+    return h_y_coef2_[j];
+  }
+
+  /**
+   * Return a h_z_coef2 coefficient
+   */
+  inline float get_h_z_coef2(unsigned int k)
+  {
+    assert(k < dimz_);
+    return h_z_coef2_[k];
+  }
+
 };
 
 #endif

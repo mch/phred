@@ -10,6 +10,17 @@ PointResult::PointResult()
   dim_lens_.push_back(7);
 }
 
+PointResult::PointResult(point_t p)
+  : point_(p)
+{
+  MPI_Datatype temp;
+  MPI_Type_contiguous(7, GRID_MPI_TYPE, &temp);
+  MPI_Type_commit(&temp);
+  data_.set_datatype(temp);
+
+  dim_lens_.push_back(7);
+}
+
 PointResult::~PointResult()
 { }
 

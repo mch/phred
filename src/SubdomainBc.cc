@@ -2,7 +2,7 @@
 #include "SubdomainBc.hh"
 #include "Grid.hh"
 
-void SubdomainBc::apply(Face face, Grid &grid)
+void SubdomainBc::apply(Face face, Grid &grid, FieldType type)
 {
   region_t r = find_face(face, grid);
   MPI_Datatype t;

@@ -59,6 +59,12 @@ void PmlCommon::alloc_coeffs(Grid &grid)
     free_coeffs();
     throw MemoryException();
   }
+
+#ifndef NDEBUG
+  dimx_ = grid.get_ldx();
+  dimy_ = grid.get_ldy();
+  dimz_ = grid.get_ldz();
+#endif
 }
 
 void PmlCommon::free_coeffs()
@@ -136,78 +142,20 @@ void PmlCommon::init_coeffs(Grid &grid)
       } // if (p)
     }
   } // for
-}
 
-void PmlCommon::init_ratios(Face face, Grid &grid, Pml *p)
-{
-  delta_t d_space;
-  int step; 
-  unsigned int idx;
-  float *arr1, * arr2;
 
-  switch (face)
-  {
-  case BACK:
-    d_space = grid.get_deltax();
-    step = 1;
-    idx = 0;
-    arr1 = ratio_x_;
-    arr2 = ratio_star_x_;
-    break;
+//   cout << endl << "item\tratio_x\t\tratio_star_x " << endl;
+//   for (int j = 0; j < grid.get_ldx(); j++)
+//     cout << j << "\t" << ratio_x_[j] << "\t\t" << ratio_star_x_[j] << endl;
 
-  case FRONT:
-    d_space = grid.get_deltax();
-    step = -1; 
-    idx = grid.get_ldx() - 1;
-    arr1 = ratio_x_;
-    arr2 = ratio_star_x_;
-    break;
+//   cout << endl << "item\tratio_y\t\tratio_star_y " << endl;
+//   for (int j = 0; j < grid.get_ldy(); j++)
+//     cout << j << "\t" << ratio_y_[j] << "\t\t" << ratio_star_y_[j] << endl;
 
-  case LEFT:
-    d_space = grid.get_deltay();
-    step = 1;
-    idx = 0;
-    arr1 = ratio_y_;
-    arr2 = ratio_star_y_;
-    break;
-
-  case RIGHT:
-    d_space = grid.get_deltay();
-    step = -1; 
-    idx = grid.get_ldy() - 1;
-    arr1 = ratio_y_;
-    arr2 = ratio_star_y_;
-    break;
-
-  case BOTTOM:
-    d_space = grid.get_deltaz();
-    step = 1;
-    idx = 0;
-    arr1 = ratio_z_;
-    arr2 = ratio_star_z_;
-    break;
-
-  case TOP:
-    d_space = grid.get_deltaz();
-    step = -1; 
-    idx = grid.get_ldz() - 1;
-    arr1 = ratio_z_;
-    arr2 = ratio_star_z_;
-    break;
-  }
-
-  for (unsigned int i = 0; i <= p->get_thickness(); i++)
-  {
-    arr1[idx] = 1.0 / d_space 
-      * ( p->sigma_over_eps_int((i+0.5)*d_space) 
-          - p->sigma_over_eps_int((i-0.5)*d_space));
-    
-    arr2[idx] = 1.0 / d_space 
-      * ( p->sigma_over_eps_int((i+1.0)*d_space) 
-          - p->sigma_over_eps_int((i)*d_space));
-    
-    idx += step;
-  }
+//   cout << endl << "item\tratio_z\t\tratio_star_z " << endl;
+//   for (int j = 0; j < grid.get_ldz(); j++)
+//     cout << j << "\t" << ratio_z_[j] << "\t\t" << ratio_star_z_[j] << endl;
+  
 
   // And finally, init coefficients
   delta_t dt = grid.get_deltat();
@@ -264,6 +212,100 @@ void PmlCommon::init_ratios(Face face, Grid &grid, Pml *p)
                      / (ratio_star_z_[k] * dt));
   }
                   
+//   cout << endl << "item\te_x_coef1\t\te_x_coef2\t\th_x_coef1\t\th_x_coef2 " << endl;
+//   for (int j = 0; j < grid.get_ldx(); j++)
+//     cout << j << "\t" << e_x_coef1_[j] << "\t\t" << e_x_coef2_[j]
+//          << "\t\t" << h_x_coef1_[j] << "\t\t" << h_x_coef2_[j] << endl;
+
+//   cout << endl << "item\te_y_coef1\t\te_y_coef2\t\th_y_coef1\t\th_y_coef2 " << endl;
+//   for (int j = 0; j < grid.get_ldy(); j++)
+//     cout << j << "\t" << e_y_coef1_[j] << "\t\t" << e_y_coef2_[j]
+//          << "\t\t" << h_y_coef1_[j] << "\t\t" << h_y_coef2_[j] << endl;
+
+//   cout << endl << "item\te_z_coef1\t\te_z_coef2\t\th_z_coef1\t\th_z_coef2 " << endl;
+//   for (int j = 0; j < grid.get_ldz(); j++)
+//     cout << j << "\t" << e_z_coef1_[j] << "\t\t" << e_z_coef2_[j]
+//          << "\t\t" << h_z_coef1_[j] << "\t\t" << h_z_coef2_[j] << endl;
+  
+}
+
+void PmlCommon::init_ratios(Face face, Grid &grid, Pml *p)
+{
+  delta_t d_space;
+  int step; 
+  unsigned int idx1, idx2;
+  float *arr1, * arr2;
+
+  switch (face)
+  {
+  case BACK:
+    d_space = grid.get_deltax();
+    step = 1;
+    idx1 = 0;
+    idx2 = 0;
+    arr1 = ratio_x_;
+    arr2 = ratio_star_x_;
+    break;
+
+  case FRONT:
+    d_space = grid.get_deltax();
+    step = -1; 
+    idx1 = grid.get_ldx() - 1;
+    idx2 = grid.get_ldx() - 2;
+    arr1 = ratio_x_;
+    arr2 = ratio_star_x_;
+    break;
+
+  case LEFT:
+    d_space = grid.get_deltay();
+    step = 1;
+    idx1 = 0;
+    idx2 = 0;
+    arr1 = ratio_y_;
+    arr2 = ratio_star_y_;
+    break;
+
+  case RIGHT:
+    d_space = grid.get_deltay();
+    step = -1; 
+    idx1 = grid.get_ldy() - 1;
+    idx2 = grid.get_ldy() - 2;
+    arr1 = ratio_y_;
+    arr2 = ratio_star_y_;
+    break;
+
+  case BOTTOM:
+    d_space = grid.get_deltaz();
+    step = 1;
+    idx1 = 0;
+    idx2 = 0;
+    arr1 = ratio_z_;
+    arr2 = ratio_star_z_;
+    break;
+
+  case TOP:
+    d_space = grid.get_deltaz();
+    step = -1; 
+    idx1 = grid.get_ldz() - 1;
+    idx2 = grid.get_ldz() - 2;
+    arr1 = ratio_z_;
+    arr2 = ratio_star_z_;
+    break;
+  }
+
+  for (unsigned int i = 0; i <= p->get_thickness(); i++)
+  {
+    arr1[idx1] = 1.0 / d_space 
+      * ( p->sigma_over_eps_int((i+0.5)*d_space) 
+          - p->sigma_over_eps_int((i-0.5)*d_space));
+    
+    arr2[idx2] = 1.0 / d_space 
+      * ( p->sigma_over_eps_int((i+1.0)*d_space) 
+          - p->sigma_over_eps_int((i)*d_space));
+    
+    idx1 += step;
+    idx2 += step;
+  }
 
 }
 

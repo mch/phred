@@ -179,6 +179,7 @@ class Grid {
   inline unsigned int pi(unsigned int x, unsigned int y, 
                          unsigned int z)
   {
+    assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     return z + (y + x*info_.dimy_) * info_.dimz_;
   }
 
@@ -215,17 +216,24 @@ class Grid {
   }
 
   /**
-   * Compute the next time step of the fields. This is a convenience
+   * Compute the next time step of electric field. This is a convenience
    * function which calls the individual update functions, and can
    * only be called when the grid is not in define mode. 
    */
-  void update_fields();
+  void update_e_field();
+
+  /**
+   * Compute the next time step of magnetic field. This is a convenience
+   * function which calls the individual update functions, and can
+   * only be called when the grid is not in define mode. 
+   */
+  void update_h_field();
 
   /**
    * Apply the boundary conditions to the faces. This function only
    * has an effect when the grid is not in define mode. 
    */
-  virtual void apply_boundaries();
+  virtual void apply_boundaries(FieldType type);
 
   /**
    * Calculate the material constants from the given material

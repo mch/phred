@@ -6,6 +6,14 @@ AsciiDataWriter::AsciiDataWriter(int rank, int size)
   : DataWriter(rank, size), time_dim_(true)
 {}
 
+AsciiDataWriter::AsciiDataWriter(int rank, int size, 
+                                 const char *fn, Result &result)
+  : DataWriter(rank, size), time_dim_(true)
+{
+  set_filename(fn);
+  add_variable(result);
+}
+
 AsciiDataWriter::~AsciiDataWriter()
 {
   deinit();
