@@ -54,7 +54,8 @@ unsigned int AsciiDataWriter::write_data(Data &data, MPI_Datatype t,
   // If this result doesn't have a time dimension, then move to the
   // start of the file before writing anything; overwrite existing
   // data.
-  file_.seekp(0);
+  if (!time_dim_)
+    file_.seekp(0);
 
   unsigned int tbw = 0, bytes_written = 0;
 
@@ -72,6 +73,9 @@ unsigned int AsciiDataWriter::write_data(Data &data, MPI_Datatype t,
   }
 
   file_ << endl;
+
+  // TEMPORARY! PERFORMANCE KILL (probably)
+  file_.flush();
 
   return tbw;
 }

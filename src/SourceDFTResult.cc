@@ -35,7 +35,7 @@ SourceDFTResult::SourceDFTResult(TimeExcitation &te,
   MPI_Type_contiguous(3, GRID_MPI_TYPE, &temp);
   MPI_Type_commit(&temp);
 
-  data_.set_num(1);
+  data_.set_num(num_freqs_);
   data_.set_ptr(result_);
   data_.set_datatype(temp);
 }

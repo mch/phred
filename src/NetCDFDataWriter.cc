@@ -30,10 +30,6 @@ void NetCDFDataWriter::init()
     status = nc_open(filename_.c_str(), omode_, &ncid_);
     if (status != NC_NOERR)
     {
-      // REMOVE THIS LINE
-      //cerr << "NetCDFDataWriter error (REMOVE THIS LINE): " << status 
-      //     << ", " << nc_strerror(status) << endl;
-
       // Maybe we couldn't open it because it DNE, try creating it. 
       if (status == 2)
         status = nc_create(filename_.c_str(), NC_SHARE, &ncid_);
@@ -77,6 +73,9 @@ void NetCDFDataWriter::add_variable(Result &result)
   const vector<string> &dim_names = result.get_dim_names();
 
   var.var_name_ = result.get_name();
+
+  if (var.var_name_.size() == 0)
+    throw DataWriterException("Result variable must have a valid NetCDF variable name.");
 
   if (var.dim_lens_.size() == 0)
     throw DataWriterException("Result must have at least one dimension.");
@@ -140,8 +139,39 @@ void NetCDFDataWriter::add_variable(Result &result)
       dimids[i] = dids[i];
   }
 
-  status = nc_def_var(ncid_, var.var_name_.c_str(), NC_FLOAT, 
-                      dids.size(), dimids, &var.var_id_);
+  // Does the variable already exist? 
+  status = nc_inq_varid(ncid_, var.var_name_.c_str(), &var.var_id_);
+  if (status == NC_NOERR)
+  {
+    // Does the variable have the right dimensions? 
+    int ndims;
+    status == nc_inq_varndims(ncid_, var.var_id_, &ndims);
+    if (status != NC_NOERR)
+      handle_error(status);
+    
+    if (ndims != dids.size())
+      throw DataWriterError("NetCDF variable name found, but wrong number of dimensions!");
+
+    status = nc_inq_vardimid(ncid_, var.var_id_, dimids);
+    if (status != NC_NOERR)
+      handle_error(status);
+    
+    int len = 0;
+    for (unsigned int i = 0; i < dids.size(); i++)
+    {
+      status = nc_inq_dimlen(ncid_, dimids[i], &len);
+      
+      if (status != NC_NOERR)
+        handle_error(status);
+      
+      //if (len != 
+    }
+  } 
+  else 
+  {
+    status = nc_def_var(ncid_, var.var_name_.c_str(), NC_FLOAT, 
+                        dids.size(), dimids, &var.var_id_);
+  }
 
   if (status != NC_NOERR)
     handle_error(status);
@@ -361,7 +391,7 @@ int NetCDFDataWriter::get_dim(int i, int size, string basename)
   return dimid;
 }
 
-void NetCDFDataWriter::handle_error(int status)
+void NetCDFDataWriter::handle_error(char *int status)
 {
   throw DataWriterException(nc_strerror(status));
 }

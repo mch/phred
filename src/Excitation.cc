@@ -2,7 +2,7 @@
 
 Excitation::Excitation()
   : x_start_(0), y_start_(0), z_start_(0), 
-    x_end_(0), y_end_(0), z_end_(0), type_(E)
+    x_end_(0), y_end_(0), z_end_(0), type_(E), soft_(false)
 {
   polarization_[0] = 1;
   polarization_[1] = 0;

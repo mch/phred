@@ -184,51 +184,51 @@ main (int argc, char **argv)
   Grid grid; 
   GridInfo info_g;
   
-  info_g.global_dimx_ = info_g.dimx_ = 40;
-  info_g.global_dimy_ = info_g.dimy_ = 50;
-  info_g.global_dimz_ = info_g.dimz_ = 60;
-  info_g.deltax_ = 18.85e-9; 
-  info_g.deltay_ = 18.8e-9; 
+  info_g.global_dimx_ = info_g.dimx_ = 100;
+  info_g.global_dimy_ = info_g.dimy_ = 100;
+  info_g.global_dimz_ = info_g.dimz_ = 100;
+  info_g.deltax_ = 18.75e-9; 
+  info_g.deltay_ = 18.75e-9; 
   info_g.deltaz_ = 18.75e-9;
   info_g.deltat_ = 36e-18;
   info_g.start_x_ = info_g.start_y_ = info_g.start_z_ = 0;
 
-   Pml *pml = dynamic_cast<Pml *>(info_g.set_boundary(FRONT, PML));
-   pml->set_thickness(10);
-   pml->set_variation(VP);
-   pml->set_nrml_refl(1.0);
+//   Pml *pml = dynamic_cast<Pml *>(info_g.set_boundary(FRONT, PML));
+//   pml->set_thickness(10);
+//   pml->set_variation(VP);
+//   pml->set_nrml_refl(1.0);
 
-  pml = dynamic_cast<Pml *>(info_g.set_boundary(BACK, PML));
-  pml->set_thickness(10);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
+//   pml = dynamic_cast<Pml *>(info_g.set_boundary(BACK, PML));
+//   pml->set_thickness(10);
+//   pml->set_variation(VP);
+//   pml->set_nrml_refl(1.0);
 
-  pml = dynamic_cast<Pml *>(info_g.set_boundary(LEFT, PML));
-  pml->set_thickness(10);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
+//   pml = dynamic_cast<Pml *>(info_g.set_boundary(LEFT, PML));
+//   pml->set_thickness(10);
+//   pml->set_variation(VP);
+//   pml->set_nrml_refl(1.0);
 
-  pml = dynamic_cast<Pml *>(info_g.set_boundary(RIGHT, PML));
-  pml->set_thickness(10);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
+//   pml = dynamic_cast<Pml *>(info_g.set_boundary(RIGHT, PML));
+//   pml->set_thickness(10);
+//   pml->set_variation(VP);
+//   pml->set_nrml_refl(1.0);
 
-  pml = dynamic_cast<Pml *>(info_g.set_boundary(BOTTOM, PML));
-  pml->set_thickness(10);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
+//   pml = dynamic_cast<Pml *>(info_g.set_boundary(BOTTOM, PML));
+//   pml->set_thickness(10);
+//   pml->set_variation(VP);
+//   pml->set_nrml_refl(1.0);
 
-  pml = dynamic_cast<Pml *>(info_g.set_boundary(TOP, PML));
-  pml->set_thickness(10);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
+//   pml = dynamic_cast<Pml *>(info_g.set_boundary(TOP, PML));
+//   pml->set_thickness(10);
+//   pml->set_variation(VP);
+//   pml->set_nrml_refl(1.0);
 
-  //info_g.set_boundary(FRONT, EWALL);
-//   info_g.set_boundary(BACK, EWALL);
-//   info_g.set_boundary(BOTTOM, EWALL);
-//   info_g.set_boundary(TOP, EWALL);
-//   info_g.set_boundary(LEFT, EWALL);
-//   info_g.set_boundary(RIGHT, EWALL);
+  info_g.set_boundary(FRONT, EWALL);
+  info_g.set_boundary(BACK, EWALL);
+  info_g.set_boundary(BOTTOM, EWALL);
+  info_g.set_boundary(TOP, EWALL);
+  info_g.set_boundary(LEFT, EWALL);
+  info_g.set_boundary(RIGHT, EWALL);
 
   
   GridInfo info = dd.decompose_domain(rank, size, info_g);
@@ -248,60 +248,49 @@ main (int argc, char **argv)
   grid.load_materials(mats);
 
   // Global coordinates. 
-  grid.define_box(0, 40, 0, 50, 0, 60, 1);
-  //grid.define_box(20, 30, 20, 30, 20, 30, 2);
+  grid.define_box(0, 100, 0, 100, 0, 1000, 1);
+  grid.define_box(40, 60, 40, 60, 40, 60, 2);
 
   // Excitation
   Gaussm ex;
+  ex.set_soft(true);
   ex.set_parameters(1, 500e12, 300e12);
-  ex.set_region(20, 20, 25, 25, 30, 30);
+  ex.set_region(50, 50, 50, 50, 50, 50);
   ex.set_polarization(0.0, 1.0, 0.0);
 
   // Results
   point_t p;
-  p.x = 15;
-  p.y = 25;
-  p.z = 30;
+  p.x = 50;
+  p.y = 50;
+  p.z = 50;
   PointResult res1;
-  PointResult res2;
-  PointResult res3;
   res1.set_point(p);
-  p.x = 20;
-  res2.set_point(p);
-  p.x = 25;
-  res3.set_point(p);
 
   AsciiDataWriter adw1(rank, size);
-  adw1.set_filename("t_ey_15.txt");
+  adw1.set_filename("t_field_50.txt");
   adw1.add_variable(res1);
-  
+
+  PointDFTResult pdft(100e12, 600e12, 50);
+  pdft.set_point(p);
+
   AsciiDataWriter adw2(rank, size);
-  adw2.set_filename("t_ey_20.txt");
-  adw2.add_variable(res2);
-
-  AsciiDataWriter adw3(rank, size);
-  adw3.set_filename("t_ey_25.txt");
-  adw3.add_variable(res3);
-
-  point_t p2;
-  p2.x = 20;
-  p2.y = 25;
-  p2.z = 30;
- 
+  adw2.set_filename("t_field_dft__50.txt");
+  adw2.add_variable(pdft);
+  
   AsciiDataWriter adw4(rank, size);
   //NetCDFDataWriter ncdw(rank, size);
   //ncdw.set_filename("yz_plane.nc");
   //ncdw.init();
   PlaneResult pr1;
   pr1.set_name("yzplane");
-  pr1.set_plane(p2, BACK);
+  pr1.set_plane(p, BACK);
   pr1.set_size(grid.get_ldy(), grid.get_ldz());
   adw4.set_filename("yz_plane.txt");
   adw4.add_variable(pr1);
   //ncdw.add_variable(pr1);
 
-  SourceDFTResult sdftr(ex, 100e12, 600e12, 20);
-  sdftr.set_time_param(0, 11, 0);
+  SourceDFTResult sdftr(ex, 100e12, 600e12, 50);
+  sdftr.set_time_param(0, 100, 0);
 
   AsciiDataWriter adw5(rank, size);
   adw5.set_filename("src_dft.txt");
@@ -310,7 +299,7 @@ main (int argc, char **argv)
   grid.set_define_mode(false);
   
   // Main loop
-  unsigned int num_time_steps = 12;
+  unsigned int num_time_steps = 501;
   unsigned int ts = 0;
 
   //ex.excite(grid, ts, BOTH);
@@ -358,12 +347,12 @@ main (int argc, char **argv)
     // Total / Scattered field interface confditions
 
     // Results
-    adw4.handle_data(ts, pr1.get_result(grid, ts));
-    //ncdw.handle_data(ts, pr1.get_result(grid, ts));
+
     adw1.handle_data(ts, res1.get_result(grid, ts));
-    adw2.handle_data(ts, res2.get_result(grid, ts));
-    adw3.handle_data(ts, res3.get_result(grid, ts));
+    adw2.handle_data(ts, pdft.get_result(grid, ts));
+    adw4.handle_data(ts, pr1.get_result(grid, ts));
     adw5.handle_data(ts, sdftr.get_result(grid, ts));
+    //ncdw.handle_data(ts, pr1.get_result(grid, ts));
   }
 
   } catch (const std::exception &e) {

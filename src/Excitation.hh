@@ -33,6 +33,13 @@ protected:
    */
   FieldType type_;
 
+  /**
+   * True if this is a soft source (defaults to false). Source
+   * sources are added to the field rather than the field being set
+   * to them.
+   */
+  bool soft_;
+
 public:
   Excitation();
   virtual ~Excitation();
@@ -78,6 +85,24 @@ public:
    * @param t FieldType
    */
   void set_type(FieldType t);
+
+  /**
+   * Tells if this source is "soft" or not. Soft sources are
+   * additive. 
+   */
+  inline bool get_soft()
+  {
+    return soft_;
+  }
+
+  /**
+   * Set the softness of the source.
+   * @param soft true if this source should be soft.
+   */
+  inline void set_soft(bool soft)
+  {
+    soft_ = soft;
+  }
 
 };
 

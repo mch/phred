@@ -10,17 +10,17 @@
 
 class DimensionException : public std::exception {
 public:
-  const char *what() { return "Result must have at least one dimension."; }
+  const char *what() const throw() { return "Result must have at least one dimension."; }
 };
 
 class FileException : public std::exception {
 public:
-  const char *what() { return "Error using file."; }
+  const char *what() const throw() { return "Error using file."; }
 };
 
 class MemoryException : public std::exception {
 public:
-  const char *what() { return "Out of memory. \
+  const char *what() const throw() { return "Out of memory. \
 We wish to hold the whole sky, \
 But we never will."; }
 };
@@ -31,6 +31,21 @@ private:
 public:
   DataWriterException(const char *buf) : buf_(buf) {}
   virtual const char *what() const throw() { return buf_; }
+};
+
+class NoNetCDFException : public std::exception {
+public:
+  const char *what() const throw() { return "NetCDF is not availble."; }
+};
+
+class NoHDF4Exception : public std::exception {
+public:
+  const char *what() const throw() { return "HDF4 is not availble."; }
+};
+
+class NoHDF5Exception : public std::exception {
+public:
+  const char *what() const throw() { return "HDF5 is not availble."; }
 };
 
 #endif // EXCEPTIONS_H

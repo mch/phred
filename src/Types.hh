@@ -1,6 +1,6 @@
 /* This file defines the types used for various things. This
- * may be processed by autoconf in the future so these things 
- * can be configure switches, or dependent on machine type. 
+ * is processed by autoconf so we can set types based on switches or
+ * machine type.
  */
 
 /* Use only C comments, or the AIX C compiler with complain */ 
@@ -82,6 +82,8 @@ typedef float mat_prop_t;
 /**
  * The type used for grid field components, THE MPI DATATYPE MUST MATCH!
  */
+/* typedef float field_t; */
+/* #define GRID_MPI_TYPE MPI_FLOAT */
 typedef float field_t;
 #define GRID_MPI_TYPE MPI_FLOAT
 

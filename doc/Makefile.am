@@ -1,4 +1,8 @@
-EXTRA_DIST=phred.lsm.in phred.texinfo html latex
+EXTRA_DIST=phred.lsm.in phred.texinfo
+
+if WANT_DOCS
+EXTRA_DIST += html latex
+endif
 
 #  build and install the .info pages
 info_TEXINFOS = phred.texinfo
