@@ -392,7 +392,7 @@ static void point_test(int rank, int size)
 {
   FDTD fdtd;
   
-  fdtd.set_grid_size(100, 100, 100);
+  fdtd.set_grid_size(100, 100, 500);
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
 
   Ewall ewall;
@@ -498,7 +498,7 @@ static void pml_test(int rank, int size)
 {
   FDTD fdtd;
   
-  fdtd.set_grid_size(100, 100, 100);
+  fdtd.set_grid_size(500, 100, 100);
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
   //fdtd.set_time_delta(3.1250e-17);
 
@@ -732,7 +732,32 @@ static void pml_test(int rank, int size)
 //     fdtd.map_result_to_datawriter("srctr", "adw8");
 
    fdtd.set_time_steps(100);
+
+   
+#ifdef USE_OPENMP
+   // Test the OpenMP
+   time_t start, now;
+   clock_t cpu_start, cpu_now;
+
+   for (int numthreads = 1; numthreads <= omp_get_max_threads(); numthreads++)
+     {
+       omp_set_num_threads(numthreads);
+       start = time(NULL);
+       cpu_start = clock();
+       fdtd.run(rank, size);
+       now = time(NULL);
+       cpu_now = clock();
+       
+       cout << numthreads << " of " 
+	    << omp_get_max_threads() << " threads took " 
+	    << now - start << " wall clock seconds, and "
+	    << (cpu_now - cpu_start) / static_cast<double>(CLOCKS_PER_SEC)
+	    << " cpu seconds." << endl;
+     }
+
+#else
    fdtd.run(rank, size);
+#endif
 }
 
 static void takakura_test(int rank, int size)

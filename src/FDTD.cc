@@ -328,8 +328,9 @@ void FDTD::run(int rank, int size)
         (*dwiter).second->handle_data(ts, 
                                       (*riter).second->get_result(*grid_, ts));
 
+
       ++iter;
-    }
+   }
     
   } // End of main loop
 
