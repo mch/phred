@@ -32,6 +32,18 @@ mat_coef_t *Dbx_;
 mat_coef_t *Dby_;
 mat_coef_t *Dbz_;
 
+/* Temporary coefficient holders. Pulls all the non-contiguous memory
+   access out of the main update loop... hopefully making it faster. */
+mat_coef_t * __restrict__ Ca_temp_;
+mat_coef_t * __restrict__ Cbx_temp_;
+mat_coef_t * __restrict__ Cby_temp_;
+mat_coef_t * __restrict__ Cbz_temp_;
+
+mat_coef_t * __restrict__ Da_temp_;
+mat_coef_t * __restrict__ Dbx_temp_;
+mat_coef_t * __restrict__ Dby_temp_;
+mat_coef_t * __restrict__ Dbz_temp_;
+
 field_t *ex_;
 field_t *ey_;
 field_t *ez_;

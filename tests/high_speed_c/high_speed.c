@@ -138,6 +138,7 @@ void run(unsigned int num_time_steps)
     omp_e_update();
 #else
     restricted_e_update();
+    /* e_update(); */
 #endif
 
     ey_[pi(20, 20, 20)] = ey_[pi(20, 20, 20)] + gaussm(i, 500e12, 1, 300e12);
@@ -146,6 +147,7 @@ void run(unsigned int num_time_steps)
     omp_h_update();
 #else
     restricted_h_update();
+    /* h_update(); */
 #endif
 
 /*      fprintf(fields, "%i %g %g %g %g %g %g %g\n",  */
@@ -184,9 +186,22 @@ void alloc_grid()
     hy_ = malloc(sz);
     hz_ = malloc(sz);
     
+    unsigned int zbytes = dimz_ * sizeof(mat_coef_t);
+    Ca_temp_ = malloc(zbytes);
+    Cbx_temp_ = malloc(zbytes);
+    Cby_temp_ = malloc(zbytes);
+    Cbz_temp_ = malloc(zbytes);
+
+    Da_temp_ = malloc(zbytes);
+    Dbx_temp_ = malloc(zbytes);
+    Dby_temp_ = malloc(zbytes);
+    Dbz_temp_ = malloc(zbytes);
+
     material_ = malloc(sz);
 
-    if (ex_ && ey_ && ez_ && hx_ && hy_ && hz_ && material_)
+    if (ex_ && ey_ && ez_ && hx_ && hy_ && hz_ && material_
+        && Ca_temp_ && Cbx_temp_ && Cby_temp_ && Cbz_temp_
+        && Da_temp_ && Dbx_temp_ && Dby_temp_ && Dbz_temp_)
     {
       memset(ex_, 0, sz);
       memset(ey_, 0, sz);
@@ -197,6 +212,17 @@ void alloc_grid()
       memset(hz_, 0, sz);
 
       memset(material_, 0, sz);
+
+      memset(Ca_temp_, 0, zbytes);
+      memset(Cbx_temp_, 0, zbytes);
+      memset(Cby_temp_, 0, zbytes);
+      memset(Cbz_temp_, 0, zbytes);
+
+      memset(Da_temp_, 0, zbytes);
+      memset(Dbx_temp_, 0, zbytes);
+      memset(Dby_temp_, 0, zbytes);
+      memset(Dbz_temp_, 0, zbytes);
+
     } else {
       printf("Insufficient memory; try reducing the grid size. \n");
       exit(1);
@@ -216,6 +242,16 @@ void free_grid()
     free(hz_);
 
     free(material_);
+
+    free(Ca_temp_);
+    free(Cbx_temp_);
+    free(Cby_temp_);
+    free(Cbz_temp_);
+
+    free(Da_temp_);
+    free(Dbx_temp_);
+    free(Dby_temp_);
+    free(Dbz_temp_);
   }
 }
 

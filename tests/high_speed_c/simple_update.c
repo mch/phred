@@ -26,7 +26,8 @@ void h_update()
 
 void update_ex() 
 {
-  unsigned int mid, idx, idx2, i, j, k;
+  unsigned int mid, idx, idx2;
+  int i, j, k;
   field_t *ex, *hz1, *hz2, *hy;
 
   for (i = 0; i < dimx_; i++) {
@@ -39,18 +40,18 @@ void update_ex()
       hz2 = &(hz_[idx2]);
       hy = &(hy_[idx]);
 
-      for (k = 1; k < dimz_; k++) {
+      for (k = 0; k < dimz_ - 1; k++, idx++) {
         mid = material_[idx];
         
-        *ex = Ca_[mid] * *ex
-          + Cby_[mid] * (*hz1 - *hz2)
-          + Cbz_[mid] * (*(hy - 1) - *hy);
+        ex[k] = Ca_[mid] * ex[k]
+          + Cby_[mid] * (hz1[k] - hz2[k])
+          + Cbz_[mid] * (hy[k - 1] - hy[k]);
 
-        ex++;
-        hz1++;
-        hz2++;
-        hy++;
-        idx++;
+        //ex++;
+        //hz1++;
+        //hz2++;
+        //hy++;
+        //idx++;
       }
     }
   }
