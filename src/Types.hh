@@ -11,12 +11,13 @@
  * grid.
  */
 enum BoundaryCondition {
+  UNKNOWN, /**< The boundary condition is unknown; non-sane. */
   SUBDOMAIN, /**< Means that the face is shared with another node */
   EWALL, /**< Electric wall */
   HWALL, /**< Magnetic wall */
-  MUR /**< 2nd order absorbing boundary condition */
+  PML /**< Perfectly matched layers (Berenger's absorbing boundary) */
+  //MUR /**< 2nd order absorbing boundary condition */
   //IMPEDANCE, /**< Imedance boundary */
-  //  PML /**< Perfectly matched layers (Berenger's absorbing boundary) */
 };
 
 /** 

@@ -6,15 +6,17 @@
 /**
  * Perfectly matched layers boundary conditions. Berenger did it
  * first, and then some other guys did it a different way. 
+ *
+ * \bug IMPLEMENT ME!
  */
-class PML : public BoundaryCond
+class Pml : public BoundaryCond
 {
 private:
 protected:
   
 public:
-  PML();
-  ~PML();
+  Pml();
+  ~Pml();
 
   /**
    * Applys a PML boundary condition to a face of the grid. 

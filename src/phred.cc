@@ -84,6 +84,8 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "SimpleSDAlg.hh"
 #include "Gaussm.hh"
 #include "config.h"
+#include "Ewall.hh"
+#include "Hwall.hh"
 
 #define EXIT_FAILURE 1
 

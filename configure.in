@@ -30,12 +30,27 @@ if test "$with_cxx" = yes; then
 fi
 
 dnl Checks for programs.
-dnl AC_PROG_INSTALL
+AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_LEX
 AC_PROG_YACC
+
+AC_PKG_SWIG([c++])
+
+dnl Use SWIG to generate python scripting support?
+AC_ARG_WITH(python, AC_HELP_STRING([--with-python], [Generate Python scripting support]))
+AC_ARG_WITH(python_libs, AC_HELP_STRING([--with-python-libs], [Location of Python libraries]))
+AC_ARG_WITH(python_includes, AC_HELP_STRING([--with-python-includes], [Location of Python include files]))
+
+dnl Use SWIG to generate guile scripting support?
+dnl AC_ARG_WITH(guile, AC_HELP_STRING([--with-guile], [Generate Guile scripting support])
+
+dnl Use SWIG to generate ruby scripting support?
+dnl AC_ARG_WITH(ruby, AC_HELP_STRING([--with-ruby], [Generate Ruby scripting support])
+
+dnl DX_INIT_DOXYGEN([phred])
 
 dnl Is doxygen availble to generate documentation? 
 AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [])
@@ -74,6 +89,26 @@ AC_ARG_WITH(ibmpe, [  --with-ibmpe            Use IBM Parallel Environment for m
 AC_ARG_WITH(ibmpe_libs, [  --with-ibmpe-libs       Location of IBM/PE libraries])
 
 AC_ARG_WITH(ibmpe_includes, [  --with-ibmpe-includes   Location of IBM/PE include files])
+
+
+dnl Setup scripting
+if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
+        AC_CHECK_LIB(python2.3, Py_Initialize, [], [
+            AC_MSG_ERROR(*** Can't find the Python libraries.)],
+            [-L$with_python_libs])
+
+        CPPFLAGS="$CPPFLAGS -I$with_python_INCLUDES"
+        AC_CHECK_HEADER(Python.h, [], [AC_MSG_ERROR([*** Can't find the Python header files])])
+
+fi
+
+dnl if [[ ! -z "$with_guile" ]]; then
+dnl 
+dnl fi
+
+dnl if [[ ! -z "$with_ruby" ]]; then
+dnl 
+dnl fi
 
 
 dnl Obviously "there can be only one" MPI library

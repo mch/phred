@@ -21,7 +21,7 @@ Grid::~Grid()
   free_material();
 }
     
-void set_define_mode(bool d)
+void Grid::set_define_mode(bool d)
 {
   bool ok = true;
 
@@ -42,16 +42,13 @@ void set_define_mode(bool d)
     unsigned int thickness = 0;
     for (int i = 0; i < 6; i++)
     {
-      if (info_.face_bc_[i])
-        thickness = info_.face_bc_[i];
-      else
-        thickness = 0;
+      thickness = info_.get_face_thickness(static_cast<Face>(i));
 
       switch (i) {
       case FRONT:
         update_r_.xmax -= thickness;
       case BACK:
-        update_r_xmin += thickness;
+        update_r_.xmin += thickness;
       case TOP:
         update_r_.zmax -= thickness;
       case BOTTOM:
@@ -515,34 +512,7 @@ void Grid::apply_boundaries()
     return;
   }
 
-  for (int i = 0; i < 6; i++) {
-    switch (info_.face_bc_[i]) {
-    case SUBDOMAIN:
-      cerr << "WARNING: Subdomain communication not yet supported!" << endl;
-      break;
-
-    case EWALL:
-      {
-        Ewall ew;
-        ew.apply(static_cast<Face>(i), *this);
-      }
-      break;
-
-    case HWALL:
-      {
-        Hwall hw;
-        hw.apply(static_cast<Face>(i), *this);
-      }
-      break;
-
-    case MUR:
-      cerr << "WARNING: Mur ABC's not yet supported!" << endl;
-      break;
-
-    default: 
-      cerr << "WARNING: unrecognized boundary condition!" << endl;
-    }
-  }
+  info_.apply_boundaries(*this);
 }
 
 

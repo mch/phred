@@ -1,4 +1,5 @@
 #include "BoundaryCondition.hh"
+#include "Grid.hh" // Flesh out the forward declaration
 
 region BoundaryCond::find_face(Face face, Grid &grid)
 {

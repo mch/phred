@@ -4,6 +4,8 @@ phred_SOURCES=phred.cc \
 	Grid.cc \
 	Grid.hh \
 	GridInfo.hh \
+	GridInfo.cc \
+	GridInfo_wrap.cxx \
 	GridPlane.hh \
 	FreqGrid.hh \
 	FreqGrid.cc \
@@ -25,6 +27,10 @@ phred_SOURCES=phred.cc \
 	Ewall.cc \
 	Hwall.hh \
 	Hwall.cc \
+	PML.hh \
+	PML.cc \
+	SubdomainBc.hh \
+	SubdomainBc.cc \
 	Types.hh \
 	SubdomainAlg.hh \
 	SimpleSDAlg.cc \

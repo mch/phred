@@ -2,6 +2,11 @@
 #define GRID_INFO_H
 
 #include "Types.hh"
+#include "BoundaryCondition.hh"
+#include "Ewall.hh"
+#include "Hwall.hh"
+#include "SubdomainBc.hh"
+#include "PML.hh"
 
 /**
  * This class is plain old data that is in class form "just in
@@ -65,21 +70,15 @@ public:
   //
 protected:
   BoundaryCond *face_bc_[6]; // Boundary condition to apply
-  int face_rank_[6]; // Rank of processor to talk to about this
-		     // interface. This will probably be rolled into
-		     // the subdomain boundary condition. 
+  BoundaryCondition face_bc_type_[6]; // Boundary condition type
+
+  /**
+   * A little helper for copying boundary condition pointers.
+   */
+  BoundaryCond *copy_bc(BoundaryCond *bc, BoundaryCondition bc_type);
   
 public:
-  GridInfo() 
-    : global_dimx_(0), global_dimy_(0), global_dimz_(0), 
-      dimx_(0), dimy_(0), dimz_(0), 
-      deltax_(0), deltay_(0), deltaz_(0), deltat_(0)
-  {
-    for (int i = 0; i < 6; i++) {
-      face_bc_[i] = 0;
-      face_rank_[i] = 0;
-    }
-  }
+  GridInfo();
 
   /**
    * Copy constructor, to properly handle the dynamically allocated
@@ -87,69 +86,15 @@ public:
    *
    * @param info the GridInfo object to be copied. 
    */
-  GridInfo(GridInfo &info) {
-    global_dimx_ = info.global_dimx_;
-    global_dimy_ = info.global_dimy_;
-    global_dimz_ = info.global_dimz_;
+  GridInfo(const GridInfo &info);
 
-    start_x_ = info.start_x_;
-    start_y_ = info.start_y_;
-    start_z_ = info.start_z_;
-
-    dimx_ = info.dimx_;
-    dimx_ = info.dimx_;
-    dimx_ = info.dimx_;
-
-    deltax_ = info.deltax_;
-    deltay_ = info.deltay_;
-    deltaz_ = info.deltaz_;
-    deltat_ = info.deltat_;
-    
-    for (int i = 0; i < 6; i++) {
-      if (info.face_bc_[i])
-        face_bc_[i] = (info.face_bc_[i])->clone();
-      face_rank_[i] = info.face_rank_[i];
-    }
-  }
-
-  ~GridInfo() {
-    for (int i = 0; i < 6; i++)
-    {
-      if (face_bc_[i])
-        delete face_bc_[i];
-    }
-  }
+  ~GridInfo();
 
   /**
    * Assignment operator. To handle the dynamically allocated
    * boundary conditions properly.
    */
-  GridInfo &operator=(GridInfo &info)
-  {
-    global_dimx_ = info.global_dimx_;
-    global_dimy_ = info.global_dimy_;
-    global_dimz_ = info.global_dimz_;
-
-    start_x_ = info.start_x_;
-    start_y_ = info.start_y_;
-    start_z_ = info.start_z_;
-
-    dimx_ = info.dimx_;
-    dimx_ = info.dimx_;
-    dimx_ = info.dimx_;
-
-    deltax_ = info.deltax_;
-    deltay_ = info.deltay_;
-    deltaz_ = info.deltaz_;
-    deltat_ = info.deltat_;
-    
-    for (int i = 0; i < 6; i++) {
-      face_bc_[i] = (info.face_bc_[i])->clone();
-      face_rank_[i] = info.face_rank_[i];
-    }
-
-    return *this;
-  }
+  GridInfo& operator=(const GridInfo &info);
 
   /**
    * Set the boundary condition on one of the faces of this grid. 
@@ -157,26 +102,26 @@ public:
    * @param face the face to assign the boundary to. One of FRONT, BACK,
    * LEFT, RIGHT, BOTTOM, TOP as defined in Types.hh
    *
-   * @param bc the boundary condition object to apply. A copy is stored.
+   * @param bc the boundary condition to apply. 
+   *
+   * @return a BoundaryCond object of the type required, in which the
+   * specifics of the boundary condition can be stored.
    */ 
-  inline void set_boundary(unsigned int face, BoundaryCond &bc)
-  {
-    face_bc_[face] = bc.clone();
-  }
+  BoundaryCond& set_boundary(Face face, BoundaryCondition bc);
 
   /**
-   * Set the rank of the processor this face needs to be shared with. 
+   * Returns the face thickness for a boundary condition
    *
-   * @param face the face to assign the node rank to. One of FRONT, BACK,
-   * LEFT, RIGHT, BOTTOM, TOP as defined in Types.hh
-   *
-   * @param rank the rank of the node to share this face with. 
-   */ 
-  inline void set_face_rank(unsigned int face, int rank)
-  {
-    face_rank_[face] = rank;
-  }
+   * @return an unsigned int, the thickness of the boundary condition.
+   */
+  unsigned int get_face_thickness(Face face);
 
+  /**
+   * Apply the boundary conditions to the grid. 
+   *
+   * @param the grid to apply to 
+   */
+  void apply_boundaries(Grid &grid);
 
 };
 

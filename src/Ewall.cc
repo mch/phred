@@ -1,4 +1,5 @@
 #include "Ewall.hh"
+#include "GridPlane.hh"
 
 Ewall::Ewall()
 {}

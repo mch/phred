@@ -1,9 +1,10 @@
 #ifndef BOUNDARY_CONDITION_H
 #define BOUNDARY_CONDITION_H
 
-#include "Grid.hh"
-#include "GridPlane.hh"
 #include "Types.hh"
+
+// Trust me, there is one, but #include "Grid.hh" is a circular include
+class Grid;
 
 /**
  * An abstract base class for boundary conditions. Subclass this to
@@ -53,7 +54,7 @@ public:
    * Creates a copy of the boundary condition object and returns a
    * pointer to it. The callers is responsible for freeing it later. 
    */
-  BoundaryCond *clone() = 0;
+  //virtual BoundaryCond *clone() = 0;
 
 };
 
