@@ -104,6 +104,9 @@ class Grid {
   region_t update_hy_r_; /**< Region over which hy update is applied. */
   region_t update_hz_r_; /**< Region over which hz update is applied. */
 
+  // Replace the above:
+  update_region_t update_r_;
+
   // Number of materials we know about (0 is PEC)
   unsigned int num_materials_;
 

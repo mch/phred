@@ -208,6 +208,27 @@ typedef struct {
   unsigned int zmax;
 } region_t;
 
+/** \struct update_region
+ * \brief A calculated set of regions, one for each field component. 
+ *
+ * This structure groups together a set of region_t's, one for each
+ * field component. This is needed because field components in a cell
+ * will be outside of a region of interest, which sometimes may be
+ * outside the available memory. This structure should be used rather
+ * than hard coding indicies in the update loops because the
+ * requirement may be different for grid vs. boundary conditions and
+ * this allows more flexibility and less code reuse.
+ */ 
+typedef struct {
+  region_t ex_;
+  region_t ey_;
+  region_t ez_;
+
+  region_t hx_;
+  region_t hy_;
+  region_t hz_;
+} update_region_t;
+
 #ifdef __cplusplus
 /**
  * Represents a point in real space. 

@@ -406,13 +406,16 @@ void UPml::update_ex(Grid &grid)
 {
   unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
 
-  int i,j,k; 	/* indices in PML-layer */
-  int it,jt,kt;/* indices in total computational domain (FDTD grid) */
+  loop_idx_t i,j,k; 	/* indices in PML-layer */
+  loop_idx_t it,jt,kt;/* indices in total computational domain (FDTD grid) */
 
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_ex_r_); 
 
   field_t d_temp = 0;
+
+  // Pointers
+  const field_t *ex, *hz1, *hz2, *hy, *d;
 
   sig_idx = 0;
 
@@ -425,28 +428,40 @@ void UPml::update_ex(Grid &grid)
 #pragma omp for
 #endif
     for(it = grid_ex_r_.xmin; 
-        it < grid_ex_r_.xmax; it++)
+        it < grid_ex_r_.xmax; i++, it++)
     {
       for(j = pml_r.ymin, jt = grid_ex_r_.ymin; 
           jt < grid_ex_r_.ymax; j++, jt++)
       {
-        
+        grid_idx = grid.pi(it, jt, kt);
+        pml_idx = pi(i, j, k);
+          
+        ex = grid.get_pointer(grid_point(it,jt,kt), FC_EX);
+        hz1 = grid.get_pointer(grid_point(it,jt,kt), FC_HZ);
+        hz2 = grid.get_pointer(grid_point(it,jt-1,kt), FC_HZ);
+        hy = grid.get_pointer(grid_point(it,jt,kt), FC_HY);
+
+        d = &(d_[pml_idx]);
+
         for(k = pml_r.zmin, kt = grid_ex_r_.zmin; 
             kt < grid_ex_r_.zmax; k++, kt++)
         {
-          grid_idx = grid.pi(it, jt, kt);
-          pml_idx = pi(i, j, k);
-          
           mid = grid.material_[grid_idx];
 
           // Update equations go here!
+          d_temp = *d * common_->Ay(j) 
+            + common_->By(j) * ( (*hz1 - *hz2) - (*(hy - 1) - *hy) );
 
-          
+          *ex = *ex * common_->Az(k) 
+            + common_->Bz(k) * common_->er(i,j,k) 
+            * (d_temp * common_->Cx(i) - *d * common_->Dx(i));
+
+          ex++;
+          hz1++;
+          hz2++;
+          hy++;
         }
       }
-      
-      i++; 
-      sig_idx++;
     }
 #ifdef USE_OPENMP
   }

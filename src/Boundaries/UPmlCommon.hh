@@ -1,8 +1,8 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,32 +41,52 @@ protected:
 
   unsigned int thicknesses_[6]; /**< UPml thicknesses */
 
+  // Quick and dirty, these will be equal to the local grid
+  // size. Since a lot of the interior space will be equal to zero,
+  // this should be changed so that it's 2*PML thickness.
+  unsigned int x_size_; /**< Length in X of coefficient matricies */
+  unsigned int y_size_; /**< Length in Y of coefficient matricies */
+  unsigned int z_size_; /**< Length in Z of coefficient matricies */
+
   /**
-   * Conductivities. 
+   * Conductivity along the X axis inside the PML. 
    */
   float *sigma_x_;
-  float *sigma_y_;
-  float *sigma_z_;
 
   /**
-   * 4d coefficient matricies. Only access these using the coeff_id
-   * function. 
-   */ 
-  float *c1_;
-  float *c2_;
-  float *c3_;
-  float *c4_;
-  float *c5_;
-  float *c6_;
+   * Conductivity along the Y axis inside the PML. 
+   */
+  float *sigma_y_;
 
-  unsigned int num_materials_;
-  unsigned int x_size_; /**< Length in X of coefficient matricies */
-  unsigned int y_size_;
-  unsigned int z_size_;
+  /**
+   * Conductivity along the Z axis inside the PML. 
+   */
+  float *sigma_z_;
 
-  // The above sizes are the sum of the thicknesses of the pml at
-  // opposite faces plus one for the regions where there is no
-  // overlap. 
+  // Ax(x) = ( 2*eps_0*Kx(x) - dt*sigma_x(x) ) 
+  //         / ( 2*eps_0*Kx(x) + dt*sigma_x(x) )
+  // etc.
+  float *Ax_, *Ay_, *Az_;
+
+  // Bx(x) = 2*eps_0*dt
+  //         / ( 2*eps_0*Kx(x) + dt*sigma_x(x) )
+  //         * (dx / (dy*dz)) ???????? CHECK
+  // etc.
+  float *Bx_, *By_, *Bz_;
+
+  // Cx(x) = ( 2*eps_0*Kx(x) + dt*sigma_x(x) ) 
+  //         / 2*eps_0*dt
+  float *Cx_, *Cy_, *Cz_;
+
+  // Dx(x) = ( 2*eps_0*Kx(x) - dt*sigma_x(x) )
+  //         / 2*eps_0*dt
+  float *Dx_, *Dy_, *Dz_;
+
+  // Inverse permittivity
+  float *er_;
+
+  // Inverse permeability
+  float *ur_;
 
   /**
    * Returns a sigma value along the x axis.
@@ -137,17 +157,6 @@ protected:
     return ret;
   }
 
-  /**
-   * This function computes the index required to retrieve the
-   * correct coefficient. 
-   */ 
-  inline unsigned int coeff_id(unsigned int material_id, 
-                               unsigned int x, unsigned int y, 
-                               unsigned int z)
-  {
-    return 0; 
-  }
-
   void init_coeffs(Grid &grid);
 
   void free_sigmas();
@@ -159,6 +168,73 @@ public:
   ~UPmlCommon();
 
   static UPmlCommon *get_upml_common(Grid &grid);
+
+  inline const float Ax(loop_idx_t i)
+  {
+    return Ax_[i];
+  }
+
+  inline const float Ay(loop_idx_t i)
+  {
+    return Ay_[i];
+  }
+
+  inline const float Az(loop_idx_t i)
+  {
+    return Az_[i];
+  }
+
+  inline const float Bx(loop_idx_t i)
+  {
+    return Bx_[i];
+  }
+
+  inline const float By(loop_idx_t i)
+  {
+    return By_[i];
+  }
+
+  inline const float Bz(loop_idx_t i)
+  {
+    return Bz_[i];
+  }
+
+  inline const float Cx(loop_idx_t i)
+  {
+    return Cx_[i];
+  }
+
+  inline const float Cy(loop_idx_t i)
+  {
+    return Cy_[i];
+  }
+
+  inline const float Cz(loop_idx_t i)
+  {
+    return Cz_[i];
+  }
+
+  inline const float Dx(loop_idx_t i)
+  {
+    return Dx_[i];
+  }
+
+  inline const float Dy(loop_idx_t i)
+  {
+    return Dy_[i];
+  }
+
+  inline const float Dz(loop_idx_t i)
+  {
+    return Dz_[i];
+  }
+
+  inline const float er(loop_idx_t i, loop_idx_t j, 
+                        loop_idx_t k)
+  {
+    return er_[pi(i,j,k)];
+  }
+
 };
 
 #endif // UPML_COMMON_H

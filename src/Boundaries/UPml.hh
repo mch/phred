@@ -45,12 +45,6 @@ protected:
   field_t *d_;
   field_t *h_;
 
-//   template<region_t region, field_t component, field_t curl1, field_t curl2>
-//   void normal_update(Grid &grid);
-
-//   template<region_t region, field_t component, field_t curl1, field_t curl2>
-//   void upml_update(Grid &grid);
-
   // Bools are ugly
   void update_ex(Grid &grid);
   void update_ey(Grid &grid);
