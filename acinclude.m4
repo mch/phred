@@ -527,7 +527,7 @@ PYTHON_VERSION=`echo "import distutils.sysconfig; print distutils.sysconfig.get_
           CPPFLAGS="$CPPFLAGS -I$with_python_includes"
         fi
 
-        AC_CHECK_HEADER([Python.h], [], [AC_MSG_ERROR([*** Can't find the Python header files])])
+        AC_CHECK_HEADER([Python.h], [], [])
 
         if [[ "$target_vendor" = "apple" ]]; then       
                 LIBS="$LIBS -framework Python"
