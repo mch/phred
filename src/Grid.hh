@@ -59,6 +59,11 @@ class Grid {
    */
   void init_datatypes();
 
+  /**
+   * Free the MPI derived datatypes
+   */
+  void free_datatypes();
+
   // Grid size information
   GridInfo info_;
 
@@ -110,6 +115,8 @@ class Grid {
   MPI_Datatype x_vector_;
   MPI_Datatype y_vector_;
   MPI_Datatype z_vector_;
+
+  bool types_alloced_; 
 
   /**
    * This is true when the grid is in define mode. In define mode,

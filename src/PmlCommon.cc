@@ -82,8 +82,51 @@ void PmlCommon::init_coeffs(Grid &grid)
   {
     if (gi.get_bc_type(static_cast<Face>(i)) == PML) {
       BoundaryCond &bc = gi.get_boundary(static_cast<Face>(i));
-      
-      // initialize maximum ratios ...
+      Pml *p = dynamic_cast<Pml *>(&bc);
+
+      if (p) 
+      {
+        init_ratios(static_cast<Face>(i), grid, p);
+      } // if (p)
     }
+  } // for
+}
+
+void PmlCommon::init_ratios(Face face, Grid &grid, Pml *p)
+{
+  delta_t d_space;
+
+  switch (face)
+  {
+  case FRONT:
+    d_space = grid.get_delta();
+
+    // CHECK THESE LIMITS!!!
+    for (unsigned int i = 0; i < p->get_thickness(); i++)
+    {
+      ratio_x_[i] = 1.0 / d_space 
+        * ( sigma_over_eps_int(face, (i+0.5)*d_space) 
+            - sigma_over_eps_int(face, (i-0.5)*d_space));
+      
+      ratio_star_x_[i] = 1.0 / d_space 
+        * ( sigma_over_eps_int(face, (i+1.0)*d_space) 
+            - sigma_over_eps_int(face, (i)*d_space));
+    }
+    break;
+
+  case BACK:
+    break;
+
+  case LEFT:
+    break;
+
+  case RIGHT:
+    break;
+
+  case BOTTOM:
+    break;
+
+  case TOP:
+    break;
   }
 }

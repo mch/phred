@@ -8,10 +8,10 @@
  * PML Variation types. Not that I know what they mean or anything. 
  */
 enum PmlVariation_t {
-  C,
-  L,
-  P,
-  G
+  VC,
+  VL,
+  VP,
+  VG
 };
 
 /**
@@ -28,6 +28,20 @@ class Pml : public BoundaryCond
 {
 private:
 protected:
+
+  // PML Parameters (thickness is a member of BoundaryCond)
+
+  PmlVariation_t variation_; /**< One of 'c', 'l', 'p', 'g' */
+  float g_; /**< Variation type g has a float parameter */
+  float nrml_refl_; /**< Normal reflection, must be 0 < nrml_refl_ < 100 */
+
+  // PML coefficient intermediats; used by PmlCommon to compute the
+  // actual coefficients
+  float ratio_m_;
+  float exponent_n_;
+  float delta_bndy_;
+  float geometric_delta_;
+  int geometric_profile_;
 
   // Split field component data. The memory layout is the same as for
   // the grid.
@@ -66,11 +80,6 @@ protected:
    */
   void free_pml_fields();
 
-
-  PmlVariation_t variation_;
-  float normal_refl_;
-  float PML_g_;
-
   /**
    * Implements the PML update equations on the face.
    */
@@ -79,6 +88,8 @@ protected:
 
 public:
   Pml();
+  Pml(char variation, float g, float nrml_refl);
+  Pml(char variation, float nrml_refl);
   ~Pml();
 
   /**
@@ -100,6 +111,14 @@ public:
   }
 
   /**
+   * Set up the PML; allocate storage space for fields, calculate
+   * coefficients. 
+   * @param face the face this PML is on
+   * @param grid the grid this PML is on
+   */
+  void setup(Face face, Grid &grid);
+
+  /**
    * Applys a PML boundary condition to a face of the grid. 
    *
    * @param face the face to apply the boundary condition to. 
@@ -117,19 +136,54 @@ public:
   void set_thickness(unsigned int thickness);
 
   /**
+   * Set the profile variation of the PML. May be one of 'c', 'l',
+   * 'p', 'g'. If 'g', also call set_g_param() to set the required
+   * parameter. 
+   * @param variation 
+   */
+  inline void set_variation(char variaiton)
+  {
+    variation_ = variation;
+  }
+
+  /**
+   * Sets the parameter used by the 'g' profile variation type.
+   * @param g the param
+   */
+  inline void set_g_param(float g)
+  {
+    g_ = g;
+  }
+
+  /** 
+   * Set the normal reflection. Must be greater than 0.0 and less
+   * than 100.0.
+   * @param refl
+   */
+  inline void set_nrml_refl(float refl)
+  {
+    nrml_refl_ = refl;
+  }
+
+protected: // Only called by apply().
+
+  /**
    * Update the Ex field component inside the PML
    */
-  void pml_update_ex(const region_t &grid_r, Grid &grid);
+  void pml_update_ex(const region_t &pml_r, 
+                     const region_t &grid_r, Grid &grid);
 
   /**
    * Update the Ey field component inside the PML
    */
-  void pml_update_ey(const region_t &grid_r, Grid &grid);
+  void pml_update_ey(const region_t &pml_r, 
+                     const region_t &grid_r, Grid &grid);
 
   /**
    * Update the Ez field component inside the PML
    */
-  void pml_update_ez(const region_t &grid_r, Grid &grid);
+  void pml_update_ez(const region_t &pml_r, 
+                     const region_t &grid_r, Grid &grid);
 
   /**
    * Update the Hx field component inside the PML

@@ -5,6 +5,7 @@
 #include "Ewall.hh"
 #include "Hwall.hh"
 #include "Constants.hh"
+#include "Exceptions.hh"
 
 #include <mpi.h>
 
@@ -13,7 +14,7 @@ Grid::Grid()
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
     Da_(0), Dbx_(0), Dby_(0), Dbz_(0),
     ex_(0), ey_(0), ez_(0), hx_(0), hy_(0), hz_(0), 
-    material_(0), define_(true)
+    material_(0), types_alloced_(false), define_(true)
 {
 
 }
@@ -48,6 +49,7 @@ Grid::~Grid()
 
   free_grid();
   free_material();
+  free_datatypes();
 }
     
 void Grid::set_define_mode(bool d)
@@ -94,7 +96,15 @@ void Grid::set_define_mode(bool d)
       case RIGHT:
         update_r_.ymax -= thickness;
       }
+
+      // Initialize the PML's
+      Pml *p = dynamic_cast<Pml *>(&info.get_boundary(static_cast<Face>(i)));
+      if (p)
+        p->setup(static_cast<Face>(i), *this);
     }
+    
+    // Calculate common PML coefficients. 
+    pml_common_.init_coeffs(*this);
 
     if (ok)
       define_ = d;
@@ -115,15 +125,22 @@ void Grid::free_grid()
     return;
   }
 
-  // Slightly dangerous, but if one is allocated then all should 
-  // be allocated. 
-  if (ex_ || ey_ || ez_ || hx_ || hy_ || hz_) {
+  if (ex_)
     delete[] ex_;
+
+  if (ey_)
     delete[] ey_;
+
+  if (ez_)
     delete[] ez_;
     
+  if (hx_)
     delete[] hx_;
+
+  if (hy_)
     delete[] hy_;
+
+  if (hz_)
     delete[] hz_;
 
     ex_ = ey_ = ez_ = hx_ = hy_ = hz_ = 0;
@@ -139,32 +156,58 @@ void Grid::free_material()
     return;
   }
 
-  if (Ca_) {
+  if (Ca_) 
     delete[] Ca_;
+
+  if (Da_)
     delete[] Da_;
 
+  if (Cbx_)
     delete[] Cbx_;
+
+  if (Dbx_)
     delete[] Dbx_;
 
-    if (get_ldx() != get_ldy())
-    {
+  if (get_ldx() != get_ldy())
+  {
+    if (Cby_)
       delete[] Cby_;
+    
+    if (Dby_)
       delete[] Dby_;
-    }
-
-    if (get_ldz() != get_ldy() && get_ldz() != get_ldx())
-    {
+  }
+  
+  if (get_ldz() != get_ldy() && get_ldz() != get_ldx())
+  {
+    if (Cbz_)
       delete[] Cbz_;
+    
+    if (Dbz_)
       delete[] Dbz_;
-    }
+  }
+  
+  Ca_ = Da_ = Cbx_ = Cby_ = Cbz_ = Dbx_ = Dby_ = Dbz_ = 0;
+}
 
-    Ca_ = Da_ = Cbx_ = Cby_ = Cbz_ = Dbx_ = Dby_ = Dbz_ = 0;
+void Grid::free_datatypes()
+{
+  if (types_alloced_) {
+    MPI_Type_free(&xy_plane_);
+    MPI_Type_free(&xz_plane_);
+    MPI_Type_free(&yz_plane_);
+    
+    MPI_Type_free(&x_vector_);
+    MPI_Type_free(&y_vector_);
+    MPI_Type_free(&z_vector_);
+    
+    types_alloced_ = false;
   }
 }
 
-
 void Grid::init_datatypes()
 {
+  free_datatypes();
+
   MPI_Type_contiguous(get_ldz(), GRID_MPI_TYPE, &z_vector_);
   MPI_Type_commit(&z_vector_);
 
@@ -185,6 +228,8 @@ void Grid::init_datatypes()
 
   MPI_Type_vector(get_ldx(), 1, get_ldz(), y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
+
+  types_alloced_ = true;
 
   // TEST:
   int sz; 
@@ -233,8 +278,11 @@ void Grid::alloc_grid()
     
     material_ = new unsigned int[sz];
 
-    if (!ex_ || !ey_ || !ez_ || !hx_ || !hy_ || !hz_ || !material_)
-      throw exception(); // Insufficient memory
+    if (!ex_ || !ey_ || !ez_ || !hx_ || !hy_ || !hz_ || !material_) 
+    {
+      free_grid();
+      throw MemoryException(); // Insufficient memory
+    }
   }
 }
 
@@ -277,6 +325,11 @@ void Grid::load_materials(MaterialLib &matlib)
   } else {
     Cbz_ = new mat_coef_t[num_mat];
     Dbz_ = new mat_coef_t[num_mat];
+  }
+
+  if (!Ca_ || !Da_ || !Cbx_ || !Cby_ || !Cbz_ || !Dbx_ || !Dby_ || !Dbz_) {
+    free_material();
+    throw MemoryException();
   }
 
   vector<Material>::iterator iter = matlib.get_material_iter_begin();
