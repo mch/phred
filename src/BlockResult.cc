@@ -65,6 +65,7 @@ void BlockResult::init(const Grid &grid)
                            GRID_MPI_TYPE, &temp);
   MPI_Type_commit(&temp);
 
+  var_.set_name(base_name_);
   var_.set_datatype(temp);
   var_.set_num(0);
   var_.set_ptr(const_cast<field_t *>(grid.get_pointer(point_t(region_.xmin, 

@@ -73,4 +73,7 @@ void PlaneResult::init(const Grid &grid)
     var_.add_dimension("z", grid.get_ldz(), 0);
     break;
   }
+
+  var_.set_name(base_name_);
+
 }

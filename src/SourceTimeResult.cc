@@ -38,6 +38,11 @@ SourceTimeResult::SourceTimeResult(SourceFunction &te)
 SourceTimeResult::~SourceTimeResult()
 { }
 
+void SourceTimeResult::init(const Grid &grid)
+{
+  var_.set_name(base_name_);
+}
+
 void SourceTimeResult::set_excitation(const SourceFunction &te)
 {
   te_ = te;

@@ -43,6 +43,11 @@ public:
   ~SourceTimeResult();
 
   /**
+   * Set the name on the variable
+   */
+  virtual void init(const Grid &grid);
+
+  /**
    * Set the source or SourceFunction to use.
    * @param a reference to a SourceFunction object
    */ 

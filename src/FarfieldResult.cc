@@ -46,9 +46,6 @@ FarfieldResult::FarfieldResult()
   angles_.set_datatype(MPI_FLOAT);
   // data_'s datatype is different, calculated in init().
 
-  freqs_.set_name("frequecies");
-  angles_.set_name("angles");
-  
   angles_.has_time_dimension(false);
   freqs_.has_time_dimension(false);
   data_.has_time_dimension(false);
@@ -258,6 +255,9 @@ void FarfieldResult::init(const Grid &grid)
   for (int i = 0; i < num_freqs_; i++)
     freqs_buffer_[i] = freq_start_ + i * freq_space_;
 
+  freqs_.set_name(base_name_ + "_frequecies");
+  angles_.set_name(base_name_ + "_angles");
+
   // Output will be a three dimensional result, with a 2d table for
   // each frequency, and each frequency on it's own page. It will look
   // like this:
@@ -267,42 +267,42 @@ void FarfieldResult::init(const Grid &grid)
   switch (output_type_)
   {
   case ETHETA:
-    data_.set_name("E_theta");
+    data_.set_name(base_name_ + "_E_theta");
     num_cols = 2;
     break;
 
   case EPHI:
-    data_.set_name("E_phi");
+    data_.set_name(base_name_ + "_E_phi");
     num_cols = 2;
     break;
 
   case HTHETA:
-    data_.set_name("H_theta");
+    data_.set_name(base_name_ + "_H_theta");
     num_cols = 2;
     break;
 
   case HPHI:
-    data_.set_name("H_phi");
+    data_.set_name(base_name_ + "_H_phi");
     num_cols = 2;
     break;
 
   case RCSNORM:
-    data_.set_name("Norm_RCS");
+    data_.set_name(base_name_ + "_Norm_RCS");
     num_cols = 2;
     break;
 
   case RCSDBPOL:
-    data_.set_name("Norm_RCS_db");
+    data_.set_name(base_name_ + "_Norm_RCS_db");
     num_cols = 2;
     break;
 
   case ETHETAPHI:
-    data_.set_name("E_theta_phi");
+    data_.set_name(base_name_ + "_E_theta_phi");
     num_cols = 4;
     break;
 
   case HTHETAPHI:
-    data_.set_name("H_theta_phi"); 
+    data_.set_name(base_name_ + "_H_theta_phi"); 
     num_cols = 4;
     break;
   }

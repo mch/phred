@@ -4,7 +4,7 @@ temp = "node"
 if (MPI_SIZE > 1):
     temp = "nodes"
     
-print "Testing the performance of Berengers PML on %s %s..." % (MPI_SIZE,  temp)
+print "Testing the performance of Gedney's UPML on %s %s..." % (MPI_SIZE,  temp)
 
 # Extent of region
 xlen = 100
@@ -18,7 +18,7 @@ centre.y = ylen / 2
 centre.z = zlen / 2
 
 # Prefix for output files
-output_prefix = "bpml_"
+output_prefix = "upml_"
 
 num_time_steps = 500
 
@@ -27,12 +27,12 @@ fdtd.set_grid_size(xlen, ylen, zlen)
 fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9)
 
 # Add boundary conditions
-front = Pml()
-back = Pml()
-left = Pml()
-right = Pml()
-top = Pml()
-bottom = Pml()
+front = UPml()
+back = UPml()
+left = UPml()
+right = UPml()
+top = UPml()
+bottom = UPml()
 
 front.set_thickness(4)
 back.set_thickness(4)

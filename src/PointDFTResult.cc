@@ -28,7 +28,7 @@
 PointDFTResult::PointDFTResult()
   : freq_start_(0), freq_stop_(0), num_freqs_(0), result_(0)
 {
-  variables_["point DFT"] = &var_;
+  variables_["point_DFT"] = &var_;
 }
 
 PointDFTResult::PointDFTResult(field_t freq_start,
@@ -37,7 +37,7 @@ PointDFTResult::PointDFTResult(field_t freq_start,
   : freq_start_(freq_start), freq_stop_(freq_stop),
     num_freqs_(num_freqs), result_(0)
 {
-  variables_["point DFT"] = &var_;
+  variables_["point_DFT"] = &var_;
 }
 
 PointDFTResult::~PointDFTResult()
@@ -79,7 +79,7 @@ void PointDFTResult::init(const Grid &grid)
   
   var_.add_dimension("results", 13, 0);
   var_.add_dimension("freqs", num_freqs_, 0);
-  var_.set_name("Point DFT");
+  var_.set_name(base_name_);
 
   freq_space_ = (freq_stop_ - freq_start_) / num_freqs_;
   result_ = new field_t[(num_freqs_ + 1) * 13];

@@ -537,8 +537,8 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
   try {
     if (len > 0)
     {
-      cout << "Buffering data for matlab output from " << 
-        variable.get_name() << ", " << len << " bytes. " << endl;
+      //cout << "Buffering data for matlab output from " << 
+      //  variable.get_name() << ", " << len << " bytes. " << endl;
 
       vars_[variable.get_name()]->append_buffer(len, ptr);
     }

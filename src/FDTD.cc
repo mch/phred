@@ -99,8 +99,8 @@ void FDTD::add_h_excitation(const char *name, Excitation *ex)
 void FDTD::add_result(const char *name, Result *r)
 {
   results_[string(name)] = r;
-  if (r->get_name().length() == 0)
-    r->set_name(name);
+  //if (r->get_name().length() == 0)
+  r->set_name(name);
 }
 
 void FDTD::add_datawriter(const char *name, DataWriter *dw)

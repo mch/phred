@@ -60,7 +60,7 @@ void SourceDFTResult::init(const Grid &grid)
   var_.add_dimension("Freq, re, im", 3, 0);
   var_.add_dimension("frequencies", num_freqs_, 0);
 
-  var_.set_name("Source DFT");
+  var_.set_name(base_name_);
 
   freq_space_ = (freq_stop_ - freq_start_) / num_freqs_;
   result_ = new field_t[(num_freqs_ + 1) * 3];
