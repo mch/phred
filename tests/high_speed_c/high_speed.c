@@ -43,7 +43,7 @@ field_t gaussm(unsigned int time_step, field_t deltaf,
 int main(int argc, char **argv)
 {
   field_t eps[2], mu[2];
-  unsigned int num_time_steps = 20, i, j, k; 
+  unsigned int num_time_steps = 2000, i, j, k; 
   FILE *fields;
   unsigned int x, y, z;
   x = 20;

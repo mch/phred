@@ -148,7 +148,7 @@ static string get_extension(string filename);
 // Ugly globals
 string inputfile;
 const char *program_name;
-extern bool interactive, estimate_memory, mnps;
+bool interactive, estimate_memory, mnps;
 
 // Test runs
 static void point_test(int rank, int size);
@@ -203,6 +203,13 @@ main (int argc, char **argv)
       interp.run();
     } 
 #endif
+    mnps = true;
+
+    if (mnps)
+      cout << "Calculating MNPS..." << endl;
+    else
+      cout << "NOT Calculating MNPS..." << endl;
+
     if (!interactive) {
       cout << "non interactive mode; calling takakura_test. " << endl;
 
@@ -228,7 +235,9 @@ main (int argc, char **argv)
 #else
           cout << "Python support is not compiled into this version." << endl;
 #endif
-        }
+        } else {
+	  pml_test(rank, size);
+	}
 
       } else {
 
@@ -489,7 +498,7 @@ static void pml_test(int rank, int size)
 {
   FDTD fdtd;
   
-  fdtd.set_grid_size(100, 50, 50);
+  fdtd.set_grid_size(100, 100, 100);
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
   //fdtd.set_time_delta(3.1250e-17);
 
@@ -502,25 +511,25 @@ static void pml_test(int rank, int size)
    top.set_thickness(4);
    bottom.set_thickness(4);
 
-  //Ewall ewall;
+  Ewall ewall;
   //UPml front, back, left, right, top, bottom;
   //front.set_thickness(4); back.set_thickness(4);
   //left.set_thickness(4); right.set_thickness(4);
   //top.set_thickness(4); bottom.set_thickness(4);
 
-  //fdtd.set_boundary(FRONT, &ewall);
-  //fdtd.set_boundary(BACK, &ewall);
-  //fdtd.set_boundary(BOTTOM, &ewall);
-  //fdtd.set_boundary(TOP, &ewall);
-  //fdtd.set_boundary(LEFT, &ewall);
-  //fdtd.set_boundary(RIGHT, &ewall);
+  fdtd.set_boundary(FRONT, &ewall);
+  fdtd.set_boundary(BACK, &ewall);
+  fdtd.set_boundary(BOTTOM, &ewall);
+  fdtd.set_boundary(TOP, &ewall);
+  fdtd.set_boundary(LEFT, &ewall);
+  fdtd.set_boundary(RIGHT, &ewall);
 
-  fdtd.set_boundary(FRONT, &front);
-  fdtd.set_boundary(BACK, &back);
-  fdtd.set_boundary(BOTTOM, &bottom);
-  fdtd.set_boundary(TOP, &top);
-  fdtd.set_boundary(LEFT, &left);
-  fdtd.set_boundary(RIGHT, &right);
+//    fdtd.set_boundary(FRONT, &front);
+//    fdtd.set_boundary(BACK, &back);
+//    fdtd.set_boundary(BOTTOM, &bottom);
+//    fdtd.set_boundary(TOP, &top);
+//    fdtd.set_boundary(LEFT, &left);
+//    fdtd.set_boundary(RIGHT, &right);
 
 
   MaterialLib mats; 
@@ -579,84 +588,84 @@ static void pml_test(int rank, int size)
   fdtd.add_excitation("modgauss", &ex);
 
   // Results
-  point_t p;
-  p.x = 35;
-  p.y = 25;
-  p.z = 25;
-  PointResult res1(p);
-  PointDFTResult pdft(5e12, 600e12, 120);
-  pdft.set_point(p);
+//    point_t p;
+//    p.x = 35;
+//    p.y = 25;
+//    p.z = 25;
+//    PointResult res1(p);
+//    PointDFTResult pdft(5e12, 600e12, 120);
+//    pdft.set_point(p);
 
-  fdtd.add_result("res1", &res1);
-  fdtd.add_result("pdft", &pdft);
+//    fdtd.add_result("res1", &res1);
+//    fdtd.add_result("pdft", &pdft);
   
-  AsciiDataWriter adw1(rank, size);
-  adw1.set_filename("t_field_20.txt");
+//    AsciiDataWriter adw1(rank, size);
+//    adw1.set_filename("t_field_20.txt");
 
-  AsciiDataWriter adw2(rank, size);
-  adw2.set_filename("t_field_dft_20.txt");
+//    AsciiDataWriter adw2(rank, size);
+//    adw2.set_filename("t_field_dft_20.txt");
 
-  fdtd.add_datawriter("adw1", &adw1);
-  fdtd.add_datawriter("adw2", &adw2);
-  fdtd.map_result_to_datawriter("res1", "adw1");
-  fdtd.map_result_to_datawriter("pdft", "adw2");
+//    fdtd.add_datawriter("adw1", &adw1);
+//    fdtd.add_datawriter("adw2", &adw2);
+//    fdtd.map_result_to_datawriter("res1", "adw1");
+//    fdtd.map_result_to_datawriter("pdft", "adw2");
 
-  point_t p3(35, 10, 9);
-  PointResult pres60(p3);
-  PointDFTResult pdft60(5e12, 600e12, 120);  
+//    point_t p3(35, 10, 9);
+//    PointResult pres60(p3);
+//    PointDFTResult pdft60(5e12, 600e12, 120);  
 
-  fdtd.add_result("pres60", &pres60);
-  fdtd.add_result("pdft60", &pdft60);
+//    fdtd.add_result("pres60", &pres60);
+//    fdtd.add_result("pdft60", &pdft60);
 
-  AsciiDataWriter adwp60(rank, size);
-  adwp60.set_filename("t_field_21.txt");
+//    AsciiDataWriter adwp60(rank, size);
+//    adwp60.set_filename("t_field_21.txt");
 
-  AsciiDataWriter adwp60dft(rank, size);
-  adwp60dft.set_filename("t_field_dft_21.txt");
+//    AsciiDataWriter adwp60dft(rank, size);
+//    adwp60dft.set_filename("t_field_dft_21.txt");
 
-  fdtd.add_datawriter("adwp60", &adwp60);
-  fdtd.add_datawriter("adwp60dft", &adwp60dft);
-  fdtd.map_result_to_datawriter("pres60", "adwp60");
-  fdtd.map_result_to_datawriter("pdft60", "adwp60dft");
+//    fdtd.add_datawriter("adwp60", &adwp60);
+//    fdtd.add_datawriter("adwp60dft", &adwp60dft);
+//    fdtd.map_result_to_datawriter("pres60", "adwp60");
+//    fdtd.map_result_to_datawriter("pdft60", "adwp60dft");
 
-  point_t p2;
-  p2.x = 4;
-  p2.y = 10;
-  p2.z = 10;
-  PointResult res4(p2);
-  PointDFTResult p2dft(100e12, 600e12, 50);
-  p2dft.set_point(p2);
+//    point_t p2;
+//    p2.x = 4;
+//    p2.y = 10;
+//    p2.z = 10;
+//    PointResult res4(p2);
+//    PointDFTResult p2dft(100e12, 600e12, 50);
+//    p2dft.set_point(p2);
 
-  fdtd.add_result("res4", &res4);
-  fdtd.add_result("p2dft", &p2dft);
+//    fdtd.add_result("res4", &res4);
+//    fdtd.add_result("p2dft", &p2dft);
   
-  AsciiDataWriter adw12(rank, size);
-  adw12.set_filename("t_field_4.txt");
+//    AsciiDataWriter adw12(rank, size);
+//    adw12.set_filename("t_field_4.txt");
 
-  AsciiDataWriter adw13(rank, size);
-  adw13.set_filename("t_field_dft_4.txt");
+//    AsciiDataWriter adw13(rank, size);
+//    adw13.set_filename("t_field_dft_4.txt");
 
-  fdtd.add_datawriter("adw12", &adw12);
-  fdtd.add_datawriter("adw13", &adw13);
-  fdtd.map_result_to_datawriter("res4", "adw12");
-  fdtd.map_result_to_datawriter("p2dft", "adw13");
+//    fdtd.add_datawriter("adw12", &adw12);
+//    fdtd.add_datawriter("adw13", &adw13);
+//    fdtd.map_result_to_datawriter("res4", "adw12");
+//    fdtd.map_result_to_datawriter("p2dft", "adw13");
 
-  MatlabDataWriter mdw(rank, size);
-  mdw.set_filename("test.mat");
-  fdtd.add_datawriter("mdw", &mdw);
-  //fdtd.map_result_to_datawriter("pres60", "mdw");
+//    MatlabDataWriter mdw(rank, size);
+//    mdw.set_filename("test.mat");
+//    fdtd.add_datawriter("mdw", &mdw);
+//    //fdtd.map_result_to_datawriter("pres60", "mdw");
 
-  FarfieldResult farfield; 
-  farfield.set_mpi_rank_size(rank, size);
-  farfield.set_angles(0, 90, 90, 90, 45);
-  farfield.set_freq_start(300e12);
-  farfield.set_freq_stop(300e12);
-  farfield.set_num_freq(1);
-  region_t h;
-  h.xmin = 20; h.xmax = 60; h.ymin = 5; h.ymax = 15; 
-  h.zmin = 5; h.zmax = 15; 
-  farfield.set_huygens(h);
-  farfield.set_time_param(0, 49, 0);
+//    FarfieldResult farfield; 
+//    farfield.set_mpi_rank_size(rank, size);
+//    farfield.set_angles(0, 90, 90, 90, 45);
+//    farfield.set_freq_start(300e12);
+//    farfield.set_freq_stop(300e12);
+//    farfield.set_num_freq(1);
+//    region_t h;
+//    h.xmin = 20; h.xmax = 60; h.ymin = 5; h.ymax = 15; 
+//    h.zmin = 5; h.zmax = 15; 
+//    farfield.set_huygens(h);
+//    farfield.set_time_param(0, 49, 0);
 
   //fdtd.add_result("farfield", &farfield);
   //fdtd.map_result_to_datawriter("farfield", "mdw");
@@ -722,7 +731,7 @@ static void pml_test(int rank, int size)
 
 //     fdtd.map_result_to_datawriter("srctr", "adw8");
 
-   fdtd.set_time_steps(2000);
+   fdtd.set_time_steps(100);
    fdtd.run(rank, size);
 }
 

@@ -23,7 +23,7 @@
 #include "FDTD.hh"
 
 // Globals from phred.cc
-bool mnps, estimate_memory;
+extern bool mnps, estimate_memory;
 
 FDTD::FDTD()
   : grid_(0), mlib_(0)
@@ -335,10 +335,17 @@ void FDTD::run(int rank, int size)
 
   if (mnps)
   {
-    time_t avg_time = time_total / time_steps_;
-    clock_t avg_cpu_time = time_total_cpu / time_steps_;
-    unsigned int num_mnodes = grid_->get_num_updated_nodes() / 1e6;
+    double avg_time = static_cast<double>(time_total) 
+      / static_cast<double>(time_steps_);
 
+    clock_t avg_cpu_time = time_total_cpu / time_steps_;
+    double num_mnodes = static_cast<double>(grid_->get_num_updated_nodes()) 
+      / 1.0e6;
+
+    cout << "Number of updated nodes: " << grid_->get_num_updated_nodes()
+	 << ", millions of updated nodes: " << num_mnodes << endl;
+    cout << "Average wall time: " << avg_time << ", avg cpu time: "
+	 << avg_cpu_time / static_cast<double>(CLOCKS_PER_SEC) << endl;
     cout << "Average millions of nodes per second, w.r.t. wall clock time: " 
          << num_mnodes / avg_time << endl;
     cout << "Average millions of nodes per second, w.r.t. CPU time: " 
