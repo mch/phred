@@ -22,10 +22,10 @@
 #include <boost/python.hpp>
 #include <boost/ref.hpp>
 
-#include "../Excitation.hh"
-#include "../WindowedExcitation.hh"
-#include "../BartlettExcitation.hh"
-#include "../WaveguideExcitation.hh"
+#include "../Excitations/Excitation.hh"
+#include "../Excitations/WindowedExcitation.hh"
+#include "../Excitations/BartlettExcitation.hh"
+#include "../Excitations/WaveguideExcitation.hh"
 #include "../Gaussm.hh"
 #include "../ExpSine.hh"
 

@@ -29,11 +29,11 @@
 using namespace std;
 
 #include "Types.hh"
-#include "BoundaryCondition.hh"
+#include "Boundaries/BoundaryCondition.hh"
 #include "MaterialLib.hh"
-#include "Excitation.hh"
-#include "Result.hh"
-#include "DataWriter.hh"
+#include "Excitations/Excitation.hh"
+#include "Results/Result.hh"
+#include "DataWriters/DataWriter.hh"
 #include "Constants.hh"
 #include "Exceptions.hh"
 #include "SimpleSDAlg.hh"

@@ -536,8 +536,8 @@ MATLAB_array_type MatlabArray::get_array_class(MATLAB_data_type type)
   if (type >= miINT8 && type < miSINGLE)
     ret = static_cast<MATLAB_array_type>(type + mxSINGLE_CLASS);
   else if (type == miSINGLE)
-    //ret = static_cast<MATLAB_array_type>(mxSINGLE_CLASS);
-    ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
+    ret = static_cast<MATLAB_array_type>(mxSINGLE_CLASS);
+  //ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
   else if (type == miDOUBLE)
     ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
   else
@@ -699,11 +699,12 @@ void MatlabDataWriter::test()
   dims2.push_back(2);
   dims2.push_back(2);
   float data2[] = {1, 2, 3, 4, 1, 2, 3, 4, 7, 8, 9, 5, 7, 8, 9, 5};
+  short data3[] = {1, 2, 3, 12, 43, 45, 87, 102, 123};
 
   MatlabArray *ma = new MatlabArray("test2", dims, true, MPI_DOUBLE, false);
-  //MatlabArray *ma2 = new MatlabArray("abc", dims2, false, MPI_DOUBLE, false);
-
-  if (!ma) //|| !ma2)
+  MatlabArray *ma2 = new MatlabArray("abc", dims2, false, MPI_FLOAT, false);
+  MatlabArray *ma3 = new MatlabArray("shortdata", dims, true, MPI_SHORT, false);
+  if (!ma || !ma3 || !ma2)
     throw MemoryException();
 
   double data[] = {2, 3, 4, 5};
@@ -711,19 +712,27 @@ void MatlabDataWriter::test()
   ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data + 2));
   ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data));
 
-  //ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
-  //ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
+  ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
+  ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
   
+  ma3->append_buffer(2 *sizeof(short), reinterpret_cast<void *>(data3));
+  ma3->append_buffer(2 *sizeof(short), reinterpret_cast<void *>(data3 + 2));
+  ma3->append_buffer(2 *sizeof(short), reinterpret_cast<void *>(data3));
+
   ofstream tf("a.mat",  ofstream::out | ofstream::binary
              | ofstream::trunc);
 
   tf.write(reinterpret_cast<char *>(&header_), 128);
   tf.flush();
-  //ma2->write_buffer(tf);
-  //delete ma2;
+
+  ma2->write_buffer(tf);
+  delete ma2;
 
   ma->write_buffer(tf);
   delete ma;
+
+  ma3->write_buffer(tf);
+  delete ma3;
 
   tf.close();
 }

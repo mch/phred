@@ -23,8 +23,8 @@
 
 #include "Grid.hh"
 
-#include "Ewall.hh"
-#include "Hwall.hh"
+#include "Boundaries/Ewall.hh"
+#include "Boundaries/Hwall.hh"
 #include "Constants.hh"
 #include "Exceptions.hh"
 

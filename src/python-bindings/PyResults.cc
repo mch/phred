@@ -21,15 +21,15 @@
 
 #include <boost/python.hpp>
 
-#include "../Result.hh"
-#include "../PlaneResult.hh"
-#include "../PointResult.hh"
-#include "../PointDFTResult.hh"
-#include "../SourceDFTResult.hh"
-#include "../SourceTimeResult.hh"
-#include "../BlockResult.hh"
-#include "../FarfieldResult.hh"
-#include "../PowerResult.hh"
+#include "../Results/Result.hh"
+#include "../Results/PlaneResult.hh"
+#include "../Results/PointResult.hh"
+#include "../Results/PointDFTResult.hh"
+#include "../Results/SourceDFTResult.hh"
+#include "../Results/SourceTimeResult.hh"
+#include "../Results/BlockResult.hh"
+#include "../Results/FarfieldResult.hh"
+#include "../Results/PowerResult.hh"
 
 using namespace boost::python;
 

@@ -551,15 +551,19 @@ PYTHON_VERSION=`echo "import distutils.sysconfig; print distutils.sysconfig.get_
         LDFLAGS=$saveLDFLAGS
         LIBS=$saveLIBS
 
-        echo "Have python? $ac_cxx_python"
-
-        if test "$ac_cxx_python" = yes ; then
+        if test "$ac_cxx_python" = "yes" ; then
                 AC_DEFINE([HAVE_PYTHON], [1], [Using Python])
                 CXXFLAGS="$CXXFLAGS $PYTHON_LDFLAGS"
                 CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDES"
                 if [[ ! -z "$with_python_includes" ]]; then 
                         CPPFLAGS="$CPPFLAGS -I$with_python_includes"
                 fi
+                if [[ "$target_vendor" = "apple" ]]; then       
+                        LIBS="$LIBS -framework Python"
+                else
+                        LIBS="$LIBS -lpython$PYTHON_VERSION"
+                fi
+
         fi
         
 fi
@@ -658,3 +662,99 @@ fi
 
 
 ])
+
+
+
+dnl -------------------------------------------------------------------------
+dnl @synopsis AC_CXX_LIB_VTK([optional-string "required"])
+dnl
+dnl Check whether VTK is installed.
+dnl VTK is available at http://public.kitware.com/VTK/.
+dnl
+dnl Set the path for VTK with the option
+dnl --with-vtk[=DIR]
+dnl VTK headers should be under DIR/includes
+dnl VTK library should be under DIR/lib
+dnl Then try to compile and run a simple program with a VTK Sphere
+dnl Optional argument `required' triggers an error if VTK not installed
+dnl @author Matt Hughes <address@bogus.example.com>
+dnl
+AC_DEFUN([AC_MSG_ERROR_VTK],[
+AC_MSG_ERROR([
+$PACKAGE_STRING requires the VTK library
+available at http://public.kitware.com/VTK/
+When installed give the directory of installation with the option
+--with-vtk@<:@=DIR@:>@
+])])
+
+
+AC_DEFUN([AC_CXX_LIB_VTK],[
+
+
+AC_ARG_WITH(vtk,
+AC_HELP_STRING([--with-vtk@<:@=DIR@:>@],[Set the path for VTK]),
+[],[withval='yes'])
+
+
+if test "$1" = required -a "$withval" = no ; then
+        AC_MSG_ERROR_VTK
+fi
+
+
+if test "$withval" != no ; then
+
+
+        saveCPPFLAGS=$CPPFLAGS
+        saveLDFLAGS=$LDFLAGS
+        saveLIBS=$LIBS
+
+
+        if test "$withval" != 'yes'; then
+                CPPFLAGS="-I$withval/include"
+                LDFLAGS="-L$withval/lib"
+        fi
+        LIBS="-lvtk"
+
+
+        AC_CACHE_CHECK([whether VTK is installed],ac_cxx_lib_vtk,
+        [AC_LANG_SAVE
+        AC_LANG_CPLUSPLUS
+        AC_RUN_IFELSE(
+        [AC_LANG_PROGRAM([[
+#include "vtkStructuredGrid.h"
+]],[[
+  static int dims[3]={13,11,11};
+  
+  // Create the structured grid.
+  vtkStructuredGrid *sgrid = vtkStructuredGrid::New();
+  sgrid->SetDimensions(dims);
+
+        ]])],[ac_cxx_lib_vtk=yes],[ac_cxx_lib_vtk=no])
+        AC_LANG_RESTORE
+        ])
+
+
+        CPPFLAGS=$saveCPPFLAGS
+        LDFLAGS=$saveLDFLAGS
+        LIBS=$saveLIBS
+
+
+        if test "$ac_cxx_lib_vtk" = yes ; then
+                if test "$withval" != yes ; then
+                        CPPFLAGS="-I$withval/include $CPPFLAGS"
+                        LDFLAGS="-L$withval/lib $LDFLAGS"
+                fi
+                LIBS="-lblitz $LIBS"
+                AC_DEFINE([HAVE_VTK], [1], [Using VTK])
+        else
+                if test "$1" = required ; then
+                        AC_MSG_ERROR_VTK
+                fi
+        fi
+
+
+fi
+
+
+])
+

@@ -21,14 +21,14 @@
 
 #include <boost/python.hpp>
 
-#include "../DataWriter.hh"
-#include "../AsciiDataWriter.hh"
-#include "../MatlabDataWriter.hh"
-//#include "../Hdf5DataWriter.hh"
-//#include "../HdfDataWriter.hh"
-#include "../NetCDFDataWriter.hh"
-//#include "../VtkDataWriter.hh"
-//#include "../PyDataWriter.hh"
+#include "../DataWriters/DataWriter.hh"
+#include "../DataWriters/AsciiDataWriter.hh"
+#include "../DataWriters/MatlabDataWriter.hh"
+//#include "../DataWriters/Hdf5DataWriter.hh"
+//#include "../DataWriters/HdfDataWriter.hh"
+#include "../DataWriters/NetCDFDataWriter.hh"
+//#include "../DataWriters/VtkDataWriter.hh"
+//#include "../DataWriters/PyDataWriter.hh"
 
 using namespace boost::python;
 

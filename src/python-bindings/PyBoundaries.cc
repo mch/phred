@@ -22,10 +22,10 @@
 #include <boost/python.hpp>
 
 #include "../Grid.hh"
-#include "../Ewall.hh"
-#include "../Hwall.hh"
-#include "../UPml.hh"
-#include "../Pml.hh"
+#include "../Boundaries/Ewall.hh"
+#include "../Boundaries/Hwall.hh"
+#include "../Boundaries/UPml.hh"
+#include "../Boundaries/Pml.hh"
 #include "../Types.hh"
 
 using namespace boost::python;

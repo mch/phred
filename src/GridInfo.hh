@@ -23,11 +23,11 @@
 #define GRID_INFO_H
 
 #include "Types.hh"
-#include "BoundaryCondition.hh"
-#include "Ewall.hh"
-#include "Hwall.hh"
-#include "SubdomainBc.hh"
-#include "Pml.hh"
+#include "Boundaries/BoundaryCondition.hh"
+#include "Boundaries/Ewall.hh"
+#include "Boundaries/Hwall.hh"
+#include "Boundaries/SubdomainBc.hh"
+#include "Boundaries/Pml.hh"
 
 #include "counted_ptr.hh"
 

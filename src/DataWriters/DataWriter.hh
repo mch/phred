@@ -29,8 +29,8 @@
 #include <map>
 #include <vector>
 
-#include "Result.hh"
-#include "LifeCycle.hh"
+#include "../Results/Result.hh"
+#include "../LifeCycle.hh"
 
 using namespace std;
 
