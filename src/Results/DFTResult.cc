@@ -22,35 +22,19 @@
 #include "DFTResult.hh"
 
 DFTResult::DFTResult()
-  : freq_start_(0), freq_stop_(0), num_freqs_(0)
 {}
 
 DFTResult::DFTResult(field_t freq_start, field_t freq_stop, 
                      unsigned int num_freqs)
-  : freq_start_(freq_start), freq_stop_(freq_stop), num_freqs_(num_freqs)
+  : interval_(freq_start, freq_stop, num_freqs)
 {}
 
 DFTResult::~DFTResult()
 {}
 
-void DFTResult::set_freq(field_t freq_start, field_t freq_stop, 
-                         unsigned int num_freqs)
-{
-  if (freq_start > freq_stop)
-    throw ResultException("Starting frequency must be less than stop frequency for DFTResults.");
-
-  if (num_freqs < 2)
-    throw ResultException("DFTResults must return at least two frequencies.");
-
-  freq_start_ = freq_start;
-  freq_stop_ = freq_stop;
-  num_freqs_ = num_freqs;
-  freq_space_ = (freq_stop_ - freq_start_) / (num_freqs_ - 1);
-}
-
 ostream& DFTResult::to_string(ostream &os) const
 {
-  os << "Generic DFTResult outputting " << num_freqs_ 
-     << ", starting at " << freq_start_ << " and ending at "
-     << freq_stop_;
+  os << "Generic DFTResult outputting " << interval_.length()
+     << ", starting at " << interval_.get_start() << " and ending at "
+     << interval_.get_end();
 }

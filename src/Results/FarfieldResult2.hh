@@ -22,8 +22,13 @@
 #ifndef FARFIELD_RESULT2_H
 #define FARFIELD_RESULT2_H
 
-#include "Result.hh"
+#include "../config.h"
+#include "DFTResult.hh"
 #include "../CSG/CSGBox.hh"
+
+#ifdef HAVE_COMPLEX
+#include <complex>
+#endif
 
 /**
  * This result calculates a near to far field transformation at a
@@ -36,7 +41,7 @@
  * This does not attempt to normalize to the source. Users will have
  * to do that in post processing for now.
  */ 
-class FarfieldResult2 : public Result
+class FarfieldResult2 : public DFTResult
 {
 public:
   FarfieldResult2();
@@ -64,57 +69,33 @@ public:
                                       unsigned int time_step);
 
   /**
-   * Set the start frequency of the range
-   */
-  inline void set_freq_start(field_t fs)
-  {
-    freq_start_ = fs;
-  }
+   * Set the range of theta (angle from the X axis) to calculate the
+   * farfield data for.
+   *
+   * @param theta_start starting angle in radians
+   * @param theta_stop end angle in radians
+   * @param num_theta number of points of theta to calculate FF data
+   * for. Must be greater than 0.
+   */ 
+  void set_theta(field_t theta_start, field_t theta_stop, 
+                 unsigned int num_theta);
 
   /**
-   * Set the end frequency of the range
-   */
-  inline void set_freq_stop(field_t fs)
-  {
-    freq_stop_ = fs;
-  }
-
-  /**
-   * Set the number of frequencies of in the range
-   */
-  inline void set_num_freq(unsigned int nf)
-  {
-    num_freqs_ = nf;
-  }
-
-  /**
-   * Get the start frequency of the range
-   */
-  inline field_t get_freq_start()
-  {
-    return freq_start_;
-  }
-
-  /**
-   * Get the end frequency of the range
-   */
-  inline field_t get_freq_stop()
-  {
-    return freq_stop_;
-  }
-
-  /**
-   * Get the number of frequencies of in the range
-   */
-  inline unsigned int get_num_freq()
-  {
-    return num_freqs_;
-  }
+   * Set the range of phi (angle from the Z axis) to calculate the
+   * farfield data for.
+   *
+   * @param phi_start starting angle in radians
+   * @param phi_stop end angle in radians
+   * @param num_phi number of points of phi to calculate FF data
+   * for. Must be greater than 0.
+   */ 
+  void set_phi(field_t phi_start, field_t phi_stop, 
+               unsigned int num_phi);
 
   /**
    * Print a string representation to an ostream.
    */
-  virtual ostream& to_string(ostream &os) const;
+  ostream& to_string(ostream &os) const;
 
 private:
   shared_ptr<CSGBox> box_; /**< The box to use as the surface to
@@ -122,21 +103,43 @@ private:
   
   region_t grid_box_; /**< The cells that are in our local region */ 
 
-  field_t freq_start_; /**< First frequency in the range */
-  field_t freq_stop_; /**< Last frequency in the range */
-  unsigned int num_freqs_; /**< Number of frequencies in range */
-  field_t freq_space_;
-
-  // Precalculated DFT constants for each frequency
+  // Angle range
+  Interval<field_t> theta_data_;
+  Interval<field_t> phi_data_;
 
   // Storage space for J and M phasors on each face
+#ifdef HAVE_COMPLEX
+  complex<field_t> *J1_data_[6];
+  complex<field_t> *J2_data_[6];
 
-  // Storage space for farfield data freq x theta x phi
+  complex<field_t> *M1_data_[6];
+  complex<field_t> *M2_data_[6];
+
+  // Storage space for farfield E_theta data theta x phi x freq
+  complex<field_t> *e_theta_data_;
+
+  // Storage space for farfield E_phi data theta x phi x freq
+  complex<field_t> *e_phi_data_;
+
+  // Storage space for farfield H_theta data theta x phi x freq
+  complex<field_t> *h_theta_data_;
+
+  // Storage space for farfield H_phi data theta x phi x freq
+  complex<field_t> *h_phi_data_;
+#endif
+
+  // Storage space for farfield RCS data theta x phi x freq
+  field_t *rcs_data_;
 
   // Output variables
-  Variable farfield_; 
+  Variable rcs_;
+//   Variable E_phi_;
+//   Variable E_theta_;
+//   Variable H_phi_;
+//   Variable H_theta_;
   Variable freqs_;
-  Variable angles_;
+  Variable theta_;
+  Variable phi_;
 
 };
 

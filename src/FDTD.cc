@@ -297,9 +297,16 @@ void FDTD::run()
   map<string, shared_ptr<Excitation> >::iterator 
     e_eiter_e = e_excitations_.end();
   
+  if (!quiet)
+    cout << "Electric excitations: \n";
+
   while (e_eiter != e_eiter_e) 
   {
     (*e_eiter).second->init(*grid_);
+    
+    if (!quiet)
+      cout << "\t -> " << (*e_eiter).second << "\n";
+
     ++e_eiter;
   }
 
@@ -309,9 +316,16 @@ void FDTD::run()
   map<string, shared_ptr<Excitation> >::iterator 
     h_eiter_e = h_excitations_.end();
   
+  if (!quiet)
+    cout << "\nMagnetic excitations: \n";
+
   while (h_eiter != h_eiter_e) 
   {
     (*h_eiter).second->init(*grid_);
+
+    if (!quiet)
+      cout << "\t -> " << (*h_eiter).second << "\n";
+
     ++h_eiter;
   }
 
@@ -319,6 +333,9 @@ void FDTD::run()
   map<string, shared_ptr<Result> >::iterator riter = riter_b;
   map<string, shared_ptr<Result> >::iterator riter_e = results_.end();
   
+  if (!quiet)
+    cout << "\nResult generators: \n";
+
   while (riter != riter_e) 
   {
     (*riter).second->init(*grid_);
@@ -327,7 +344,7 @@ void FDTD::run()
       (*riter).second->set_time_stop(time_steps_);
 
     if (!quiet)
-      cout << (*(*riter).second) << endl;
+      cout << "\t -> " << (*(*riter).second) << "\n";
 
     ++riter;
   }
@@ -338,12 +355,15 @@ void FDTD::run()
   map<string, shared_ptr<DataWriter> >::iterator
     dwiter_e = datawriters_.end();
   
+  if (!quiet)
+    cout << "\nDataWriters: \n";
+
   while (dwiter != dwiter_e) 
   {
     (*dwiter).second->init(*grid_);
 
     if (!quiet)
-      cout << (*(*dwiter).second) << endl;
+      cout << "\t -> " << (*(*dwiter).second) << "\n";
 
     ++dwiter;
   }

@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -23,6 +23,7 @@
 #define DFT_RESULT_H
 
 #include "Result.hh"
+#include "../Interval.hh"
 
 /**
  * This is a little helper class that has all the common stuff that is
@@ -53,54 +54,31 @@ public:
    * @param num_freqs total number of frequencies to report data for
    */ 
   void set_freq(field_t freq_start, field_t freq_stop, 
-                unsigned int num_freqs);
-
-  /**
-   * Set the start frequency of the range
-   */
-  inline void set_freq_start(field_t fs)
-  {
-    freq_start_ = fs;
-  }
-
-  /**
-   * Set the end frequency of the range
-   */
-  inline void set_freq_stop(field_t fs)
-  {
-    freq_stop_ = fs;
-  }
-
-  /**
-   * Set the number of frequencies of in the range
-   */
-  inline void set_num_freq(unsigned int nf)
-  {
-    num_freqs_ = nf;
-  }
+                unsigned int num_freqs)
+  { interval_.set_params(freq_start, freq_stop, num_freqs); }
 
   /**
    * Get the start frequency of the range
    */
-  inline field_t get_freq_start()
+  inline field_t get_freq_start() const
   {
-    return freq_start_;
+    return interval_.get_start();
   }
 
   /**
    * Get the end frequency of the range
    */
-  inline field_t get_freq_stop()
+  inline field_t get_freq_stop() const
   {
-    return freq_stop_;
+    return interval_.get_end();
   }
 
   /**
    * Get the number of frequencies of in the range
    */
-  inline unsigned int get_num_freq()
+  inline unsigned int get_num_freq() const
   {
-    return num_freqs_;
+    return interval_.length();
   }
 
   /**
@@ -109,10 +87,8 @@ public:
   virtual ostream& to_string(ostream &os) const;
 
 protected:
-  field_t freq_start_; /**< First frequency in the range */
-  field_t freq_stop_; /**< Last frequency in the range */
-  unsigned int num_freqs_; /**< Number of frequencies in range */
-  field_t freq_space_;
+
+  Interval<field_t> interval_;
 
 private:
 };

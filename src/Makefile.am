@@ -1,10 +1,10 @@
 SUBDIRS=PythonBindings Results Excitations DataWriters Boundaries \
-	Sources CSG
+	Signals CSG
 
 bin_PROGRAMS=phred
 
 AM_CPPFLAGS=-I./Results -I./PythonBindings -I./Excitations\
-	 -I./DataWriters -I./Boundaries -I./Sources -I./CSG
+	 -I./DataWriters -I./Boundaries -I./Signals -I./CSG
 
 phred_cond = 
 phred_LDFLAGS=
@@ -26,7 +26,7 @@ phred_LDADD += \
 	Excitations/libexcitations.a \
 	DataWriters/libdatawriters.a \
 	Boundaries/libboundaries.a \
-	Sources/libsources.a \
+	Signals/libsignals.a \
 	CSG/libcsg.a
 
 #	jan-grammer.yy \
@@ -67,6 +67,7 @@ phred_SOURCES=\
 	SimpleSDAlg.cc \
 	SimpleSDAlg.hh \
 	Contiguous.hh \
+	Interval.hh \
 	Tests.hh \
 	Tests.cc \
 	phred.cc $(phred_cond)

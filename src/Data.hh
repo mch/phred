@@ -49,7 +49,7 @@ protected:
                               * the data once it has been collected to
                               * the output node. */ 
 
-  map<unsigned int, void *> ptrs_;
+  map<unsigned int, const void *> ptrs_;
   unsigned int num_; /**< Number of items of type_ that can be
                         accessed by ptr_ */ 
 
@@ -128,9 +128,9 @@ public:
    * @param ptr_num the pointer number to return, defaults to
    * zero. Must be less than the value returned by get_num_ptrs(). 
    */
-  inline void *get_ptr(unsigned int ptr_num = 0) const
+  inline const void *get_ptr(unsigned int ptr_num = 0) const
   {
-    map<unsigned int, void *>::const_iterator iter = ptrs_.find(ptr_num);
+    map<unsigned int, const void *>::const_iterator iter = ptrs_.find(ptr_num);
     
     if (iter != ptrs_.end())
       return (*iter).second;
@@ -154,7 +154,7 @@ public:
    * @param ptr_num optional parameter the specifies the pointer
    * number to set. Defaults to zero. 
    */
-  inline void set_ptr(void *ptr, unsigned int ptr_num = 0)
+  inline void set_ptr(const void *ptr, unsigned int ptr_num = 0)
   {
     ptrs_[ptr_num] = ptr;
   }
@@ -176,26 +176,25 @@ public:
  * data has to be transfered between ranks. 
  *
  * This is really just a convienence class. 
+ *
+ * The type of data has been changed from const void * to void *
+ * because this class is used in the SubdomainBc which needs to be
+ * able to modify the data that is pointed to.
  */
-class RxTxData : public Data
+class RxTxData
 {
 private:
-  // Hide these
-  inline void *get_ptr(unsigned int ptr_num) const
-  { return Data::get_ptr(ptr_num); }
+  void *rx_ptr_;
+  const void *tx_ptr_;
+  MPI_Datatype type_; /**< LOCAL datatype. For interperting data sent
+                       * from a single node. */
 
-  inline void set_ptr(void *ptr, unsigned int ptr_num)
-  { Data::set_ptr(ptr, ptr_num); }
-
-  inline unsigned int get_num_ptrs() const
-  { return 0; }
-  
 protected:
   FieldType field_type_; /**< The field type of the data being exchanged */
 
 public:
   RxTxData()
-    : field_type_(E)
+    : rx_ptr_(0), tx_ptr_(0), field_type_(E)
   {}
 
   /**
@@ -203,31 +202,31 @@ public:
    */
   inline void set_rx_ptr(void *ptr)
   {
-    set_ptr(ptr, 0);
+    rx_ptr_ = ptr;
   }
 
   /**
    * Get the rx pointer
    */
-  inline void *get_rx_ptr() const
+  inline void *get_rx_ptr()
   {
-    return get_ptr(0);
+    return rx_ptr_;
   }
 
   /**
    * Set the tx pointer
    */
-  inline void set_tx_ptr(void *ptr)
+  inline void set_tx_ptr(const void *ptr)
   {
-    set_ptr(ptr, 1);
+    tx_ptr_ = ptr;
   }
 
   /**
    * Get the tx pointer
    */
-  inline void *get_tx_ptr() const
+  inline const void *get_tx_ptr() const
   {
-    return get_ptr(1);
+    return tx_ptr_;
   }
 
   /**
@@ -241,11 +240,27 @@ public:
   /**
    * Returns the field type of this data
    */
-  inline FieldType get_field_type()
+  inline FieldType get_field_type() const
   {
     return field_type_;
   }
-  
+
+  /**
+   * Used to set the data type.
+   * @param type MPI derived data type
+   */
+  inline void set_datatype(MPI_Datatype &type)
+  {
+    type_ = type;
+  }
+
+  /**
+   * Get the data type
+   */
+  inline MPI_Datatype get_datatype() const
+  {
+    return type_;
+  }  
 };
 
 #endif // DATA_H

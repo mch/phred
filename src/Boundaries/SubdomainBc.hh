@@ -54,7 +54,7 @@ protected:
    * @param tx_ptr pointer to area to recieve to 
    * @param dt MPI Derived data type describing the data
    */
-  void send_recv(void *tx_ptr, void *rx_ptr, MPI_Datatype &t);
+  void send_recv(const void *tx_ptr, void *rx_ptr, MPI_Datatype &t);
 
 public:
   SubdomainBc() 

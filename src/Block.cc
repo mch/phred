@@ -21,15 +21,16 @@
 
 #include "Block.hh"
 
-ostream &Block::operator<<(ostream &os)
+std::ostream &operator<<(std::ostream &os, const Block &b)
 {
   return os << "Block of grid cells, in the local grid, lower lefthand "
-    "corner is at (" << xmin_ << ", " << ymin_ << ", " << zmin_
+    "corner is at (" << b.xmin() << ", " << b.ymin() << ", " << b.zmin()
             << "), extends to but does not include ("
-            << xmax_ ", " << ymax_ << ", " << zmax_ << "). Length: "
-            << len_x_ << ", " << len_y_ << ", " << len_z_ 
+            << b.xmax() << ", " << b.ymax() << ", " << b.zmax() 
+            << "). Length: " << b.xlen() << ", " << b.ylen() 
+            << ", " << b.zlen() 
             << ". With respect to the block of grid cells in the "
     "global domain, this local block starts at (" 
-            << start_x_ << ", " << start_y_ << ", " << start_z_
+            << b.xstart() << ", " << b.ystart() << ", " << b.zstart()
             << "). ";
 }

@@ -58,7 +58,8 @@ void SubdomainBc::apply(Face face, Grid &grid, FieldType type)
     if (type == (*iter).get_field_type()) 
     {
       MPI_Datatype dtype = (*iter).get_datatype();
-      send_recv((*iter).get_tx_ptr(), (*iter).get_rx_ptr(), 
+      send_recv((*iter).get_tx_ptr(), 
+                (*iter).get_rx_ptr(), 
                 dtype);
     }
 
@@ -66,16 +67,16 @@ void SubdomainBc::apply(Face face, Grid &grid, FieldType type)
   }
 }
 
-void SubdomainBc::send_recv(void *tx_ptr, void *rx_ptr, MPI_Datatype &t)
+void SubdomainBc::send_recv(const void *tx_ptr, void *rx_ptr, MPI_Datatype &t)
 {
   MPI_Status status;
 
   if (rank_ > neighbour_) {
-    MPI_Send(tx_ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD);
+    MPI_Send(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, MPI_COMM_WORLD);
     MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD, &status);
   } else {
     MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD, &status);
-    MPI_Send(tx_ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD);
+    MPI_Send(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, MPI_COMM_WORLD);
   }
 }
 

@@ -32,48 +32,46 @@ class Block {
   friend class Grid;
 public:
 
-  inline unsigned int xmin()
+  inline unsigned int xmin() const
   { return xmin_; }
-  inline unsigned int ymin()
+  inline unsigned int ymin() const
   { return ymin_; }
-  inline unsigned int zmin()
+  inline unsigned int zmin() const
   { return zmin_; }
 
-  inline unsigned int xmax()
+  inline unsigned int xmax() const
   { return xmax_; }
-  inline unsigned int ymax()
+  inline unsigned int ymax() const
   { return ymax_; }
-  inline unsigned int zmax()
+  inline unsigned int zmax() const
   { return zmax_; }
 
-  inline unsigned int xstart()
+  inline unsigned int xstart() const
   { return start_x_; }
 
-  inline unsigned int ystart()
+  inline unsigned int ystart() const
   { return start_y_; }
 
-  inline unsigned int zstart()
+  inline unsigned int zstart() const
   { return start_z_; }
 
-  inline unsigned int xlen()
+  inline unsigned int xlen() const
   { return len_x_; }
 
-  inline unsigned int ylen()
+  inline unsigned int ylen() const
   { return len_y_; }
 
-  inline unsigned int zlen()
+  inline unsigned int zlen() const
   { return len_z_; }
 
-  inline bool has_data()
+  inline bool has_data() const
   { return has_data_; }
 
-  inline bool has_face_data(Face face)
+  inline bool has_face_data(Face face) const
   { return faces_[face]; }
   
-  inline bool is_global()
+  inline bool is_global() const
   { return is_global_; }
-
-  ostream &operator<<(ostream &os);
 
 private:
 
@@ -102,5 +100,7 @@ private:
 
   bool is_global_; // True if this block of cells is in the global domain. 
 };
+
+std::ostream &operator<<(std::ostream &os, const Block &b);
 
 #endif // BLOCK_H

@@ -81,7 +81,8 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 //       cerr << "Rank " << MPI_RANK << " is sending " << sz << " bytes..."
 //            << endl;
 
-      MPI_Send(data.get_ptr(), data.get_num(), data.get_datatype(), 
+      MPI_Send(const_cast<void *>(data.get_ptr()), 
+               data.get_num(), data.get_datatype(), 
                0, 1, MPI_COMM_WORLD);
 
 //       cerr << "Rank " << MPI_RANK << " sent " << sz << " bytes..."
@@ -153,7 +154,8 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 
         if (MPI_SIZE == 1)
         {
-          MPI_Sendrecv(data.get_ptr(), data.get_num(), 
+          MPI_Sendrecv(const_cast<void *>(data.get_ptr()), 
+                       data.get_num(), 
                        data.get_datatype(), 0, 1, 
                        static_cast<void *>(ptr), 
                        rcv_bytes[0], MPI_CHAR, 0, 1,
@@ -164,7 +166,8 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 
 //           cerr << "MPI type is " << sz << " bytes..." << endl;
 
-          MPI_Sendrecv(data.get_ptr(), data.get_num(), 
+          MPI_Sendrecv(const_cast<void *>(data.get_ptr()), 
+                       data.get_num(), 
                        data.get_datatype(), 0, 1, 
                        static_cast<void *>(ptr), 
                        1, var.node_types_[0], 0, 1,

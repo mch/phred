@@ -46,6 +46,13 @@ void export_results()
     .def("set_dw_name", &Result::set_dw_name)
     ;
 
+  class_<DFTResult, bases<Result>, boost::noncopyable>("DFTResult", no_init)
+    .def("set_freq", &DFTResult::set_freq)
+    .def("get_freq_start", &DFTResult::get_freq_start)
+    .def("get_freq_stop", &DFTResult::get_freq_stop)
+    .def("get_num_freq", &DFTResult::get_num_freq)
+    ;
+
   class_<PlaneResult, bases<Result> >("PlaneResult")
     .def("set_plane", &PlaneResult::set_plane)
     .def("get_plane", &PlaneResult::get_plane)
@@ -65,74 +72,44 @@ void export_results()
     .add_property("point", &PointResult::get_point, &PointResult::set_point)
     ;
 
-  class_<PointDFTResult, bases<Result> >("PointDFTResult")
+  class_<PointDFTResult, bases<DFTResult> >("PointDFTResult")
     .def("set_point", &PointDFTResult::set_point)
     .def("get_point", &PointDFTResult::get_point)
-    .def("set_freq_start", &PointDFTResult::set_freq_start)
-    .def("get_freq_start", &PointDFTResult::get_freq_start)
-    .def("set_freq_stop", &PointDFTResult::set_freq_stop)
-    .def("get_freq_stop", &PointDFTResult::get_freq_stop)
-    .def("set_num_freq", &PointDFTResult::set_num_freq)
-    .def("get_num_freq", &PointDFTResult::get_num_freq)
-    .add_property("freq_start", &PointDFTResult::get_freq_start,
-                  &PointDFTResult::set_freq_start)
-    .add_property("freq_stop", &PointDFTResult::get_freq_stop,
-                  &PointDFTResult::set_freq_stop)
-    .add_property("num_freqs", &PointDFTResult::get_num_freq,
-                  &PointDFTResult::set_num_freq)
     .add_property("point", &PointDFTResult::get_point, 
                   &PointDFTResult::set_point)
     ;
 
-  class_<PowerResult, bases<Result> >("PowerResult")
+  class_<PowerResult, bases<DFTResult> >("PowerResult")
     .def(init<field_t, field_t, unsigned int>())
     .def("set_region", &PowerResult::set_region)
-    .def("set_freq_start", &PowerResult::set_freq_start)
-    .def("get_freq_start", &PowerResult::get_freq_start)
-    .def("set_freq_stop", &PowerResult::set_freq_stop)
-    .def("get_freq_stop", &PowerResult::get_freq_stop)
-    .def("set_num_freq", &PowerResult::set_num_freq)
-    .def("get_num_freq", &PowerResult::get_num_freq)
-    .add_property("freq_start", &PowerResult::get_freq_start,
-                  &PowerResult::set_freq_start)
-    .add_property("freq_stop", &PowerResult::get_freq_stop,
-                  &PowerResult::set_freq_stop)
-    .add_property("num_freqs", &PowerResult::get_num_freq,
-                  &PowerResult::set_num_freq)
     .add_property("dfts", &PowerResult::exporting_dfts,
                   &PowerResult::export_dfts)
     ;
 
-  class_<SourceDFTResult, bases<Result> >("SourceDFTResult", init<SourceFunction &>())
+  class_<SourceDFTResult, bases<DFTResult> >
+    ("SourceDFTResult", init<SourceFunction &>())
     .def(init<SourceFunction &, float, float, unsigned int>())
-    .def("set_freq_start", &SourceDFTResult::set_freq_start)
-    .def("get_freq_start", &SourceDFTResult::get_freq_start)
-    .def("set_freq_stop", &SourceDFTResult::set_freq_stop)
-    .def("get_freq_stop", &SourceDFTResult::get_freq_stop)
-    .def("set_num_freq", &SourceDFTResult::set_num_freq)
-    .def("get_num_freq", &SourceDFTResult::get_num_freq)
-    .add_property("freq_start", &SourceDFTResult::get_freq_start,
-                  &SourceDFTResult::set_freq_start)
-    .add_property("freq_stop", &SourceDFTResult::get_freq_stop,
-                  &SourceDFTResult::set_freq_stop)
-    .add_property("num_freqs", &SourceDFTResult::get_num_freq,
-                  &SourceDFTResult::set_num_freq)
     ;
 
-  class_<SourceTimeResult, bases<Result> >("SourceTimeResult", init<SourceFunction &>())
+  class_<SourceTimeResult, bases<Result> >
+    ("SourceTimeResult", init<SourceFunction &>())
     ;
 
-  class_<BlockResult, bases<Result> >("BlockResult")
+  class_<BlockResult, bases<Result> >
+    ("BlockResult", "Outputs a single field component in part of the grid.")
     .def("set_region", &BlockResult::set_region)
     .def("get_region", &BlockResult::get_region)
     .def("set_field", &BlockResult::set_field)
     .def("get_field", &BlockResult::get_field)
     ;
 
-  class_<SurfaceCurrentResult, bases<Result> >("SurfaceCurrentResult", "Generates data about the currents excited on the surface of an equivalent surface.")
+  class_<SurfaceCurrentResult, bases<Result> >
+    ("SurfaceCurrentResult", 
+     "Generates data about the currents excited on the surface "
+     "of an equivalent surface.")
     .def("set_region", &SurfaceCurrentResult::set_region, 
-         "Set the CSGBox which defines the surface over which \
-currents should be calculated.")
+         "Set the CSGBox which defines the surface over which "
+         "currents should be calculated.")
     ;
 
 //   class_<FarfieldResult, bases<Result> >("FarfieldResult")

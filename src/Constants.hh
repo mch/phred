@@ -29,11 +29,20 @@
 #define CONSTANTS_H
 
 #include "Types.hh"
-static const field_t PI = 3.14159265358979323846;
-//static const field_t PI = 3.14159265;
+
+// Pi
+static const field_t PI = 3.14159265358979323846264338327;
+
+// Permittivity of free space
 static const field_t EPS_0 = 8.854185336732027e-12;
+
+// Permeability of free space
 static const field_t MU_0 = 1.256637061435917e-06;
+
+// ?? 
 static const field_t ETA_0 = 3.767303662405271e+02;
+
+// Speed of light in free space
 static const field_t C = 2.997925e8;
 
 #endif

@@ -110,7 +110,7 @@ public:
    * Returns the output time for this variable (i.e. the number of
    * times this variable has actually generated output).
    */ 
-  inline unsigned int get_output_time()
+  inline unsigned int get_output_time() const
   {
     return output_time_;
   }
@@ -251,7 +251,7 @@ public:
    * Returns the number of pointers contained in this data
    * block. 
    */
-  inline unsigned int get_num_ptrs()
+  inline unsigned int get_num_ptrs() const 
   {
     return data_.get_num_ptrs();
   }
@@ -263,7 +263,7 @@ public:
    * @param ptr_num the pointer number to return, defaults to
    * zero. Must be less than the value returned by get_num_ptrs(). 
    */
-  inline void *get_ptr(unsigned int ptr_num = 0)
+  inline const void *get_ptr(unsigned int ptr_num = 0) const
   {
     return data_.get_ptr(ptr_num);
   }
@@ -272,7 +272,7 @@ public:
    * Returns the number of items (MPI Datatype data blocks) contained
    * in each pointer. 
    */
-  inline unsigned int get_num()
+  inline unsigned int get_num() const
   {
     return data_.get_num();
   }
@@ -284,7 +284,7 @@ public:
    * @param ptr_num optional parameter the specifies the pointer
    * number to set. Defaults to zero. 
    */
-  inline void set_ptr(void *ptr, unsigned int ptr_num = 0)
+  inline void set_ptr(const void *ptr, unsigned int ptr_num = 0)
   {
     data_.set_ptr(ptr, ptr_num);
   }
