@@ -177,9 +177,9 @@ protected:
   
   shared_ptr<Block> region_; /**< Grid cells in the local grid */ 
 
-  // Angle range
-  Interval<field_t> theta_data_;
-  Interval<field_t> phi_data_;
+  // Angle range, double for precision
+  Interval<double> theta_data_;
+  Interval<double> phi_data_;
 
   // Distance to observation point... hmm...
   field_t r_;

@@ -279,12 +279,14 @@ void FarfieldResult::init(const Grid &grid)
   theta_.set_name(base_name_ + "theta");
   theta_.set_ptr(theta_data_.get_ptr());
   theta_.has_time_dimension(false);
+  theta_.set_element_type(MPI_DOUBLE);
 
   // Phi
   phi_.add_dimension("phi", phi_data_.length(), phi_data_.length(), 0);
   phi_.set_name(base_name_ + "phi");
   phi_.set_ptr(phi_data_.get_ptr());
   phi_.has_time_dimension(false);
+  phi_.set_element_type(MPI_DOUBLE);
 
   // Normalized Electric field in spherical coords
   E_theta_var_.add_dimension("phi", phi_data_.length(), 
@@ -537,8 +539,8 @@ public:
   field_t signchange;
 
   // Angle data
-  Interval<field_t> *theta_data;
-  Interval<field_t> *phi_data;
+  Interval<double> *theta_data;
+  Interval<double> *phi_data;
 
   FFData()
     : W_t1(0), W_t2(0), U_t1(0), U_t2(0),
@@ -902,13 +904,6 @@ map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
                        theta_data_.length(), 
                        ff_tsteps_);
 
-        cerr << "FFR PP: phi_idx=" << phi_idx << ", theta_idx="
-             << theta_idx << ", phi=" << phi << ", theta="
-             << theta << ", idx=" << idx << ", Wx_=" 
-             << Wx_[idx] << ", Wy_=" << Wy_[idx] << ", Wz_="
-             << Wz_[idx] << ", Ux_=" << Ux_[idx] << ", Uy_="
-             << Uy_[idx] << ", Uz_=" << Uz_[idx] << endl;
-
         W_t = (Wx_[idx] * cos(theta) * cos(phi)
                + Wy_[idx] * cos(theta) * sin(phi)
                - Wz_[idx] * sin(theta));
@@ -925,6 +920,20 @@ map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
 
         E_theta_[idx] = (-1 * ETA * W_t) - U_p;
         E_phi_[idx] = (-1 * ETA * W_p) + U_t;
+
+        if (fft_idx == ff_tsteps_ / 4)
+        {
+          cerr << "FFR PP: phi_idx=" << phi_idx << ", theta_idx="
+               << theta_idx << ", phi=" << phi << ", theta="
+               << theta << ", idx=" << idx << ", Wx_=" 
+               << Wx_[idx] << ", Wy_=" << Wy_[idx] << ", Wz_="
+               << Wz_[idx] << ", Ux_=" << Ux_[idx] << ", Uy_="
+               << Uy_[idx] << ", Uz_=" << Uz_[idx] << endl;
+          cerr << "      : W_t=" << W_t << ", W_p="
+               << W_p << ", U_t=" << U_t << ", U_p=" << U_p
+               << ", E_t=" << E_theta_[idx] << ", E_p=" 
+               << E_phi_[idx] << endl;
+        }
 
         int dft_idx = dft_index(phi_idx, theta_idx, 0);
         for (int f_idx = 0; f_idx < frequencies_.length(); f_idx++)
