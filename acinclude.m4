@@ -758,3 +758,152 @@ fi
 
 ])
 
+
+## From http://www.gnu.org/software/ac-archive/htmldoc/ac_cxx_have_complex.html
+AC_DEFUN([AC_CXX_HAVE_COMPLEX],
+[AC_CACHE_CHECK(whether the compiler has complex<T>,
+ac_cv_cxx_have_complex,
+[AC_REQUIRE([AC_CXX_NAMESPACES])
+ AC_LANG_SAVE
+ AC_LANG_CPLUSPLUS
+ AC_TRY_COMPILE([#include <complex>
+#ifdef HAVE_NAMESPACES
+using namespace std;
+#endif],[complex<float> a; complex<double> b; return 0;],
+ ac_cv_cxx_have_complex=yes, ac_cv_cxx_have_complex=no)
+ AC_LANG_RESTORE
+])
+if test "$ac_cv_cxx_have_complex" = yes; then
+  AC_DEFINE(HAVE_COMPLEX,,[define if the compiler has complex<T>])
+fi
+])
+
+## From http://www.gnu.org/software/ac-archive/htmldoc/ac_cxx_have_complex_math1.html
+AC_DEFUN([AC_CXX_HAVE_COMPLEX_MATH1],
+[AC_CACHE_CHECK(whether the compiler has complex math functions,
+ac_cv_cxx_have_complex_math1,
+[AC_REQUIRE([AC_CXX_NAMESPACES])
+ AC_LANG_SAVE
+ AC_LANG_CPLUSPLUS
+ ac_save_LIBS="$LIBS"
+ LIBS="$LIBS -lm"
+ AC_TRY_LINK([#include <complex>
+#ifdef HAVE_NAMESPACES
+using namespace std;
+#endif],[complex<double> x(1.0, 1.0), y(1.0, 1.0);
+cos(x); cosh(x); exp(x); log(x); pow(x,1); pow(x,double(2.0));
+pow(x, y); pow(double(2.0), x); sin(x); sinh(x); sqrt(x); tan(x); tanh(x);
+return 0;],
+ ac_cv_cxx_have_complex_math1=yes, ac_cv_cxx_have_complex_math1=no)
+ LIBS="$ac_save_LIBS"
+ AC_LANG_RESTORE
+])
+if test "$ac_cv_cxx_have_complex_math1" = yes; then
+  AC_DEFINE(HAVE_COMPLEX_MATH1,,[define if the compiler has complex math functions])
+fi
+])
+
+## From http://www.gnu.org/software/ac-archive/htmldoc/ac_cxx_have_complex_math2.html
+AC_DEFUN([AC_CXX_HAVE_COMPLEX_MATH2],
+[AC_CACHE_CHECK(whether the compiler has more complex math functions,
+ac_cv_cxx_have_complex_math2,
+[AC_REQUIRE([AC_CXX_NAMESPACES])
+ AC_LANG_SAVE
+ AC_LANG_CPLUSPLUS
+ ac_save_LIBS="$LIBS"
+ LIBS="$LIBS -lm"
+ AC_TRY_LINK([#include <complex>
+#ifdef HAVE_NAMESPACES
+using namespace std;
+#endif],[complex<double> x(1.0, 1.0), y(1.0, 1.0);
+acos(x); asin(x); atan(x); atan2(x,y); atan2(x, double(3.0));
+atan2(double(3.0), x); log10(x); return 0;],
+ ac_cv_cxx_have_complex_math2=yes, ac_cv_cxx_have_complex_math2=no)
+ LIBS="$ac_save_LIBS"
+ AC_LANG_RESTORE
+])
+if test "$ac_cv_cxx_have_complex_math2" = yes; then
+  AC_DEFINE(HAVE_COMPLEX_MATH2,,[define if the compiler has more complex math functions])
+fi
+])
+
+## From http://www.gnu.org/software/ac-archive/htmldoc/ac_cxx_have_ieee_math.html
+AC_DEFUN([AC_CXX_HAVE_IEEE_MATH],
+[AC_CACHE_CHECK(whether the compiler supports IEEE math library,
+ac_cv_cxx_have_ieee_math,
+[AC_LANG_SAVE
+ AC_LANG_CPLUSPLUS
+ ac_save_LIBS="$LIBS"
+ LIBS="$LIBS -lm"
+ AC_TRY_LINK([
+#ifndef _ALL_SOURCE
+ #define _ALL_SOURCE
+#endif
+#ifndef _XOPEN_SOURCE
+ #define _XOPEN_SOURCE
+#endif
+#ifndef _XOPEN_SOURCE_EXTENDED
+ #define _XOPEN_SOURCE_EXTENDED 1
+#endif
+#include <math.h>],[double x = 1.0; double y = 1.0; int i = 1;
+acosh(x); asinh(x); atanh(x); cbrt(x); expm1(x); erf(x); erfc(x); isnan(x);
+j0(x); j1(x); jn(i,x); ilogb(x); logb(x); log1p(x); rint(x); 
+y0(x); y1(x); yn(i,x);
+#ifdef _THREAD_SAFE
+gamma_r(x,&i); 
+lgamma_r(x,&i); 
+#else
+gamma(x); 
+lgamma(x); 
+#endif
+hypot(x,y); nextafter(x,y); remainder(x,y); scalb(x,y);
+return 0;],
+ ac_cv_cxx_have_ieee_math=yes, ac_cv_cxx_have_ieee_math=no)
+ LIBS="$ac_save_LIBS"
+ AC_LANG_RESTORE
+])
+if test "$ac_cv_cxx_have_ieee_math" = yes; then
+  AC_DEFINE(HAVE_IEEE_MATH,,[define if the compiler supports IEEE math library])
+fi
+])
+
+## From http://www.gnu.org/software/ac-archive/htmldoc/ac_cxx_partial_specialization.html
+AC_DEFUN([AC_CXX_PARTIAL_SPECIALIZATION],
+[AC_CACHE_CHECK(whether the compiler supports partial specialization,
+ac_cv_cxx_partial_specialization,
+[AC_LANG_SAVE
+ AC_LANG_CPLUSPLUS
+ AC_TRY_COMPILE([
+template<class T, int N> class A            { public : enum e { z = 0 }; };
+template<int N>          class A<double, N> { public : enum e { z = 1 }; };
+template<class T>        class A<T, 2>      { public : enum e { z = 2 }; };
+],[return (A<int,3>::z == 0) && (A<double,3>::z == 1) && (A<float,2>::z == 2);],
+ ac_cv_cxx_partial_specialization=yes, ac_cv_cxx_partial_specialization=no)
+ AC_LANG_RESTORE
+])
+if test "$ac_cv_cxx_partial_specialization" = yes; then
+  AC_DEFINE(HAVE_PARTIAL_SPECIALIZATION,,
+            [define if the compiler supports partial specialization])
+fi
+])
+
+## From http://www.gnu.org/software/ac-archive/htmldoc/ac_cxx_static_cast.html
+AC_DEFUN([AC_CXX_STATIC_CAST],
+[AC_CACHE_CHECK(whether the compiler supports static_cast<>,
+ac_cv_cxx_static_cast,
+[AC_LANG_SAVE
+ AC_LANG_CPLUSPLUS
+ AC_TRY_COMPILE([#include <typeinfo>
+class Base { public : Base () {} virtual void f () = 0; };
+class Derived : public Base { public : Derived () {} virtual void f () {} };
+int g (Derived&) { return 0; }],[
+Derived d; Base& b = d; Derived& s = static_cast<Derived&> (b); return g (s);],
+ ac_cv_cxx_static_cast=yes, ac_cv_cxx_static_cast=no)
+ AC_LANG_RESTORE
+])
+if test "$ac_cv_cxx_static_cast" = yes; then
+  AC_DEFINE(HAVE_STATIC_CAST,,
+            [define if the compiler supports static_cast<>])
+fi
+])
+
