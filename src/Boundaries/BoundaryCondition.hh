@@ -32,7 +32,12 @@ class SubdomainBc;
 
 /**
  * An abstract base class for boundary conditions. Subclass this to
- * implement real ones.
+ * implement real ones. 
+ *
+ * Boundary conditions always appear on the same plane the electric
+ * field is in. i.e. the boundary edge is colocated with the E field,
+ * and the E field at that edge is considered to be part of the
+ * boundary.
  */
 class BoundaryCond
 {

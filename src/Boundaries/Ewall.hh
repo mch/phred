@@ -33,16 +33,16 @@ class Ewall : public BoundaryCond
 {
 private:
 protected:
-  /**
-   * Implements a loop across a GridPlane. 
-   *
-   * @param T a subclass of GridPlane
-   * @param r the region_t to apply the condition to, usually found
-   * using find_face()
-   * @param grid the grid to apply the boundary condition to
-   */
-  template<class T>
-  void condition(region_t r, Grid &grid);
+//   /**
+//    * Implements a loop across a GridPlane. 
+//    *
+//    * @param T a subclass of GridPlane
+//    * @param r the region_t to apply the condition to, usually found
+//    * using find_face()
+//    * @param grid the grid to apply the boundary condition to
+//    */
+//   template<class T>
+//   void condition(region_t r, Grid &grid);
 
 public:
   Ewall();

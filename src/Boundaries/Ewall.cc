@@ -60,6 +60,8 @@ void Ewall::apply(Face face, Grid &grid, FieldType type)
       {
         grid.set_ey(grid.get_ldx_sd() - 1, j, k, 0.0);
         grid.set_ez(grid.get_ldx_sd() - 1, j, k, 0.0);
+
+        grid.set_hx(grid.get_ldx_sd() - 1, j, k, 0.0);
       }
     }
     break;
@@ -69,8 +71,15 @@ void Ewall::apply(Face face, Grid &grid, FieldType type)
     {
       for (int k = 0; k < grid.get_ldz_sd(); k++)
       {
-        grid.set_ey(0, j, k, -1 * grid.get_ey(1, j, k));
-        grid.set_ez(0, j, k, -1 * grid.get_ez(1, j, k));
+        // This was being done so that the Ewall would appear 
+        // halfway into the cell, but all boundary conditions must appear 
+        // at the faces of the unit cell. 
+        grid.set_ey(0, j, k, 0.0); // -1 * grid.get_ey(1, j, k));
+        grid.set_ez(0, j, k, 0.0); // -1 * grid.get_ez(1, j, k));
+
+        // I'm also setting the normal H component in case it isn't
+        // updated to zero for whatever reason.
+        grid.set_hx(0, j, k, 0.0);
       }
     }
 
@@ -82,8 +91,10 @@ void Ewall::apply(Face face, Grid &grid, FieldType type)
     {
       for (int k = 0; k < grid.get_ldz_sd(); k++)
       {
-        grid.set_ex(i, 0, k, -1 * grid.get_ex(i, 1, k));
-        grid.set_ez(i, 0, k, -1 * grid.get_ez(i, 1, k));
+        grid.set_ex(i, 0, k, 0.0); // -1 * grid.get_ex(i, 1, k));
+        grid.set_ez(i, 0, k, 0.0); // -1 * grid.get_ez(i, 1, k));
+
+        grid.set_hy(i, 0, k, 0.0);
       }
     }
     break;
@@ -95,6 +106,8 @@ void Ewall::apply(Face face, Grid &grid, FieldType type)
       {
         grid.set_ex(i, grid.get_ldy_sd() - 1, k, 0.0);
         grid.set_ez(i, grid.get_ldy_sd() - 1, k, 0.0);
+
+        grid.set_hy(i, grid.get_ldy_sd() - 1, k, 0.0);
       }
     }
     //condition<XZPlane>(r, grid);
@@ -107,6 +120,8 @@ void Ewall::apply(Face face, Grid &grid, FieldType type)
       {
         grid.set_ex(i, j, grid.get_ldz_sd() - 1, 0.0);
         grid.set_ey(i, j, grid.get_ldz_sd() - 1, 0.0);
+
+        grid.set_hz(i, j, grid.get_ldz_sd() - 1, 0.0);
       }
     }
     break;
@@ -116,8 +131,10 @@ void Ewall::apply(Face face, Grid &grid, FieldType type)
     {
       for (int j = 0; j < grid.get_ldy_sd(); j++)
       {
-        grid.set_ex(i, j, 0, -1 * grid.get_ex(i, j, 1));
-        grid.set_ey(i, j, 0, -1 * grid.get_ey(i, j, 1));
+        grid.set_ex(i, j, 0, 0.0); // -1 * grid.get_ex(i, j, 1));
+        grid.set_ey(i, j, 0, 0.0); // -1 * grid.get_ey(i, j, 1));
+
+        grid.set_hz(i, j, 0, 0.0);
       }
     }
     //condition<XYPlane>(r, grid);

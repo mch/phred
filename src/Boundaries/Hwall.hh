@@ -1,8 +1,8 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,16 +33,16 @@ class Hwall : public BoundaryCond
 {
 private:
 protected:
-  /**
-   * Implements a loop across a GridPlane. 
-   *
-   * @param T a subclass of GridPlane
-   * @param r the region_t to apply the condition to, usually found
-   * using find_face()
-   * @param grid the grid to apply the boundary condition to
-   */
-  template<class T>
-  void condition(region_t r, Grid &grid);
+//   /**
+//    * Implements a loop across a GridPlane. 
+//    *
+//    * @param T a subclass of GridPlane
+//    * @param r the region_t to apply the condition to, usually found
+//    * using find_face()
+//    * @param grid the grid to apply the boundary condition to
+//    */
+//   template<class T>
+//   void condition(region_t r, Grid &grid);
 
 public:
   Hwall();
