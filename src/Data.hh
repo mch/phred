@@ -48,9 +48,10 @@ protected:
 
 public:
   Data()
+    : type_(GRID_MPI_TYPE), num_(0)
   {
-    MPI_Type_contiguous(1, GRID_MPI_TYPE, &type_);
-    MPI_Type_commit(&type_);
+    //MPI_Type_contiguous(1, GRID_MPI_TYPE, &type_);
+    //MPI_Type_commit(&type_);
   }
 
   ~Data()

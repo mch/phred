@@ -33,12 +33,6 @@
  * assume that there is only one grid per processor. If that's not the
  * case, well, something is probably broken.
  *
- * \bug A copy constructor, assignment operator, and the other thing
- * are needed so that pointers aren't inadvertantly copies around by
- * accident. 
- *
- * \bug Sanity checks on stability are required.
- *
  * \bug Since we have this define mode now, and a lot of the functions
  * have to check that flag, there should be protected virtual helper
  * functions that can be overridden to do the actual work, while the

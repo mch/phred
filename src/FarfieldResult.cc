@@ -38,9 +38,25 @@ FarfieldResult::FarfieldResult()
     t_cross_(0), rank_(0), size_(0), 
     output_type_(ETHETAPHI), result_(0)
 {
+  freqs_.set_element_type(MPI_FLOAT);
+  angles_.set_element_type(MPI_FLOAT);
+  data_.set_element_type(MPI_FLOAT);
+
+  freqs_.set_datatype(MPI_FLOAT);
+  angles_.set_datatype(MPI_FLOAT);
+  // data_'s datatype is different, calculated in init().
+
+  freqs_.set_name("freqs");
+  angles_.set_name("angles");
+  data_.set_name("ff_data");
+
+  angles_.has_time_dimension(false);
+  freqs_.has_time_dimension(false);
+  data_.has_time_dimension(false);
+
   variables_["angles"] = &angles_;
   variables_["freqs"] = &freqs_;
-  variables_["ff data"] = &data_;
+  variables_["ff_data"] = &data_;
 }
 
 FarfieldResult::~FarfieldResult()
@@ -224,10 +240,6 @@ void FarfieldResult::init(const Grid &grid)
   
   arc_connect();
 
-  angles_.has_time_dimension(false);
-  freqs_.has_time_dimension(false);
-  data_.has_time_dimension(false);
-
   // Output will be a three dimensional result, with a 2d table for
   // each frequency, and each frequency on it's own page. It will look
   // like this:
@@ -278,10 +290,11 @@ void FarfieldResult::init(const Grid &grid)
   }
   
   freqs_.add_dimension("frequency", num_freqs_, 0);
-  freqs_.set_name("frequencies");
+  freqs_.set_num(num_freqs_);
+
   angles_.add_dimension("theta and phi", 2, 0);
   angles_.add_dimension("angles", num_pts_, 0);
-  angles_.set_name("angles");
+  
   data_.add_dimension("data", num_cols, 0);
   data_.add_dimension("points", num_pts_, 0);
   data_.add_dimension("frequencies", num_freqs_, 0);
@@ -296,10 +309,15 @@ void FarfieldResult::init(const Grid &grid)
   
   MPI_Datatype temp;
   MPI_Type_contiguous(num_cols * num_freqs_ * num_pts_, 
-                      GRID_MPI_TYPE, &temp);
+                      MPI_FLOAT, &temp);
   MPI_Type_commit(&temp);
   data_.set_datatype(temp);
   data_.set_num(0);
+
+  MPI_Datatype angle_type;
+  MPI_Type_vector(num_pts_, 1, num_pts_, MPI_FLOAT, &angle_type);
+  MPI_Type_commit(&angle_type);
+  
 }
   
 void FarfieldResult::deinit(const Grid &grid)
@@ -777,11 +795,11 @@ void FarfieldResult::ffpu_moment_update(const Grid &grid)
 	
     /* xmax side */
 	
-    for(surf_j=0, glob_j=global_r_.ymin+surf_j ;
-        surf_j<global_r_.ymax-global_r_.ymin ;
-        surf_j++,glob_j++)
-      for(surf_k=0, glob_k=global_r_.zmin+surf_k ;
-          surf_k<global_r_.zmax-global_r_.zmin ;
+    for(surf_j=0, glob_j = global_r_.ymin + surf_j;
+        surf_j < global_r_.ymax - global_r_.ymin;
+        surf_j++, glob_j++)
+      for(surf_k = 0, glob_k = global_r_.zmin + surf_k;
+          surf_k < global_r_.zmax - global_r_.zmin;
           surf_k++,glob_k++)
       {
         r_accent[0] = global_r_.xmax*grid.get_deltax()-origin[0];

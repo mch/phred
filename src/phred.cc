@@ -574,7 +574,7 @@ static void pml_test(int rank, int size)
   farfield.set_freq_stop(300e12);
   farfield.set_num_freq(1);
   region_t h;
-  h.xmin = 20; h.xmax = 80; h.ymin = 5; h.ymax = 15; 
+  h.xmin = 20; h.xmax = 60; h.ymin = 5; h.ymax = 15; 
   h.zmin = 5; h.zmax = 15; 
   farfield.set_huygens(h);
 

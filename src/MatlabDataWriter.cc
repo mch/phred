@@ -457,7 +457,7 @@ void MatlabDataWriter::header_setup()
 
 void MatlabDataWriter::init(const Grid &grid)
 {
-  test();
+  //test();
 
   if (filename_.length() > 0 && rank_ == 0)
   {

@@ -89,7 +89,14 @@ public:
    */ 
   inline void set_element_type(MPI_Datatype t)
   {
-    element_type_ = t;
+    if (t == MPI_CHAR || t == MPI_BYTE || t == MPI_SHORT || t == MPI_INT
+        || t == MPI_LONG || t == MPI_FLOAT || t == MPI_DOUBLE
+        || t == MPI_UNSIGNED_CHAR || t == MPI_UNSIGNED_SHORT
+        || t == MPI_UNSIGNED || t == MPI_UNSIGNED_LONG
+        || t == MPI_LONG_DOUBLE)
+      element_type_ = t;
+    else
+      throw ResultException("Element data type must not be a MPI derived data type.");
   }
 
   /**
@@ -174,7 +181,8 @@ public:
   // Data_ member...
 
   /**
-   * Get the data type
+   * Get the data type used to process memory. This will usually be a
+   * derived data type.
    */
   inline MPI_Datatype get_datatype() const
   {
@@ -182,7 +190,8 @@ public:
   }
 
   /**
-   * Used to set the data type.
+   * Used to set the data type used to process memory. This will usually be a
+   * derived data type.
    * @param type MPI derived data type
    */
   inline void set_datatype(MPI_Datatype &type)
