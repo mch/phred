@@ -33,6 +33,22 @@ field_t WaveGuideExcitation::window(region_t r,
                                     unsigned int y, 
                                     unsigned int z)
 {
+  unsigned int dx, dy, dz;
+  field_t ret = 1.0;
+
+  dx = r.xmax - r.xmin;
+  dy = r.ymax - r.ymin;
+  dz = r.zmax - r.zmin;
+
+  if (dx > 0)
+    ret = ret * sin((dx - 1) / PI * (x - r.xmin));
+
+  if (dy > 0)
+    ret = ret * sin((dy - 1) / PI * (y - r.ymin));
   
+  if (dz > 0)
+    ret = ret * sin((dz - 1) / PI * (z - r.zmin));
+  
+  return ret;
 }
 

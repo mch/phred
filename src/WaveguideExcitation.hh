@@ -28,7 +28,8 @@
  * A wave guide excitation. Exciates TE_{nm} modes across a retangular
  * window.
  *
- * \bug this class really isn't that intellegent. 
+ * \bug this class really isn't that intellegent. In fact, it's
+ * downright stupid.
  */ 
 class WaveGuideExcitation : public WindowedExcitation
 {
@@ -42,50 +43,54 @@ public:
   /**
    * Set the mode to excite. 
    *
-   * @param n the number of half wavelengths in the long dimension
-   * @param m the number of half wavelengths in the short dimension
+   * @param n the number of half wavelengths in the x direction
+   * @param m the number of half wavelengths in the y direction
+   * @param o the number of half wavelengths in the z direction
    */
-  void set_mode(unsigned int n, unsigned int m)
+  void set_mode(unsigned int n, unsigned int m, unsigned int o)
   {
-    mode_n_ = n;
-    mode_m_ = m;
+    mode_x_ = n;
+    mode_y_ = m;
+    mode_z_ = o;
   }
 
   /** 
    * Set the excitation size, location, and orientation. This is
    * totally weak. ugg.
    */
-  void set_wg_excitation(unsigned int x, unsigned int y, unsigned int z,
-                         unsigned int width, unsigned int height, 
-                         Axis a)
-  {
-    x_ = x;
-    y_ = y;
-    z_ = z;
-    width_ = width;
-    height_ = height;
-    axis_ = a;
+//   void set_wg_excitation(unsigned int x, unsigned int y, unsigned int z,
+//                          unsigned int width, unsigned int height, 
+//                          Axis a)
+//   {
+//     x_ = x;
+//     y_ = y;
+//     z_ = z;
+//     width_ = width;
+//     height_ = height;
+//     axis_ = a;
 
-    region_.xmin = x_;
-    region_.ymin = y_;
-    region_.zmin = z_;
+//     region_.xmin = x_;
+//     region_.ymin = y_;
+//     region_.zmin = z_;
 
-    switch (axis_)
-    {
-    case X_AXIS:
-      region_.ymax = y_ + width;
-      region_.zmax = z_ + height;
-      break;
-    case Y_AXIS:
-      region_.xmax = x_ + width;
-      region_.zmax = z_ + height;
-      break;
-    case Z_AXIS:
-      region_.xmax = x_ + width;
-      region_.ymax = y_ + height;
-      break;
-    }
-  }
+//     switch (axis_)
+//     {
+//     case X_AXIS:
+//       region_.ymax = y_ + width;
+//       region_.zmax = z_ + height;
+//       break;
+//     case Y_AXIS:
+//       region_.xmax = x_ + width;
+//       region_.zmax = z_ + height;
+//       break;
+//     case Z_AXIS:
+//       region_.xmax = x_ + width;
+//       region_.ymax = y_ + height;
+//       break;
+//     }
+//   }
+
+
 
   /**
    * From the window size, placement, and orientation, construct a
@@ -95,12 +100,13 @@ public:
   //virtual void init(const Grid &grid);
 
 protected:
-  unsigned int mode_n_;
-  unsigned int mode_m_;
+  unsigned int mode_x_;
+  unsigned int mode_y_;
+  unsigned int mode_z_;
 
-  unsigned int x_, y_, z_;
-  unsigned int width_, height_;
-  Axis axis_;
+  //unsigned int x_, y_, z_;
+  //unsigned int width_, height_;
+  //Axis axis_;
 
 private:
 };

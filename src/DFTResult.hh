@@ -31,18 +31,15 @@
 class DFTResult : public Result
 {
 public:
-  DFTResult()
-    : freq_start_(0), freq_stop_(0), num_freqs_(0)
-  {}
+  DFTResult();
 
   DFTResult(field_t freq_start, field_t freq_stop, 
-            unsigned int num_freqs)
-    : freq_start_(freq_start), freq_stop_(freq_stop), num_freqs_(num_freqs)
-  {}
+            unsigned int num_freqs);
 
-  virtual ~DFTResult()
-  {}
+  virtual ~DFTResult();
 
+  map<string, Variable *> &get_result(const Grid &grid, 
+                                      unsigned int time_step) = 0;
   /**
    * Set the start frequency of the range
    */

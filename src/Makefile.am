@@ -55,6 +55,8 @@ phred_SOURCES=\
 	Excitation.hh \
 	WindowedExcitation.hh \
 	BartlettExcitation.hh \
+	WaveguideExcitation.hh \
+	WaveguideExcitation.cc \
 	BoundaryCondition.hh \
 	BoundaryCondition.cc \
 	Ewall.hh \
@@ -103,6 +105,7 @@ phred_SOURCES=\
 	PyDataWriter.hh \
 	PyDataWriter.cc \
 	DFTResult.hh \
+	DFTResult.cc \
 	PointDFTResult.hh \
 	PointDFTResult.cc \
 	SourceTimeResult.hh \

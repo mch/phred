@@ -24,6 +24,8 @@
 
 #include "../Excitation.hh"
 #include "../WindowedExcitation.hh"
+#include "../BartlettExcitation.hh"
+#include "../WaveguideExcitation.hh"
 #include "../Gaussm.hh"
 
 using namespace boost::python;
@@ -156,4 +158,13 @@ void export_excitations()
     .def("get_f0", &Gaussm::get_f0)
     .def("source_function", &Gaussm::source_function)
     ;
+
+  class_<BartlettExcitation, bases<WindowedExcitation>)("BartlettExcitation", "Bartlett windowed excitation; an attempt at a plane wave.", init<SourceFunction *>())
+    .def("excite", &BartlettExcitation::excite)
+    ;
+
+  class_<WaveguideExcitation, bases<WindowedExcitation>)("WaveguideExcitation", "Waveguide excitation; you know, for those pesky waveguides!", init<SourceFunction *>())
+    .def("excite", &WaveguideExcitation::excite)
+    ;
+
 }

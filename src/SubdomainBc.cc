@@ -104,7 +104,7 @@ void SubdomainBc::add_tx_rx_data(const RxTxData &x)
   rx_tx_data_.push_back(x);
 }
 
-BoundaryCondition SubdomainBc::get_type()
+BoundaryCondition SubdomainBc::get_type() const
 {
   return SUBDOMAIN;
 }

@@ -29,7 +29,11 @@
 #include <string>
 
 #include <sys/types.h>
-/* #include <stdint.h> */
+
+#ifdef __GNUC__
+#include <stdint.h> // uint32_t on linux
+#endif
+
 #include <mpi.h>
 
 using namespace std;
