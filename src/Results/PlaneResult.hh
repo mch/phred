@@ -49,6 +49,8 @@ protected:
 
   MPI_Datatype datatype_; 
 
+  bool have_data_; /**< True if the node has data to contribute. */ 
+
 public:
 
   PlaneResult();

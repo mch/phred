@@ -20,6 +20,7 @@
 */
 
 #include "SourceTimeResult.hh"
+#include "Globals.hh"
 
 SourceTimeResult::SourceTimeResult(SourceFunction &te)
   : te_(te)
@@ -51,7 +52,7 @@ void SourceTimeResult::set_excitation(const SourceFunction &te)
 map<string, Variable *> &SourceTimeResult::get_result(const Grid &grid, 
                                                       unsigned int time_step)
 {
-  if (result_time(time_step)) 
+  if (result_time(time_step) && MPI_RANK == 0) 
   {
     result_[0] = grid.get_deltat() * time_step; 
     result_[1] = te_.source_function(grid, time_step);

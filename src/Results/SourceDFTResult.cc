@@ -21,6 +21,7 @@
 
 #include "SourceDFTResult.hh"
 #include "Constants.hh"
+#include "Globals.hh"
 
 #include <math.h>
 
@@ -99,7 +100,7 @@ void SourceDFTResult::set_excitation(const SourceFunction &te)
 map<string, Variable *> &SourceDFTResult::get_result(const Grid &grid, 
                                                      unsigned int time_step)
 {
-  if (result_time(time_step)) 
+  if (result_time(time_step) && MPI_RANK == 0) 
   {
     field_t sf = te_.source_function(grid, time_step);
     for (unsigned int i = 0; i <= num_freqs_; i++)

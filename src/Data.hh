@@ -100,13 +100,14 @@ public:
    * The more common case is a plane or block result, where this
    * datatype specifies the entire (global) region of data, but the
    * local data type species only the data chuck local to that node.
+   *
+   * If this item is not set, datawriters should compute the global
+   * region from the collected dimension information. This is the
+   * simple case.
    */
   inline MPI_Datatype get_global_datatype() const
   {
-    if (MPI_DATATYPE_NULL == global_type_)
-      return type_;
-    else
-      return global_type_;
+    return global_type_;
   }
 
   /**

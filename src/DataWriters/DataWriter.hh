@@ -86,14 +86,13 @@ protected:
                                   void *ptr, unsigned int len) = 0;
 
   /**
-   * Retrieves the starts and dimensions of the local data chunks that
-   * will be coming in from each node.
+   * Returns a vector of MPI data types that describe how the data
+   * coming from each node will fit into the buffer.
    *
    * @param var the variable object describing the stuff. 
-   * @return a vector with pairs of data. First is the starting
-   * offset, second is length of data. 
+   * @return a vector of mpi data types, one per node. 
    */ 
-  vector<pair<unsigned int, unsigned int> > gather_sizes(const Variable &var);
+  vector<MPI_Datatype> gather_types(const Variable &var);
 
   /**
    * Returns the number of bytes that each node will be sending. 

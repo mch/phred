@@ -58,16 +58,6 @@ protected:
   vector<Dimension> dimensions_; /**< Dimension information for this
                                     variable. */ 
 
-  //vector<int> local_dim_lens_; /**< Local node dimension lengths */
-  //vector<int> global_dim_lens_; /**< Global dimension lengths */
-  //vector<string> dim_names_; /**< Dimension names */
-  //vector<unsigned int> dim_starts_; /**< Starting positions for the
-  //                                     data in the final output. Used
-  //                                     when the data is collected to
-  //                                     one rank for writing, so it
-  //                                     knows where the data from each
-  //                                     rank goes. */
-
   bool time_dim_; /**< True if this variable has a time dimension. If
                      false, DataWriters except only one result from
                      this Result, usually at time_stop_. */
@@ -96,10 +86,6 @@ public:
                             unsigned int global_length, 
                             unsigned int start)
   {
-    //dim_names_.push_back(name);
-    //local_dim_lens_.push_back(local_length);
-    //global_dim_lens_.push_back(global_length);
-    //dim_starts_.push_back(start);
     Dimension new_dim;
     new_dim.local_len_ = local_length;
     new_dim.global_len_ = global_length;
@@ -116,11 +102,6 @@ public:
   inline void reset()
   {
     dimensions_.clear();
-
-//     dim_names_.clear();
-//     local_dim_lens_.clear();
-//     global_dim_lens_.clear();
-//     dim_starts_.clear();
   }
 
   /**
@@ -143,7 +124,7 @@ public:
    * Returns the MPI data type for the individual elements of this
    * variable. 
    */
-  inline MPI_Datatype get_element_type()
+  inline MPI_Datatype get_element_type() const
   {
     return element_type_;
   }
