@@ -66,6 +66,13 @@ void export_csg()
                                                shared_ptr<CSGObject> >())
     ;
 
+  class_<CSGArray, bases<CSGObject> >("CSGArray", 
+                                      "Represents an array of items",
+                                      init<shared_ptr<CSGObject> >())
+    .def("set_lengths", &CSGArray::set_lengths)
+    .def("set_spacing", &CSGArray::set_spacing)
+    ;
+
   class_<CSGBox, bases<CSGPrimitive> >("CSGBox", 
                                        "A CSG object representing a box.")
     .def("set_size", &CSGBox::set_size)

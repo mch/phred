@@ -43,7 +43,27 @@ CSGArray::~CSGArray()
 
 CSGStatus CSGArray::is_point_inside(float x, float y, float z) const
 {
-  // This tricky part!
+  CSGStatus ret = OUTSIDE; 
+  float tx, ty, tz;
+
+  tx = x; 
+  // This tricky part! I think this can be done better:
+  for (unsigned int i = 0; i < xlen_; i++, tx = tx - xspace_)
+  {
+    ty = y;
+    for (unsigned int j = 0; j < ylen_; j++, ty = ty - yspace_)
+    {
+      tz = z;
+      for (unsigned int k = 0; k < zlen_; k++, tz = tz - zspace_)
+      {
+        ret = (*child_).is_point_inside(tx, ty, tz);
+        if (ret != OUTSIDE)
+          return ret;
+      }
+    }
+  }
+
+  return ret;
 }
 
 shared_ptr<CSGObject> CSGArray::copy() const
