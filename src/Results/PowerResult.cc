@@ -243,6 +243,10 @@ ostream& PowerResult::to_string(ostream &os) const
   return os;
 }
 
+/**
+ * This class is a meta-program template which calculates the power
+ * through plane in the time domain.
+ */ 
 class TimePowerAlg
 {
 public:
@@ -260,11 +264,19 @@ public:
   static inline void alg(const int &x, const int &y, const int &z, 
                          Fields_t &f, Data &data)
   {
+    // It is necessary to store the old value of E so that the average
+    // of two time steps can be calculated, otherwise the result will
+    // be incorrect.
+    
     data.tp_ += (f.et1_avg * f.ht2_avg - f.et2_avg * f.ht1_avg) 
       * data.area_;
   }
 };
 
+/**
+ * This class is a meta-program template which calculates the power
+ * through plane in the frequency domain.
+ */ 
 class DFTPowerAlg
 {
 public:
@@ -290,6 +302,10 @@ public:
   static inline void alg(const int &x, const int &y, const int &z, 
                          Fields_t &f, Data &data)
   {
+    // It is necessary to store the old value of E so that the average
+    // of two time steps can be calculated, otherwise the result will
+    // be incorrect.
+
     data.et1_[data.idx] += complex<field_t>(f.et1_avg * data.e_cos_temp, 
                                             -1 * f.et1_avg * data.e_sin_temp);
     data.et2_[data.idx] += complex<field_t>(f.et2_avg * data.e_cos_temp, 
