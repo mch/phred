@@ -699,7 +699,7 @@ class Grid {
    * @return a pointer to the field component at the specified face
    */
   field_t *get_face_start(Face face, FieldComponent comp,
-                                unsigned int offset = 0);
+                          unsigned int offset = 0) const;
 
   /**
    * Return a pointer to the start of a face. DANGER!! Clients must
@@ -713,7 +713,7 @@ class Grid {
    * @return a pointer to the field component at the specified face
    */
   field_t *get_face_start(Face face, FieldComponent comp,
-                          point_t p);
+                          point_t p) const;
 
   /**
    * Return a pointer to a point in the grid for a particular field
