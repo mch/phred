@@ -53,15 +53,6 @@ public:
   ~FarfieldResult();
 
   /**
-   * Set the type of result to produce. Defaults to ETHETAPHI.
-   */
-  inline void set_output_type(FfType ot)
-  {
-    output_type_ = ot;
-  }
-
-
-  /**
    * Compute the near to farfield transformation. 
    *
    * @param grid a reference to a Grid object
@@ -206,9 +197,9 @@ protected:
    * @param size1 length of the first dimension of the face
    * @param size2 length of the second dimension of the face
    */
-  static inline int temp_index(int &face, int &component, 
-                               int &x1, int &x2,
-                               int &size1, int &size2)
+  static inline int temp_index(int face, int component, 
+                               int x1, int x2,
+                               int size1, int size2)
   {
     return x2 + (x1 + (component + face * 3) * size1) * size2;
   }
@@ -221,7 +212,7 @@ protected:
    * @param theta observation point angle with the x axis
    * @param fftstep far field time step
    */ 
-  inline int WU_index(int &phi_idx, int &theta_idx, int &ffstep)
+  inline int WU_index(int phi_idx, int theta_idx, int ffstep)
   {
     return ffstep + (theta_idx + phi_idx * theta_data_.length()) * ff_tsteps_;
   }
