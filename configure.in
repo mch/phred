@@ -4,6 +4,8 @@ AC_INIT(phred, 0.1.0)
 dnl Every other copy of the package version number gets its value from here
 AM_INIT_AUTOMAKE(phred, 0.1.0)
 
+AC_CANONICAL_SYSTEM
+
 AM_MAINTAINER_MODE
 
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
@@ -13,8 +15,6 @@ AC_SUBST(VERSION)
 
 ISODATE=`date +%Y-%m-%d`
 AC_SUBST(ISODATE)
-
-AC_CANONICAL_HOST
 
 dnl options
 WANT_DEBUG=
@@ -186,13 +186,17 @@ fi
 dnl Use AlitVec instructions on G4 and G5 processors? Compiler support? 
 dnl Libraries? 
 if test "x$WANT_ALTIVEC" = "x1"; then
-        AC_MSG_WARN([AltiVec support is not implemented yet.])
-        AC_MSG_CHECKING([for AltiVec support])
-        AC_COMPILE_IFELSE([
+        if test "$target_cpu" = "powerpc"; then 
+            AC_MSG_WARN([AltiVec support is not implemented yet.])
+            AC_MSG_CHECKING([for AltiVec support])
+            AC_COMPILE_IFELSE([
 void test()
 
 ], [], [])
-        AC_MSG_RESULT[inconclusive]
+            AC_MSG_RESULT[inconclusive]
+        else
+            AC_MSG_WARN([AltiVec support is only available on G4 and G5 powerpc processors!])
+        fi
 fi
 
 dnl Checks for a MPI library.
@@ -266,13 +270,29 @@ USE_PY_BINDINGS=0
 BUILD_LIBBOOSTPYTHON=0
 PYTHON_LDFLAGS=""
 if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
-        AC_CHECK_LIB(python2.3, Py_Initialize, [], [
-            AC_MSG_ERROR(*** Can't find the Python libraries.)],
-            [-L$with_python_libs])
+        PYTHON_LDFLAGS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LINKFORSHARED')" | python -`
+
+        CXXFLAGS="$CXXFLAGS $PYTHON_LD_FLAGS"
 
         if [[ ! -z "$with_python_includes" ]]; then 
           CPPFLAGS="$CPPFLAGS -I$with_python_includes"
         fi
+
+        if [[ "$target_vendor" = "apple" ]]; then
+            AC_MSG_CHECKING([for Apple's Python framework])
+            AC_COMPILE_IFELSE([
+#include <Python.h>
+void test()
+{
+Py_Initialize();
+}
+], [AC_MSG_RESULT([yes])], [AC_MSG_ERROR(*** Can't find Apple's Python framework.)])
+        else
+        AC_CHECK_LIB(python2.3, Py_Initialize, [], [
+            AC_MSG_ERROR(*** Can't find the Python libraries.)],
+            [-L$with_python_libs])
+        fi
+
         AC_CHECK_HEADER([Python.h], [], [AC_MSG_ERROR([*** Can't find the Python header files])])
 
         if [[ ! -z "$with_boost_includes" ]] || [[ ! -z "$with_boost_libs" ]]; then 
@@ -292,7 +312,6 @@ dnl THIS INCLUDE PATH NEEDS TO BE ABSOLUTE!!!
           BUILD_LIBBOOSTPYTHON=1
         fi
 
-        PYTHON_LDFLAGS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LINKFORSHARED')" | python -`
         USE_PY_BINDINGS=1
         AC_DEFINE([USE_PY_BINDINGS], [1], [Use Python bindings])
 fi
