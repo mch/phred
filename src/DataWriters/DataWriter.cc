@@ -82,7 +82,7 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 
       MPI_Send(const_cast<void *>(data.get_ptr()), 
                data.get_num(), data.get_datatype(), 
-               0, 1, MPI_COMM_WORLD);
+               0, 1, MPI_COMM_PHRED);
 
 //       cerr << "Rank " << MPI_RANK << " sent " << sz << " bytes..."
 //            << endl;      
@@ -158,7 +158,7 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
                        data.get_datatype(), 0, 1, 
                        static_cast<void *>(ptr), 
                        rcv_bytes[0], MPI_CHAR, 0, 1,
-                       MPI_COMM_WORLD, &status);
+                       MPI_COMM_PHRED, &status);
         } else {
           int sz = 0;
           MPI_Type_size(var.node_types_[0], &sz);
@@ -170,7 +170,7 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
                        data.get_datatype(), 0, 1, 
                        static_cast<void *>(ptr), 
                        1, var.node_types_[0], 0, 1,
-                       MPI_COMM_WORLD, &status);
+                       MPI_COMM_PHRED, &status);
 
 //           cerr << "Buffered " << rcv_bytes[0] << " from rank 0. " 
 //                << "Or is it " << sz << " bytes?" << endl;
@@ -189,7 +189,7 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 //                << " (" << sz << "?) bytes from rank " << i << endl;
 
           MPI_Recv(static_cast<void *>(ptr), 1, var.node_types_[i], 
-                   i, 1, MPI_COMM_WORLD, &status);
+                   i, 1, MPI_COMM_PHRED, &status);
 
 //           cerr << "Rank 0 recieved " << rcv_bytes[i] 
 //                << " (" << sz << "?) bytes from rank " << i << endl;
@@ -216,7 +216,7 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
   }
 
   // TEMPORARY: For debugging an exception above!
-  MPI_Barrier(MPI_COMM_WORLD);
+  //MPI_Barrier(MPI_COMM_PHRED);
 
 }
 
@@ -237,7 +237,7 @@ vector<unsigned int> DataWriter::get_recieve_sizes(const Data &data)
   
   MPI_Gather(static_cast<void *>(&nums_snd), 2, MPI_UNSIGNED, 
              static_cast<void *>(nums_recv), 2, MPI_UNSIGNED, 
-             0, MPI_COMM_WORLD);
+             0, MPI_COMM_PHRED);
 
   if (MPI_RANK == rank_)
   {
@@ -289,11 +289,11 @@ vector<MPI_Datatype> DataWriter::gather_types(const Variable &var)
 
   MPI_Gather(reinterpret_cast<void *>(dim_starts), num_dimensions, 
              MPI_UNSIGNED, reinterpret_cast<void *>(recv_dim_starts), 
-             num_dimensions, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+             num_dimensions, MPI_UNSIGNED, 0, MPI_COMM_PHRED);
 
   MPI_Gather(reinterpret_cast<void *>(dim_lengths), num_dimensions, 
              MPI_UNSIGNED, reinterpret_cast<void *>(recv_dim_lens), 
-             num_dimensions, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+             num_dimensions, MPI_UNSIGNED, 0, MPI_COMM_PHRED);
 
 
   if (MPI_RANK == rank_)

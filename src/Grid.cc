@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include "config.h"
 
 #include "Grid.hh"
+#include "Globals.hh"
 
 #include "Boundaries/Ewall.hh"
 #include "Boundaries/Hwall.hh"
@@ -621,7 +622,7 @@ void Grid::load_materials(shared_ptr<MaterialLib> matlib)
            << "    of zero. Perfect electric conductor can have eps=0, \n"
            << "    but that is a special material defined by Phred.\n\n"
            << "Program aborting. Check material library." << endl;
-      MPI_Abort(MPI_COMM_WORLD, 1);
+      MPI_Abort(MPI_COMM_PHRED, 1);
     }
     else 
     {

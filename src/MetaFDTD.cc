@@ -269,7 +269,7 @@ void MetaFDTD::run()
 
   // This barrier prevent ranks > 0 from continuing on if rank 0 has
   // trouble with a data writer or something. 
-  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_PHRED);
 
   // Run
   unsigned int ts = 0;
@@ -394,16 +394,16 @@ void MetaFDTD::run()
     unsigned int num_nodes = grid_->get_num_updated_nodes();
 
     MPI_Reduce(&num_mnodes, &num_mnodes, 1, MPI_DOUBLE, 
-               MPI_SUM, 0, MPI_COMM_WORLD);
+               MPI_SUM, 0, MPI_COMM_PHRED);
 
     MPI_Reduce(&num_nodes, &num_nodes, 1, MPI_UNSIGNED, 
-               MPI_SUM, 0, MPI_COMM_WORLD);
+               MPI_SUM, 0, MPI_COMM_PHRED);
 
     MPI_Reduce(&cpu_mnps, &cpu_mnps, 1, MPI_DOUBLE, 
-               MPI_SUM, 0, MPI_COMM_WORLD);
+               MPI_SUM, 0, MPI_COMM_PHRED);
 
     MPI_Reduce(&wall_mnps, &wall_mnps, 1, MPI_DOUBLE, 
-               MPI_SUM, 0, MPI_COMM_WORLD);
+               MPI_SUM, 0, MPI_COMM_PHRED);
 
     if (MPI_RANK == 0)
     {

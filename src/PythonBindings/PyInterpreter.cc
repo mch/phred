@@ -127,7 +127,7 @@ void PyInterpreter::run_script(const char *filename)
       PyErr_Print();
     }
     throw PyInterpException("Python detected an error.");
-    //MPI_Abort(MPI_COMM_WORLD, 1);
+    //MPI_Abort(MPI_COMM_PHRED, 1);
   }
 
   fclose(fp);
@@ -157,7 +157,7 @@ void PyInterpreter::slave()
   while (size > 0) 
   {
     MPI_Bcast(static_cast<void *>(&size), 1, MPI_INT, 
-              0, MPI_COMM_WORLD);
+              0, MPI_COMM_PHRED);
 
     if (size == -1)
       throw PyInterpException("Standard input and standard output must be bound to a terminal to use interactive mode.");
@@ -170,7 +170,7 @@ void PyInterpreter::slave()
       throw MemoryException();
 
     MPI_Bcast(static_cast<void *>(buffer), size, MPI_CHAR, 
-              0, MPI_COMM_WORLD);
+              0, MPI_COMM_PHRED);
     buffer[size] = 0;
 
     try {
@@ -193,7 +193,7 @@ void PyInterpreter::master()
   if (!isatty(STDIN_FILENO)) {
     // Tell slaves to abort as well. 
     int size = -1;
-    MPI_Bcast(static_cast<void *>(&size), 1, MPI_INT, 0, MPI_COMM_WORLD);    
+    MPI_Bcast(static_cast<void *>(&size), 1, MPI_INT, 0, MPI_COMM_PHRED);    
 
     throw PyInterpException("Standard input and standard output must be bound to a terminal to use interactive mode.");
   }
@@ -227,9 +227,9 @@ void PyInterpreter::master()
       if ((multiline && strlen(ln) == 0) || (!multiline && buffer.size() > 0))
       {
         int size = buffer.length();
-        MPI_Bcast(static_cast<void *>(&size), 1, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(static_cast<void *>(&size), 1, MPI_INT, 0, MPI_COMM_PHRED);
         MPI_Bcast(static_cast<void *>(const_cast<char *>(buffer.c_str())), buffer.length(), 
-                  MPI_CHAR, 0, MPI_COMM_WORLD);
+                  MPI_CHAR, 0, MPI_COMM_PHRED);
 
         try {
           handle<> res( PyRun_String(buffer.c_str(), Py_single_input, 
