@@ -53,4 +53,19 @@ public:
   const char *what() const throw() { return "Delta x, y, z, and time settings do not statisfy Courant stability condition."; }
 };
 
+class PyInterpException : public std::exception {
+private:
+  const char *buf_;
+public:
+  PyInterpException(const char *buf) : buf_(buf) {}
+  PyInterpException() : buf_(0) {}
+  virtual const char *what() const throw() 
+  { 
+    if (buf_)
+      return buf_; 
+    else
+      return "Python interpreter exception.";
+  }
+};
+
 #endif // EXCEPTIONS_H

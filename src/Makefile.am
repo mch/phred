@@ -1,21 +1,26 @@
 bin_PROGRAMS=phred
 
 phred_cond = 
-phred_cond_bs = 
+
+phred_LDFLAGS=
 
 # Conditional on having Python and boost.python
 if PY_BINDINGS
-phred_cond += python-bindings/PyExcitations.cc
+phred_cond += python-bindings/PyExcitations.cc \
+	python-bindings/PyInterpreter.hh \
+	python-bindings/PyInterpreter.cc
 #	python-bindings/PyGrid.cc \
 #	python-bindings/PyMaterial.cc
 
 phred_LDADD = ../thirdparty/boost.python/src/libboost_python.la
-phred_LDFLAGS = @PYTHON_LDFLAGS@
+phred_LDFLAGS += @PYTHON_LDFLAGS@
 endif
 
-BUILT_SOURCES = jan-grammer.hh
+BUILT_SOURCES = jan-grammer.h
 
 AM_YFLAGS = -d
+
+phred_LDFLAGS += @LEXLIB@
 
 phred_SOURCES=phred.cc \
 	jan-grammer.yy \

@@ -46,6 +46,9 @@
 /* Define to 1 if you have the `python2.3' library (-lpython2.3). */
 #undef HAVE_LIBPYTHON2_3
 
+/* Define to 1 if you have the `readline4' library (-lreadline4). */
+#undef HAVE_LIBREADLINE4
+
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 

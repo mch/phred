@@ -72,6 +72,7 @@ AC_ARG_WITH(python_includes, AC_HELP_STRING([--with-python-includes], [Location 
 AC_ARG_WITH(boost_libs, AC_HELP_STRING([--with-boost-libs], [Location of boost libraries (builds boost by default)]))
 AC_ARG_WITH(boost_includes, AC_HELP_STRING([--with-boost-includes], [Location of boost include files (uses distributed version by default)]))
 
+AC_ARG_WITH(readline, AC_HELP_STRING([--without-readline], [Don't use readline for Python interactive mode. Interactive mode will be restricted to single node execution.]))
 
 dnl DX_INIT_DOXYGEN([phred])
 
@@ -274,6 +275,12 @@ dnl THIS INCLUDE PATH NEEDS TO BE ABSOLUTE!!!
 
         USE_PY_BINDINGS=1
         AC_DEFINE([USE_PY_BINDINGS], [1], [Use Python bindings])
+
+dnl Use readline? 
+        if test ! "$with_readline" = "no"; then
+        AC_CHECK_LIB(readline, readline, [], [])
+        AC_CHECK_HEADER([readline/readline.h], [], [])
+        fi
 fi
 AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
 AM_CONDITIONAL(BUILD_LIBBOOSTPYTHON, test "x$BUILD_LIBBOOSTPYTHON" = "x1")
@@ -324,7 +331,13 @@ echo -n "Using OpenMP parallization? "
 if [[ "x$USE_OPENMP" = "x1" ]]; then echo "yes"; else echo "no"; fi
 echo
 echo -n "Building Python bindings? " 
-if [[ "x$USE_PY_BINDINGS" == "x1" ]]; then echo "yes"; else echo "no"; fi
+if [[ "x$USE_PY_BINDINGS" == "x1" ]]; then 
+  echo "yes"; 
+  echo -n "Using readline for interactive Python? "
+  if [[ ! "$with_readline" = "no" ]]; then echo "yes"; else echo "no"; fi
+else 
+  echo "no"; 
+fi
 echo -n "Building a parser for Jan's input files? "
 if test ! -z "$LEX" && test ! -z "$YACC"; then echo "yes"; else echo "no"; fi
 echo

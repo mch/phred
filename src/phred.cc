@@ -106,6 +106,7 @@ using namespace std; // Too lazy to type namespaces all the time.
 
 #ifdef USE_PY_BINDINGS
 #include <Python.h>
+#include "python-bindings/PyInterpreter.hh"
 #endif
 
 static void usage (int status);
@@ -119,7 +120,7 @@ static struct poptOption options[] =
   {
     {"help", 'h', POPT_ARG_NONE, 0, 'h'},
     {"version", 'V', POPT_ARG_NONE, 0, 'V'},
-    {"verbose", 'v', POPT_ARG_NONE, 0, 'v'},
+    {"interactive", 'i', POPT_ARG_NONE, 0, 'i'},
     {"file", 'f', POPT_ARG_STRING, 0, 'f'},
     {0, 0, 0, 0, 0}
   };
@@ -130,6 +131,7 @@ static int decode_switches (int argc, char **argv);
 // Ugly globals
 string inputfile;
 const char *program_name;
+bool interactive;
 
 // Some test declarations
 static void test_yz_plane(field_t *ptr, MPI_Datatype t, int xpos, int rank);
@@ -150,6 +152,7 @@ main (int argc, char **argv)
   int i, rank, size, len;
   string prog_name;
   char *temp;
+  interactive = false;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -170,8 +173,8 @@ main (int argc, char **argv)
     i = decode_switches (argc, argv);
   } 
 
-  cout << "phread version " << PACKAGE_VERSION << " starting. " 
-       << "Rank " << rank << " of " << size << "." << endl;
+  cout << "phread version " << PACKAGE_VERSION << " starting on " 
+       << "rank " << rank << " of " << size << "." << endl;
 
   // Parse the input script (each process will just load it's own file
   // for now. ) 
@@ -180,8 +183,16 @@ main (int argc, char **argv)
   // processor set up its grid.
 
   try {
-    //point_test(rank, size);
-    pml_test(rank, size);
+#ifdef USE_PY_BINDINGS
+    if (interactive) {
+      PyInterpreter interp().run(rank, size);
+    } 
+#endif
+    if (!interactive) {
+      // TESTS, TEMPORARY
+      //point_test(rank, size);
+      pml_test(rank, size);
+    }
   } catch (const std::exception &e) {
     cout << "Caught exception: " << e.what() << endl;
   }
@@ -229,6 +240,10 @@ decode_switches (int argc, char **argv)
       usage (0);
       break;
 
+    case 'i':
+      interactive = true;
+      break;
+      
     case 'f':
       arg = const_cast<char *>(poptGetOptArg(ctx));
 
@@ -264,9 +279,14 @@ Phred is a parallel finite difference time domain electromagnetics simulator.\n"
   printf ("Usage: %s [OPTION]... [FILE]...\n", program_name);
   printf ("\
 Options:\n\
-  -f, --filename             filename to read problem description from\n\
-  -v, --verbose              print more information\n\
-  -h, --help                 display this help and exit\n\
+  -f, --filename             filename to read problem description from\n");
+#ifdef USE_PY_BINDINGS
+  printf("  -i, --interactive          start an interactive Python interpreter on\n\
+                             rank zero if that process is attached to a \n\
+                             terminal. Commands will be mirrored to\n\
+                             interpreters running on the other ranks.");
+#endif
+  printf("  -h, --help                 display this help and exit\n\
   -V, --version              output version information and exit\n\
 ");
 #else
