@@ -45,12 +45,6 @@ using namespace std; // Too lazy to type namespaces all the time.
 
 #define EXIT_FAILURE 1
 
-// WTF?
-//char *xmalloc ();
-//char *xrealloc ();
-//char *xstrdup ();
-
-
 static void usage (int status);
 
 #ifdef HAVE_LIBPOPT
@@ -136,12 +130,61 @@ main (int argc, char **argv)
   // Parse the input script (each process will just load it's own file
   // for now. ) 
 
-  // Allocate data structures
+  // Subdomain the grid among the available processors and have each
+  // processor set up its grid.
+
+
+
+  // THIS STUFF HERE IS TEMPORARY
+  Grid grid; 
+
+  grid.setup_grid(100, 100, 100, 0, 0, 0, 100, 100, 100, 
+                  18.75e-9, 18.75e-9, 18.75e-9, 36e-18);
+
+  MaterialLib mats; 
+  Material mat;
+  mats.add_material(mat);
+  
+  // The library stores copies. 
+  mat.set_epsilon(2.2);
+  mat.set_name("Substrate");
+  mats.add_material(mat);
+
+  grid.load_materials(mats);
+
+  // Global coordinates. 
+  grid.define_box(0, 100, 0, 100, 0, 100, 1);
+  grid.define_box(40, 60, 40, 60, 40, 60, 2);
+  grid.set_boundary(FRONT, EWALL);
+  grid.set_boundary(BACK, EWALL);
+  grid.set_boundary(LEFT, EWALL);
+  grid.set_boundary(RIGHT, EWALL);
+  grid.set_boundary(BOTTOM, EWALL);
+  grid.set_boundary(TOP, EWALL);
 
   // Main loop
+  unsigned int num_time_steps = 100;
+  unsigned int ts = 0;
   
-  
+  for (ts = 0; ts < num_time_steps; ts++) {
+    // Excitations
+
+    // E Field update
+
+    // H Field update
+
+    // Boundary condition application
+
+    // Subdomain interface plane sharing
+
+    // DFT outputs
+    
+    // Data block outputs
+    
+  }
+
   // Thank you and goodnight
+  MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
 
   exit (0);

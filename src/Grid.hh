@@ -15,6 +15,8 @@
 
 #include <mpi.h>
 
+#include <time.h>
+
 #include "Types.hh"
 #include "MaterialLib.hh"
 
@@ -29,6 +31,11 @@ class Grid {
   unsigned int global_dimx_;
   unsigned int global_dimy_;
   unsigned int global_dimz_;
+
+  // Local grid starting point
+  unsigned int start_x_;
+  unsigned int start_y_;
+  unsigned int start_z_;
 
   // Local grid size (this sub domain only)
   // If a face must be communicated to a processor, then the
@@ -123,8 +130,11 @@ class Grid {
   void free_material();
 
   // Grid actions
-  void setup_grid(int global_x, int global_y, int global_z, 
-                  int x, int y, int z, 
+  void setup_grid(unsigned int global_x, unsigned int global_y, 
+                  unsigned int global_z, 
+                  unsigned int start_x, unsigned int start_y, 
+                  unsigned int start_z, 
+                  unsigned int x, unsigned int y, unsigned int z, 
                   delta_t deltax, delta_t deltay, delta_t deltaz,
                   delta_t deltat);
 
@@ -132,14 +142,138 @@ class Grid {
   // grid points). All definitions are done in global coordinates. It
   // is the grid's job to calculate the region within the subdomain
   // and assign the material indicies appropriatly. 
-  void define_box(int x_start, int x_stop, int y_start, int y_stop, 
-                  int z_start, int z_stop, unsigned int mat_index);
+  void define_box(unsigned int x_start, unsigned int x_stop, 
+                  unsigned int y_start, unsigned int y_stop, 
+                  unsigned int z_start, unsigned int z_stop, 
+                  unsigned int mat_index);
 
   // Boundary condition and subdomain boundary operations. 
   void set_boundary(unsigned int face, BoundaryCondition bc);
 
   // Set the rank of the processor this face needs to be shared with. 
   void set_face_rank(unsigned int face, int rank);
+
+  // Accessors
+  
+  /**
+   * Returns the global size of the x dimension.
+   */
+  unsigned int get_gdx();
+  /**
+   * Returns the global size of the y dimension.
+   */
+  unsigned int get_gdy();
+  /**
+   * Returns the global size of the z dimension.
+   */
+  unsigned int get_gdz();
+
+  /**
+   * Returns the local start of the x dimension.
+   */
+  unsigned int get_lsx();
+  /**
+   * Returns the local start of the y dimension.
+   */
+  unsigned int get_lsy();
+  /**
+   * Returns the local start of the z dimension.
+   */
+  unsigned int get_lsz();
+
+
+  /**
+   * Returns the local size of the x dimension.
+   */
+  unsigned int get_ldx();
+  /**
+   * Returns the local size of the y dimension.
+   */
+  unsigned int get_ldy();
+  /**
+   * Returns the local size of the z dimension.
+   */
+  unsigned int get_ldz();
+
+
+  /**
+   * Returns the spacing in the x direction (mm)
+   */
+  delta_t get_deltax();
+  /**
+   * Returns the spacing in the y direction (mm)
+   */
+  delta_t get_deltay();
+  /**
+   * Returns the spacing in the z direction (mm)
+   */
+  delta_t get_deltaz();
+  /**
+   * Returns the spacing in time (s)
+   */
+  delta_t get_deltat();
+
+  // Assign and get values of field components
+
+  /**
+   * Assign a value to Ex at some point in space.
+   * @param x coordinate
+   * @param y coordinate
+   * @param z coordinate
+   * @param value 
+   */
+  void set_ex(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val);
+
+  /**
+   * Assign a value to Ey at some point in space.
+   * @param x coordinate
+   * @param y coordinate
+   * @param z coordinate
+   * @param value 
+   */
+  void set_ey(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val);
+
+  /**
+   * Assign a value to Ez at some point in space.
+   * @param x coordinate
+   * @param y coordinate
+   * @param z coordinate
+   * @param value 
+   */
+  void set_ez(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val);
+
+  /**
+   * Assign a value to Hx at some point in space.
+   * @param x coordinate
+   * @param y coordinate
+   * @param z coordinate
+   * @param value 
+   */
+  void set_hx(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val);
+
+  /**
+   * Assign a value to Hy at some point in space.
+   * @param x coordinate
+   * @param y coordinate
+   * @param z coordinate
+   * @param value 
+   */
+  void set_hy(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val);
+
+  /**
+   * Assign a value to Hz at some point in space.
+   * @param x coordinate
+   * @param y coordinate
+   * @param z coordinate
+   * @param value 
+   */
+  void set_hz(unsigned int x, unsigned int y, 
+                     unsigned int z, field_t val);
 };
 
 #endif // GRID

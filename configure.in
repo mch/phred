@@ -30,14 +30,17 @@ if test "$with_cxx" = yes; then
 fi
 
 dnl Checks for programs.
-AC_LANG(C++)
-
 AC_PROG_INSTALL
 AC_PROG_CC
-AC_PROC_CXX
-AC_PROC_CXXCPP
+AC_PROG_CXX
+AC_PROG_CXXCPP
 AM_PROG_LEX
 AC_PROG_YACC
+
+AC_LANG(C++)
+
+dnl Use popt? 
+AC_ARG_WITH(popt, AC_HELP_STRING([--without-popt], [Don't use popt for handling command line options (the executable will only accept an option file)]))
 
 # Various MPI implementations we can use
 AC_ARG_WITH(lammpi, 
@@ -117,7 +120,7 @@ if [[ ! -z "$with_ibmpe" ]] || [[ ! -z "$with_ibmpe_libs" ]] || [[ ! -z "$with_i
                 ibmpe_INCLUDES="$with_ibmpe_includes"
         fi
 
-        AC_CHECK_LIB(mpi, MPI_Init, [LDADD="$LDADD -lmpi"], [
+        AC_CHECK_LIB(mpi, MPI_Init, [], [
             AC_MSG_ERROR(*** Can't find the IBM PE MPI libraries.)],
             [-L$ibmpe_LIBS])
 
@@ -136,7 +139,7 @@ if [[ ! -z "$with_mpich" ]] || [[ ! -z "$with_mpich_libs" ]] || [[ ! -z "$with_m
                 mpich_INCLUDES="$with_mpich_includes"
         fi
 
-        AC_CHECK_LIB(mpi, MPI_Init, [LDADD="$LDADD -lmpi"], [
+        AC_CHECK_LIB(mpi, MPI_Init, [], [
             AC_MSG_ERROR(*** Can't find the mpich libraries.)],
             [-L$mpich_LIBS])
 
@@ -155,7 +158,7 @@ if [[ ! -z "$with_lammpi" ]] || [[ ! -z "$with_lammpi_libs" ]] || [[ ! -z "$with
                 lammpi_INCLUDES="$with_lammpi_includes"
         fi
 
-        AC_CHECK_LIB(mpi, MPI_Init, [LDADD="$LDADD -lmpi"], [
+        AC_CHECK_LIB(mpi, MPI_Init, [], [
             AC_MSG_ERROR(*** Can't find the LAM/MPI libraries.)],
             ["-L$lammpi_LIBS"])
 
@@ -164,10 +167,12 @@ if [[ ! -z "$with_lammpi" ]] || [[ ! -z "$with_lammpi_libs" ]] || [[ ! -z "$with
 
 fi
 
-AC_CHECK_LIB(popt, poptGetContext, LDADD="$LDADD -lpopt", [
-    AC_MSG_ERROR(*** Cannot find the popt library); exit])
-
-AC_CHECK_HEADER([popt.h], [], [AC_MSG_WARN([*** popt headers required.])])
+if [[ ! "$with_popt" = no ]]; then
+        AC_DEFINE([USE_POPT], [1], [Use the popt library])
+        AC_CHECK_LIB(popt, poptGetContext, [], [
+            AC_MSG_ERROR(*** Cannot find the popt library); exit])
+        AC_CHECK_HEADER([popt.h], [], [AC_MSG_WARN([*** popt headers required.])])
+fi
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -186,5 +191,6 @@ dnl Checks for library functions.
 
 AC_SUBST(CFLAGS, $CFLAGS)
 AC_SUBST(CXXFLAGS, $CXXFLAGS)
+AC_SUBST(LIBS, $LIBS)
 
 AC_OUTPUT(Makefile src/Makefile doc/Makefile doc/phred.lsm phred.spec)

@@ -269,14 +269,21 @@ void Grid::load_materials(MaterialLib &matlib)
 }
 
 
-void Grid::setup_grid(int global_x, int global_y, int global_z, 
-                      int x, int y, int z, 
+void Grid::setup_grid(unsigned int global_x, unsigned int global_y, 
+                      unsigned int global_z, 
+                      unsigned int start_x, unsigned int start_y, 
+                      unsigned int start_z, 
+                      unsigned int x, unsigned int y, unsigned int z, 
                       delta_t deltax, delta_t deltay, delta_t deltaz,
                       delta_t deltat)
 {
   global_dimx_ = global_x; 
   global_dimy_ = global_y; 
   global_dimz_ = global_z; 
+
+  start_x_ = start_x;
+  start_y_ = start_y;
+  start_z_ = start_z;
 
   dimx_ = x;
   dimy_ = y;
@@ -291,10 +298,32 @@ void Grid::setup_grid(int global_x, int global_y, int global_z,
 }
 
 
-void Grid::define_box(int x_start, int x_stop, int y_start, int y_stop, 
-                      int z_start, int z_stop, unsigned int mat_index)
+void Grid::define_box(unsigned int x_start, unsigned int x_stop, 
+                      unsigned int y_start, unsigned int y_stop, 
+                      unsigned int z_start, unsigned int z_stop, 
+                      unsigned int mat_index)
 {
   // Given coordinates are global, so we have to convert them to local. 
+  unsigned int xs, ys, zs, xe, ye, ze;
+
+  xs = (start_x_ > x_start) ? start_x_ : x_start - start_x_;
+  ys = (start_y_ > y_start) ? start_y_ : y_start - start_y_;
+  zs = (start_z_ > z_start) ? start_z_ : z_start - start_z_;
+
+  xe = (start_x_ + dimx_ > x_stop) ? start_x_ + dimx_ : x_stop - start_x_;
+  ye = (start_y_ + dimy_ > y_stop) ? start_y_ + dimy_ : y_stop - start_y_;
+  ze = (start_z_ + dimz_ > z_stop) ? start_z_ + dimz_ : z_stop - start_z_;
+
+  for (unsigned int i = xs; i < xe; i++)
+  {
+    for (unsigned int j = ys; j < ye; j++)
+    {
+      for (unsigned int k = zs; k < ze; k++)
+      {
+        material_[i][j][k] = mat_index;
+      }
+    }
+  }
 }
 
 void Grid::set_boundary(unsigned int face, BoundaryCondition bc)
@@ -317,3 +346,107 @@ void Grid::update_h()
 {
 
 }
+
+
+unsigned int Grid::get_gdx()
+{
+  return global_dimx_;
+}
+
+unsigned int Grid::get_gdy()
+{
+  return global_dimy_;
+}
+
+unsigned int Grid::get_gdz()
+{
+  return global_dimz_;
+}
+
+
+unsigned int Grid::get_lsx()
+{
+  return start_x_;
+}
+
+unsigned int Grid::get_lsy()
+{
+  return start_y_;
+}
+
+unsigned int Grid::get_lsz()
+{
+  return start_x_;
+}
+
+unsigned int Grid::get_ldx()
+{
+  return dimx_;
+}
+
+unsigned int Grid::get_ldy()
+{
+  return dimy_;
+}
+
+unsigned int Grid::get_ldz()
+{
+  return dimz_;
+}
+
+delta_t Grid::get_deltax()
+{
+  return deltax_;
+}
+
+delta_t Grid::get_deltay()
+{
+  return deltay_;
+}
+
+delta_t Grid::get_deltaz()
+{
+  return deltaz_;
+}
+
+delta_t Grid::get_deltat()
+{
+  return deltat_;
+}
+
+void Grid::set_ex(unsigned int x, unsigned int y, 
+                  unsigned int z, field_t val)
+{
+  ex_[x][y][z] = val;
+}
+
+void Grid::set_ey(unsigned int x, unsigned int y, 
+                  unsigned int z, field_t val)
+{
+  ey_[x][y][z] = val;
+}
+
+void Grid::set_ez(unsigned int x, unsigned int y, 
+                  unsigned int z, field_t val)
+{
+  ez_[x][y][z] = val;
+}
+
+void Grid::set_hx(unsigned int x, unsigned int y, 
+                  unsigned int z, field_t val)
+{
+  hx_[x][y][z] = val;
+}
+
+void Grid::set_hy(unsigned int x, unsigned int y, 
+                  unsigned int z, field_t val)
+{
+  hy_[x][y][z] = val;
+}
+
+void Grid::set_hz(unsigned int x, unsigned int y, 
+                  unsigned int z, field_t val)
+{
+  hz_[x][y][z] = val;
+}
+

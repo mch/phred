@@ -26,6 +26,26 @@ enum MaterialType {
   DRUDE
 };
 
+// Faces
+enum Face {
+  FRONT = 0, 
+  BACK = 1, 
+  LEFT = 2, 
+  RIGHT = 3,
+  BOTTOM = 4, 
+  TOP = 5
+};
+
+// Field components
+enum FieldComponent {
+  EX,
+  EY,
+  EZ,
+  HX, 
+  HY, 
+  HZ
+};
+
 // Material coefficients
 typedef float mat_coef_t; 
 
