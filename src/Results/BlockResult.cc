@@ -23,7 +23,7 @@
 #include "../Globals.hh"
 #include "../Contiguous.hh"
 
-#include <math.h>
+#include <cmath>
 
 BlockResult::BlockResult()
   : field_comp_(FC_EY), init_(false), field_data_(0)

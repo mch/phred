@@ -25,7 +25,7 @@
 #include "Exceptions.hh"
 
 #include <string.h> // for memset()
-#include <math.h>
+#include <cmath>
 
 #ifdef USE_OPENMP
 #include <omp.h>

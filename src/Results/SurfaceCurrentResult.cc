@@ -22,7 +22,7 @@
 #include "SurfaceCurrentResult.hh"
 #include "../GridPlane.hh"
 
-#include <math.h>
+#include <cmath>
 
 SurfaceCurrentResult::SurfaceCurrentResult()
   : freq_start_(0), freq_stop_(0), num_freqs_(0), freq_space_(0), 

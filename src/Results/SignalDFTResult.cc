@@ -23,7 +23,7 @@
 #include "../Constants.hh"
 #include "../Globals.hh"
 
-#include <math.h>
+#include <cmath>
 
 SignalDFTResult::SignalDFTResult(Signal &te)
   : te_(te), result_(0)

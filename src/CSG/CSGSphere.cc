@@ -20,7 +20,7 @@
 */
 
 #include "CSGSphere.hh"
-#include <math.h>
+#include <cmath>
 
 CSGSphere::CSGSphere()
   : radius_(0.5)

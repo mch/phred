@@ -20,7 +20,7 @@
 */
 
 #include "BartlettExcitation.hh"
-#include <math.h>
+#include <cmath>
 
 field_t BartlettExcitation::window(float x, float y, float z) 
 {

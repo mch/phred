@@ -23,7 +23,7 @@
 #include "../Constants.hh"
 #include "../Exceptions.hh"
 
-#include <math.h>
+#include <cmath>
 
 PointDFTResult::PointDFTResult()
   : result_(0)

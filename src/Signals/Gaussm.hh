@@ -31,7 +31,7 @@
 #include "Signal.hh"
 #include "../Constants.hh"
 
-#include <math.h>
+#include <cmath>
 
 class Gaussm : public Signal
 {

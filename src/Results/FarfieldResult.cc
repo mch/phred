@@ -22,7 +22,7 @@
 #include "FarfieldResult.hh"
 #include "../Exceptions.hh"
 #include "../Constants.hh"
-#include <math.h>
+#include <cmath>
 
 /* Jan's complex number and vector helper functions */
 #include "../fdtd_complex.hh"

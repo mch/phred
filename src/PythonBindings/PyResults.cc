@@ -82,8 +82,6 @@ void export_results()
   class_<PowerResult, bases<DFTResult> >("PowerResult")
     .def(init<field_t, field_t, unsigned int>())
     .def("set_region", &PowerResult::set_region)
-    .add_property("dfts", &PowerResult::exporting_dfts,
-                  &PowerResult::export_dfts)
     ;
 
   class_<SignalDFTResult, bases<DFTResult> >

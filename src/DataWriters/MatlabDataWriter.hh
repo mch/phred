@@ -36,7 +36,7 @@
 
 #include <mpi.h>
 #include <limits.h>
-#include <math.h>
+#include <cmath>
 
 using namespace std;
 

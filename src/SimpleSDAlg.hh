@@ -24,7 +24,7 @@
 
 #include "SubdomainAlg.hh"
 
-#include <math.h>
+#include <cmath>
 
 #include <iostream>
 

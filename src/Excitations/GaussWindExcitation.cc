@@ -20,7 +20,7 @@
 */
 
 #include "GaussWindExcitation.hh"
-#include <math.h>
+#include <cmath>
 
 GaussWindExcitation::GaussWindExcitation(shared_ptr<Signal> sf)
   : WindowedExcitation(sf)

@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -25,15 +25,11 @@
 #include "../PlaneTiling.hh"
 
 #include <string.h> // for memset
-#include <math.h>
+#include <cmath>
 
 PowerResult::PowerResult()
   : power_real_(0), power_imag_(0), time_power_(0),
-    has_data_(false), xmin_(0), ymin_(0), zmin_(0), 
-    xmax_(0), ymax_(0), zmax_(0),
-    step_x_(0), step_y_(0), step_z_(0), 
-    plane_(0), normal_(X_AXIS), 
-    export_dfts_(false)
+    has_data_(false)
 {
   real_var_.has_time_dimension(false);
   imag_var_.has_time_dimension(false);
@@ -50,8 +46,7 @@ PowerResult::PowerResult(field_t freq_start, field_t freq_stop,
                          unsigned int num_freqs)
   : DFTResult(freq_start, freq_stop, num_freqs), 
     power_real_(0), power_imag_(0), time_power_(0),
-    has_data_(false), step_x_(0), step_y_(0), step_z_(0), 
-    plane_(0), normal_(X_AXIS)
+    has_data_(false) 
 {
   real_var_.has_time_dimension(false);
   imag_var_.has_time_dimension(false);
@@ -66,35 +61,45 @@ PowerResult::PowerResult(field_t freq_start, field_t freq_stop,
 
 PowerResult::~PowerResult()
 {
-  if (plane_)
-    delete plane_;
-
   if (power_real_)
     delete[] power_real_;
 
   if (power_imag_)
     delete[] power_imag_;
 
-  if (et1r_)
+//   if (et1r_)
+//   {
+//     delete[] et1r_;
+//     delete[] et1i_;
+//     delete[] et2r_;
+//     delete[] et2i_;
+//     delete[] ht1r_;
+//     delete[] ht1i_;
+//     delete[] ht2r_;
+//     delete[] ht2i_;
+
+//     et1r_ = 0;
+//     et1i_ = 0;
+//     et2r_ = 0;
+//     et2i_ = 0;
+
+//     ht1r_ = 0;
+//     ht1i_ = 0;
+//     ht2r_ = 0;
+//     ht2i_ = 0;
+//   }
+
+  if (et1_)
   {
-    delete[] et1r_;
-    delete[] et1i_;
-    delete[] et2r_;
-    delete[] et2i_;
-    delete[] ht1r_;
-    delete[] ht1i_;
-    delete[] ht2r_;
-    delete[] ht2i_;
+    delete[] et1_;
+    delete[] et2_;
+    delete[] ht1_;
+    delete[] ht2_;
 
-    et1r_ = 0;
-    et1i_ = 0;
-    et2r_ = 0;
-    et2i_ = 0;
-
-    ht1r_ = 0;
-    ht1i_ = 0;
-    ht2r_ = 0;
-    ht2i_ = 0;
+    et1_ = 0;
+    et2_ = 0;
+    ht1_ = 0;
+    ht2_ = 0;
   }
 
 }
@@ -116,33 +121,20 @@ void PowerResult::init(const Grid &grid)
   y_size_ = (*region_).ymax() - (*region_).ymin();
   z_size_ = (*region_).zmax() - (*region_).zmin();
 
-  xmin_ = (*region_).xmin();
-  ymin_ = (*region_).ymin();
-  zmin_ = (*region_).zmin();
-
-  xmax_ = (*region_).xmax();
-  ymax_ = (*region_).ymax();
-  zmax_ = (*region_).zmax();
-
   /* Region must be a plane; set up grid plane */
   if (face_ == FRONT || face_ == BACK)
   {
-    normal_ = X_AXIS;
-    plane_ = new YZPlane(const_cast<Grid&>(grid));
-    step_x_ = 1;
     x_size_ = 1;
     cell_area_ = grid.get_deltay() * grid.get_deltaz();
 
     if (face_ == FRONT && (*region_).has_face_data(FRONT))
     {
       has_data_ = true;
-      xmin_ = xmax_ - 1;
     }
 
     if (face_ == BACK && (*region_).has_face_data(BACK))
     {
       has_data_ = true;
-      xmax_ = xmin_ + 1;
     }
 
     local_t1_len = y_size_;
@@ -155,22 +147,17 @@ void PowerResult::init(const Grid &grid)
   } 
   else if (face_ == LEFT || face_ == RIGHT) 
   {
-    normal_ = Y_AXIS;
-    plane_ = new XZPlane(const_cast<Grid&>(grid));
-    step_y_ = -1;
     y_size_ = 1;
     cell_area_ = grid.get_deltax() * grid.get_deltaz();
 
     if (face_ == RIGHT && (*region_).has_face_data(RIGHT))
     {
       has_data_ = true;
-      ymin_ = ymax_ - 1;
     }
 
     if (face_ == LEFT && (*region_).has_face_data(LEFT))
     {
       has_data_ = true;
-      ymax_ = ymin_ + 1;
     }
 
     local_t1_len = z_size_;
@@ -183,22 +170,17 @@ void PowerResult::init(const Grid &grid)
   } 
   else if (face_ == TOP || face_ == BOTTOM)
   {
-    normal_ = Z_AXIS;
-    plane_ = new XYPlane(const_cast<Grid&>(grid));
-    step_z_ = -1;
     z_size_ = 1;
     cell_area_ = grid.get_deltax() * grid.get_deltay();
 
     if (face_ == TOP && (*region_).has_face_data(TOP))
     {
       has_data_ = true;
-      zmin_ = zmax_ - 1;
     }
 
     if (face_ == BOTTOM && (*region_).has_face_data(BOTTOM))
     {
       has_data_ = true;
-      zmax_ = zmin_ + 1;
     }
 
     local_t1_len = x_size_;
@@ -240,40 +222,35 @@ void PowerResult::init(const Grid &grid)
     /* GRR, ARGH! */
     unsigned int sz = frequencies_.length() * x_size_ * y_size_ * z_size_;
 
-    et1r_ = new field_t[sz];
-    et1i_ = new field_t[sz];
-    ht1r_ = new field_t[sz];
-    ht1i_ = new field_t[sz];
+//     et1r_ = new field_t[sz];
+//     et1i_ = new field_t[sz];
+//     ht1r_ = new field_t[sz];
+//     ht1i_ = new field_t[sz];
 
-    et2r_ = new field_t[sz];
-    et2i_ = new field_t[sz];
-    ht2r_ = new field_t[sz];
-    ht2i_ = new field_t[sz];
+//     et2r_ = new field_t[sz];
+//     et2i_ = new field_t[sz];
+//     ht2r_ = new field_t[sz];
+//     ht2i_ = new field_t[sz];
 
-    // new throws its own exception
-//     if (!et1r_ || !et1i_ || !ht1r_ || !ht1i_
-//         || !et2r_ || !et2i_ || !ht2r_ || !ht2i_)
-//       throw MemoryException();
+//     memset(et1r_, 0, sizeof(field_t) * sz);
+//     memset(et1i_, 0, sizeof(field_t) * sz);
+//     memset(et2r_, 0, sizeof(field_t) * sz);
+//     memset(et2i_, 0, sizeof(field_t) * sz);
 
-    memset(et1r_, 0, sizeof(field_t) * sz);
-    memset(et1i_, 0, sizeof(field_t) * sz);
-    memset(et2r_, 0, sizeof(field_t) * sz);
-    memset(et2i_, 0, sizeof(field_t) * sz);
+//     memset(ht1r_, 0, sizeof(field_t) * sz);
+//     memset(ht1i_, 0, sizeof(field_t) * sz);
+//     memset(ht2r_, 0, sizeof(field_t) * sz);
+//     memset(ht2i_, 0, sizeof(field_t) * sz);
 
-    memset(ht1r_, 0, sizeof(field_t) * sz);
-    memset(ht1i_, 0, sizeof(field_t) * sz);
-    memset(ht2r_, 0, sizeof(field_t) * sz);
-    memset(ht2i_, 0, sizeof(field_t) * sz);
+    et1_ = new complex<field_t>[sz];
+    et2_ = new complex<field_t>[sz];
 
-    /* Region must not be right up against the side of the domain
-       because we need to average the H field with the next cell. */
- 
+    ht1_ = new complex<field_t>[sz];
+    ht2_ = new complex<field_t>[sz];
+
     /* Set up the frequencies */ 
     power_real_ = new field_t[frequencies_.length()];
     power_imag_ = new field_t[frequencies_.length()];
-
-//     if (!freqs_ || !power_real_ || !power_imag_)
-//       throw MemoryException();
 
     memset(power_imag_, 0, sizeof(field_t) * (frequencies_.length()));
     memset(power_real_, 0, sizeof(field_t) * (frequencies_.length()));
@@ -318,65 +295,10 @@ void PowerResult::init(const Grid &grid)
     imag_var_.set_num(0);
     freq_var_.set_num(0);
   }
-
-
-  // Set up the optional DFT export
-  if (export_dfts_)
-  {
-    variables_["et1_dft_r"] = &dfts_[0];
-    variables_["et1_dft_i"] = &dfts_[1];
-    variables_["et2_dft_r"] = &dfts_[2];
-    variables_["et2_dft_i"] = &dfts_[3];
-    variables_["ht1_dft_r"] = &dfts_[4];
-    variables_["ht1_dft_i"] = &dfts_[5];
-    variables_["ht2_dft_r"] = &dfts_[6];
-    variables_["ht2_dft_i"] = &dfts_[7];
-
-    for (int i = 0; i < 8; i++)
-    {
-      dfts_[i].reset();
-
-      if (has_data_)
-        dfts_[i].set_num(frequencies_.length() * x_size_ * y_size_ * z_size_);
-      else
-        dfts_[i].set_num(0);
-
-      dfts_[i].has_time_dimension(false);
-      dfts_[i].add_dimension("f", frequencies_.length(), frequencies_.length(), 0);
-      dfts_[i].add_dimension("x", local_t1_len, global_t2_len, t1_start);
-      dfts_[i].add_dimension("y", local_t2_len, global_t2_len, t2_start);
-    }
-
-    dfts_[0].set_name(base_name_ + "et1_dft_r");
-    dfts_[1].set_name(base_name_ + "et1_dft_i");
-    dfts_[2].set_name(base_name_ + "et2_dft_r");
-    dfts_[3].set_name(base_name_ + "et2_dft_i");
-    dfts_[4].set_name(base_name_ + "ht1_dft_r");
-    dfts_[5].set_name(base_name_ + "ht1_dft_i");
-    dfts_[6].set_name(base_name_ + "ht2_dft_r");
-    dfts_[7].set_name(base_name_ + "ht2_dft_i");
-
-    dfts_[0].set_ptr(et1r_);
-    dfts_[1].set_ptr(et1i_);
-    dfts_[2].set_ptr(et2r_);
-    dfts_[3].set_ptr(et2i_);
-    dfts_[4].set_ptr(ht1r_);
-    dfts_[5].set_ptr(ht1i_);
-    dfts_[6].set_ptr(ht2r_);
-    dfts_[7].set_ptr(ht2i_);
-
-  }
-
 }
 
 void PowerResult::deinit()
 {
-  if (plane_)
-  {
-    delete plane_;
-    plane_ = 0;
-  }
-
   if (power_real_)
   {
     delete[] power_real_;
@@ -389,157 +311,40 @@ void PowerResult::deinit()
     power_imag_ = 0;
   }
 
-  if (et1r_)
+//   if (et1r_)
+//   {
+//     delete[] et1r_;
+//     delete[] et1i_;
+//     delete[] et2r_;
+//     delete[] et2i_;
+//     delete[] ht1r_;
+//     delete[] ht1i_;
+//     delete[] ht2r_;
+//     delete[] ht2i_;
+
+//     et1r_ = 0;
+//     et1i_ = 0;
+//     et2r_ = 0;
+//     et2i_ = 0;
+
+//     ht1r_ = 0;
+//     ht1i_ = 0;
+//     ht2r_ = 0;
+//     ht2i_ = 0;
+//   }
+
+  if (et1_)
   {
-    delete[] et1r_;
-    delete[] et1i_;
-    delete[] et2r_;
-    delete[] et2i_;
-    delete[] ht1r_;
-    delete[] ht1i_;
-    delete[] ht2r_;
-    delete[] ht2i_;
+    delete[] et1_;
+    delete[] et2_;
+    delete[] ht1_;
+    delete[] ht2_;
 
-    et1r_ = 0;
-    et1i_ = 0;
-    et2r_ = 0;
-    et2i_ = 0;
-
-    ht1r_ = 0;
-    ht1i_ = 0;
-    ht2r_ = 0;
-    ht2i_ = 0;
+    et1_ = 0;
+    et2_ = 0;
+    ht1_ = 0;
+    ht2_ = 0;
   }
-}
-
-map<string, Variable *> &PowerResult::get_result(const Grid &grid, 
-                                                 unsigned int time_step)
-{
-  return get_result_test(grid, time_step);
-
-  field_t et1, et2, ht1, ht2;
-  field_t et1_real, et1_imag;
-  field_t et2_real, et2_imag;
-  field_t ht1_real, ht1_imag;
-  field_t ht2_real, ht2_imag;
-  field_t p_real2, p_imag2;
-
-  delta_t dt = grid.get_deltat();
-  delta_t e_time = dt * time_step;
-  delta_t h_time = dt * (static_cast<delta_t>(time_step) - 0.5);
-
-  field_t e_cos_temp, e_sin_temp;
-  field_t h_cos_temp, h_sin_temp;
-
-  // Compute the instantaneous power through the surface at this
-  // instant in time.
-  unsigned int idx = 0;
-  time_power_ = 0;
-
-  if (has_data_)
-  {
-    // Make this a templated function taking the GridPlane as a template
-    // parameter for speed, so we can avoid virtual function calls. 
-    for (int x = xmin_; x < xmax_; x++) 
-    {
-      for (int y = ymin_; y < ymax_; y++) 
-      {
-        for (int z = zmin_; z < zmax_; z++) 
-        {
-          et1 = plane_->get_avg_e_t1(x, y, z);
-          et2 = plane_->get_avg_e_t2(x, y, z);
-        
-          ht1 = plane_->get_avg_h_t1(x, y, z);
-          ht2 = plane_->get_avg_h_t2(x, y, z);
-
-          time_power_ += (et1 * ht2 - et2 * ht1) * cell_area_;
-        }
-      }
-    }
-  }
-
-  MPI_Reduce(&time_power_, &time_power_, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
-             MPI_COMM_WORLD);
-
-  // Compute the power throught the surface in the frequency domain
-  for (unsigned int i = 0; i < frequencies_.length(); i++)
-  {
-    e_cos_temp = cos(-2 * PI * frequencies_.get(i) * e_time);
-    e_sin_temp = sin(-2 * PI * frequencies_.get(i) * e_time);
-
-    h_cos_temp = cos(-2 * PI * frequencies_.get(i) * h_time);
-    h_sin_temp = sin(-2 * PI * frequencies_.get(i) * h_time);
-
-    p_real2 = 0;
-    p_imag2 = 0;
-
-    unsigned int idx = i * x_size_ * y_size_ * z_size_;
-
-    if (has_data_)
-    {
-      // Template this
-      for (int x = xmin_; x < xmax_; x++) 
-      {
-        for (int y = ymin_; y < ymax_; y++) 
-        {
-          for (int z = zmin_; z < zmax_; z++) 
-          {
-            et1 = plane_->get_avg_e_t1(x, y, z);
-            et2 = plane_->get_avg_e_t2(x, y, z);
-            
-            ht1 = plane_->get_avg_h_t1(x, y, z);
-            ht2 = plane_->get_avg_h_t2(x, y, z);
-
-            // Replace with complex numbers?
-            et1_real = et1 * e_cos_temp;
-            et1_imag = (-1) * et1 * e_sin_temp;
-          
-            et2_real = et2 * e_cos_temp;
-            et2_imag = (-1) * et2 * e_sin_temp;
-
-            ht1_real = ht1 * h_cos_temp;
-            ht1_imag = (-1) * ht1 * h_sin_temp;
-
-            ht2_real = ht2 * h_cos_temp;
-            ht2_imag = (-1) * ht2 * h_sin_temp;
-          
-            et1r_[idx] += et1_real;
-            et2r_[idx] += et2_real;
-            et1i_[idx] += et1_imag;
-            et2i_[idx] += et2_imag;
-
-            ht1r_[idx] += ht1_real;
-            ht2r_[idx] += ht2_real;
-            ht1i_[idx] += ht1_imag;
-            ht2i_[idx] += ht2_imag;
-
-            // Hmmm....
-            p_real2 += ((et1r_[idx] * ht2r_[idx] + et1i_[idx] * ht2i_[idx])
-              - (et2r_[idx] * ht1r_[idx] + et2i_[idx] * ht1i_[idx])) 
-              * cell_area_;
-
-            p_imag2 += ((et1i_[idx] * ht2r_[idx] - ht2i_[idx] * et1r_[idx]) 
-              + (ht1i_[idx] * et2r_[idx] - et2i_[idx] * ht1r_[idx]))
-              * cell_area_;
-
-            ++idx;
-          }
-        }
-      }
-    } 
-
-    MPI_Reduce(&p_real2, &p_real2, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
-               MPI_COMM_WORLD);
-
-    MPI_Reduce(&p_imag2, &p_imag2, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
-               MPI_COMM_WORLD);
-    
-    power_real_[i] = p_real2;
-    power_imag_[i] = p_imag2;
-
-  }
-
-  return variables_;
 }
 
 ostream& PowerResult::to_string(ostream &os) const
@@ -585,8 +390,10 @@ public:
     field_t h_cos_temp;
     field_t h_sin_temp;
 
-    field_t *et1r_, *et2r_, *et1i_, *et2i_;
-    field_t *ht1r_, *ht2r_, *ht1i_, *ht2i_;
+    // field_t *et1r_, *et2r_, *et1i_, *et2i_;
+//     field_t *ht1r_, *ht2r_, *ht1i_, *ht2i_;
+    
+    complex<field_t> *et1_, *et2_, *ht1_, *ht2_;
 
     field_t p_real;
     field_t p_imag;
@@ -596,38 +403,52 @@ public:
 
   static inline void alg(Fields_t &f, Data &data)
   {
-    data.et1r_[data.idx] += f.et1_avg * data.e_cos_temp;
-    data.et1i_[data.idx] += -1 * f.et1_avg * data.e_sin_temp;
+//     data.et1r_[data.idx] += f.et1_avg * data.e_cos_temp;
+//     data.et1i_[data.idx] += -1 * f.et1_avg * data.e_sin_temp;
 
-    data.et2r_[data.idx] += f.et2_avg * data.e_cos_temp;
-    data.et2i_[data.idx] += -1 * f.et2_avg * data.e_sin_temp;
+//     data.et2r_[data.idx] += f.et2_avg * data.e_cos_temp;
+//     data.et2i_[data.idx] += -1 * f.et2_avg * data.e_sin_temp;
 
-    data.ht1r_[data.idx] += f.ht1_avg * data.h_cos_temp;
-    data.ht1i_[data.idx] += -1 * f.ht1_avg * data.h_sin_temp;
+//     data.ht1r_[data.idx] += f.ht1_avg * data.h_cos_temp;
+//     data.ht1i_[data.idx] += -1 * f.ht1_avg * data.h_sin_temp;
 
-    data.ht2r_[data.idx] += f.ht2_avg * data.h_cos_temp;
-    data.ht2i_[data.idx] += -1 * f.ht2_avg * data.h_sin_temp;
+//     data.ht2r_[data.idx] += f.ht2_avg * data.h_cos_temp;
+//     data.ht2i_[data.idx] += -1 * f.ht2_avg * data.h_sin_temp;
 
-    data.p_real += ((data.et1r_[data.idx] * data.ht2r_[data.idx] 
-                     + data.et1i_[data.idx] * data.ht2i_[data.idx])
-                - (data.et2r_[data.idx] * data.ht1r_[data.idx] 
-                   + data.et2i_[data.idx] * data.ht1i_[data.idx])) 
-      * data.cell_area;
+//     data.p_real += ((data.et1r_[data.idx] * data.ht2r_[data.idx] 
+//                      + data.et1i_[data.idx] * data.ht2i_[data.idx])
+//                 - (data.et2r_[data.idx] * data.ht1r_[data.idx] 
+//                    + data.et2i_[data.idx] * data.ht1i_[data.idx])) 
+//       * data.cell_area;
 
-    data.p_imag += ((data.et1i_[data.idx] * data.ht2r_[data.idx] 
-                     - data.ht2i_[data.idx] * data.et1r_[data.idx]) 
-                + (data.ht1i_[data.idx] * data.et2r_[data.idx] 
-                   - data.et2i_[data.idx] * data.ht1r_[data.idx]))
-      * data.cell_area;
+//     data.p_imag += ((data.et1i_[data.idx] * data.ht2r_[data.idx] 
+//                      - data.ht2i_[data.idx] * data.et1r_[data.idx]) 
+//                 + (data.ht1i_[data.idx] * data.et2r_[data.idx] 
+//                    - data.et2i_[data.idx] * data.ht1r_[data.idx]))
+//       * data.cell_area;
+
+    data.et1_[data.idx] += complex<field_t>(f.et1_avg * data.e_cos_temp, 
+                                            -1 * f.et1_avg * data.e_sin_temp);
+    data.et2_[data.idx] += complex<field_t>(f.et2_avg * data.e_cos_temp, 
+                                            -1 * f.et2_avg * data.e_sin_temp);
+    data.ht1_[data.idx] += complex<field_t>(f.ht1_avg * data.h_cos_temp,
+                                            -1 * f.ht1_avg * data.h_sin_temp);
+    data.ht2_[data.idx] += complex<field_t>(f.ht2_avg * data.h_cos_temp, 
+                                            -1 * f.ht2_avg * data.h_sin_temp);
+
+    complex<field_t> temp = (data.et1_[data.idx] * conj(data.ht2_[data.idx])
+      - data.et2_[data.idx] * conj(data.ht1_[data.idx])) * data.cell_area;
+
+    // Cheap, approximate integration.
+    data.p_real += temp.real();
+    data.p_imag += temp.imag();
 
     ++data.idx;
   }
 };
 
-// An experimental implementation of get_result which uses algorithm
-// objects and PlaneTiling.
-map<string, Variable *> &PowerResult::get_result_test(const Grid &grid, 
-                                                      unsigned int time_step)
+map<string, Variable *> &PowerResult::get_result(const Grid &grid, 
+                                                 unsigned int time_step)
 {
   time_power_ = 0;
   field_t p_real = 0;
@@ -656,15 +477,21 @@ map<string, Variable *> &PowerResult::get_result_test(const Grid &grid,
   delta_t e_time = dt * time_step;
   delta_t h_time = dt * (static_cast<delta_t>(time_step) - 0.5);
 
-  dftdata.et1r_ = et1r_;
-  dftdata.et2r_ = et2r_;
-  dftdata.et1i_ = et1i_;
-  dftdata.et2i_ = et2i_;
+//   dftdata.et1r_ = et1r_;
+//   dftdata.et2r_ = et2r_;
+//   dftdata.et1i_ = et1i_;
+//   dftdata.et2i_ = et2i_;
 
-  dftdata.ht1r_ = ht1r_;
-  dftdata.ht2r_ = ht2r_;
-  dftdata.ht1i_ = ht1i_;
-  dftdata.ht2i_ = ht2i_;
+//   dftdata.ht1r_ = ht1r_;
+//   dftdata.ht2r_ = ht2r_;
+//   dftdata.ht1i_ = ht1i_;
+//   dftdata.ht2i_ = ht2i_;
+
+  dftdata.et1_ = et1_;
+  dftdata.et2_ = et2_;
+
+  dftdata.ht1_ = ht1_;
+  dftdata.ht2_ = ht2_;
 
   for (unsigned int i = 0; i < frequencies_.length(); i++)
   {

@@ -28,7 +28,7 @@
 /** TEMP **/
 /* #undef USE_OPENMP */
 
-#include <math.h>
+#include <cmath>
 
 using namespace std;
 

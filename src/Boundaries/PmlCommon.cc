@@ -23,7 +23,7 @@
 #include "../Grid.hh"
 #include "../Exceptions.hh"
 
-#include <math.h>
+#include <cmath>
 
 PmlCommon::PmlCommon(const Grid &grid)
   : grid_(grid), ratio_x_(0), ratio_star_x_(0), 

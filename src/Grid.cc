@@ -29,7 +29,7 @@
 #include "Exceptions.hh"
 
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include <string.h> // for memset
 
 #ifdef USE_OPENMP

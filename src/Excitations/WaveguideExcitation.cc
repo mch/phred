@@ -21,7 +21,7 @@
 
 #include "WaveguideExcitation.hh"
 #include "../Constants.hh"
-#include <math.h>
+#include <cmath>
 
 WaveguideExcitation::WaveguideExcitation(shared_ptr<Signal> sf)
   : WindowedExcitation(sf)

@@ -21,7 +21,7 @@
 
 #include "CSGTransform.hh"
 #include "../Constants.hh"
-#include <math.h>
+#include <cmath>
 
 #include <iostream>
 
