@@ -19,7 +19,8 @@ libcsg_a_SOURCES = CSGObject.hh \
 	CSGUnion.cc \
 	CSGIntersection.cc \
 	CSGArray.hh \
-	CSGArray.cc
+	CSGArray.cc \
+	CSGTransform.cc
 #	CSGCone.cc \
 	CSGTransform.cc \
 #	CSGObject.cc 
