@@ -1,11 +1,11 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(phred, 0.1.0)
+AC_INIT(Phred, 0.1.0)
 AC_PREREQ(2.57)
 AC_CANONICAL_SYSTEM
 
 dnl Every other copy of the package version number gets its value from here
-AM_INIT_AUTOMAKE(phred, 0.1.0)
+AM_INIT_AUTOMAKE(Phred, 0.1.0)
 
 AM_MAINTAINER_MODE
 
@@ -96,11 +96,32 @@ dnl Use readline?
         AC_CHECK_LIB(readline, readline, [], [])
         AC_CHECK_HEADER([readline/readline.h], [], [])
         fi
+
+dnl Is Numeric or numarray available? 
+        HAVE_NUMERIC=0
+        AC_CHECK_HEADER([Numeric/arrayobject.h], [HAVE_NUMERIC=1], [], [
+#if HAVE_PYTHON
+#include <Python.h>
+#endif
+])
+        if [[ x$HAVE_NUMERIC == "x1" ]]; then
+            AC_DEFINE([HAVE_NUMERIC], [1], [Use Numeric for arrays in Python])
+        fi
+
+        HAVE_NUMARRAY=0
+        AC_CHECK_HEADER([libnumarray.h], [HAVE_NUMARRAY=1], [], [
+#if HAVE_PYTHON
+#include <Python.h>
+#endif
+])
+        if [[ x$HAVE_NUMARRY == "x1" ]]; then
+            AC_DEFINE([HAVE_NUMARRAY], [1], [Use numarray for arrays in Python])
+        fi
 fi
 AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
 
 
-DX_INIT_DOXYGEN([phred])
+DX_INIT_DOXYGEN([Phred])
 
 AC_LANG(C++)
 

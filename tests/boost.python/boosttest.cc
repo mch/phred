@@ -340,17 +340,6 @@ int main(int argc, char **argv)
 //                                  main_namespace.get(),
 //                                  main_namespace.get()));
 
-    handle<> zeros ( PyDict_GetItemString(main_namespace.get(),
-                                          "zeros"));
-
-    if (PyCallable_Check(zeros.get()))
-    {
-      cerr << "Zeros is callable!" << endl;
-      numeric::array bonk2 = 
-        extract<numeric::array>(PyObject_CallObject(zeros.get(), make_tuple(3,3).ptr()));
-    } else
-      cerr << "Zeros is NOT callable.   :(" << endl;
-
     //numeric::array bk = extract<numeric::array>(bonk.get() );
 
     numeric::array obj(make_tuple(make_tuple(1, 2), make_tuple(3, 4)));
@@ -361,6 +350,13 @@ int main(int argc, char **argv)
     //char src_ptr[] = {2, 3, 6, 7};
     //memcpy(data_ptr, src_ptr, 4);
 
+    list muffins();
+    muffins.append(1);
+    muffins.append(2);
+    muffins.append(3);
+    muffins.append(4);
+
+    PyDict_SetItemString(main_namespace.get(), "muffins", muffins.get());
 
     //Py_Main(argc, argv);
     string buffer; // for multiline commands

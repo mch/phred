@@ -20,6 +20,7 @@
 */
 
 #include "DataWriter.hh"
+#include "../Globals.hh"
 
 void DataWriter::set_filename(string filename)
 {
@@ -59,12 +60,55 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
              static_cast<void *>(nums_recv), 2, MPI_UNSIGNED, 
              0, MPI_COMM_WORLD);
 
+  // Every process must let us know where the data it is sending
+  // starts, and what it's dimensions are, so we can fit it into the
+  // right place in the buffer. These numbers are in terms of the 
+  const vector<Dimension> dimensions = var.get_dimensions();
+  vector<Dimension>::const_iterator iter = dimensions.begin();
+  vector<Dimension>::const_iterator iter_e = dimensions.end();
+  unsigned int num_dimensions = dimensions.size();
+  unsigned int *dim_starts = new unsigned int[num_dimensions];
+  unsigned int *dim_lengths = new unsigned int[num_dimensions];
+  unsigned int dim_idx = 0;
+
+  cerr << "Rank " << MPI_RANK << " is writing a variable with "
+       << num_dimensions << " dimensions. \n\tstart\tlength:\n";
+
+  for (; iter != iter_e; ++iter, ++dim_idx)
+  {
+    dim_lengths[dim_idx] = iter->local_len_;
+    dim_starts[dim_idx] = iter->start_;
+    cerr << "\t" << dim_starts[dim_idx] << "\t" << dim_lengths << "\n";
+  }
+
+  unsigned int *recv_dim_starts = new unsigned int[num_dimensions * MPI_SIZE];
+  unsigned int *recv_dim_lens = new unsigned int[num_dimensions * MPI_SIZE];
+
+  MPI_Gather(reinterpret_cast<void *>(dim_starts), num_dimensions, 
+             MPI_UNSIGNED, reinterpret_cast<void *>(recv_dim_starts), 
+             num_dimensions, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+
+  MPI_Gather(reinterpret_cast<void *>(dim_lengths), num_dimensions, 
+             MPI_UNSIGNED, reinterpret_cast<void *>(recv_dim_lens), 
+             num_dimensions, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+
+  delete[] dim_starts;
+  delete[] dim_lengths;
+
+  if (MPI_RANK == 0)
+  {
+    cerr << "Rank 0 has gathered all data to it:\n\tstart\tlength:\n";
+    for (dim_idx = 0; dim_idx < num_dimensions * MPI_SIZE; dim_idx++)
+      cerr << "\t" << recv_dim_starts << "\t" << recv_dim_lens << "\n";
+  }
+
   if (rank_ != 0)
   {
     if (data.get_num() > 0)
       MPI_Send(data.get_ptr(), data.get_num(), data.get_datatype(), 
                0, 1, MPI_COMM_WORLD);
   } 
+
   else 
   {
     unsigned int total = 0;
@@ -80,6 +124,8 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
       ptr_head = ptr = new char[total];
       
       // Copy rank 0 data into the buffer
+      // THIS IS BUGGY FOR MPI_SIZE > 1!!!! It does not take size and
+      // start of region into account. 
       if (data.get_num() > 0) {
         MPI_Sendrecv(data.get_ptr(), data.get_num(), 
                      data.get_datatype(), 0, 1, 
@@ -89,6 +135,8 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
         ptr += nums_recv[0] * nums_recv[1];
       }
       
+      // Recieve data from ranks > 0 
+      // THIS IS ALSO BUGGY
       for (int i = 1; i < size_; i++)
       {
         if (nums_recv[i*2] > 0) {

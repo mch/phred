@@ -27,8 +27,8 @@ using namespace boost::python;
 
 /**
  * This wrapper handles reference counting and stuff for Python
-   objects that are passed into it for storgage and use in the
-   simulation.
+ * objects that are passed into it for storgage and use in the
+ * simulation.
  */
 class FDTDWrap : public FDTD
 {

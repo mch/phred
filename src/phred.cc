@@ -253,6 +253,12 @@ string get_extension(string filename)
 // MAIN!
 int main (int argc, char **argv)
 {
+  time_t start, now, time_total = 0;
+  clock_t start_cpu, now_cpu, time_total_cpu = 0;
+
+  start=time(NULL);
+  start_cpu = clock();
+
   int i, len;
   string prog_name;
   char *temp;
@@ -370,7 +376,17 @@ int main (int argc, char **argv)
     MPI_Abort(MPI_COMM_WORLD, 0);
   }
 
-  cout << "Phred is phinished." << endl;
+  now = time(NULL);
+  now_cpu = clock();
+  time_total += now - start;
+  time_total_cpu += now_cpu - start_cpu;
+
+  cout << "Phred is phinished. Phred executed for " 
+       << static_cast<double>(time_total) << " real seconds, and for "
+       << static_cast<double>(time_total_cpu) 
+          / static_cast<double>(CLOCKS_PER_SEC) 
+       << " CPU seconds. "
+       << endl;
 
   // Thank you and goodnight
   MPI_Barrier(MPI_COMM_WORLD);

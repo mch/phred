@@ -103,6 +103,9 @@ void PowerResult::init(const Grid &grid)
   y_size_ = region_.ymax - region_.ymin;
   z_size_ = region_.zmax - region_.zmin;
 
+  cerr << "PowerResult Region is " << x_size_ << " x "
+       << y_size_ << " x " << z_size_ << endl;
+
   /* Region must be a plane; set up grid plane */
   if (region_.xmax - region_.xmin == 1)
   {

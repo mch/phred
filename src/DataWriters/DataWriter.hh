@@ -66,20 +66,21 @@ protected:
   void gather_data(unsigned int time_step, Variable &var);
 
    /**
-   * Does recursive writing of packed data. This function will only
-   * be called on rank 0. This does nothing by default, but is defined
-   * because subclasses do not necessarially have to override it (if
-   * they override handle_data() instead). 
-   *
-   * @param data The data object describing the data to write
-   * @param t The MPI datatype to write; may be different than the one
-   * in the Data object because we take the datatype apart
-   * recursivly. 
-   * @param ptr A point to the data
-   * @param len The number of bytes left to write
-   *
-   * @return the number of bytes written. 
-   */
+    * This is implemented by subclasses to write a block of data in
+    * whatever file format that particular DataWriter supports. This
+    * function will only be called on rank 0. This does nothing by
+    * default, but is defined because subclasses do not necessarially
+    * have to override it (if they override handle_data() instead). 
+    *
+    * @param var The data object describing the data to write
+    * @param t The MPI datatype to write; may be different than the one
+    * in the Data object because we take the datatype apart
+    * recursivly. It will be a simple MPI datatype, not a derived type. 
+    * @param ptr A point to the data
+    * @param len The number of bytes left to write
+    *
+    * @return the number of bytes written. 
+    */
   virtual unsigned int write_data(unsigned int time_step, 
                                   Variable &var, MPI_Datatype t, 
                                   void *ptr, unsigned int len) = 0;

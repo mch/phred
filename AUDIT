@@ -11,7 +11,9 @@ operate). That can also serve as the specification to build unit
 tests from, so that the code can be verified as working correctly. 
 
 * MPI Problems and cavets
-
+- All things that operate on regions MUST ensure that they handle the
+  case where the region in question spans nodes. Eg. Excitations,
+  results, geometries
 
 * OpenMP
 
