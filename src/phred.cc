@@ -86,6 +86,12 @@
 #include <vector>
 #include <string>
 
+#ifdef USE_RUSAGE
+/* rusage() */ 
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif
+
 using namespace std; // Too lazy to type namespaces all the time. 
 
 #include "config.h"
@@ -387,6 +393,37 @@ int main (int argc, char **argv)
           / static_cast<double>(CLOCKS_PER_SEC) 
        << " CPU seconds. "
        << endl;
+
+#ifdef USE_RUSAGE
+  struct rusage ru; 
+  
+  int res = getrusage(RUSAGE_SELF, &ru);
+  
+  if (res == -1)
+  {
+    cout << "\nResource usage information is unavailable." << endl;
+  }
+  else
+  {
+    cout << "\nResource usage information:";
+    cout << "\nMax resident set size: " << ru.ru_maxrss;
+    cout << "\nShared text memory size: " << ru.ru_ixrss;
+    cout << "\nUnshared data size: " << ru.ru_idrss;
+    cout << "\nUnshared stack size: " << ru.ru_isrss;
+    cout << "\nPage reclaims: " << ru.ru_minflt;
+    cout << "\nPage faults: " << ru.ru_majflt;
+    cout << "\nSwaps: " << ru.ru_nswap;
+    cout << "\nBlock input operations: " << ru.ru_inblock;
+    cout << "\nBlock output operations: " << ru.ru_oublock;
+    cout << "\nMessages sent: " << ru.ru_msgsnd;
+    cout << "\nMessages recieved: " << ru.ru_msgrcv;
+    cout << "\nSignals recieved: " << ru.ru_nsignals;
+    cout << "\nVoluntary context switches: " << ru.ru_nvcsw;
+    cout << "\nInvoluntary context switches: " << ru.ru_nivcsw;
+    cout << endl;
+  }
+
+#endif
 
   // Thank you and goodnight
   MPI_Barrier(MPI_COMM_WORLD);
