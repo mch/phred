@@ -971,7 +971,7 @@ AC_DEFUN([AC_CXX_OPENMP],[
 WANT_OPENMP=0
 AC_ARG_ENABLE(openmp, AC_HELP_STRING([--enable-openmp], [Use OpenMP directives for SMP shared memory parallism]), [WANT_OPENMP=1])
 
-if test "x$WANT_OPENMP" == "x1" ; then
+if test "x$WANT_OPENMP" = "x1" ; then
 
         saveCPPFLAGS=$CPPFLAGS
         saveLDFLAGS=$LDFLAGS

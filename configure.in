@@ -113,7 +113,7 @@ dnl Is Numeric or numarray available?
 #include <Python.h>
 #endif
 ])
-        if [[ x$HAVE_NUMERIC == "x1" ]]; then
+        if [[ x$HAVE_NUMERIC = "x1" ]]; then
             AC_DEFINE([HAVE_NUMERIC], [1], [Use Numeric for arrays in Python])
         fi
 
@@ -123,7 +123,7 @@ dnl Is Numeric or numarray available?
 #include <Python.h>
 #endif
 ])
-        if [[ x$HAVE_NUMARRY == "x1" ]]; then
+        if [[ x$HAVE_NUMARRY = "x1" ]]; then
             AC_DEFINE([HAVE_NUMARRAY], [1], [Use numarray for arrays in Python])
         fi
 fi
@@ -139,15 +139,15 @@ INTEL_OMP="-openmp"
 SGI_OMP="-MP:open_mp=ON -mp"
 AIX_OMP="-qSMP=omp:noauto"
 OMP_FLAGS=""
-if [[ $target_vendor == pc ]]; then
+if [[ "x$target_vendor" = "xpc" ]]; then
         OMP_FLAGS=$INTEL_OMP
 fi
 
-if [[ $target_vendor == sgi ]]; then
+if [[ "x$target_vendor" = "xsgi" ]]; then
         OMP_FLAGS=$SGI_OMP
 fi
 
-if [[ $target_vendor == ibm ]]; then
+if [[ "x$target_vendor" = "xibm" ]]; then
         OMP_FLAGS=$AIX_OMP
 fi
 
@@ -176,7 +176,7 @@ if [[ "x$WANT_PROFILE" = "x1" ]]; then
         CFLAGS="$CFLAGS -pg"
 fi
 
-if [[ "$with_efence" == "yes" ]]; then 
+if [[ "x$with_efence" = "xyes" ]]; then 
         AC_CHECK_LIB(efence, malloc, [], [])
 fi
 
