@@ -103,10 +103,12 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "NetCDFDataWriter.hh"
 #include "PlaneResult.hh"
 #include "PointDFTResult.hh"
+#include "PowerResult.hh"
 #include "SourceDFTResult.hh"
 #include "SourceTimeResult.hh"
 #include "Excitation.hh"
 #include "BartlettExcitation.hh"
+#include "WaveguideExcitation.hh"
 #include "FDTD.hh"
 #include "JanFDTD.hh"
 #include "Box.hh"
@@ -155,6 +157,7 @@ static void point_test(int rank, int size);
 static void pml_test(int rank, int size);
 static void takakura_test(int rank, int size);
 static void laser_test(int rank, int size);
+static void coupler_test(int rank, int size);
 
 // MAIN!
 int
@@ -236,7 +239,8 @@ main (int argc, char **argv)
           cout << "Python support is not compiled into this version." << endl;
 #endif
         } else {
-	  pml_test(rank, size);
+	  //pml_test(rank, size);
+          coupler_test(rank,size);
 	}
 
       } else {
@@ -257,7 +261,8 @@ main (int argc, char **argv)
 
         // TESTS, TEMPORARY
         //point_test(rank, size);
-        pml_test(rank, size);
+        //pml_test(rank, size);
+        coupler_test(rank,size);
         //takakura_test(rank, size);
 
         cout << "No filename given to load problem set up from. " << endl;
@@ -943,4 +948,173 @@ static void laser_test(int rank, int size)
   Box metal1;
   metal1.set_region(40, 65, 5, 14, 5, 14); // UNSTABLE
   metal1.set_material_id(3);
+}
+
+
+
+
+
+static void coupler_test(int rank, int size)
+{
+  FDTD fdtd;
+  
+  field_t start_f = 12e9;
+  field_t stop_f = 18e9;
+  field_t centre_f = 15e9;
+  field_t d_f = 3e9;
+
+  unsigned int xlen = 600, ylen = 158 * 2 + 1, zlen = 79;
+  float dx = 0.05e-3, dy = 0.1e-3, dz = 0.1e-3;
+
+  fdtd.set_grid_size(xlen, ylen, zlen);
+  fdtd.set_grid_deltas(dx, dy, dz);
+
+  //fdtd.set_time_delta(3.1250e-17);
+
+  cout << "Ku Band waveguide aperture coupler test. Grid is "
+       << xlen << "x" << ylen << "x" << zlen << ", "
+       << "\ntime step size is " << fdtd.get_time_delta() << "." << endl;
+
+  Pml front(VP, 1.0), back(VP, 1.0);
+  front.set_thickness(4);
+  back.set_thickness(4);
+
+  Ewall ewall;
+
+  fdtd.set_boundary(FRONT, &front);
+  fdtd.set_boundary(BACK, &back);
+  fdtd.set_boundary(BOTTOM, &ewall);
+  fdtd.set_boundary(TOP, &ewall);
+  fdtd.set_boundary(LEFT, &ewall);
+  fdtd.set_boundary(RIGHT, &ewall);
+
+  MaterialLib mats; 
+  Material mat; // defaults to free space
+  mats.add_material(mat);
+  
+  fdtd.load_materials(mats);
+
+  // Global coordinates. 
+  Box all;
+  all.set_region(0, xlen, 0, ylen, 0, zlen);
+  all.set_material_id(1);
+
+  Box metal1;
+  metal1.set_region(0, xlen, 159, 160, 0, zlen); 
+  metal1.set_material_id(0);
+
+  fdtd.add_geometry(&all);
+  fdtd.add_geometry(&metal1);
+
+  unsigned int A = 0, B = 0;
+
+  unsigned int L[] = {static_cast<unsigned int>(3e-3 / dx), 
+                      static_cast<unsigned int>(2.24e-3 / dx),
+                      static_cast<unsigned int>(2.19e-3 / dx),
+                      static_cast<unsigned int>(2.43e-3 / dx),
+                      static_cast<unsigned int>(2.19e-3 / dx),
+                      static_cast<unsigned int>(2.24e-3 / dx)};
+
+  unsigned int S[] = {static_cast<unsigned int>(1.52e-3 / dx),
+                      static_cast<unsigned int>(2.01e-3 / dx),
+                      static_cast<unsigned int>(3.07e-3 / dx),
+                      static_cast<unsigned int>(3.07e-3 / dx),
+                      static_cast<unsigned int>(2.01e-3 / dx),
+                      static_cast<unsigned int>(1.52e-3 / dx)};
+
+  Box apertures[6];
+
+  for (int idx = 0; idx < 6; idx++)
+  {
+    A += L[idx];
+    B = A + S[idx];
+
+    apertures[idx].set_region(A, B, 159, 160, 0, zlen);
+    apertures[idx].set_material_id(1);
+
+    cout << "Adding aperture, x = " << A << " to " << B << endl;
+
+    A += S[idx];
+
+    fdtd.add_geometry(&apertures[idx]);
+  }
+
+  // Excitation
+  Gaussm gm;
+  gm.set_parameters(10, d_f, centre_f);
+
+  WaveguideExcitation ex(&gm);
+  ex.set_soft(true);
+  ex.set_region(10, 11, 0, ylen, 0, zlen);
+  ex.set_polarization(0.0, 0.0, 1.0);
+  ex.set_mode(0, 1, 0);
+
+  fdtd.add_excitation("modgauss", &ex);
+
+  // Results
+  point_t p;
+  p.x = xlen / 2;
+  p.y = ylen / 2;
+  p.z = zlen / 2;
+  
+  MatlabDataWriter mdw(rank, size);
+  mdw.set_filename("coupler.mat");
+  fdtd.add_datawriter("mdw", &mdw);
+
+  NetCDFDataWriter ncdw(rank, size);
+  ncdw.set_filename("coupler.nc");
+  fdtd.add_datawriter("ncdw", &ncdw);
+
+  PlaneResult pr1;
+  pr1.set_name("ez_xyplane");
+  pr1.set_plane(p, TOP);
+  pr1.set_field(FC_EZ);
+ 
+  fdtd.add_result("ez_xyplane", &pr1);
+  fdtd.map_result_to_datawriter("ez_xyplane", "ncdw");
+
+  // S Parameters
+  PowerResult s11(start_f, stop_f, 120), s12(start_f, stop_f, 120),
+    s13(start_f, stop_f, 120), s14(start_f, stop_f, 120);
+
+  region_t s11r, s12r, s13r, s14r;
+
+  s11r.xmin = 20; s11r.xmax = 20; s11r.ymin = 0; s11r.ymax = 158;
+  s11r.zmin = 0; s11r.zmax = zlen;
+
+  s12r = s13r = s14r = s11r; 
+
+  s12r.xmin = xlen - 20; s12r.xmax = xlen - 20;
+  s13r.xmin = xlen - 20; s13r.xmax = xlen - 20;
+  s13r.ymin = 160; s13r.ymax = ylen;
+  s14r.ymin = 160; s14r.ymax = ylen;
+
+  s11.set_region(s11r);
+  s12.set_region(s12r);
+  s13.set_region(s13r);
+  s14.set_region(s14r);
+
+  fdtd.add_result("s11", &s11);
+  fdtd.add_result("s12", &s12);
+  fdtd.add_result("s13", &s13);
+  fdtd.add_result("s14", &s14);
+
+  fdtd.map_result_to_datawriter("s11", "mdw");
+  fdtd.map_result_to_datawriter("s12", "mdw");
+  fdtd.map_result_to_datawriter("s13", "mdw");
+  fdtd.map_result_to_datawriter("s14", "mdw");
+
+  // The source, just for fun. 
+  SourceDFTResult sdftr(gm, 100e12, 600e12, 50);
+  fdtd.add_result("sdftr", &sdftr);
+  fdtd.map_result_to_datawriter("sdftr", "mdw");
+
+  SourceTimeResult srctr(gm);
+  fdtd.add_result("src", &srctr);
+  fdtd.map_result_to_datawriter("src", "mdw");
+
+
+  // Let's begin.
+  fdtd.set_time_steps(5000);
+  fdtd.run(rank, size);
 }

@@ -66,12 +66,37 @@ PowerResult::~PowerResult()
 
   if (power_imag_)
     delete[] power_imag_;
+
+  if (et1r_)
+  {
+    delete[] et1r_;
+    delete[] et1i_;
+    delete[] et2r_;
+    delete[] et2i_;
+    delete[] ht1r_;
+    delete[] ht1i_;
+    delete[] ht2r_;
+    delete[] ht2i_;
+
+    et1r_ = 0;
+    et1i_ = 0;
+    et2r_ = 0;
+    et2i_ = 0;
+
+    ht1r_ = 0;
+    ht1i_ = 0;
+    ht2r_ = 0;
+    ht2i_ = 0;
+  }
 }
 
 void PowerResult::init(const Grid &grid)
 {
   /* Region must be in out local sub-domain */ 
   region_ = grid.global_to_local(region_);
+  x_size_ = region_.xmax - region_.xmin;
+  y_size_ = region_.ymax - region_.ymin;
+  z_size_ = region_.zmax - region_.zmin;
 
   /* Region must be a plane; set up grid plane */
   if (region_.xmax - region_.xmin == 1)
@@ -96,6 +121,33 @@ void PowerResult::init(const Grid &grid)
   } else {
     throw ResultException("Region must be limited to a plane for a PowerResult.");
   }
+
+  /* GRR, ARGH! */
+  unsigned int sz = x_size_ * y_size_ * z_size_;
+
+  et1r_ = new field_t[sz];
+  et1i_ = new field_t[sz];
+  ht1r_ = new field_t[sz];
+  ht1i_ = new field_t[sz];
+
+  et2r_ = new field_t[sz];
+  et2i_ = new field_t[sz];
+  ht2r_ = new field_t[sz];
+  ht2i_ = new field_t[sz];
+
+  if (!et1r_ || !et1i_ || !ht1r_ || !ht1i_
+      || !et2r_ || !et2i_ || !ht2r_ || !ht2i_)
+    throw MemoryException();
+
+  memset(et1r_, 0, sizeof(field_t) * sz);
+  memset(et1i_, 0, sizeof(field_t) * sz);
+  memset(et2r_, 0, sizeof(field_t) * sz);
+  memset(et2i_, 0, sizeof(field_t) * sz);
+
+  memset(ht1r_, 0, sizeof(field_t) * sz);
+  memset(ht1i_, 0, sizeof(field_t) * sz);
+  memset(ht2r_, 0, sizeof(field_t) * sz);
+  memset(ht2i_, 0, sizeof(field_t) * sz);
 
   /* Region must not be right up against the side of the domain
      because we need to average the H field with the next cell. */
@@ -161,6 +213,28 @@ void PowerResult::deinit(const Grid &grid)
     delete[] power_imag_;
     power_imag_ = 0;
   }
+
+  if (et1r_)
+  {
+    delete[] et1r_;
+    delete[] et1i_;
+    delete[] et2r_;
+    delete[] et2i_;
+    delete[] ht1r_;
+    delete[] ht1i_;
+    delete[] ht2r_;
+    delete[] ht2i_;
+
+    et1r_ = 0;
+    et1i_ = 0;
+    et2r_ = 0;
+    et2i_ = 0;
+
+    ht1r_ = 0;
+    ht1i_ = 0;
+    ht2r_ = 0;
+    ht2i_ = 0;
+  }
 }
 
 map<string, Variable *> &PowerResult::get_result(const Grid &grid, 
@@ -172,6 +246,7 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
   field_t ht1_real, ht1_imag;
   field_t ht2_real, ht2_imag;
   field_t p_real, p_imag;
+  field_t p_real2, p_imag2;
 
   delta_t dt = grid.get_deltat();
   delta_t time = dt * time_step;
@@ -200,6 +275,11 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
     p_real = 0;
     p_imag = 0;
 
+    p_real2 = 0;
+    p_imag2 = 0;
+
+    unsigned int idx = 0;
+
     for (unsigned int x = region_.xmin; x < region_.xmax; x++) 
     {
       for (unsigned int y = region_.ymin; y < region_.ymax; y++) 
@@ -227,19 +307,51 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
           
           ht2_real = ht2 * cos_temp;
           ht2_imag = (-1) * ht2 * sin_temp;
+          
+          et1r_[idx] += et1_real;
+          et2r_[idx] += et2_real;
+          et1i_[idx] += et1_imag;
+          et2i_[idx] += et2_imag;
 
-          p_real += (et1_real * ht2_real + et1_imag * ht2_imag)
-            - (et2_real * ht1_real + et2_imag * ht1_imag);
+          ht1r_[idx] += ht1_real;
+          ht2r_[idx] += ht2_real;
+          ht1i_[idx] += ht1_imag;
+          ht2i_[idx] += ht2_imag;
 
-          p_imag += et1_imag * ht2_real - ht2_imag * et1_real 
-            + ht1_imag * et2_real - et2_imag * ht1_real;
+//           p_real += (et1_real * ht2_real + et1_imag * ht2_imag)
+//             - (et2_real * ht1_real + et2_imag * ht1_imag);
+
+//           p_imag += et1_imag * ht2_real - ht2_imag * et1_real 
+//             + ht1_imag * et2_real - et2_imag * ht1_real;
+
+          p_real2 += (et1r_[idx] * ht2r_[idx] + et1i_[idx] * ht2i_[idx])
+            - (et2r_[idx] * ht1r_[idx] + et2i_[idx] * ht1i_[idx]);
+
+          p_imag2 += et1i_[idx] * ht2r_[idx] - ht2i_[idx] * et1r_[idx] 
+            + ht1i_[idx] * et2r_[idx] - et2i_[idx] * ht1r_[idx];
+
+          ++idx;
         }
       }
     }
    
-    power_real_[i] += 0.5 * p_real * cell_area_;
-    power_imag_[i] += 0.5 * p_imag * cell_area_;
+//     power_real_[i] += 0.5 * p_real * cell_area_;
+//     power_imag_[i] += 0.5 * p_imag * cell_area_;
 
+//     p_real2 = 0.5 * p_real2 * cell_area_;
+//     p_imag2 = 0.5 * p_imag2 * cell_area_;
+    
+    power_real_[i] = 0.5 * p_real2 * cell_area_;
+    power_imag_[i] = 0.5 * p_imag2 * cell_area_;
+
+//     if (power_real_[i] != p_real2)
+//     {
+//       cerr << "Power discrepency detected for f = " << freqs_[i] 
+//            << ", power_real_[i] = " << power_real_[i]
+//            << ", p_real2 = " << p_real2 << endl;
+//       cerr << "power_imag_[i] = " << power_imag_[i]
+//            << ", p_imag2 = " << p_imag2 << endl;
+//     }
   }
 
   return variables_;

@@ -1,8 +1,9 @@
 % Test sin modulated gaussian functions
 
-%deltat = 1.73325e-13;  % Time step size
-deltat = 1e-12;
-N = 5000;         % Number of time points
+deltat = 1.73325e-13;  % Time step size
+deltat = 1.22559e-13;
+%deltat = 1e-12;
+N = 10000;         % Number of time points
 
 f0 = 15e9;      % Centre frequency
 df = 3e9;   % Frequency spacing

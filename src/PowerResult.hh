@@ -93,6 +93,27 @@ protected:
   Variable imag_var_; /**< Power data */
   Variable freq_var_; /**< Frequency data */
 
+  field_t *et1r_;
+  field_t *et1i_;
+  field_t *ht1r_;
+  field_t *ht1i_;
+
+  field_t *et2r_;
+  field_t *et2i_;
+  field_t *ht2r_;
+  field_t *ht2i_;
+
+  unsigned int x_size_;
+  unsigned int y_size_;
+  unsigned int z_size_;
+
+  inline unsigned int pi(unsigned int x, unsigned int y, 
+                         unsigned int z) const
+  {
+    return z + (y + x*y_size_) * z_size_;
+  }
+
+
 private:
 };
 

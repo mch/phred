@@ -40,9 +40,11 @@ private:
 
 /**
  * This class takes a problem to be optimized and tries to optimize
- * it. From a given starting point, the gradient is computed. A
- * quadratic fit is done to solve for the step size, since a line
- * search would take too long. 
+ * it. From a given starting point, the gradient is computed. Blah
+ * blah blah. 
+ *
+ * Blitz++ is required for this to work. It will toss exceptions like
+ * there's no tomorrow if Blitz is not around. 
  */ 
 class Optimizer {
 public:

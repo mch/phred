@@ -305,7 +305,7 @@ dnl        AC_MSG_WARN([OpenMP support is not fully implemented yet. ])
         AC_MSG_CHECKING([for OpenMP support])
         CXXFLAGSTEMP="$CXXFLAGS"
         AC_LANG_PUSH(C++)
-        CXXFLAGS="-qSMP=omp"        
+        CXXFLAGS="-qSMP=omp:noauto"        
         AC_COMPILE_IFELSE([
 void test() {
 int i = 0, j = 0;
@@ -315,7 +315,13 @@ for (i = 0; i < 100; i++)
   j += i;
 }], [
         AC_MSG_RESULT([yes])
-        CXXFLAGSTEMP="$CXXFLAGSTEMP -qSMP=omp"
+
+        if test "x$WANT_DEBUG" = "x1"; then
+            CXXFLAGSTEMP="$CXXFLAGSTEMP -qSMP=omp:noauto:noopt"
+        else 
+            CXXFLAGSTEMP="$CXXFLAGSTEMP -qSMP=omp:noauto"
+        fi
+
         USE_OPENMP="1"
         AC_DEFINE([USE_OPENMP], [1], [Using OpenMP (-qSMP=omp on AIX)])
     ], [
