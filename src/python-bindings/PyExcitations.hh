@@ -31,14 +31,14 @@ using namespace boost::python;
  * Helper function for Python classes derived from Excitation
  */
 void call_excite(Excitation& ex, Grid &grid, 
-                        unsigned int time_step, FieldType type) 
+                 unsigned int time_step, FieldType type) 
 { return ex.excite(grid, time_step, type); }
 
 /**
  * Helper function for Python classes derived from SourceFunction
  */
 field_t call_source_function(SourceFunction& sf, Grid &grid, 
-                              unsigned int time_step) 
+                             unsigned int time_step) 
 { return sf.source_function(grid, time_step); }
 
 /**
@@ -115,7 +115,7 @@ public:
   { return call_method<field_t>(self_, "source_function"); }
 };
 
-BOOST_PYTHON_MODULE(excitations)
+BOOST_PYTHON_MODULE(Excitations)
 {
   class_<Excitation, ExcitationWrap, boost::noncopyable>("Excitation", "Excitations applied to the FDTD grid", init<SourceFunction *>())
     .def("excite", &Excitation::excite, &ExcitationWrap::default_excite)

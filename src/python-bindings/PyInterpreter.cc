@@ -22,17 +22,25 @@
 #include "PyInterpreter.hh"
 #include "../Exceptions.hh"
 
+#include "PyTypes.hh"
+#include "PyMaterial.hh"
 #include "PyResults.hh"
+#include "PyGeometry.hh"
 #include "PyExcitations.hh"
 #include "PyFDTD.hh"
 #include "PyDatawriters.hh"
+#include "PyBoundaries.hh"
 //#include "PyGrid.hh"
 
 static struct _inittab modules_[] = 
   {
-    {"results", &initresults},
-    {"excitations", &initexcitations},
+    {"Results", &initResults},
+    {"Excitations", &initExcitations},
     {"FDTD", &initFDTD},
+    {"Boundaries", &initBoundaries},
+    {"Materials", &initMaterials},
+    {"Types", &initTypes},
+    {"Geometry", &initGeometry},
     //{"Grid", &initGrid},
     {0, 0}
   };
@@ -49,7 +57,8 @@ static struct _inittab modules_[] =
 
 using namespace std;
 
-PyInterpreter::PyInterpreter()
+PyInterpreter::PyInterpreter(int rank, int size)
+  : rank_(rank), size_(size)
 {
   int ret = PyImport_ExtendInittab(modules_);
   if (ret == -1)
@@ -76,16 +85,15 @@ void PyInterpreter::run_script(const char *filename)
   if (fp == 0)
     throw PyInterpException("Unable to open Python script file.");
 
+  add_modules();
+
   PyRun_SimpleFile(fp, filename);
   fclose(fp);
 }
 
-void PyInterpreter::run(int rank, int size)
+void PyInterpreter::run()
 {
-  rank_ = rank;
-  size_ = size;
-
-  if (rank == 0)
+  if (rank_ == 0)
     master();
   else
     slave();
@@ -102,7 +110,7 @@ void PyInterpreter::slave()
   handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
   handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
   
-  //add_modules();
+  add_modules();
 
   while (size > 0) 
   {
@@ -151,7 +159,7 @@ void PyInterpreter::master()
   handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
   handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
   
-  //add_modules();
+  add_modules();
 
   //if (size_ > 1) {
 #ifdef HAVE_LIBREADLINE
@@ -218,18 +226,39 @@ void PyInterpreter::add_modules()
   handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
   handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
   
-  handle<> rname ( PyString_FromString("results") );
+  handle<> rname ( PyString_FromString("Results") );
   handle<> res( PyImport_Import(rname.get()) );
-  PyDict_SetItemString(main_namespace.get(), "results", res.get());
+  PyDict_SetItemString(main_namespace.get(), "Results", res.get());
 
-  handle<> ename ( PyString_FromString("excitations") );
+  handle<> ename ( PyString_FromString("Excitations") );
   handle<> ex( PyImport_Import(ename.get()) );
-  PyDict_SetItemString(main_namespace.get(), "excitations", ex.get());
+  PyDict_SetItemString(main_namespace.get(), "Excitations", ex.get());
 
   handle<> fname ( PyString_FromString("FDTD") );
   handle<> fdtd( PyImport_Import(fname.get()) );
   PyDict_SetItemString(main_namespace.get(), "FDTD", fdtd.get());
 
+  handle<> mname ( PyString_FromString("Materials") );
+  handle<> mats( PyImport_Import(mname.get()) );
+  PyDict_SetItemString(main_namespace.get(), "Materials", mats.get());
+
+  handle<> tname ( PyString_FromString("Types") );
+  handle<> types( PyImport_Import(tname.get()) );
+  PyDict_SetItemString(main_namespace.get(), "Types", types.get());
+
+  handle<> bname ( PyString_FromString("Boundaries") );
+  handle<> bnds( PyImport_Import(bname.get()) );
+  PyDict_SetItemString(main_namespace.get(), "Boundaries", bnds.get());
+
+  handle<> gname ( PyString_FromString("Geometry") );
+  handle<> geom( PyImport_Import(gname.get()) );
+  PyDict_SetItemString(main_namespace.get(), "Geometry", geom.get());
+
+  // MPI Data
+  PyDict_SetItemString(main_namespace.get(), "MPI_RANK", 
+                       PyInt_FromLong(rank_));
+  PyDict_SetItemString(main_namespace.get(), "MPI_SIZE", 
+                       PyInt_FromLong(size_));
 }
 
 char *PyInterpreter::rl()

@@ -120,6 +120,11 @@ public:
   virtual void init(const Grid &grid);
 
   /**
+   * Deinit the geometry against the grid
+   */ 
+  virtual void deinit(const Grid &grid);
+
+  /**
    * Update the material indicies of the grid 
    */
   virtual void set_material(Grid &grid) = 0;

@@ -26,3 +26,6 @@ void Geometry::init(const Grid &grid)
 {
   local_bb_ = grid.global_to_local(bounding_box_);
 }
+
+void Geometry::deinit(const Grid &grid)
+{}

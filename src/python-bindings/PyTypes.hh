@@ -25,7 +25,7 @@
 
 using namespace boost::python;
 
-BOOST_PYTHON_MODULE(types)
+BOOST_PYTHON_MODULE(Types)
 {
   enum_<BoundaryCondition>("BoundaryCondition")
     .value("UNKNOWN", UNKNOWN)

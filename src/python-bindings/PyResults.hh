@@ -58,7 +58,7 @@ public:
 
 };
 
-BOOST_PYTHON_MODULE(results)
+BOOST_PYTHON_MODULE(Results)
 {
    class_<Result, ResultWrap, boost::noncopyable>("Result", "Result data derieved from the Grid")
 //     .def("has_time_dimension", &Result::has_time_dimension)

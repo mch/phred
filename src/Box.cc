@@ -25,6 +25,11 @@
 Box::Box()
 {}
 
+Box::Box(region_t r)
+{
+  bounding_box_ = r;
+}
+
 Box::~Box()
 {}
 

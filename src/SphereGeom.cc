@@ -27,6 +27,10 @@
 Sphere::Sphere()
 {}
 
+Sphere::Sphere(point_t centre, unsigned int radius)
+  : centre_(centre), radius_(radius)
+{}
+
 Sphere::~Sphere()
 {}
 

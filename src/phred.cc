@@ -191,9 +191,9 @@ main (int argc, char **argv)
 #ifdef USE_PY_BINDINGS
     if (interactive) {
       cout << "interactive mode, starting python..." << endl;
-      PyInterpreter interp;
+      PyInterpreter interp(rank, size);
       cout << "calling run..." << endl;
-      interp.run(rank, size);
+      interp.run();
     } 
 #endif
     if (!interactive) {
@@ -216,7 +216,7 @@ main (int argc, char **argv)
         else if (ext.compare("py") == 0)
         {
 #ifdef USE_PY_BINDINGS
-          PyInterpreter interp;
+          PyInterpreter interp(rank, size);
           interp.run_script(argv[argc - 1]);
 #else
           cout << "Python support is not compiled into this version." << endl;

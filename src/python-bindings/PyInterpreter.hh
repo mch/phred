@@ -50,7 +50,7 @@ protected:
   char *PyInterpreter::rl();
   
 public:
-  PyInterpreter();
+  PyInterpreter(int rank, int size);
   ~PyInterpreter();
 
   /**
@@ -58,7 +58,7 @@ public:
    * an exception if it is not. Other ranks run a slave process and
    * MPI is used to keep the slaves in sync with the master.
    */
-  void run(int rank, int size);
+  void run();
 
   /**
    * Runs on ranks greater than 0. Recieves commands via MPI from the

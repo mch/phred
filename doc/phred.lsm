@@ -1,7 +1,7 @@
 Begin3
 Title:		phred
 Version:	0.1.0
-Entered-date:	2004-06-03
+Entered-date:	2004-06-14
 Description:	Phred is a parallel finite difference time domain electromagnetics simulator.
 		doc/phred.lsm.  Generated from phred.lsm.in by configure.
 Keywords:	MPI Parallel FDTD NetCDF HDF

@@ -55,6 +55,16 @@ public:
     centre_ = c;
   }
 
+  inline unsigned int get_radius()
+  {
+    return radius_;
+  }
+
+  inline point_t get_centre()
+  {
+    return centre_;
+  }
+
   /**
    * Init the region, set the material in the grid. Normally called by
    * the FDTD object.
