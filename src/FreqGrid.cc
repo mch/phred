@@ -161,8 +161,8 @@ void FreqGrid::load_materials(MaterialLib &matlib)
 
   int index = 0;
 
-  vector<Material>::const_iterator iter = matlib.get_material_iter_begin();
-  vector<Material>::const_iterator iter_e = matlib.get_material_iter_end();
+  map<string, Material>::const_iterator iter = matlib.get_material_iter_begin();
+  map<string, Material>::const_iterator iter_e = matlib.get_material_iter_end();
 
   vcdt_[0] = 0;
   omegapsq_[0] = 0;
@@ -170,12 +170,12 @@ void FreqGrid::load_materials(MaterialLib &matlib)
 
   while(iter != iter_e)
   {
-    if ((*iter).get_collision_freq() > 0)
+    if (((*iter).second).get_collision_freq() > 0)
     {
-      vcdt_[index] = exp(-1.0 * (*iter).get_collision_freq() * get_deltat());
-      omegapsq_[index] = pow((*iter).get_plasma_freq(), 
+      vcdt_[index] = exp(-1.0 * ((*iter).second).get_collision_freq() * get_deltat());
+      omegapsq_[index] = pow(((*iter).second).get_plasma_freq(), 
                              static_cast<float>(2.0))
-        * (get_deltat() / (*iter).get_collision_freq());
+        * (get_deltat() / ((*iter).second).get_collision_freq());
     } else {
       vcdt_[index] = 0.0;
       omegapsq_[index] = 0.0;

@@ -89,7 +89,7 @@ void Material::set_sigma_star(mat_prop_t sigstar)
   sigma_star_ = sigstar;
 }
 
-void Material::set_name(string name)
+void Material::set_name(const char *name)
 {
   name_ = name;
 }

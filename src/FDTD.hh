@@ -28,6 +28,10 @@
 
 using namespace std;
 
+#include <boost/shared_ptr.hpp>
+
+using namespace boost;
+
 #include "Types.hh"
 #include "Region.hh"
 #include "Boundaries/BoundaryCondition.hh"
@@ -38,7 +42,7 @@ using namespace std;
 #include "Constants.hh"
 #include "Exceptions.hh"
 #include "SimpleSDAlg.hh"
-#include "Geometry.hh"
+#include "ProblemGeometry.hh"
 #include "FreqGrid.hh"
 
 /**
@@ -55,7 +59,7 @@ protected:
    * The grid to operate on; what kind of grid specifically is decided
    * at run time from material properties.
    */
-  Grid *grid_;
+  shared_ptr<Grid> grid_;
 
   /**
    * Global grid information
@@ -71,22 +75,22 @@ protected:
   /**
    * Our E excitations 
    */
-  map<string, Excitation *> e_excitations_;
+  map<string, shared_ptr<Excitation> > e_excitations_;
 
   /**
    * Our H excitations 
    */
-  map<string, Excitation *> h_excitations_;
+  map<string, shared_ptr<Excitation> > h_excitations_;
 
   /**
    * Our results
    */
-  map<string, Result *> results_;
+  map<string, shared_ptr<Result> > results_;
 
   /**
    * Our data writers
    */
-  map<string, DataWriter *> datawriters_;
+  map<string, shared_ptr<DataWriter> > datawriters_;
 
   /**
    * A map that tells which result goes to which data writer. Results
@@ -98,12 +102,12 @@ protected:
   /**
    * Geometry objects
    */
-  vector<Geometry *> geometry_;
+  ProblemGeometry geometry_;
 
   /**
    * Material library
    */
-  MaterialLib *mlib_;
+  shared_ptr<MaterialLib> mlib_;
 
   /**
    * Number of time steps to go for. 
@@ -168,35 +172,37 @@ public:
    * stored, so don't, for the love of god and all that is holy,
    * delete the object or allow it go go out of scope before this
    * object does.
+   *
+   * This now uses a shared_ptr, so its ok. 
    */
-  void set_boundary(Face face, BoundaryCond *bc);
+  void set_boundary(Face face, shared_ptr<BoundaryCond> bc);
 
   /**
    * Load a material library to use.
    */
-  void load_materials(MaterialLib &matlib);
+  void load_materials(shared_ptr<MaterialLib> matlib);
 
   /**
    * Let us know about an excitation, or replace one of the
    * same name.  You are passing in a pointer; don't dispose of the
    * object!
    */
-  void add_excitation(const char *name, Excitation *ex);
+  void add_excitation(const char *name, shared_ptr<Excitation> ex);
 
   /**
    * Add a result object, or replace one of the same name. 
    */
-  void add_result(const char *name, Result *r);
+  void add_result(const char *name, shared_ptr<Result> r);
 
   /** 
    * Add a datawriter, or replace one of the same name. 
    */
-  void add_datawriter(const char *name, DataWriter *dw);
+  void add_datawriter(const char *name, shared_ptr<DataWriter> dw);
 
   /**
-   * Add a geometry object to the grid
+   * Add a CSG object to the grid
    */
-  void add_geometry(Geometry *geom);
+  void add_object(string material, shared_ptr<CSGObject> obj);
 
   /**
    * Map a results to a DataWriter. Some DataWriters cannot accept
@@ -215,16 +221,6 @@ public:
    * @param size the number of ranks in the MPI communicator
    */
   void run(int rank, int size);
-
-  /**
-   * Looks through the geometry stack and returns a reference to the
-   * geometry that a particular point belongs to. 
-   *
-   * @param p the point to find the geometry for
-   */
-  Geometry &find_geometry(unsigned int x,
-                          unsigned int y,
-                          unsigned int z);
 
 };
 

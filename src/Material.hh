@@ -30,15 +30,19 @@
 #define MATERIAL
 
 #include <string>
+#include <map>
 
 using namespace std;
 
 #include "Types.hh"
+#include "Exceptions.hh"
 
 class Material 
 {
  private:
   MaterialType type_;
+  unsigned int material_id_; /**< id used to reference constants in
+                                the grid. */
 
   /**
    * Electric permittivity 
@@ -59,6 +63,10 @@ class Material
   mat_prop_t vc_; /**< Collision frequency */
   mat_prop_t fp_; /**< Plasma frequency */
 
+  map<string, mat_prop_t> properties_; /**< Additional material
+                                          properties that may be used
+                                          by the grid. */ 
+
  protected:
 
  public:
@@ -66,6 +74,47 @@ class Material
   Material();
   ~Material();
   
+  /**
+   * Returns the material ID used to index into arrays of
+   * constants. Grid use only. 
+   */ 
+  inline unsigned int get_id() const
+  {
+    return material_id_;
+  }
+
+  /**
+   * Used by the Grid to set the id of this material. 
+   */ 
+  inline void set_id(unsigned int id)
+  {
+    material_id_ = id;
+  }
+
+  /**
+   * Set a named material property. Any existing value is
+   * overwritten. Consult the documentation for the Grid classes for
+   * a list of material properties required. 
+   */ 
+  inline void set_property(const char *name, mat_prop_t prop)
+  {
+    properties_[name] = prop;
+  }
+
+  /**
+   * Returns a named material property. THROWS AN EXCEPTION if the
+   * requested property is not found. 
+   */ 
+  inline mat_prop_t get_property(const char *name) const
+  {
+    map<string, mat_prop_t>::const_iterator iter = properties_.find(name);
+    
+    if (iter == properties_.end())
+      throw MaterialPropertyException("Property not found.");
+
+    return (*iter).second;
+  }
+
   /**
    * Returns the material type
    *
@@ -142,7 +191,7 @@ class Material
    * Set the human readable material name
    * @param name
    */
-  void set_name(string name);
+  void set_name(const char *name);
 
   /**
    * Set the collision frequency for plasma materials

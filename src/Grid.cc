@@ -456,26 +456,28 @@ void Grid::alloc_grid()
 
     memset(material_, 0, sizeof(unsigned int) * sz);
 
+#ifdef DEBUG
     cout << "Sucessfully allocated " 
 	 << sz * sizeof(field_t) * 6 + sz * sizeof(unsigned int) 
 	 << " bytes of memory for use by the grid." << endl;
+#endif
   }
 }
 
-void Grid::load_geometries(vector<Geometry *> &geoms)
+void Grid::load_geometry(const ProblemGeometry &pg)
 {
-  num_geoms_ = geoms.size();
-  vector<Geometry *>::iterator iter;
-  vector<Geometry *>::iterator iter_e = geoms.end();
-  int idx = 0;
+//   num_geoms_ = geoms.size();
+//   vector<Geometry *>::iterator iter;
+//   vector<Geometry *>::iterator iter_e = geoms.end();
+//   int idx = 0;
   
-  if (geometries_)
-    delete geometries_;
+//   if (geometries_)
+//     delete geometries_;
 
-  geometries_ = new Geometry*[num_geoms_];
+//   geometries_ = new Geometry*[num_geoms_];
 
-  for (iter = geoms.begin(), idx = 0; iter != iter_e; ++iter, idx++)
-    geometries_[idx] = *iter;
+//   for (iter = geoms.begin(), idx = 0; iter != iter_e; ++iter, idx++)
+//     geometries_[idx] = *iter;
 }
 
 void Grid::load_materials(MaterialLib &matlib)
@@ -534,75 +536,91 @@ void Grid::load_materials(MaterialLib &matlib)
   memset(Dby_, 0, sizeof(mat_coef_t) * num_mat);
   memset(Dbz_, 0, sizeof(mat_coef_t) * num_mat);
 
-  vector<Material>::const_iterator iter = matlib.get_material_iter_begin();
-  vector<Material>::const_iterator iter_e = matlib.get_material_iter_end();
+  map<string, Material>::iterator iter = matlib.materials_.begin();
+  map<string, Material>::iterator iter_e = matlib.materials_.end();
 
   // The first one is always PEC
-  int index = 0;
+  unsigned int index = 0;
 
-  Ca_[index] = 1;
-  Cbx_[index] = Cby_[index] = Cbz_[index] = 0;
+//   Ca_[index] = 1;
+//   Cbx_[index] = Cby_[index] = Cbz_[index] = 0;
 
-  Da_[index] = 1;
-  Dbx_[index] = Dby_[index] = Dbz_[index] = 0;
+//   Da_[index] = 1;
+//   Dbx_[index] = Dby_[index] = Dbz_[index] = 0;
   
-  ++index;
+//   ++index;
   while (iter != iter_e) 
   {
-    // Make the code cleaner with short var names
-    mat_prop_t eps = (*iter).get_epsilon() * EPS_0;
-    mat_prop_t sig = (*iter).get_sigma();
-    mat_prop_t mu = (*iter).get_mu() * MU_0;
-    mat_prop_t sigs = (*iter).get_sigma_star();
+    // Set the index so that the geometry objects know about it. 
+    (*iter).second.set_id(index);
+    
+    mat_prop_t eps = ((*iter).second).get_epsilon() * EPS_0;
+    mat_prop_t sig = ((*iter).second).get_sigma();
+    mat_prop_t mu = ((*iter).second).get_mu() * MU_0;
+    mat_prop_t sigs = ((*iter).second).get_sigma_star();
 
-    if (eps == 0 || mu == 0)
+    if (sig == INFINITY)
+    {
+      Ca_[index] = 1;
+      Cbx_[index] = Cby_[index] = Cbz_[index] = 0;
+
+      Da_[index] = 1;
+      Dbx_[index] = Dby_[index] = Dbz_[index] = 0;
+  
+    } 
+    else if (eps == 0 || mu == 0)
     {
       cerr << "Something is wrong with the material library:\n" 
            << " -> Material cannot have permittivities or permeabilities\n"
            << "    of zero. Perfect electric conductor can have eps=0, \n"
            << "    but that is a special material defined by phred.\n\n"
            << "Program aborting. Check material library." << endl;
-      exit(1);
+      MPI_Abort(MPI_COMM_WORLD, 1);
     }
-    
-    Ca_[index] = (1 - (sig * get_deltat() * 0.5)/eps) / 
-                 (1 + (sig * get_deltat() * 0.5)/eps);
-
-    Da_[index] = (1 - (sigs * get_deltat() * 0.5)/mu) / 
-                 (1 + (sigs * get_deltat() * 0.5)/mu);
-
-    
-    Cbx_[index] = (get_deltat() / (eps * get_deltax())) / 
-                  (1 + (sig * get_deltat() * 0.5)/eps);
-
-    Dbx_[index] = (get_deltat() / (mu * get_deltax())) / 
-                  (1 + (sigs * get_deltat() * 0.5)/mu);
-
-    if (get_deltay() != get_deltax())
-    {    
-      Cby_[index] = (get_deltat() / (eps * get_deltay())) / 
-                    (1 + (sig * get_deltat() * 0.5)/eps);
-
-      Dby_[index] = (get_deltat() / (mu * get_deltay())) / 
-                    (1 + (sigs * get_deltat() * 0.5)/mu);
-    }
-
-    if (get_deltaz() != get_deltax() && get_deltaz() != get_deltay())
+    else 
     {
-      Cbz_[index] = (get_deltat() / (eps * get_deltaz())) / 
+      Ca_[index] = (1 - (sig * get_deltat() * 0.5)/eps) / 
+                   (1 + (sig * get_deltat() * 0.5)/eps);
+      
+      Da_[index] = (1 - (sigs * get_deltat() * 0.5)/mu) / 
+                   (1 + (sigs * get_deltat() * 0.5)/mu);
+
+    
+      Cbx_[index] = (get_deltat() / (eps * get_deltax())) / 
                     (1 + (sig * get_deltat() * 0.5)/eps);
 
-      Dbz_[index] = (get_deltat() / (mu * get_deltaz())) / 
+      Dbx_[index] = (get_deltat() / (mu * get_deltax())) / 
                     (1 + (sigs * get_deltat() * 0.5)/mu);
+
+      if (get_deltay() != get_deltax())
+      {    
+        Cby_[index] = (get_deltat() / (eps * get_deltay())) / 
+                      (1 + (sig * get_deltat() * 0.5)/eps);
+
+        Dby_[index] = (get_deltat() / (mu * get_deltay())) / 
+                      (1 + (sigs * get_deltat() * 0.5)/mu);
+      }
+
+      if (get_deltaz() != get_deltax() && get_deltaz() != get_deltay())
+      {
+        Cbz_[index] = (get_deltat() / (eps * get_deltaz())) / 
+                      (1 + (sig * get_deltat() * 0.5)/eps);
+
+        Dbz_[index] = (get_deltat() / (mu * get_deltaz())) / 
+                      (1 + (sigs * get_deltat() * 0.5)/mu);
+      }
     }
 
-//     cerr << "index: " << index << "\n\tCa_ = " << Ca_[index]
-//          << ", Da_ = " << Da_[index] 
-//          << "\n\tCbx_ = " << Cbx_[index] << ", Cby_" << Cby_[index]
-//          << ", Cbz_ = " << Cbz_[index]
-//          << "\n\tDbx_ = " << Dbx_[index] << ", Dby_" << Dby_[index]
-//          << ", Dbz_ = " << Dbz_[index]
-//          << endl;
+#ifdef DEBUG
+    cerr << "Material '" << (*iter).second.get_name() << "', index: " 
+         << index << "\n\tCa_ = " << Ca_[index]
+         << ", Da_ = " << Da_[index] 
+         << "\n\tCbx_ = " << Cbx_[index] << ", Cby_" << Cby_[index]
+         << ", Cbz_ = " << Cbz_[index]
+         << "\n\tDbx_ = " << Dbx_[index] << ", Dby_" << Dby_[index]
+         << ", Dbz_ = " << Dbz_[index]
+         << endl;
+#endif
 
     ++iter;
     ++index;

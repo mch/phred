@@ -35,6 +35,27 @@
 static const char *PLATFORM = "@target@";
 
 /**
+ * Indicators for CSG operations. 
+ */
+enum CSGStatus {
+  INSIDE,
+  BOUNDARY,
+  OUTSIDE
+};
+
+/**
+ * Multipliers used to get meters from a user's input. 
+ */ 
+static const float METER = 1.0;
+static const float DECIMETER = 0.1;
+static const float CENTIMETER = 1e-2;
+static const float MILLIMETER = 1e-3;
+static const float MICROMETER = 1e-6;
+static const float NANOMETER = 1e-9;
+static const float PICOMETER = 1e-12;
+static const float FEMTOMETER = 1e-15;
+
+/**
  * Axis of rotation
  */
 enum Axis {
@@ -153,7 +174,26 @@ typedef struct region_str {
 
 #ifdef __cplusplus
 /**
- * Represents a single point in space. The class constructor makes it
+ * Represents a point in real space. 
+ */ 
+class point
+{
+public:
+  float x;
+  float y;
+  float z;
+
+  point()
+    : x(0), y(0), z(0)
+  {}
+
+  point(float xn, float yn, float zn)
+    : x(xn), y(yn), z(zn)
+  {}
+};
+
+/**
+ * Represents a single point in the Grid. The class constructor makes it
  * easy to construct temporary objects for more terse syntax
  */
 class point_t
@@ -177,6 +217,15 @@ typedef struct {
   unsigned int y;
   unsigned int z;
 } point_t;
+
+typedef point_t grid_point;
+
+typedef struct {
+  float x;
+  float y;
+  float z;
+} point;
+
 #endif
 
 #endif

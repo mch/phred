@@ -29,8 +29,8 @@
 #include "Boundaries/SubdomainBc.hh"
 #include "Boundaries/Pml.hh"
 
-// Replace with Boost's smart pointers
-#include "counted_ptr.hh"
+#include <boost/shared_ptr.hpp>
+using namespace boost;
 
 /**
  * This class is plain old data that is in class form "just in
@@ -103,7 +103,7 @@ public:
   // 5 - Top (z = dimz, XY plane)
   //
 protected:
-  counted_ptr<BoundaryCond> face_bc_[6]; // Boundary condition to apply
+  shared_ptr<BoundaryCond> face_bc_[6]; // Boundary condition to apply
   
 public:
   GridInfo();
@@ -125,7 +125,8 @@ public:
   GridInfo& operator=(const GridInfo &info);
 
   /**
-   * Set the boundary condition on one of the faces of this grid. 
+   * Set the boundary condition on one of the faces of this grid. This
+   * one claims ownership of the object and will delete it. 
    *
    * @param face the face to assign the boundary to. One of FRONT, BACK,
    * LEFT, RIGHT, BOTTOM, TOP as defined in Types.hh
@@ -135,7 +136,12 @@ public:
    * @return a BoundaryCond object of the type required, in which the
    * specifics of the boundary condition can be stored.
    */ 
-  void set_boundary(Face face, BoundaryCond *bc, bool take_ownership = false);
+  void set_boundary(Face face, BoundaryCond *bc);
+
+  /**
+   * Sets the boundary condition to apply to a certian face. 
+   */ 
+  void set_boundary(Face face, shared_ptr<BoundaryCond> bc);  
 
   /**
    * Set a PML boundary

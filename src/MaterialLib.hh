@@ -30,6 +30,7 @@
 #define MATERIAL_LIB
 
 #include <vector>
+#include <map>
 #include <iostream>
 #include <string>
 
@@ -39,22 +40,15 @@
 using namespace std; 
 
 class MaterialLib {
+  friend class Grid;
+  friend class UPmlCommon;
+
  private:
-  vector <Material> materials_;
+  map <string, Material> materials_;
 
  protected:
 
  public:
-  // An input iterator class for traversing the materials list
-  //class iterator {
-  //private:
-  //  vector<Material>::iterator iter_;
-  //  
-  //public:
-  //  
-  //};
-
-  // Functions
   MaterialLib();
   ~MaterialLib();
 
@@ -64,7 +58,12 @@ class MaterialLib {
    *
    * @param mat the material to store
    */
-  void add_material(Material& mat);
+  void add_material(const char *name, Material& mat);
+
+  /**
+   * Return a reference to a material object
+   */
+  const Material &get_material(const char *name) const;
 
   /**
    * Returns the number of materials in the library
@@ -72,23 +71,13 @@ class MaterialLib {
    */
   int num_materials() const;
 
-  /**
-   * Returns an interator that points to the start of the vector
-   * containing the materials. TEMPORARY until a proper iterator for
-   * the materials is set up.
-   *
-   * @return a vector<Material>::iterator
-   */
-  vector<Material>::const_iterator get_material_iter_begin() const;
+  // temp
+  inline map<string, Material>::const_iterator get_material_iter_begin() const
+  { return materials_.begin(); }
 
-  /**
-   * Returns an interator that points to the end of the vector
-   * containing the materials. TEMPORARY until a proper iterator for
-   * the materials is set up.
-   *
-   * @return a vector<Material>::iterator
-   */
-  vector<Material>::const_iterator get_material_iter_end() const;
+  inline map<string, Material>::const_iterator get_material_iter_end() const
+  { return materials_.end(); }
+
 };
 
 #endif // MATERIAL_LIB

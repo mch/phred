@@ -116,7 +116,7 @@ void PyInterpreter::run_script(const char *filename)
     {
       PyErr_Print();
     }
-    MPI_Abort(MPI_COMM_WORLD, 0);
+    MPI_Abort(MPI_COMM_WORLD, 1);
   }
 
   fclose(fp);

@@ -44,6 +44,10 @@
 #include "SphereGeom.hh"
 #include "Results/FarfieldResult.hh"
 
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
 // Test runs
 void point_test(int rank, int size)
 {

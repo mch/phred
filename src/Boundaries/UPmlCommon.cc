@@ -102,18 +102,18 @@ void UPmlCommon::init_sigmas()
   unsigned int start, thickness;
   int incr;
 
-  vector<Material>::const_iterator iter = mlib->get_material_iter_begin();
-  vector<Material>::const_iterator iter_e = mlib->get_material_iter_end();
+  map<string, Material>::const_iterator iter = mlib->materials_.begin();
+  map<string, Material>::const_iterator iter_e = mlib->materials_.end();
   unsigned int xoffset = 0, yoffset = 0, zoffset = 0;
   
-  ++iter;
+  ++iter; // skip pec
 
   // Loop over the materials
   while (iter != iter_e) 
   {
-    mat_prop_t eps = (*iter).get_epsilon() * EPS_0;
-    mat_prop_t sig = (*iter).get_sigma();
-    mat_prop_t mu = (*iter).get_mu() * MU_0;
+    mat_prop_t eps = ((*iter).second).get_epsilon() * EPS_0;
+    mat_prop_t sig = ((*iter).second).get_sigma();
+    mat_prop_t mu = ((*iter).second).get_mu() * MU_0;
     //mat_prop_t sigs = (*iter).get_sigma_star();
 
     

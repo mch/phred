@@ -55,6 +55,7 @@
 #include "MaterialLib.hh"
 #include "GridInfo.hh"
 #include "Geometry.hh"
+#include "ProblemGeometry.hh"
 
 #include <map>
 
@@ -356,9 +357,11 @@ class Grid {
 
   /**
    * Store references to the geometry objects so that more specialized
-   * dispersions can store data in them.
+   * dispersions can store data in them. Query the problem geometry
+   * for the material id for each location in the grid and fill
+     material_. 
    */ 
-  virtual void load_geometries(vector<Geometry *> &geoms);
+  virtual void load_geometry(const ProblemGeometry &pg);
 
   /**
    * Deallocate the memory used to store material coeffcients and so

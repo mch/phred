@@ -24,28 +24,10 @@
 #include "Globals.hh"
 
 FDTD::FDTD()
-  : grid_(0), mlib_(0)
 {}
 
 FDTD::~FDTD()
-{
-  if (grid_)
-    delete grid_;
-}
-
-Geometry &FDTD::find_geometry(unsigned int x,
-                              unsigned int y,
-                              unsigned int z)
-{
-  vector<Geometry *>::reverse_iterator iter;
-  vector<Geometry *>::reverse_iterator iter_e = geometry_.rend();
-
-  for (iter = geometry_.rbegin(); iter != iter_e; ++iter)
-  {
-    if ((*iter)->local_point_inside(x, y, z))
-      return **iter;
-  }
-}
+{}
 
 void FDTD::set_time_steps(unsigned int t)
 {
@@ -82,17 +64,17 @@ void FDTD::set_time_delta(field_t dt)
   global_ginfo_.deltat_ = dt;
 }
 
-void FDTD::set_boundary(Face face, BoundaryCond *bc)
+void FDTD::set_boundary(Face face, shared_ptr<BoundaryCond> bc)
 {
   global_ginfo_.set_boundary(face, bc);
 }
 
-void FDTD::load_materials(MaterialLib &matlib)
+void FDTD::load_materials(shared_ptr<MaterialLib> matlib)
 {
-  mlib_ = &matlib;
+  mlib_ = matlib;
 }
 
-void FDTD::add_excitation(const char *name, Excitation *ex)
+void FDTD::add_excitation(const char *name, shared_ptr<Excitation> ex)
 {
   FieldType t = ex->get_type();
   if (t == E || t == BOTH)
@@ -102,27 +84,29 @@ void FDTD::add_excitation(const char *name, Excitation *ex)
     h_excitations_[string(name)] = ex;    
 }
 
-void FDTD::add_result(const char *name, Result *r)
+void FDTD::add_result(const char *name, shared_ptr<Result> r)
 {
   results_[string(name)] = r;
   //if (r->get_name().length() == 0)
   r->set_name(name);
 }
 
-void FDTD::add_datawriter(const char *name, DataWriter *dw)
+void FDTD::add_datawriter(const char *name, shared_ptr<DataWriter> dw)
 {
   datawriters_[string(name)] = dw;
 }
 
-void FDTD::add_geometry(Geometry *g)
+void FDTD::add_object(string material, shared_ptr<CSGObject> obj)
 {
-  geometry_.push_back(g);
+  geometry_.add_object(material, obj);
 }
 
 void FDTD::map_result_to_datawriter(const char *result, const char *dw)
 {
-  map<string, Result *>::iterator riter = results_.find(result);
-  map<string, DataWriter *>::iterator dwiter = datawriters_.find(dw);
+  map<string, shared_ptr<Result> >::iterator 
+    riter = results_.find(result);
+  map<string, shared_ptr<DataWriter> >::iterator 
+    dwiter = datawriters_.find(dw);
 
   if (riter != results_.end() && dwiter != datawriters_.end())
   {
@@ -139,10 +123,10 @@ void FDTD::setup_datawriters()
 
   while (iter != iter_e)
   {
-    map<string, Result *>::iterator riter 
+    map<string, shared_ptr<Result> >::iterator riter 
       = results_.find((*iter).first);
 
-    map<string, DataWriter *>::iterator dwiter
+    map<string, shared_ptr<DataWriter> >::iterator dwiter
       = datawriters_.find((*iter).second);
 
     if (riter != results_.end() && dwiter != datawriters_.end())
@@ -187,13 +171,13 @@ void FDTD::run(int rank, int size)
 
   // Decide what grid to used from materials
   bool freqgrid = false;
-  vector<Material>::const_iterator miter = mlib_->get_material_iter_begin();
-  vector<Material>::const_iterator miter_e = mlib_->get_material_iter_end();
+  map<string, Material>::const_iterator miter = mlib_->get_material_iter_begin();
+  map<string, Material>::const_iterator miter_e = mlib_->get_material_iter_end();
   
   while(miter != miter_e)
   {
-    if ((*miter).get_collision_freq() != 0.0 ||
-        (*miter).get_plasma_freq() != 0.0)
+    if (((*miter).second).get_collision_freq() != 0.0 ||
+        ((*miter).second).get_plasma_freq() != 0.0)
     {
       freqgrid = true; 
       break;
@@ -206,7 +190,7 @@ void FDTD::run(int rank, int size)
 
   if (freqgrid)
     {
-      grid_ = new FreqGrid();
+      grid_ = shared_ptr<Grid>(new FreqGrid());
 #ifdef DEBUG
       cout << "Using freq grid. " << endl;
 #endif
@@ -216,20 +200,24 @@ void FDTD::run(int rank, int size)
 #ifdef DEBUG
       cout << "Using simple grid. " << endl;
 #endif
-      grid_ = new Grid();
+      grid_ = shared_ptr<Grid>(new Grid());
     }
 
   grid_->setup_grid(local_ginfo_);
 
   grid_->load_materials(*mlib_);
-  grid_->load_geometries(geometry_);
+
+  geometry_.init(*grid_);
+  grid_->load_geometry(geometry_);
 
   grid_->set_define_mode(false);
 
   // Life cycle init
-  map<string, Excitation *>::iterator e_eiter_b = e_excitations_.begin();
-  map<string, Excitation *>::iterator e_eiter = e_eiter_b;
-  map<string, Excitation *>::iterator e_eiter_e = e_excitations_.end();
+  map<string, shared_ptr<Excitation> >::iterator 
+    e_eiter_b = e_excitations_.begin();
+  map<string, shared_ptr<Excitation> >::iterator e_eiter = e_eiter_b;
+  map<string, shared_ptr<Excitation> >::iterator 
+    e_eiter_e = e_excitations_.end();
   
   while (e_eiter != e_eiter_e) 
   {
@@ -237,9 +225,11 @@ void FDTD::run(int rank, int size)
     ++e_eiter;
   }
 
-  map<string, Excitation *>::iterator h_eiter_b = h_excitations_.begin();
-  map<string, Excitation *>::iterator h_eiter = h_eiter_b;
-  map<string, Excitation *>::iterator h_eiter_e = h_excitations_.end();
+  map<string, shared_ptr<Excitation> >::iterator 
+    h_eiter_b = h_excitations_.begin();
+  map<string, shared_ptr<Excitation> >::iterator h_eiter = h_eiter_b;
+  map<string, shared_ptr<Excitation> >::iterator 
+    h_eiter_e = h_excitations_.end();
   
   while (h_eiter != h_eiter_e) 
   {
@@ -247,9 +237,9 @@ void FDTD::run(int rank, int size)
     ++h_eiter;
   }
 
-  map<string, Result *>::iterator riter_b = results_.begin();
-  map<string, Result *>::iterator riter = riter_b;
-  map<string, Result *>::iterator riter_e = results_.end();
+  map<string, shared_ptr<Result> >::iterator riter_b = results_.begin();
+  map<string, shared_ptr<Result> >::iterator riter = riter_b;
+  map<string, shared_ptr<Result> >::iterator riter_e = results_.end();
   
   while (riter != riter_e) 
   {
@@ -257,9 +247,11 @@ void FDTD::run(int rank, int size)
     ++riter;
   }
 
-  map<string, DataWriter *>::iterator dwiter_b = datawriters_.begin();
-  map<string, DataWriter *>::iterator dwiter = dwiter_b;
-  map<string, DataWriter *>::iterator dwiter_e = datawriters_.end();
+  map<string, shared_ptr<DataWriter> >::iterator
+    dwiter_b = datawriters_.begin();
+  map<string, shared_ptr<DataWriter> >::iterator dwiter = dwiter_b;
+  map<string, shared_ptr<DataWriter> >::iterator
+    dwiter_e = datawriters_.end();
   
   while (dwiter != dwiter_e) 
   {
@@ -267,16 +259,6 @@ void FDTD::run(int rank, int size)
     ++dwiter;
   }
 
-  vector<Geometry *>::iterator giter = geometry_.begin();
-  vector<Geometry *>::iterator giter_e = geometry_.end();
-  
-  while(giter != giter_e)
-  {
-    (*giter)->init(*grid_);
-    (*giter)->set_material(*grid_);
-    ++giter;
-  }
-  
   setup_datawriters();
 
   // This barrier prevent ranks > 0 from continuing on if rank 0 has

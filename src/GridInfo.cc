@@ -76,13 +76,14 @@ GridInfo& GridInfo::operator=(const GridInfo &info)
   return *this;
 }
 
-void GridInfo::set_boundary(Face face, BoundaryCond *bc, bool take_ownership)
+void GridInfo::set_boundary(Face face, BoundaryCond *bc)
 {
-  if (take_ownership)
-    //face_ptr_owner_[face] = true;
-    face_bc_[face] = counted_ptr<BoundaryCond>(bc);
-  else
-    face_bc_[face] = counted_ptr<BoundaryCond>(bc, 2);
+  face_bc_[face] = shared_ptr<BoundaryCond>(bc);
+}
+
+void GridInfo::set_boundary(Face face, shared_ptr<BoundaryCond> bc)
+{
+    face_bc_[face] = bc;
 }
 
 // BoundaryCond *GridInfo::copy_bc(BoundaryCond *bc, BoundaryCondition bc_type)

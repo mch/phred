@@ -22,9 +22,9 @@
 #ifndef CSG_BOX_H
 #define CSG_BOX_H
 
-#include "CSGObject.hh"
+#include "CSGPrimitive.hh"
 
-class CSGBox : public CSGObject 
+class CSGBox : public CSGPrimitive 
 {
 public:
   CSGBox();
@@ -36,30 +36,42 @@ public:
    * @param x x coordinate of the point
    * @param y y coordinate of the point
    * @param z z coordinate of the point
-   * @return true if the point is inside the solid.
+   * @return 1 if the point is inside the solid, 0 if the point is on
+   * the boundary, and -1 if it is outside. 
    */
-  bool is_point_inside(float x, float y, float z) const;
-  
+  CSGStatus is_point_inside(float x, float y, float z) const;
+
+  /**
+   * Set the size of the box by specifying the lengths along the x, y
+   * and z axis.
+   */ 
+  void set_size(float x_size, float y_size, float z_size);
+
+  /**
+   * Returns the size of the box
+   */ 
+  point get_size();
+
   /**
    * Returns true if the object on the right hand side is enclosed by
-   * the transform on the left.
+   * the object on the left.
    */
-  bool operator> (const CSGTransform &rhs) const;
+  //bool operator> (const CSGObject &rhs) const;
 
   /**
    * Returns true if the object on the left hand side is enclosed by the 
-   * transform on the left.
+   * object on the left.
    */ 
-  bool operator< (const CSGTransform &rhs) const;
+  //bool operator< (const CSGObject &rhs) const;
 
   /**
    * Returns a list of verticies for this object.
    */ 
-  const vector<float[3]> &get_verticies() const;
+  //const vector<float[3]> &get_verticies() const;
 
 private:
-  float centre_[3];
   float lengths_[3];
-}
+  float half_lengths_[3];
+};
 
 #endif // CSG_BOX_H

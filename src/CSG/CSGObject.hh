@@ -22,41 +22,43 @@
 #ifndef CSG_OBJECT_H
 #define CSG_OBJECT_H
 
+#include "../Types.hh"
+
 /**
  * This is an abstract base class for a node in a constructive 
  * solid geometry binary tree. 
  */ 
 class CSGObject {
 public:
-  CSGObject();
-  virtual ~CSGObject();
-  
+  virtual ~CSGObject()
+  {}
+
   /**
    * Tell us if a point is inside or outside the solid.
    *
    * @param x x coordinate of the point
    * @param y y coordinate of the point
    * @param z z coordinate of the point
-   * @return true if the point is inside the solid.
+   * @return the status of the point, inside, outside, or on the surface.
    */
-  bool is_point_inside(float x, float y, float z) = 0 const;
+  virtual CSGStatus is_point_inside(float x, float y, float z) const = 0;
   
   /**
    * Returns true if the object on the right hand side is enclosed by
    * the object on the left.
    */
-  bool operator> (const CSGObject &rhs) = 0 const;
+  //virtual bool operator> (const CSGObject &rhs) const = 0;
 
   /**
    * Returns true if the object on the left hand side is enclosed by the 
    * object on the left.
    */ 
-  bool operator< (const CSGObject &rhs) = 0 const;
+  //virtual bool operator< (const CSGObject &rhs) const = 0;
 
   /**
    * Returns a list of verticies for this object. The
    */ 
-  const vector<float[3]> &get_verticies() = 0 const;
+  //virtual const vector<float[3]> &get_verticies() const = 0;
 };
 
 #endif // CSG_OBJECT_H
