@@ -61,9 +61,82 @@
 \begin{slide}{Archetecture}
   Object Oriented Infastruction
 
+  Goals:
   \begin{itemize}
+  \item Modularity
   \item 
   \end{itemize}
+\end{slide}
+
+\begin{slide}{Memory Organization - Old way}
+  % Picture representing old memory organization
+  \insgraphic{1}{jan-memory.eps}
+\end{slide}
+
+\begin{slide}{Memory Organization - New way}
+  \insgraphic{1}{phred-memory.eps}
+
+  Memory offset calculation: $i = z + (y + x * numy) * numz$
+\end{slide}
+
+\begin{slide}{Memory Organization Performance}
+  1 Million nodes (100x100x100), 100 time steps
+  \vspace{0.5cm}
+
+  AMD Athlon 1800+ (1152 MHz), 256 KB Cache, 512 MB RAM
+  \vspace{0.5cm}
+  
+  10 Trials each
+  \vspace{0.5cm}
+
+  Jan's average time: 27.66 seconds
+  Phred's average time: 18.76 seconds
+  \vspace{0.5cm}
+
+  $\approx 32\%$ speed increase
+  \vspace{0.5cm}
+
+  Code is simplified, memory usage reduced
+\end{slide}
+
+\begin{slide}{Minerva Supercomputer}
+  % Picture of minerva / 
+  \insgraphic{1}{minerva-sp.eps}
+  
+  \begin{itemize}
+  \item 8 node IBM RS/6000 SP 
+  \item 16 375 MHz 64-bit Processors per node
+  \item 8 Gb Memory per node (2 Gb accessable in 32-bit mode)
+  \item 4 nodes assigned to serial jobs
+  \item 4 nodes assigned to parallel jobs
+  \end{itemize}
+\end{slide}
+
+\begin{slide}{Parallization Techniques}
+  \begin{itemize}
+  \item Message Passing Interface (MPI)
+  \item OpenMP (Shared Memory SMP)
+  \item Vector processors
+    \begin{itemize}
+    \item Intel SSE2
+    \item IBM/Motorola/Apple AltiVec (a.k.a. Velocity Engine)
+    \item Cray (and other) Supercomputers
+    \end{itemize}
+  \end{itemize}
+
+  MPI + OpenMP $\rightarrow$ Hybrid Parallization
+\end{slide}
+
+\begin{slide}{OpenMP: Symmetrical Multiprocessing}
+  
+\end{slide}
+
+\begin{slide}{Parallel Performance Scaling}
+  % 3-d figure showing performance numbers with 1 to 16 OpenMP threads
+  % on 1, 2, and 4 nodes. 
+  
+  100x100x100 Grid, 100 time steps, electric wall boundaries, single
+  point excitation
 \end{slide}
 
 \begin{slide}{?}
