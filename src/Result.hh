@@ -39,8 +39,25 @@ protected:
   unsigned int num_dims_; /**< Number of dimensions */
   unsigned int *dim_lens_; /**< Dimension lengths */
 
-  string dw_name_;
-  //DataWriter *dw_;
+  unsigned int time_start_; /**< Time step to start returning results at */
+  unsigned int time_stop_; /**< Time step to stop returning results at */
+  unsigned int time_space_; /**< Number of time steps to skip between
+                               results. */ 
+
+  string dw_name_; /**< DataWriter name we intend our results for */
+
+  /** 
+   * Help subclasses know if they should return any results or not
+   */
+  inline bool result_time(unsigned int time_step) 
+  {
+    if (time_step >= time_start_ && time_step <= time_stop_
+        && (time_step - time_start_) % time_space_)
+      return true;
+    else 
+      return false; 
+  }
+
 public:
   Result() 
     : num_dims_(0), dim_lens_(0) //, dw_(0)
@@ -48,6 +65,20 @@ public:
 
   virtual ~Result()
   {}
+
+  /**
+   * Set the time related parameters
+   * @param start time step to start returning results at
+   * @param stop time step to stop returning results at
+   * @param space number of time steps to skip between results
+   */
+  inline void set_time_param(unsigned int start, unsigned int stop, 
+                             unsigned int space)
+  {
+    time_start_ = start;
+    time_stop_ = stop;
+    time_space_ = space; 
+  }
 
   /**
    * Set the data writer name (intended where we read that from a

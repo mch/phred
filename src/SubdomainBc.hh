@@ -20,10 +20,11 @@ protected:
 
   /**
    * A helper function that sends arrays of data between two ranks. 
-   * @param ptr pointer to data to send
+   * @param tx_ptr pointer to data to send
+   * @param tx_ptr pointer to area to recieve to 
    * @param dt MPI Derived data type describing the data
    */
-  void send_recv(void *ptr, MPI_Datatype &t);
+  void send_recv(void *tx_ptr, void *rx_ptr, MPI_Datatype &t);
 
 public:
   SubdomainBc() 

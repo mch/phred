@@ -1,79 +1,40 @@
 
 #include "SubdomainBc.hh"
 #include "Grid.hh"
-#include <iostream>
-
-using namespace std;
 
 void SubdomainBc::apply(Face face, Grid &grid)
 {
-  cout << "Supposed to apply subdomain boundary condition; send interface to "
-       << neighbour_ << endl;
-
   region_t r = find_face(face, grid);
   MPI_Datatype t;
 
-  switch (face)
-  {
-  case FRONT:
-  case BACK:
-    t = grid.get_yz_plane_dt();
-    break;
-
-  case LEFT:
-  case RIGHT:
-    t = grid.get_xz_plane_dt();
-    break;
-
-  case TOP:
-  case BOTTOM:
-    t = grid.get_xy_plane_dt();
-    break;
-  }
+  t = grid.get_plane_dt(face);
 
   // Send away!
-  send_recv(grid.get_face_start(face, EX), t);
-  send_recv(grid.get_face_start(face, EY), t);
-  send_recv(grid.get_face_start(face, EZ), t);
-  send_recv(grid.get_face_start(face, HX), t);
-  send_recv(grid.get_face_start(face, HY), t);
-  send_recv(grid.get_face_start(face, HZ), t);
+  send_recv(grid.get_face_start(face, EX, 1),
+            grid.get_face_start(face, EX, 0), t);
+  send_recv(grid.get_face_start(face, EY, 1),
+            grid.get_face_start(face, EY, 0), t);
+  send_recv(grid.get_face_start(face, EZ, 1),
+            grid.get_face_start(face, EZ, 0), t);
+
+  send_recv(grid.get_face_start(face, HX, 1),
+            grid.get_face_start(face, HX, 0), t);
+  send_recv(grid.get_face_start(face, HY, 1),
+            grid.get_face_start(face, HY, 0), t);
+  send_recv(grid.get_face_start(face, HZ, 1),
+            grid.get_face_start(face, HZ, 0), t);
 }
 
-void SubdomainBc::send_recv(void *ptr, MPI_Datatype &t)
+void SubdomainBc::send_recv(void *tx_ptr, void *rx_ptr, MPI_Datatype &t)
 {
   MPI_Status status;
 
   if (rank_ > neighbour_) {
-    MPI_Send(ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD);
-    MPI_Recv(ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD, &status);
+    MPI_Send(tx_ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD);
+    MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD, &status);
   } else {
-    // Temporary storage. Maybe a member var, so we don't have to alloc
-    // and dealloc all the time? 
-    int sz, num_items;
-    MPI_Type_size(t, &sz);
-
-    num_items = sz / sizeof(field_t);
-
-    // Create a contigous type to recieve buffered data with. 
-    MPI_Datatype recv_t; 
-    
-    MPI_Type_contiguous(num_items, GRID_MPI_TYPE, &recv_t);
-    MPI_Type_commit(&recv_t);
-
-    field_t *recv_buffer = new field_t[num_items];
-    
-    MPI_Recv(recv_buffer, 1, recv_t, neighbour_, 1, MPI_COMM_WORLD, &status);
-    MPI_Send(ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD);
-
-    // Copy recieved data into grid
-    int pos = 0;
-    MPI_Unpack(recv_buffer, num_items, &pos, ptr, 1, t, MPI_COMM_WORLD);
-
-    // Cleanup
-    delete[] recv_buffer;
-
-    MPI_Type_free(&recv_t); // !?
+    MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD, &status);
+    MPI_Send(tx_ptr, 1, t, neighbour_, 1, MPI_COMM_WORLD);
   }
 }
 

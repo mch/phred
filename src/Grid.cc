@@ -119,6 +119,8 @@ void Grid::free_grid()
     delete[] hx_;
     delete[] hy_;
     delete[] hz_;
+
+    ex_ = ey_ = ez_ = hx_ = hy_ = hz_ = 0;
   }
 }
 
@@ -155,7 +157,8 @@ void Grid::init_datatypes()
   MPI_Type_vector(get_ldy(), 1, get_ldz(), GRID_MPI_TYPE, &y_vector_);
   MPI_Type_commit(&y_vector_);
   
-  MPI_Type_vector(get_ldx(), 1, get_ldy() * get_ldz(), GRID_MPI_TYPE, &x_vector_);
+  MPI_Type_vector(get_ldx(), 1, get_ldy() * get_ldz(), 
+                  GRID_MPI_TYPE, &x_vector_);
   MPI_Type_commit(&x_vector_);
 
   // Not 100% sure about these:
@@ -167,6 +170,27 @@ void Grid::init_datatypes()
 
   MPI_Type_vector(get_ldx(), 1, 0, y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
+
+  // TEST:
+  int sz; 
+  MPI_Type_size(z_vector_, &sz);
+  cout << "Z_vector of " << get_ldz() << " floats is " << sz << " bytes.\n";
+
+  MPI_Type_size(y_vector_, &sz);
+  cout << "Y_vector of " << get_ldy() << " floats is " << sz << " bytes.\n";
+
+  MPI_Type_size(x_vector_, &sz);
+  cout << "X_vector of " << get_ldx() << " floats is " << sz << " bytes.\n";
+
+  MPI_Type_size(yz_plane_, &sz);
+  cout << "YZ_plane of " << get_ldy() << "x" << get_ldz() << " floats is " << sz << " bytes.\n";  
+
+  MPI_Type_size(xz_plane_, &sz);
+  cout << "XZ_plane of " << get_ldx() << "x" << get_ldz() << " floats is " << sz << " bytes.\n";  
+
+  MPI_Type_size(xy_plane_, &sz);
+  cout << "XY_plane of " << get_ldx() << "x" << get_ldy() << " floats is " << sz << " bytes." << endl;  
+
 }
 
 
@@ -569,14 +593,20 @@ region_t Grid::global_to_local(region_t in)
   r.zmin = (get_lsz() > in.zmin) ? 0
     : in.zmin - get_lsz();
 
-  r.xmax = (in.xmax >= get_lsx() + get_ldx()) 
-    ? get_ldx() : in.xmax - get_lsx() + 1;
+  r.xmax = (in.xmax >= get_lsx()) ? 
+    ((in.xmax >= get_lsx() + get_ldx()) 
+     ? get_ldx() : in.xmax - get_lsx() + 1)
+    : 0;
 
-  r.ymax = (in.ymax >= get_lsy() + get_ldy()) 
-    ? get_ldy() : in.ymax - get_lsy() + 1;
+  r.ymax = (in.ymax >= get_lsy()) ? 
+    ((in.ymax >= get_lsy() + get_ldy()) 
+     ? get_ldy() : in.ymax - get_lsy() + 1)
+    : 0;
 
-  r.zmax = (in.zmax >= get_lsz() + get_ldz()) 
-    ? get_ldz() : in.zmax - get_lsz() + 1;
+  r.zmax = (in.zmax >= get_lsz()) ? 
+    ((in.zmax >= get_lsz() + get_ldz()) 
+     ? get_ldz() : in.zmax - get_lsz() + 1)
+    : 0;
 
   return r;
 }
@@ -597,7 +627,8 @@ region_t Grid::global_to_local(unsigned int x_start, unsigned int x_stop,
   return global_to_local(result);
 }
 
-field_t *Grid::get_face_start(Face face, FieldComponent comp)
+field_t *Grid::get_face_start(Face face, FieldComponent comp,
+                              unsigned int offset)
 {
   unsigned int idx = 0;
   field_t *ptr = 0;
@@ -605,41 +636,119 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp)
   switch (face)
   {
   case FRONT: // x=dimx...
-    idx = pi(get_ldx() - 1, 0, 0);
+    idx = pi(get_ldx() - 1 - offset, 0, 0);
     break;
   case TOP: // z=dimz
-    idx = pi(0, 0, get_ldz() - 1);
+    idx = pi(0, 0, get_ldz() - 1 - offset);
   case RIGHT: // y=dimy
-    idx = pi(0, get_ldy() - 1, 0);
+    idx = pi(0, get_ldy() - 1 - offset, 0);
     break;
   case BACK: // x=0
+    idx = pi(offset, 0, 0);
+    break;
   case BOTTOM: // z=0
+    idx = pi(0, 0, offset);
+    break;
   case LEFT: // y=0
-    idx = 0;
+    idx = pi(0, offset, 0);
     break;
   }
 
   switch(comp)
   {
   case EX:
-    ptr = &ex_[idx];
+    ptr = &(ex_[idx]);
     break;
   case EY:
-    ptr = &ey_[idx];
+    ptr = &(ey_[idx]);
     break;
   case EZ:
-    ptr = &ez_[idx];
+    ptr = &(ez_[idx]);
     break;
   case HX:
-    ptr = &hx_[idx];
+    ptr = &(hx_[idx]);
     break;
   case HY:
-    ptr = &hy_[idx];
+    ptr = &(hy_[idx]);
     break;
   case HZ:
-    ptr = &hz_[idx];
+    ptr = &(hz_[idx]);
     break;
   }
 
   return ptr;
+}
+
+field_t *Grid::get_face_start(Face face, FieldComponent comp,
+                              point_t p)
+{
+  unsigned int idx = 0;
+  field_t *ptr = 0;
+
+  switch (face)
+  {
+  case FRONT:
+  case BACK:
+    idx = pi(p.x, 0, 0);    
+    break;
+
+  case TOP:
+  case BOTTOM:
+    idx = pi(0, 0, p.z);    
+    break;
+
+  case LEFT:
+  case RIGHT:
+    idx = pi(0, p.y, 0);
+    break;
+  }
+
+  switch(comp)
+  {
+  case EX:
+    ptr = &(ex_[idx]);
+    break;
+  case EY:
+    ptr = &(ey_[idx]);
+    break;
+  case EZ:
+    ptr = &(ez_[idx]);
+    break;
+  case HX:
+    ptr = &(hx_[idx]);
+    break;
+  case HY:
+    ptr = &(hy_[idx]);
+    break;
+  case HZ:
+    ptr = &(hz_[idx]);
+    break;
+  }
+
+  return ptr;
+}
+
+MPI_Datatype Grid::get_plane_dt(Face face)
+{
+  MPI_Datatype t;
+
+  switch (face)
+  {
+  case FRONT:
+  case BACK:
+    t = yz_plane_;
+    break;
+
+  case TOP:
+  case BOTTOM:
+    t = xy_plane_;
+    break;
+
+  case LEFT:
+  case RIGHT:
+    t = xz_plane_;
+    break;
+  }
+
+  return t;
 }

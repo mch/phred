@@ -8,8 +8,8 @@ void TimeExcitation::excite(Grid &grid, unsigned int time_step,
     return;
 
   region_t r = grid.global_to_local(x_start_, x_end_, 
-                                  y_start_, y_end_,
-                                  z_start_, z_end_);
+                                    y_start_, y_end_,
+                                    z_start_, z_end_);
 
   field_t sf = source_function(grid, time_step);
   field_t fld[3];

@@ -619,30 +619,11 @@ class Grid {
 
   /**
    * Return the MPI derived data type for the xy plane. 
+   *
+   * @param face the face to return the data type for
    * @return MPI_Datatype
    */
-  inline MPI_Datatype get_xy_plane_dt()
-  {
-    return xy_plane_;
-  }
-
-  /**
-   * Return the MPI derived data type for the yz plane. 
-   * @return MPI_Datatype
-   */
-  inline MPI_Datatype get_yz_plane_dt()
-  {
-    return yz_plane_;
-  }
-
-  /**
-   * Return the MPI derived data type for the xz plane. 
-   * @return MPI_Datatype
-   */
-  inline MPI_Datatype get_xz_plane_dt()
-  {
-    return xz_plane_;
-  }
+  MPI_Datatype get_plane_dt(Face face);
 
   /**
    * Return the MPI Derived data type for an X vector
@@ -680,9 +661,27 @@ class Grid {
    *
    * @param face The face of interest
    * @param comp The component of interest
+   * @param offset An offset from the face, defaults to zero. Must be
+   * greater than zero; results in a pointer to a face inside the
+   * grid. 
    * @return a pointer to the field component at the specified face
    */
-  field_t *get_face_start(Face face, FieldComponent comp);
+  field_t *get_face_start(Face face, FieldComponent comp,
+                          unsigned int offset = 0);
+
+  /**
+   * Return a pointer to the start of a face. DANGER!! Clients must
+   * take care when using this pointer! 
+   *
+   * This is intended for use by PlaneResult for getting results out. 
+   *
+   * @param face The face of interest
+   * @param comp The component of interest
+   * @param p A point indicating where the plane intersects the grid
+   * @return a pointer to the field component at the specified face
+   */
+  field_t *get_face_start(Face face, FieldComponent comp,
+                          point_t p);
 
 };
 

@@ -38,6 +38,8 @@ phred_SOURCES=phred.cc \
 	Result.hh \
 	PointResult.hh \
 	PointResult.cc \
+	PlaneResult.hh \
+	PlaneResult.cc \
 	DataWriter.hh \
 	AsciiDataWriter.hh \
 	AsciiDataWriter.cc \

@@ -205,9 +205,9 @@ main (int argc, char **argv)
   Grid grid; 
   GridInfo info_g;
   
-  info_g.global_dimx_ = info_g.dimx_ = 100;
-  info_g.global_dimy_ = info_g.dimy_ = 100;
-  info_g.global_dimz_ = info_g.dimz_ = 100;
+  info_g.global_dimx_ = info_g.dimx_ = 50;
+  info_g.global_dimy_ = info_g.dimy_ = 50;
+  info_g.global_dimz_ = info_g.dimz_ = 50;
   info_g.deltax_ = info_g.deltay_ = info_g.deltaz_ = 18.75e-9;
   info_g.deltat_ = 36e-18;
   info_g.start_x_ = info_g.start_y_ = info_g.start_z_ = 0;
@@ -236,45 +236,50 @@ main (int argc, char **argv)
   grid.load_materials(mats);
 
   // Global coordinates. 
-  grid.define_box(0, 100, 0, 100, 0, 100, 1);
-  grid.define_box(40, 60, 40, 60, 40, 60, 2);
+  grid.define_box(0, 50, 0, 50, 0, 50, 1);
+  //grid.define_box(20, 30, 20, 30, 20, 30, 2);
 
   // Excitation
   Gaussm ex;
   ex.set_parameters(1, 500e12, 300e12);
-  ex.set_region(50, 50, 50, 50, 50, 50);
+  ex.set_region(22, 22, 25, 25, 25, 25);
   ex.set_polarization(0.0, 1.0, 0.0);
+
+  Gaussm ex2;
+  ex2.set_parameters(1, 500e12, 300e12);
+  ex2.set_region(22, 22, 0, 0, 0, 0);
+  ex2.set_polarization(0.0, 1.0, 0.0);
 
   // Results
   point_t p;
-  p.x = 45;
-  p.y = 50;
-  p.z = 50;
+  p.x = 20;
+  p.y = 25;
+  p.z = 25;
   PointResult res1;
   PointResult res2;
   PointResult res3;
   res1.set_point(p);
-  p.x = 50;
+  p.x = 25;
   res2.set_point(p);
-  p.x = 55;
+  p.x = 30;
   res3.set_point(p);
 
   AsciiDataWriter adw1(rank, size);
-  adw1.set_filename("t_ey_45_2.txt");
+  adw1.set_filename("t_ey_20.txt");
   adw1.add_variable(res1);
   
   AsciiDataWriter adw2(rank, size);
-  adw2.set_filename("t_ey_50_2.txt");
+  adw2.set_filename("t_ey_25.txt");
   adw2.add_variable(res2);
 
   AsciiDataWriter adw3(rank, size);
-  adw3.set_filename("t_ey_55_2.txt");
+  adw3.set_filename("t_ey_30.txt");
   adw3.add_variable(res3);
 
   grid.set_define_mode(false);
   
   // Main loop
-  unsigned int num_time_steps = 7;
+  unsigned int num_time_steps = 12;
   unsigned int ts = 0;
 
   //ex.excite(grid, ts, BOTH);
@@ -293,6 +298,9 @@ main (int argc, char **argv)
     // Excitations
     ex.excite(grid, ts, E);
     ex.excite(grid, ts, H);
+
+    ex2.excite(grid, ts, E);
+    ex2.excite(grid, ts, H);
 
     // Boundary condition application
     grid.apply_boundaries();
