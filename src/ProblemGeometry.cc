@@ -68,7 +68,7 @@ void ProblemGeometry::set_grid_size(float x_size, float y_size, float z_size)
     box->set_size(x_size, y_size, z_size);
 }
 
-point ProblemGeometry::get_grid_size()
+point ProblemGeometry::get_grid_size() const
 {
   CSGBox *box = dynamic_cast<CSGBox *>(grid_box_.obj_.get());
   point ret;
@@ -87,7 +87,7 @@ void ProblemGeometry::set_grid_centre(float x, float y, float z)
     box->set_centre(x, y, z);
 }
 
-point ProblemGeometry::get_grid_centre()
+point ProblemGeometry::get_grid_centre() const
 {
   CSGBox *box = dynamic_cast<CSGBox *>(grid_box_.obj_.get());
   point ret;

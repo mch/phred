@@ -431,7 +431,7 @@ class Grid {
    * @param p the point to convert
    * @return the point in global coordinates
    */
-  point_t global_to_local(point_t p) const;
+  grid_point global_to_local(grid_point p) const;
 
   /**
    * Convert global coordinate to local grid coordinates. Generally
@@ -902,7 +902,7 @@ class Grid {
    * @return a pointer to the field component at the specified face
    */
   field_t *get_face_start(Face face, FieldComponent comp,
-                          point_t p) const;
+                          grid_point p) const;
 
   /**
    * Return a pointer to a point in the grid for a particular field
@@ -913,8 +913,15 @@ class Grid {
    * @param field_comp the field component to return the pointer for
    * @return a pointer, which may be null if something went wrong. 
    */
-  const field_t *get_pointer(point_t point, 
+  const field_t *get_pointer(grid_point point, 
                              FieldComponent field_comp) const;
+
+  /**
+   * Return a pointer to the material array.
+   *
+   * @param point the point to get the material pointer
+   */
+  const unsigned int *get_material_ptr(grid_point point) const;
 
   /**
    * Assign a material index a some point in space

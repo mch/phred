@@ -107,7 +107,7 @@ void point_test(int rank, int size)
   fdtd.add_excitation("modgauss", &ex);
 
   // Results
-  point_t p;
+  grid_point p;
   p.x = 50;
   p.y = 25;
   p.z = 50;
@@ -227,7 +227,7 @@ void pml_test(int rank, int size)
 //    metal2.set_material_id(3);
 
 //    Sphere sp1;
-//    sp1.set_centre(point_t(40, 10, 10));
+//    sp1.set_centre(grid_point(40, 10, 10));
 //    sp1.set_radius(5);
 //    sp1.set_material_id(3);
 
@@ -250,7 +250,7 @@ void pml_test(int rank, int size)
   fdtd.add_excitation("modgauss", &ex);
 
   // Results
-//    point_t p;
+//    grid_point p;
 //    p.x = 35;
 //    p.y = 25;
 //    p.z = 25;
@@ -272,7 +272,7 @@ void pml_test(int rank, int size)
 //    fdtd.map_result_to_datawriter("res1", "adw1");
 //    fdtd.map_result_to_datawriter("pdft", "adw2");
 
-//    point_t p3(35, 10, 9);
+//    grid_point p3(35, 10, 9);
 //    PointResult pres60(p3);
 //    PointDFTResult pdft60(5e12, 600e12, 120);  
 
@@ -290,7 +290,7 @@ void pml_test(int rank, int size)
 //    fdtd.map_result_to_datawriter("pres60", "adwp60");
 //    fdtd.map_result_to_datawriter("pdft60", "adwp60dft");
 
-//    point_t p2;
+//    grid_point p2;
 //    p2.x = 4;
 //    p2.y = 10;
 //    p2.z = 10;
@@ -339,7 +339,7 @@ void pml_test(int rank, int size)
 
 //    PlaneResult pr1;
 //    pr1.set_name("ex-yzplane4");
-//    pr1.set_plane(point_t(4, 10, 10), FRONT);
+//    pr1.set_plane(grid_point(4, 10, 10), FRONT);
 //    pr1.set_field(FC_EX);
   
 //    PlaneResult pr2;
@@ -349,12 +349,12 @@ void pml_test(int rank, int size)
 
 //     PlaneResult pr3;
 //     pr3.set_name("ey-yzplane4");
-//     pr3.set_plane(point_t(4, 10, 10), FRONT);
+//     pr3.set_plane(grid_point(4, 10, 10), FRONT);
 //     pr3.set_field(FC_EY);
 
 //     PlaneResult pr4;
 //     pr4.set_name("ey-yzplane15");
-//     pr4.set_plane(point_t(15, 10, 10), FRONT);
+//     pr4.set_plane(grid_point(15, 10, 10), FRONT);
 //     pr4.set_field(FC_EZ);
 
 //     PlaneResult pr5;
@@ -495,7 +495,7 @@ void takakura_test(int rank, int size)
   fdtd.add_excitation("modgauss", &ex);
 
   // Results
-  point_t p;
+  grid_point p;
   p.x = 24;
   p.y = 159;
   p.z = 75;
@@ -517,7 +517,7 @@ void takakura_test(int rank, int size)
   fdtd.map_result_to_datawriter("res1", "adw1");
   fdtd.map_result_to_datawriter("pdft", "adw2");
 
-  point_t p3(24, 159, 200);
+  grid_point p3(24, 159, 200);
   PointResult pres60(p3);
   PointDFTResult pdft60(5e12, 600e12, 120);  
 
@@ -542,7 +542,7 @@ void takakura_test(int rank, int size)
 
   PlaneResult pr1;
   pr1.set_name("ex-yzplane4");
-  pr1.set_plane(point_t(24, 159, 75), FRONT);
+  pr1.set_plane(grid_point(24, 159, 75), FRONT);
   pr1.set_field(FC_EY);
   pr1.set_time_param(1, 5000, 25);
  
@@ -706,7 +706,7 @@ void coupler_test(int rank, int size)
   fdtd.add_excitation("modgauss", &ex);
 
   // Results
-  point_t p;
+  grid_point p;
   p.x = xlen / 2;
   p.y = ylen / 2;
   p.z = zlen / 2;

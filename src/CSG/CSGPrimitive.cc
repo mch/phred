@@ -31,6 +31,12 @@ CSGPrimitive::CSGPrimitive()
 CSGPrimitive::~CSGPrimitive()
 {}
 
+// This is just here to make boost.python happy. 
+CSGStatus CSGPrimitive::is_point_inside(float x, float y, float z) const
+{
+  return OUTSIDE;
+}
+
 void CSGPrimitive::set_centre(float x, float y, float z)
 {
   centre_[0] = x;

@@ -64,7 +64,7 @@ void CSGBox::set_size(float x_size, float y_size, float z_size)
 
 }
 
-point CSGBox::get_size()
+point CSGBox::get_size() const
 {
   return point(lengths_[0], lengths_[1], lengths_[2]);
 }

@@ -81,7 +81,7 @@ public:
   /**
    * Returns the grid size
    */ 
-  point get_grid_size();
+  point get_grid_size() const;
 
   /**
    * Set the position of the centre of the grid. 
@@ -91,7 +91,7 @@ public:
   /**
    * Returns the position of the centre of the grid
    */ 
-  point get_grid_centre();
+  point get_grid_centre() const;
 
   /**
    * Set the units multiplier. The user can choose to rescale the

@@ -12,9 +12,9 @@ libcsg_a_SOURCES = CSGObject.hh \
 	CSGDifference.hh \
 	CSGIntersection.hh \
 	CSGPrimitive.cc \
-	CSGBox.cc 
-#	CSGSphere.cc \
-	CSGCylinder.cc \
+	CSGBox.cc \
+	CSGSphere.cc
+#	CSGCylinder.cc \
 	CSGCone.cc \
 	CSGTransform.cc \
 	CSGUnion.cc \

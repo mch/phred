@@ -466,6 +466,34 @@ void Grid::alloc_grid()
 
 void Grid::load_geometry(const ProblemGeometry &pg)
 {
+  // Loop through the voxels and ask the problem geometry what
+  // material id should be used at each. THIS MUST BE CHANGED TO
+  // SUPPORT GRADED MESHES.
+  
+  point size = pg.get_grid_size();
+  point centre = pg.get_grid_centre();
+
+  float x = centre.x - size.x / 2;
+  float y = centre.y - size.y / 2;
+  float z = centre.z - size.z / 2;
+
+  for (unsigned int i = 0; i < info_.dimx_; i++)
+  {
+    for (unsigned int j = 0; j < info_.dimy_; j++)
+    {
+      for (unsigned int k = 0; k < info_.dimz_; k++)
+      {
+        material_[pi(i,j,k)] = pg.get_material_id(x, y, z);
+        z += info_.deltax_;
+      }
+      y += info_.deltay_;
+    }
+    x += info_.deltax_;
+  }
+
+  // SET UP Data structures for dealing with blocks of memory for different
+  // kinds of dispersion relationships. 
+
 //   num_geoms_ = geoms.size();
 //   vector<Geometry *>::iterator iter;
 //   vector<Geometry *>::iterator iter_e = geoms.end();
@@ -959,9 +987,9 @@ void Grid::apply_boundaries(FieldType type)
   info_.apply_boundaries(*this, type);
 }
 
-point_t Grid::global_to_local(point_t p) const
+grid_point Grid::global_to_local(grid_point p) const
 {
-  point_t r;
+  grid_point r;
   
   r.x = (info_.start_x_ > p.x) ? 0 : p.x - info_.start_x_;
   r.y = (info_.start_y_ > p.y) ? 0 : p.y - info_.start_y_;
@@ -1081,7 +1109,7 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp,
 }
 
 field_t *Grid::get_face_start(Face face, FieldComponent comp,
-                              point_t p) const
+                              grid_point p) const
 {
   unsigned int idx = 0, xstart, ystart, zstart;
   field_t *ptr = 0;
@@ -1161,7 +1189,12 @@ MPI_Datatype Grid::get_plane_dt(Face face) const
   return t;
 }
 
-const field_t *Grid::get_pointer(point_t point, 
+const unsigned int *Grid::get_material_ptr(grid_point point) const
+{
+  return &(material_[pi(point.x, point.y, point.z)]);
+}
+
+const field_t *Grid::get_pointer(grid_point point, 
                                  FieldComponent field_comp) const
 {
   field_t *ret = 0;

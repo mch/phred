@@ -85,11 +85,18 @@ void export_types()
     .def_readwrite("zmax", &region_t::zmax)
     ;
 
-  class_<point_t>("point")
+  class_<grid_point>("grid_point")
     .def(init<unsigned int, unsigned int, unsigned int>())
-    .def_readwrite("x", &point_t::x)
-    .def_readwrite("y", &point_t::y)
-    .def_readwrite("z", &point_t::z)
+    .def_readwrite("x", &grid_point::x)
+    .def_readwrite("y", &grid_point::y)
+    .def_readwrite("z", &grid_point::z)
+    ;
+
+  class_<point>("point")
+    .def(init<float, float, float>())
+    .def_readwrite("x", &point::x)
+    .def_readwrite("y", &point::y)
+    .def_readwrite("z", &point::z)
     ;
 
   class_<Region>("Region", init<unsigned int, unsigned int, 

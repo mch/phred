@@ -50,7 +50,7 @@ public:
   /**
    * Returns the size of the box
    */ 
-  point get_size();
+  point get_size() const;
 
   /**
    * Returns true if the object on the right hand side is enclosed by

@@ -27,7 +27,7 @@
 Sphere::Sphere()
 {}
 
-Sphere::Sphere(point_t centre, unsigned int radius)
+Sphere::Sphere(grid_point centre, unsigned int radius)
   : centre_(centre), radius_(radius)
 {}
 

@@ -12,5 +12,6 @@ libpyphread_a_SOURCES = PyExcitations.hh \
 	PyTypes.cc \
 	PyDatawriters.cc \
 	PyBoundaries.cc \
-	PyExcitations.cc
+	PyExcitations.cc \
+	PyCSG.cc
 endif

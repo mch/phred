@@ -31,12 +31,12 @@ class Sphere : public Geometry
 {
 private:
 protected:
-  point_t centre_;
+  grid_point centre_;
   unsigned int radius_;
 
 public:
   Sphere();
-  Sphere(point_t centre, unsigned int radius);
+  Sphere(grid_point centre, unsigned int radius);
   ~Sphere();
 
   /**
@@ -50,7 +50,7 @@ public:
   /**
    * Set the centre of the sphere. 
    */
-  inline void set_centre(point_t c)
+  inline void set_centre(grid_point c)
   {
     centre_ = c;
   }
@@ -60,7 +60,7 @@ public:
     return radius_;
   }
 
-  inline point_t get_centre()
+  inline grid_point get_centre()
   {
     return centre_;
   }

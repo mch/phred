@@ -218,8 +218,6 @@ typedef struct {
   unsigned int z;
 } point_t;
 
-typedef point_t grid_point;
-
 typedef struct {
   float x;
   float y;
@@ -227,6 +225,8 @@ typedef struct {
 } point;
 
 #endif
+
+typedef point_t grid_point;
 
 #endif
 

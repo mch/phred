@@ -41,7 +41,8 @@ public:
    * @param z z coordinate of the point
    * @return the status of the point, inside, outside, or on the surface.
    */
-  virtual CSGStatus is_point_inside(float x, float y, float z) const = 0;
+  virtual CSGStatus is_point_inside(float x, float y, float z) const
+  { return OUTSIDE; } // Should be abstract; this makes boost.python happy. 
   
   /**
    * Returns true if the object on the right hand side is enclosed by

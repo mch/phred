@@ -19,35 +19,35 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef CSG_PRIMITIVE_H
-#define CSG_PRIMITIVE_H
+#include "CSGSphere.hh"
 
-#include "CSGObject.hh"
+CSGSphere::CSGSphere()
+  : radius_(0.5)
+{}
 
-/**
- * An abstract base class that represents a CSG Primitive. This just
- * provides code for dealing the the centre coordinates of all
- * primitives.
- */ 
-class CSGPrimitive : public CSGObject {
-public:
-  CSGPrimitive();
-  ~CSGPrimitive();
+CSGSphere::~CSGSphere()
+{}
 
-  virtual CSGStatus is_point_inside(float x, float y, float z) const;
+CSGStatus CSGSphere::is_point_inside(float x, float y, float z) const
+{
+  CSGStatus ret = OUTSIDE;
 
-  /**
-   * Set the centre coordinates of the object. 
-   */ 
-  void set_centre(float x, float y, float z);
+  float r = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
 
-  /**
-   * Returns the centre of the object. 
-   */ 
-  point get_centre();
+  if (r < radius_)
+    ret = INSIDE;
+  else if (r == radius_)
+    ret = BOUNDARY;
 
-protected:
-  float centre_[3];
-};
+  return ret; 
+}
 
-#endif // CSG_PRIMITIVE_H
+void set_radius(float radius)
+{
+  radius_ = radius;
+}
+
+float get_radius() const
+{
+  return radius_;
+}

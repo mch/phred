@@ -41,6 +41,7 @@ void export_types();
 void export_datawriters();
 void export_geometry();
 void export_grids();
+void export_csg();
 
 BOOST_PYTHON_MODULE(Phred)
 {
@@ -53,6 +54,7 @@ BOOST_PYTHON_MODULE(Phred)
   export_datawriters();
   export_geometry();
   export_grids();
+  export_csg();
 }
 
 static struct _inittab modules_[] = 
