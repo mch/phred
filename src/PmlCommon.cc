@@ -83,6 +83,33 @@ void PmlCommon::alloc_coeffs(Grid &grid)
     throw MemoryException();
   }
 
+  memset(ratio_x_, 0, sizeof(float) * grid.get_ldx());
+  memset(ratio_star_x_, 0, sizeof(float) * grid.get_ldx());
+
+  memset(ratio_y_, 0, sizeof(float) * grid.get_ldy());
+  memset(ratio_star_y_, 0, sizeof(float) * grid.get_ldy());
+
+  memset(ratio_z_, 0, sizeof(float) * grid.get_ldz());
+  memset(ratio_star_z_, 0, sizeof(float) * grid.get_ldz());
+
+  memset(e_x_coef1_, 0, sizeof(float) * grid.get_ldx());
+  memset(e_x_coef2_, 0, sizeof(float) * grid.get_ldx());
+
+  memset(e_y_coef1_, 0, sizeof(float) * grid.get_ldy());
+  memset(e_y_coef2_, 0, sizeof(float) * grid.get_ldy());
+
+  memset(e_z_coef1_, 0, sizeof(float) * grid.get_ldz());
+  memset(e_z_coef2_, 0, sizeof(float) * grid.get_ldz());
+
+  memset(h_x_coef1_, 0, sizeof(float) * grid.get_ldx());
+  memset(h_x_coef2_, 0, sizeof(float) * grid.get_ldx());
+
+  memset(h_y_coef1_, 0, sizeof(float) * grid.get_ldy());
+  memset(h_y_coef2_, 0, sizeof(float) * grid.get_ldy());
+
+  memset(h_z_coef1_, 0, sizeof(float) * grid.get_ldz());
+  memset(h_z_coef2_, 0, sizeof(float) * grid.get_ldz());
+
 #ifndef NDEBUG
   dimx_ = grid.get_ldx();
   dimy_ = grid.get_ldy();
@@ -235,20 +262,20 @@ void PmlCommon::init_coeffs(Grid &grid)
                      / (ratio_star_z_[k] * dt));
   }
                   
-//   cout << endl << "item\te_x_coef1\t\te_x_coef2\t\th_x_coef1\t\th_x_coef2 " << endl;
-//   for (int j = 0; j < grid.get_ldx(); j++)
-//     cout << j << "\t" << e_x_coef1_[j] << "\t\t" << e_x_coef2_[j]
-//          << "\t\t" << h_x_coef1_[j] << "\t\t" << h_x_coef2_[j] << endl;
+  cout << endl << "item\te_x_coef1\t\te_x_coef2\t\th_x_coef1\t\th_x_coef2 " << endl;
+  for (int j = 0; j < grid.get_ldx(); j++)
+    cout << j << "\t" << e_x_coef1_[j] << "\t\t" << e_x_coef2_[j]
+         << "\t\t" << h_x_coef1_[j] << "\t\t" << h_x_coef2_[j] << endl;
 
-//   cout << endl << "item\te_y_coef1\t\te_y_coef2\t\th_y_coef1\t\th_y_coef2 " << endl;
-//   for (int j = 0; j < grid.get_ldy(); j++)
-//     cout << j << "\t" << e_y_coef1_[j] << "\t\t" << e_y_coef2_[j]
-//          << "\t\t" << h_y_coef1_[j] << "\t\t" << h_y_coef2_[j] << endl;
+  cout << endl << "item\te_y_coef1\t\te_y_coef2\t\th_y_coef1\t\th_y_coef2 " << endl;
+  for (int j = 0; j < grid.get_ldy(); j++)
+    cout << j << "\t" << e_y_coef1_[j] << "\t\t" << e_y_coef2_[j]
+         << "\t\t" << h_y_coef1_[j] << "\t\t" << h_y_coef2_[j] << endl;
 
-//   cout << endl << "item\te_z_coef1\t\te_z_coef2\t\th_z_coef1\t\th_z_coef2 " << endl;
-//   for (int j = 0; j < grid.get_ldz(); j++)
-//     cout << j << "\t" << e_z_coef1_[j] << "\t\t" << e_z_coef2_[j]
-//          << "\t\t" << h_z_coef1_[j] << "\t\t" << h_z_coef2_[j] << endl;
+  cout << endl << "item\te_z_coef1\t\te_z_coef2\t\th_z_coef1\t\th_z_coef2 " << endl;
+  for (int j = 0; j < grid.get_ldz(); j++)
+    cout << j << "\t" << e_z_coef1_[j] << "\t\t" << e_z_coef2_[j]
+         << "\t\t" << h_z_coef1_[j] << "\t\t" << h_z_coef2_[j] << endl;
   
 }
 

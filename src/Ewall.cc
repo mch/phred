@@ -45,7 +45,7 @@ void Ewall::condition(region_t r, Grid &grid)
 
 void Ewall::apply(Face face, Grid &grid, FieldType type)
 {
-  if (type != E || type != H)
+  if (type != E && type != BOTH)
     return;
   
   region_t r = find_face(face, grid);

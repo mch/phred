@@ -82,7 +82,10 @@ void PointDFTResult::init(const Grid &grid)
 void PointDFTResult::deinit(const Grid &grid)
 {
   if (result_)
+  {
     delete[] result_;
+    result_ = 0;
+  }
 }
 
 Data &PointDFTResult::get_result(const Grid &grid, unsigned int time_step)

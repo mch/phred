@@ -27,18 +27,13 @@
  * of permittivity being dependent on frequency.
  *
  * \bug We'll do the "hard on memory" approach first, treating every
- * cell as if it were a plasma material, but with constants which
- * reduce the equations to the normal Taflove perfect conductor
- * equations. This will probably be faster than....
+ * cell as if it were a plasma material
  *
- * \bug compute the normal update equations over the entire region
- * first and only re-compute the plasma equations in the region where
- * there is actually plasma... or...
- * 
- * \bug Put an "if" inside the loop to see if the plasma or normal
- * update equations should be used. This may kill pipeline
- * performance, but it might also be ok, because we can probably
- * expect to go for long stretches with the same "if" outcome. 
+ * \bug Since it's unlikely for the entire region, or even a
+ * significant porition of it to be plasma, a less memory-wastey
+ * scheme should be used, but take care to update
+ * setup_subdomain_data as well, since the MPI data transactions may
+ * become difficult. 
  */
 
 #ifndef FREQ_GRID_H
@@ -100,6 +95,16 @@ protected:
    * Compute the update equatations for the Ez field component. 
    */
   virtual void update_ez();
+
+  /**
+   * This is called by set_define_mode(true), and it should add any
+   * data that needs to be exchanged across subdomain boundaries to 
+   * the SubdomainBc object. 
+   *
+   * @param sd the subdomain boundary to add data to be exchanged to.
+   * @param face the face this subdomain boundary is on. 
+   */
+  virtual void setup_subdomain_data(SubdomainBc *sd, Face face);
 
 public:
   FreqGrid();

@@ -165,6 +165,9 @@ void FreqGrid::load_materials(MaterialLib &matlib)
     throw MemoryException();
   }
 
+  memset(vcdt_, 0, sizeof(mat_coef_t) * num_mat);
+  memset(omegapsq_, 0, sizeof(mat_coef_t) * num_mat);
+
   int index = 0;
 
   vector<Material>::iterator iter = matlib.get_material_iter_begin();
@@ -182,6 +185,9 @@ void FreqGrid::load_materials(MaterialLib &matlib)
       omegapsq_[index] = pow((*iter).get_plasma_freq(), 
                              static_cast<float>(2.0))
         * (get_deltat() / (*iter).get_collision_freq());
+    } else {
+      vcdt_[index] = 0.0;
+      omegapsq_[index] = 0.0;
     }
     ++index;
     ++iter;
@@ -387,4 +393,95 @@ void FreqGrid::update_ez()
       }
     }
   }
+}
+
+
+void FreqGrid::setup_subdomain_data(SubdomainBc *sd, Face face)
+{
+  Grid::setup_subdomain_data(sd, face);
+
+  RxTxData rxtx;
+  unsigned int idx_rx = 0, idx_tx = 0;
+ 
+  rxtx.set_field_type(E);
+  
+  switch (face)
+  {
+  case FRONT: // x=dimx...
+    idx_rx = pi(get_ldx() - 1, 0, 0);
+    idx_tx = pi(get_ldx() - 2, 0, 0);
+    break;
+  case TOP: // z=dimz
+    idx_rx = pi(0, 0, get_ldz() - 1);
+    idx_tx = pi(0, 0, get_ldz() - 2);
+    break;
+  case RIGHT: // y=dimy
+    idx_rx = pi(0, get_ldy() - 1, 0);
+    idx_tx = pi(0, get_ldy() - 2, 0);
+    break;
+  case BACK: // x=0
+    idx_rx = pi(0, 0, 0);
+    idx_tx = pi(1, 0, 0);
+    break;
+  case BOTTOM: // z=0
+    idx_rx = pi(0, 0, 0);
+    idx_tx = pi(0, 0, 1);
+    break;
+  case LEFT: // y=0
+    idx_rx = pi(0, 0, 0);
+    idx_tx = pi(0, 1, 0);
+    break;
+  }
+
+  MPI_Datatype t = get_plane_dt(face);
+  rxtx.set_datatype(t);
+
+  rxtx.set_tx_ptr(&(dx_[idx_tx]));
+  rxtx.set_rx_ptr(&(dx_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+
+  rxtx.set_tx_ptr(&(dy_[idx_tx]));
+  rxtx.set_rx_ptr(&(dy_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+
+  rxtx.set_tx_ptr(&(dz_[idx_tx]));
+  rxtx.set_rx_ptr(&(dz_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+  
+  rxtx.set_tx_ptr(&(sx_[idx_tx]));
+  rxtx.set_rx_ptr(&(sx_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+
+  rxtx.set_tx_ptr(&(sy_[idx_tx]));
+  rxtx.set_rx_ptr(&(sy_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+
+  rxtx.set_tx_ptr(&(sz_[idx_tx]));
+  rxtx.set_rx_ptr(&(sz_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+
+  rxtx.set_tx_ptr(&(sxm1_[idx_tx]));
+  rxtx.set_rx_ptr(&(sxm1_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+
+  rxtx.set_tx_ptr(&(sym1_[idx_tx]));
+  rxtx.set_rx_ptr(&(sym1_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+
+  rxtx.set_tx_ptr(&(szm1_[idx_tx]));
+  rxtx.set_rx_ptr(&(szm1_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+
+  rxtx.set_tx_ptr(&(sxm2_[idx_tx]));
+  rxtx.set_rx_ptr(&(sxm2_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+
+  rxtx.set_tx_ptr(&(sym2_[idx_tx]));
+  rxtx.set_rx_ptr(&(sym2_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+
+  rxtx.set_tx_ptr(&(szm2_[idx_tx]));
+  rxtx.set_rx_ptr(&(szm2_[idx_rx]));
+  sd->add_tx_rx_data(rxtx);
+  
 }

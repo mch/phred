@@ -157,6 +157,13 @@ void Grid::set_define_mode(bool d)
           }
         }
       }
+
+      // Tell subdomains about Grid data that needs to be exchanged
+      SubdomainBc *sd = dynamic_cast<SubdomainBc *>(&info_.get_boundary(static_cast<Face>(i)));
+      if (sd)
+      {
+        setup_subdomain_data(sd, static_cast<Face>(i));
+      }
     }
     
 //     cout << "Grid update region: x={" << update_r_.xmin << "," 
@@ -382,6 +389,15 @@ void Grid::load_materials(MaterialLib &matlib)
     throw MemoryException();
   }
 
+  memset(Ca_, 0, sizeof(mat_coef_t) * num_mat);
+  memset(Da_, 0, sizeof(mat_coef_t) * num_mat);
+  memset(Cbx_, 0, sizeof(mat_coef_t) * num_mat);
+  memset(Cbz_, 0, sizeof(mat_coef_t) * num_mat);
+  memset(Cby_, 0, sizeof(mat_coef_t) * num_mat);
+  memset(Dbx_, 0, sizeof(mat_coef_t) * num_mat);
+  memset(Dby_, 0, sizeof(mat_coef_t) * num_mat);
+  memset(Dbz_, 0, sizeof(mat_coef_t) * num_mat);
+
   vector<Material>::iterator iter = matlib.get_material_iter_begin();
   vector<Material>::iterator iter_e = matlib.get_material_iter_end();
 
@@ -555,6 +571,20 @@ void Grid::update_ex()
       }
     }
   }
+
+  j = update_r_.ymin;
+  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+      ex_[pi(i, j, k)] = ex_[pi(i, j + 1, k)];
+    }
+  }
+
+  k = update_r_.zmin;
+  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+      ex_[pi(i, j, k)] = ex_[pi(i, j, k+1)];
+    }
+  }
 }
 
 // Straight out of Taflove.
@@ -593,6 +623,21 @@ void Grid::update_ey()
     }
   }
 
+  // Apply Neumann condition at the edges where the field can't be
+  // calculated from curl.
+  i = update_r_.xmin;
+  for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+      ey_[pi(i, j, k)] = ey_[pi(i + 1, j, k)];
+    }
+  }
+
+  k = update_r_.zmin;
+  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+      ey_[pi(i, j, k)] = ey_[pi(i, j, k+1)];
+    }
+  }
 }
 
 // Straight out of Taflove.
@@ -629,6 +674,22 @@ void Grid::update_ez()
       }
     }
   }
+
+  // Apply Neumann condition at the edges where the field can't be
+  // calculated from curl.
+  i = update_r_.xmin;
+  for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+      ez_[pi(i, j, k)] = ez_[pi(i + 1, j, k)];
+    }
+  }
+
+  j = update_r_.ymin;
+  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+      ez_[pi(i, j, k)] = ez_[pi(i, j + 1, k)];
+    }
+  }
 }
 
 // Straight out of Taflove.
@@ -660,6 +721,20 @@ void Grid::update_hx()
         hx++; idx++;
         ez1++; ez2++; ey++;
       }
+    }
+  }
+
+  j = update_r_.ymax - 1;
+  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+      hx_[pi(i, j, k)] = hx_[pi(i, j - 1, k)];
+    }
+  }
+
+  k = update_r_.zmax - 1;
+  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+      hx_[pi(i, j, k)] = hx_[pi(i, j, k-1)];
     }
   }
 }
@@ -695,6 +770,20 @@ void Grid::update_hy()
       }
     }
   }
+
+  i = update_r_.xmax - 1;
+  for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+      hy_[pi(i, j, k)] = hy_[pi(i - 1, j, k)];
+    }
+  }
+
+  k = update_r_.zmax - 1;
+  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+    for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+      hy_[pi(i, j, k)] = hy_[pi(i, j, k-1)];
+    }
+  }
 }
 
 // Straight out of Taflove.
@@ -728,6 +817,20 @@ void Grid::update_hz()
         ey1++; ey2++;
         ex1++; ex2++;
       }
+    }
+  }
+
+  i = update_r_.xmax - 1;
+  for (j = update_r_.ymin; j < update_r_.ymax; j++) {
+    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+      hz_[pi(i, j, k)] = hz_[pi(i - 1, j, k)];
+    }
+  }
+
+  j = update_r_.ymax - 1;
+  for (i = update_r_.xmin; i < update_r_.xmax; i++) {
+    for (k = update_r_.zmin; k < update_r_.zmax; k++) {
+      hz_[pi(i, j, k)] = hz_[pi(i, j - 1, k)];
     }
   }
 }
@@ -802,6 +905,7 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp,
     break;
   case TOP: // z=dimz
     idx = pi(0, 0, get_ldz() - 1 - offset);
+    break;
   case RIGHT: // y=dimy
     idx = pi(0, get_ldy() - 1 - offset, 0);
     break;
@@ -950,4 +1054,38 @@ const field_t *Grid::get_pointer(point_t point,
   }
 
   return ret;
+}
+
+void Grid::setup_subdomain_data(SubdomainBc *sd, Face face)
+{
+  RxTxData rxtx;
+  MPI_Datatype t = get_plane_dt(face);
+  rxtx.set_field_type(E);
+  
+  rxtx.set_datatype(t);
+  rxtx.set_tx_ptr(get_face_start(face, FC_EX, 1));
+  rxtx.set_rx_ptr(get_face_start(face, FC_EX, 0));
+  sd->add_tx_rx_data(rxtx);
+  
+  rxtx.set_tx_ptr(get_face_start(face, FC_EY, 1));
+  rxtx.set_rx_ptr(get_face_start(face, FC_EY, 0));
+  sd->add_tx_rx_data(rxtx);
+  
+  rxtx.set_tx_ptr(get_face_start(face, FC_EZ, 1));
+  rxtx.set_rx_ptr(get_face_start(face, FC_EZ, 0));
+  sd->add_tx_rx_data(rxtx);
+  
+  rxtx.set_field_type(H);
+  
+  rxtx.set_tx_ptr(get_face_start(face, FC_HX, 1));
+  rxtx.set_rx_ptr(get_face_start(face, FC_HX, 0));
+  sd->add_tx_rx_data(rxtx);
+  
+  rxtx.set_tx_ptr(get_face_start(face, FC_HY, 1));
+  rxtx.set_rx_ptr(get_face_start(face, FC_HY, 0));
+  sd->add_tx_rx_data(rxtx);
+
+  rxtx.set_tx_ptr(get_face_start(face, FC_HZ, 1));
+  rxtx.set_rx_ptr(get_face_start(face, FC_HZ, 0));
+  sd->add_tx_rx_data(rxtx);
 }

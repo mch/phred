@@ -204,9 +204,6 @@ void FDTD::run(int rank, int size, unsigned int steps)
     // Fields update
     grid_->update_h_field();
 
-    // Boundary condition application
-    grid_->apply_boundaries(H);
-
     // Excitations
     eiter = eiter_b;
     while (eiter != eiter_e)
@@ -215,12 +212,12 @@ void FDTD::run(int rank, int size, unsigned int steps)
       ++eiter;
     }
 
+    // Boundary condition application
+    grid_->apply_boundaries(H);
+
     // Fields update
     grid_->update_e_field();
     
-    // Boundary condition application
-    grid_->apply_boundaries(E);
-
     // Excitations
     eiter = eiter_b;
     while (eiter != eiter_e)
@@ -229,6 +226,9 @@ void FDTD::run(int rank, int size, unsigned int steps)
       ++eiter;
     }
     
+    // Boundary condition application
+    grid_->apply_boundaries(E);
+
     // Results
     vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
     vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();

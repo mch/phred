@@ -128,6 +128,20 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
     throw MemoryException(); // Insufficent memory
   }
 
+  memset(exy_, 0, sizeof(field_t) * sz);  
+  memset(exz_, 0, sizeof(field_t) * sz);  
+  memset(eyx_, 0, sizeof(field_t) * sz);  
+  memset(eyz_, 0, sizeof(field_t) * sz);  
+  memset(ezx_, 0, sizeof(field_t) * sz);  
+  memset(ezy_, 0, sizeof(field_t) * sz);  
+
+  memset(hxy_, 0, sizeof(field_t) * sz);  
+  memset(hxz_, 0, sizeof(field_t) * sz);  
+  memset(hyx_, 0, sizeof(field_t) * sz);  
+  memset(hyz_, 0, sizeof(field_t) * sz);  
+  memset(hzx_, 0, sizeof(field_t) * sz);  
+  memset(hzy_, 0, sizeof(field_t) * sz);  
+
 }
 
 void Pml::set_thickness(unsigned int thickness)
@@ -185,13 +199,6 @@ void Pml::setup(Face face, Grid &grid)
     geometric_profile_ = 1;
     break;
   }
-
-//   cout << "Pml setup TEST results for face " << face << "\n" 
-//        << "\tratio_m_ = " << ratio_m_
-//        << "\n\texponent_n_ = " << exponent_n_
-//        << "\n\tdelta_bndy_ = " << delta_bndy_
-//        << "\n\tgeometric_delta_ = " << geometric_delta_
-//        << "\n\tgeomtric_profile_ = " << geometric_profile_ << endl;
 
   alloc_pml_fields(face, grid);
 
@@ -260,11 +267,6 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
 
   region_t grid_r = find_face(face, grid);
 
-//   if (eyx_[12055])
-//     cout << "1) EYX_ HAS BEEN CORRUPTED!!!" << endl;
-//   else 
-//     cout << "1) eyx_ ok." << endl;
-
   if (type == E) {
 
     region_t e_grid_r = grid_r; 
@@ -308,47 +310,13 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
       e_pml_r.zmax--;
     }
 
-//      cout << "Electric field Pml update on face " << static_cast<int>(face) 
-//           << " in grid ranges x={" << e_grid_r.xmin << "," 
-//          << e_grid_r.xmax << "}, y={" << e_grid_r.ymin << "," 
-//          << e_grid_r.ymax << "}, z={" << e_grid_r.zmin << ","
-//          << e_grid_r.zmax << "}.\n"
-//          << "pml range x={" << e_pml_r.xmin << "," 
-//          << e_pml_r.xmax << "}, y={" << e_pml_r.ymin << "," 
-//          << e_pml_r.ymax << "}, z={" << e_pml_r.zmin << ","
-//          << e_pml_r.zmax << "}.\n";
-
-    pml_update_ex(e_pml_r, e_grid_r, grid_r, grid);
-//     if (eyx_[12055])
-//       cout << "2) EYX_ HAS BEEN CORRUPTED!!!" << endl;
-//     else 
-//       cout << "2) eyx_ ok." << endl;
-    
+    pml_update_ex(e_pml_r, e_grid_r, grid_r, grid);   
     pml_update_ey(e_pml_r, e_grid_r, grid_r, grid);
-//     if (eyx_[12055])
-//       cout << "3) EYX_ HAS BEEN CORRUPTED!!!" << endl;
-//     else 
-//       cout << "3) eyx_ ok." << endl;
-
     pml_update_ez(e_pml_r, e_grid_r, grid_r, grid);
-//     if (eyx_[12055])
-//       cout << "4) EYX_ HAS BEEN CORRUPTED!!!" << endl;
-//     else 
-//       cout << "4) eyx_ ok." << endl;
 
   }
   else if (type == H)
   {
-//     cout << "Magnetic field Pml update on face " << static_cast<int>(face) 
-//          << " in grid ranges x={" << grid_r.xmin << "," 
-//          << grid_r.xmax << "}, y={" << grid_r.ymin << "," 
-//          << grid_r.ymax << "}, z={" << grid_r.zmin << ","
-//          << grid_r.zmax << "}.\n"
-//          << "pml range x={" << pml_r_.xmin << "," 
-//          << pml_r_.xmax << "}, y={" << pml_r_.ymin << "," 
-//          << pml_r_.ymax << "}, z={" << pml_r_.zmin << ","
-//          << pml_r_.zmax << "}.\n";
-
     pml_update_hx(grid_r, grid);
     pml_update_hy(grid_r, grid);
     pml_update_hz(grid_r, grid);
@@ -393,16 +361,6 @@ void Pml::pml_update_ex(const region_t &e_pml_r,
           * (grid.hz_[grid.pi(it, jt, kt)] 
              - grid.hz_[grid.pi(it, jt-1, kt)]);
         
-//         if (grid.hy_[grid.pi(it, jt, kt)] 
-//             - grid.hy_[grid.pi(it, jt, kt-1)] > 0.0  || 
-//             grid.hz_[grid.pi(it, jt, kt)] 
-//             - grid.hz_[grid.pi(it, jt-1, kt)] > 0.0)
-//         {
-//           cout << "ex pml calc at " << it << "," << jt << "," << kt 
-//                << "; exz_ = " << exz_[pml_idx] << ", exy_ = "
-//                << exy_[pml_idx] << endl;
-//         }
-
         grid.ex_[grid_idx] = exz_[pml_idx] + exy_[pml_idx];
       }
 }
@@ -440,16 +398,6 @@ void Pml::pml_update_ey(const region_t &e_pml_r,
             * (grid.hx_[grid.pi(it, jt, kt)] 
                - grid.hx_[grid.pi(it, jt, kt-1)]);
         
-//         if (grid.hz_[grid.pi(it, jt, kt)] 
-//             - grid.hz_[grid.pi(it-1, jt, kt)] > 0.0  || 
-//             grid.hx_[grid.pi(it, jt, kt)] 
-//             - grid.hx_[grid.pi(it, jt, kt-1)] > 0.0)
-//         {
-//           cout << "ey pml calc at " << it << "," << jt << "," << kt 
-//                << "; eyx_ = " << eyx_[pml_idx] << ", eyz_ = " 
-//                << eyz_[pml_idx] << endl;
-//         }
-
         grid.ey_[grid_idx] = eyx_[pml_idx] + eyz_[pml_idx];
       }
 }
@@ -487,16 +435,6 @@ void Pml::pml_update_ez(const region_t &e_pml_r,
           * (grid.hy_[grid.pi(it, jt, kt)] 
              - grid.hy_[grid.pi(it-1, jt, kt)]);
         
-//         if (grid.hy_[grid.pi(it, jt, kt)] 
-//             - grid.hy_[grid.pi(it-1, jt, kt)] > 0.0  || 
-//             grid.hx_[grid.pi(it, jt, kt)] 
-//             - grid.hx_[grid.pi(it, jt-1, kt)] > 0.0)
-//         {
-//           cout << "ez pml calc at " << it << "," << jt << "," << kt 
-//                << "; ezy_ = " << ezy_[pml_idx] << ", ezx_ = "
-//                << ezx_[pml_idx] << endl;
-//         }
-
         grid.ez_[grid_idx] = ezx_[pml_idx] + ezy_[pml_idx];
       }
 }
@@ -531,16 +469,6 @@ void Pml::pml_update_hx(const region_t &grid_r, Grid &grid)
           * (grid.ez_[grid.pi(it, jt, kt)] 
              - grid.ez_[grid.pi(it, jt+1, kt)]);
         
-//         if (grid.ey_[grid.pi(it, jt, kt+1)] 
-//             - grid.ey_[grid.pi(it, jt, kt)] > 0.0  || 
-//             grid.ez_[grid.pi(it, jt+1, kt)] 
-//             - grid.ez_[grid.pi(it, jt, kt)] > 0.0)
-//         {
-//           cout << "hx pml calc at " << it << "," << jt << "," << kt 
-//                << "; hxz_ = " << hxz_[pml_idx] << ", hxy_ = " 
-//                << hxy_[pml_idx] << endl;
-//         }
-
         grid.hx_[grid_idx] = hxz_[pml_idx] + hxy_[pml_idx];
       }
 }
@@ -575,16 +503,6 @@ void Pml::pml_update_hy(const region_t &grid_r, Grid &grid)
           * (grid.ex_[grid.pi(it, jt, kt)] 
              - grid.ex_[grid.pi(it, jt, kt+1)]);
         
-//         if (grid.ez_[grid.pi(it+1, jt, kt)] 
-//             - grid.ez_[grid.pi(it, jt, kt)] > 0.0  || 
-//             grid.ex_[grid.pi(it, jt, kt+1)] 
-//             - grid.ex_[grid.pi(it, jt, kt)] > 0.0)
-//         {
-//           cout << "hy pml calc at " << it << "," << jt << "," << kt 
-//                << "; hyx_ = " << hyx_[pml_idx] << ", hyz_ = "
-//                << hyz_[pml_idx] << endl;
-//         }
-
         grid.hy_[grid_idx] = hyx_[pml_idx] + hyz_[pml_idx];
       }
 }
@@ -619,16 +537,6 @@ void Pml::pml_update_hz(const region_t &grid_r, Grid &grid)
           * (grid.ey_[grid.pi(it, jt, kt)] 
              - grid.ey_[grid.pi(it+1, jt, kt)]);
         
-//         if (grid.ex_[grid.pi(it, jt+1, kt)] 
-//             - grid.ex_[grid.pi(it, jt, kt)] > 0.0  || 
-//             grid.ey_[grid.pi(it+1, jt, kt)] 
-//             - grid.ey_[grid.pi(it, jt, kt)] > 0.0)
-//         {
-//           cout << "hz pml calc at " << it << "," << jt << "," << kt 
-//                << "; hzy_ = " << hzy_[pml_idx] << ", hzx_ = "
-//                << hzx_[pml_idx] << endl;
-//         }
-
         grid.hz_[grid_idx] = hzx_[pml_idx] + hzy_[pml_idx];
       }
 }

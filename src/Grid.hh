@@ -188,6 +188,16 @@ class Grid {
    */ 
   virtual void alloc_grid();
 
+  /**
+   * This is called by set_define_mode(true), and it should add any
+   * data that needs to be exchanged across subdomain boundaries to 
+   * the SubdomainBc object. 
+   *
+   * @param sd the subdomain boundary to add data to be exchanged to.
+   * @param face the face this subdomain boundary is on. 
+   */
+  virtual void setup_subdomain_data(SubdomainBc *sd, Face face);
+
  public:
   Grid();
   virtual ~Grid();

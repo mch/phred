@@ -399,7 +399,7 @@ static void pml_test(int rank, int size)
 {
   FDTD fdtd;
   
-  fdtd.set_grid_size(100, 50, 60);
+  fdtd.set_grid_size(75, 10, 10);
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
 
   Pml front(VP, 1.0), back(VP, 1.0), left(VP, 1.0), right(VP, 1.0),
@@ -411,12 +411,20 @@ static void pml_test(int rank, int size)
   top.set_thickness(4);
   bottom.set_thickness(4);
 
+  Ewall ewall;
+  Hwall hwall;
   fdtd.set_boundary(FRONT, &front);
   fdtd.set_boundary(BACK, &back);
-  fdtd.set_boundary(BOTTOM, &bottom);
-  fdtd.set_boundary(TOP, &top);
-  fdtd.set_boundary(LEFT, &left);
-  fdtd.set_boundary(RIGHT, &right);
+  //fdtd.set_boundary(FRONT, &ewall);
+  //fdtd.set_boundary(BACK, &ewall);
+  //fdtd.set_boundary(BOTTOM, &bottom);
+  //fdtd.set_boundary(TOP, &top);
+  fdtd.set_boundary(BOTTOM, &hwall);
+  fdtd.set_boundary(TOP, &hwall);
+  //fdtd.set_boundary(LEFT, &left);
+  //fdtd.set_boundary(RIGHT, &right);
+  fdtd.set_boundary(LEFT, &ewall);
+  fdtd.set_boundary(RIGHT, &ewall);
 
   MaterialLib mats; 
   Material mat; // defaults to free space
@@ -433,20 +441,21 @@ static void pml_test(int rank, int size)
   //mat.set_plasma_freq(2 * PI * 2000e+12); // THz * 2 * pi
   mat.set_collision_freq(1.4e+14);
   mat.set_plasma_freq(2 * PI * 1.85e+15);
-  mats.add_material(mat);
+  //mats.add_material(mat);
 
   fdtd.load_materials(mats);
 
   // Global coordinates. 
   Box all;
-  all.set_region(0, 100, 0, 50, 0, 60);
+  all.set_region(0, 75, 0, 30, 0, 30);
   all.set_material_id(1);
 
   Box metal1;
   //metal1.set_region(45, 55, 5, 46, 5, 56); // UNSTABLE
-  metal1.set_region(45, 75, 15, 37, 14, 47); // UNSTABLE
+  //metal1.set_region(45, 75, 15, 37, 14, 47); // UNSTABLE
+  metal1.set_region(30, 34, 0, 30, 0, 30); // UNSTABLE
   //metal1.set_region(45, 55, 23, 27, 28, 33); // STABLE!?!
-  metal1.set_material_id(3);
+  metal1.set_material_id(2);
 
   //Box metal2;
   //metal2.set_region(45, 50, 5, 46, 35, 60);
@@ -463,7 +472,7 @@ static void pml_test(int rank, int size)
   Excitation ex(&gm);
   //BartlettExcitation ex(gm);
   ex.set_soft(true);
-  ex.set_region(15, 15, 10, 40, 20, 40);
+  ex.set_region(15, 15, 0, 30, 0, 30);
   ex.set_polarization(0.0, 1.0, 0.0);
 
   fdtd.add_excitation("modgauss", &ex);
@@ -471,8 +480,8 @@ static void pml_test(int rank, int size)
   // Results
   point_t p;
   p.x = 40;
-  p.y = 25;
-  p.z = 30;
+  p.y = 15;
+  p.z = 15;
   PointResult res1(p);
   PointDFTResult pdft(100e12, 600e12, 50);
   pdft.set_point(p);
@@ -493,8 +502,8 @@ static void pml_test(int rank, int size)
 
   point_t p2;
   p2.x = 60;
-  p2.y = 25;
-  p2.z = 30;
+  p2.y = 15;
+  p2.z = 15;
   PointResult res4(p2);
   PointDFTResult p2dft(100e12, 600e12, 50);
   p2dft.set_point(p2);
@@ -520,9 +529,9 @@ static void pml_test(int rank, int size)
   fdtd.add_datawriter("ncdw", &ncdw);
 
   PlaneResult pr1;
-  pr1.set_name("ey-yzplane55");
-  pr1.set_plane(point_t(55,25, 30), FRONT);
-  pr1.set_field(FC_EY);
+  pr1.set_name("hx-yzplane4");
+  pr1.set_plane(point_t(4, 15, 15), FRONT);
+  pr1.set_field(FC_HX);
   
   PlaneResult pr2;
   pr2.set_name("ey-xzplane");
@@ -530,14 +539,14 @@ static void pml_test(int rank, int size)
   pr2.set_field(FC_EY);
 
    PlaneResult pr3;
-   pr3.set_name("ey-yzplane54");
-   pr3.set_plane(point_t(54, 25, 30), FRONT);
+   pr3.set_name("ey-yzplane4");
+   pr3.set_plane(point_t(4, 15, 15), FRONT);
    pr3.set_field(FC_EY);
 
    PlaneResult pr4;
-   pr4.set_name("ey-yzplane56");
-   pr4.set_plane(point_t(56, 25, 30), FRONT);
-   pr4.set_field(FC_EY);
+   pr4.set_name("hz-yzplane4");
+   pr4.set_plane(point_t(4, 15, 15), FRONT);
+   pr4.set_field(FC_HZ);
 
    PlaneResult pr5;
    pr5.set_name("ey-xyplane5");
@@ -575,6 +584,6 @@ static void pml_test(int rank, int size)
 
    fdtd.map_result_to_datawriter("srctr", "adw8");
 
-   fdtd.run(rank, size, 1000);
+   fdtd.run(rank, size, 500);
 }
 
