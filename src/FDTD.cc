@@ -21,9 +21,7 @@
 
 
 #include "FDTD.hh"
-
-// Globals from phred.cc
-extern bool mnps, estimate_memory;
+#include "Globals.hh"
 
 FDTD::FDTD()
   : grid_(0), mlib_(0)
@@ -164,7 +162,7 @@ void FDTD::run(int rank, int size)
 
   local_ginfo_ = dd.decompose_domain(rank, size, global_ginfo_);
 
-  /*#ifdef DEBUG*/
+#ifdef DEBUG
   cerr << "Local grid on rank " << rank << " is "
        << local_ginfo_.dimx_ << " x " 
        << local_ginfo_.dimy_ << " x " 
@@ -185,7 +183,7 @@ void FDTD::run(int rank, int size)
        << local_ginfo_.start_x_ << " x " 
        << local_ginfo_.start_y_ << " x " 
        << local_ginfo_.start_z_ << ".\n";
-    /*#endif*/
+#endif
 
   // Decide what grid to used from materials
   bool freqgrid = false;

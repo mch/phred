@@ -38,10 +38,10 @@ field_t GaussWindExcitation::window(region_t r,
   double y = (j - r.ymin) - 0.5 * (r.ymax - r.ymin - 1); 
   double z = (k - r.zmin) - 0.5 * (r.zmax - r.zmin - 1); 
 
-  wx = pow(2.0, pow(-(x/std_dev_), 2.0));
-  wy = pow(2.0, pow(-(x/std_dev_), 2.0));
-  wz = pow(2.0, pow(-(x/std_dev_), 2.0));
-  
+  wx = exp((-pow(x, 2))/(2*pow(std_dev_, 2)));
+  wy = exp((-pow(y, 2))/(2*pow(std_dev_, 2)));
+  wz = exp((-pow(z, 2))/(2*pow(std_dev_, 2)));
+
   return wx * wy * wz;
 }
 

@@ -131,7 +131,7 @@ static string get_extension(string filename);
 string inputfile;
 const char *program_name;
 bool interactive, estimate_memory, mnps, quiet;
-
+int MPI_RANK, MPI_SIZE;
 
 /* Set all the option flags according to the switches specified.
    Return the index of the first non-option argument.  */
@@ -234,7 +234,7 @@ FILENAME is the file containing the description of the problem to simulate.\n\
 ");
 #endif
 
-  exit (status);
+  exit(status);
 }
 
 string get_extension(string filename)
@@ -251,7 +251,7 @@ string get_extension(string filename)
 // MAIN!
 int main (int argc, char **argv)
 {
-  int i, rank, size, len;
+  int i, len;
   string prog_name;
   char *temp;
   interactive = false;
@@ -262,10 +262,10 @@ int main (int argc, char **argv)
   //std::set_terminate (__gnu_cxx::__verbose_terminate_handler);
 
   MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &MPI_RANK);
+  MPI_Comm_size(MPI_COMM_WORLD, &MPI_SIZE);
 
-  //if (rank == 0)
+  //if (MPI_RANK == 0)
   {
     prog_name = argv[0];
     len = prog_name.size();
@@ -279,7 +279,7 @@ int main (int argc, char **argv)
   
 
   cout << PACKAGE_NAME << " version " << PACKAGE_VERSION << " starting on " 
-       << "rank " << rank << " of " << size << " processes." << endl;
+       << "rank " << MPI_RANK << " of " << MPI_SIZE << " processes." << endl;
 
   // Parse the input script (each process will just load it's own file
   // for now. ) 
@@ -290,23 +290,26 @@ int main (int argc, char **argv)
   try {
 #ifdef USE_PY_BINDINGS
     if (interactive) {
-      PyInterpreter interp(rank, size);
+      PyInterpreter interp(MPI_RANK, MPI_SIZE);
       interp.run();
     } 
 #endif
 
+#ifdef DEBUG
     if (mnps)
       cout << "Calculating MNPS..." << endl;
     else
       cout << "NOT Calculating MNPS..." << endl;
+#endif
 
     if (!interactive) {
+#ifdef DEBUG
       cout << "non interactive mode; calling takakura_test. " << endl;
+#endif
 
       if (argc > 1)
       {
         string ext = get_extension(argv[argc - 1]);
-        cout << "Got extension '" << ext << "'." << endl;
 
         // If the file extension is .py, run it in the python interpreter. 
         // If the extension is .jan and load it using Jan's grammer. 
@@ -315,18 +318,20 @@ int main (int argc, char **argv)
         {
           JanFDTD jfdtd;
           jfdtd.parse_file(argv[argc - 1]);
-          jfdtd.run(rank, size);
+          jfdtd.run(MPI_RANK, MPI_SIZE);
         }
         else if (ext.compare("py") == 0)
         {
 #ifdef USE_PY_BINDINGS
-          PyInterpreter interp(rank, size);
+          PyInterpreter interp(MPI_RANK, MPI_SIZE);
           interp.run_script(argv[argc - 1]);
 #else
           cout << "Python support is not compiled into this version." << endl;
 #endif
         } else {
-	  pml_test(rank, size);
+          cout << "Unknown input file given.\n\n";
+          usage(0);
+	  //pml_test(rank, size);
           //coupler_test(rank,size);
 	}
 
@@ -348,18 +353,19 @@ int main (int argc, char **argv)
 
         // TESTS, TEMPORARY
         //point_test(rank, size);
-        pml_test(rank, size);
+        pml_test(MPI_RANK, MPI_SIZE);
         //coupler_test(rank,size);
         //takakura_test(rank, size);
 
-        cout << "No filename given to load problem set up from. " << endl;
+        cout << "No filename given to load problem set up from. \n\n";
+        usage(0);
       }
     }
   } catch (const std::exception &e) {
     cout << "Caught exception: " << e.what() << endl;
   }
 
-  cout << "phred is phinished." << endl;
+  cout << "Phred is phinished." << endl;
 
   // Thank you and goodnight
   MPI_Barrier(MPI_COMM_WORLD);

@@ -35,13 +35,10 @@ PmlCommon::PmlCommon(const Grid &grid)
     h_x_coef1_(0), h_x_coef2_(0), 
     h_y_coef1_(0), h_y_coef2_(0), 
     h_z_coef1_(0), h_z_coef2_(0)
-{
-  cerr << "In PmlCommon::PmlCommon()" << endl;
-}
+{ }
 
 PmlCommon::~PmlCommon()
 {
-  cerr << "In PmlCommon::~PmlCommon()" << endl;
   free_coeffs();
 }
 
@@ -138,8 +135,6 @@ void PmlCommon::alloc_coeffs(const Grid &grid)
   dimx_ = grid.get_ldx_sd();
   dimy_ = grid.get_ldy_sd();
   dimz_ = grid.get_ldz_sd();
-  cerr << "Set dimx_ to " << dimx_ << ", dimy_ to " << dimy_
-       << ", and dimz_ to " << dimz_ << endl;
 #endif
 }
 

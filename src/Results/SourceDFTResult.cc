@@ -26,7 +26,7 @@
 
 SourceDFTResult::SourceDFTResult(SourceFunction &te)
   : te_(te), freq_start_(0), freq_stop_(0),
-    num_freqs_(0)
+    num_freqs_(0), result_(0)
 {
   variables_["Source_DFT"] = &var_;
 }
@@ -36,7 +36,7 @@ SourceDFTResult::SourceDFTResult(SourceFunction &te,
                                   field_t freq_stop, 
                                   unsigned int num_freqs)
   : te_(te), freq_start_(freq_start), freq_stop_(freq_stop),
-    num_freqs_(num_freqs)
+    num_freqs_(num_freqs), result_(0)
 {
   variables_["Source_DFT"] = &var_;
 }

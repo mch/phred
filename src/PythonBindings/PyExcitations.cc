@@ -26,6 +26,7 @@
 #include "../Excitations/WindowedExcitation.hh"
 #include "../Excitations/BartlettExcitation.hh"
 #include "../Excitations/WaveguideExcitation.hh"
+#include "../Excitations/GaussWindExcitation.hh"
 #include "../Sources/Gaussm.hh"
 #include "../Sources/ExpSine.hh"
 
@@ -179,4 +180,9 @@ void export_excitations()
     .def("set_mode", &WaveguideExcitation::set_mode)
     ;
 
+  class_<GaussWindExcitation, bases<WindowedExcitation> >("GaussWindow", "Gaussian windowed excitation; approximates a plane wave.", init<SourceFunction *>())
+    .def("excite", &GaussWindExcitation::excite)
+    .def("get_std_dev", &GaussWindExcitation::get_std_dev)
+    .def("set_std_dev", &GaussWindExcitation::set_std_dev)
+    ;
 }

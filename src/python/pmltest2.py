@@ -2,13 +2,13 @@ from Numeric import *
 
 PI = 3.14159;
 
-class ExpSource(SourceFunction):
+class SinSource(SourceFunction):
     ampl_ = 1
     omega_ = 15e9 * 2 * PI;
     period_ = 1 / 15e9;
     def source_function(self, grid, time_step):
         t = grid.get_deltat() * time_step
-        return self.ampl_ * (1 - exp(-1 * t / self.period_)) * sin(self.omega_ * t)
+        return self.ampl_ * sin(self.omega_ * t)
 
 
 def pml_test(pml_thickness, xlen):
@@ -16,7 +16,7 @@ def pml_test(pml_thickness, xlen):
     if (MPI_SIZE > 1):
         temp = "nodes"
     
-    print "Testing the performance of Gedney's UPML in an X band waveguide, on %s %s..." % (MPI_SIZE,  temp)
+    print "Testing the performance of Berengers's PML in an X band waveguide, on %s %s..." % (MPI_SIZE,  temp)
 
     # Waveguide size and length
     a = 0.229 # m
@@ -40,7 +40,7 @@ def pml_test(pml_thickness, xlen):
     output_prefix = "pml_test_" + str(MPI_SIZE) + "_" + str(xlen) + "_" + str(pml_thickness) + "_"
 
     #num_time_steps = 110
-    num_time_steps = 500
+    num_time_steps = 270
     #num_time_steps = 10
 
     fdtd = FDTD()
@@ -96,7 +96,7 @@ def pml_test(pml_thickness, xlen):
 
     #gm = ExpSine(centre_f)
 
-    gm = ExpSource()
+    gm = SinSource()
     
     ex = WaveguideExcitation(gm)
     ex.set_soft(1)
@@ -120,14 +120,19 @@ def pml_test(pml_thickness, xlen):
     p.z = zlen / 2
     
     p1 = point();
-    p1.x = (xlen / 2) - 50;
+    p1.x = (xlen / 2) - 40;
     p1.y = ylen / 2
     p1.z = zlen / 2
     
     p2 = point();
-    p2.x = (xlen / 2) + 50
+    p2.x = (xlen / 2) + 40
     p2.y = ylen / 2
     p2.z = zlen / 2
+
+    p3 = point();
+    p3.x = (xlen / 2) - 5;
+    p3.y = ylen / 2
+    p3.z = zlen / 2
     
     print "Measurement point 1: %ix%ix%i, point 2: %ix%ix%i. " % (p1.x, p1.y, p1.z, p2.x, p2.y, p2.z)
     
@@ -187,6 +192,11 @@ def pml_test(pml_thickness, xlen):
     # Power output for S parameter measurement
     s11_r = region()
     s12_r = region()
+    pw = region()
+
+    pw.xmin = p3.x; pw.xmax = p3.x;
+    pw.ymin = 0; pw.ymax = ylen;
+    pw.zmin = 0; pw.zmax = zlen;
     
     s11_r.xmin = p1.x; s11_r.xmax = p1.x;
     s11_r.ymin = 0; s11_r.ymax = ylen;
@@ -200,12 +210,17 @@ def pml_test(pml_thickness, xlen):
     s11.set_region(s11_r)
     s12 = PowerResult(12e9, 18e9, 12)
     s12.set_region(s12_r)
+
+    pwr = PowerResult(12e9, 18e9, 12)
+    pwr.set_region(pw)
     
     fdtd.add_result("s11", s11)
     fdtd.add_result("s12", s12)
+    fdtd.add_result("pwr", pwr)
     
     fdtd.map_result_to_datawriter("s11", "mdw")
     fdtd.map_result_to_datawriter("s12", "mdw")
+    fdtd.map_result_to_datawriter("pwr", "mdw")
 
     # Execute
     fdtd.set_time_steps(num_time_steps)
@@ -214,6 +229,6 @@ def pml_test(pml_thickness, xlen):
 
 if (__name__ == "__main__"):
     pml_test(4, 110)
-    pml_test(4, 270)
+    pml_test(4, 165)
     pml_test(8, 110)
-    pml_test(8, 270)
+    pml_test(8, 165)

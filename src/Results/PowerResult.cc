@@ -21,6 +21,7 @@
 
 #include "PowerResult.hh"
 #include "Constants.hh"
+#include "Globals.hh"
 
 #include <string.h> // for memset
 #include <math.h>
@@ -192,10 +193,30 @@ void PowerResult::init(const Grid &grid)
   real_var_.set_ptr(power_real_);  
   freq_var_.set_ptr(freqs_);
   power_var_.set_ptr(&time_power_);
-  real_var_.set_num(num_freqs_);
-  imag_var_.set_num(num_freqs_);
-  freq_var_.set_num(num_freqs_);
-  power_var_.set_num(1);
+
+  if (MPI_RANK == 0)
+  {
+    power_var_.set_num(1);
+    real_var_.set_num(num_freqs_);
+    imag_var_.set_num(num_freqs_);
+    freq_var_.set_num(num_freqs_);
+  } else {
+    power_var_.set_num(0);
+    real_var_.set_num(0);
+    imag_var_.set_num(0);
+    freq_var_.set_num(0);
+  }
+
+#ifdef DEBUG
+  cerr << "PowerResult::init(), computing power through a surface which is "
+       << region_.xmax - region_.xmin << "x"
+       << region_.ymax - region_.ymin << "x"
+       << region_.zmax - region_.zmin << " in size." << endl;
+  cerr << "Frequency range: " << freq_start_ << " to " 
+       << freq_stop_ << ", spacing: " << freq_space_ << ", number: "
+       << num_freqs_ << endl;
+  cerr << "Cell area is " << cell_area_ << endl;
+#endif 
 }
 
 void PowerResult::deinit(const Grid &grid)
@@ -262,19 +283,7 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
 
   field_t cos_temp, sin_temp;
 
-// #ifdef DEBUG
-//   if (time_step == 10 || time_step == 15)
-//   {
-//     cerr << "Computing power through a surface which is "
-//          << region_.xmax - region_.xmin << "x"
-//          << region_.ymax - region_.ymin << "x"
-//          << region_.zmax - region_.zmin << " in size." << endl;
-//     cerr << "Frequency range: " << freq_start_ << " to " 
-//          << freq_stop_ << ", spacing: " << freq_space_ << ", number: "
-//          << num_freqs_ << endl;
-//     cerr << "Cell area is " << cell_area_ << endl;
-//   }
-// #endif 
+
 
   // Rearrange this so that there is only one loop traversing the
   // data, and put the time and freq calculations inside?
@@ -303,6 +312,27 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
         time_power_ += et1 * ht2 - et2 * ht1;
       }
     }
+  }
+
+  if (0 == MPI_RANK) 
+  {
+    field_t *recv_buf = new field_t[MPI_SIZE];
+    
+    //int MPI_Gather(void* sendbuf, int sendcount, 
+    //               MPI_Datatype sendtype, void* recvbuf, 
+    //               int recvcount, MPI_Datatype recvtype, 
+    //               int root, MPI_Comm comm) 
+
+    MPI_Gather(&time_power_, 1, GRID_MPI_TYPE, recv_buf, MPI_SIZE, 
+               GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
+
+    for (unsigned int idx = 1; idx < MPI_SIZE; idx++)
+      time_power_ += recv_buf[idx];
+
+    delete[] recv_buf;
+  } else {
+    MPI_Gather(&time_power_, 1, GRID_MPI_TYPE, 0, 0, 
+               GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
   }
 
   // Compute the power throught the surface in the frequency domain
@@ -365,6 +395,33 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
       }
     }
    
+    if (0 == MPI_RANK) 
+    {
+      field_t *recv_buf1 = new field_t[MPI_SIZE];
+      field_t *recv_buf2 = new field_t[MPI_SIZE];
+    
+      MPI_Gather(&power_real_, 1, GRID_MPI_TYPE, recv_buf1, MPI_SIZE, 
+                 GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
+
+      MPI_Gather(&power_imag_, 1, GRID_MPI_TYPE, recv_buf2, MPI_SIZE, 
+                 GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
+      
+      for (unsigned int idx = 1; idx < MPI_SIZE; idx++)
+      {
+        p_real2 += recv_buf1[idx];
+        p_imag2 += recv_buf2[idx];
+      }
+
+      delete[] recv_buf1;
+      delete[] recv_buf2;
+    } else {
+      MPI_Gather(&power_real_, 1, GRID_MPI_TYPE, 0, 0, 
+                 GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
+
+      MPI_Gather(&power_imag_, 1, GRID_MPI_TYPE, 0, 0, 
+                 GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
+    }
+    
     power_real_[i] = 0.5 * p_real2 * cell_area_;
     power_imag_[i] = 0.5 * p_imag2 * cell_area_;
 

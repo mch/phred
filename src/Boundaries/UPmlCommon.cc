@@ -58,14 +58,14 @@ void UPmlCommon::init_coeffs(Grid &grid)
   // Thickesses? 
   for (int i = 0; i < 6; i++)
   {
+    thicknesses_[i] = 0;
+
     if (gi.get_bc_type(static_cast<Face>(i)) == UPML) {
       BoundaryCond &bc = gi.get_boundary(static_cast<Face>(i));
       UPml *p = dynamic_cast<UPml *>(&bc);
 
       if (p) 
         thicknesses_[i] = p->get_thickness();
-      else
-        thicknesses_[i] = 0;
     }
   }
 
