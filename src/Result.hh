@@ -57,6 +57,8 @@ using namespace std;
  * If Results do exclude themselves from the time dimension, but
  * return data at more than one time step anyway, then later data
  * overwrites previous data, as far as the DataWriter is concerened. 
+ *
+ * \bug Build a seperate struct or class to hold dimension info? 
  */
 class Result : public LifeCycle
 {
@@ -68,6 +70,12 @@ protected:
 
   vector<int> dim_lens_; /**< Dimension lengths */
   vector<string> dim_names_; /**< Dimension names */
+  vector<unsigned int> dim_starts_; /**< Starting positions for the
+                                       data in the final output. Used
+                                       when the data is collected to
+                                       one rank for writing, so it
+                                       knows where the data from each
+                                       rank goes. */
 
   unsigned int time_start_; /**< Time step to start returning results at */
   unsigned int time_stop_; /**< Time step to stop returning results at */

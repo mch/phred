@@ -25,6 +25,20 @@
 #include "Result.hh"
 
 /**
+ * Available output types
+ */
+enum FfType {
+  ETHETA,
+  EPHI,
+  HTHETA, 
+  HPHI, 
+  ETHETAPHI, 
+  HTHETAPHI, 
+  RCSNORM, 
+  RCSDBPOL
+};
+
+/**
  * Computes near field to far field transformation. This result must
  * collect data from other ranks using MPI communication. This might
  * be refactored later...
@@ -34,6 +48,9 @@
  *
  * \bug Support for more than one rank (parallel communication) is
  * not yet implemented
+ *
+ * \bug Current implementation is pretty hard on memory... mostly
+ * because of the need to copy things into a contigous output array.
  */
 class FarfieldResult : public Result
 {
@@ -72,6 +89,10 @@ protected:
   int rank_; /**< The rank of this process */
   int size_; /**< Number of ranks in the MPI communicator */
 
+  FfType output_type_; /**< Type of result to produce */
+
+  field_t result_; /**< Data to output */
+
   /**
    * Helper function to calculate the result. 
    */
@@ -96,6 +117,14 @@ protected:
 public:
   FarfieldResult();
   ~FarfieldResult();
+
+  /**
+   * Set the type of result to produce. Defaults to ETHETAPHI.
+   */
+  inline void set_output_type(FfType ot)
+  {
+    output_type_ = ot;
+  }
 
   /**
    * Set the start frequency of the range

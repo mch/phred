@@ -35,7 +35,8 @@ FarfieldResult::FarfieldResult()
     e_theta_re_(0), e_theta_im_(0), 
     e_phi_re_(0), e_phi_im_(0), 
     jff_mom_(0), mff_mom_(0),
-    t_cross_(0), rank_(0), size_(0)
+    t_cross_(0), rank_(0), size_(0), 
+    output_type_(ETHETAPHI), result_(0)
 {}
 
 FarfieldResult::~FarfieldResult()
@@ -50,9 +51,52 @@ Data & FarfieldResult::get_result(const Grid &grid, unsigned int time_step)
     // Do the computation
     ffpu_calculate(grid, time_step);
 
-    // Return the results...
-    
   }
+
+  // Only return results on the last time step. 
+  if (time_step == time_stop_)
+  {
+    // copy the data into the result_
+    field_t *r = result_;
+    for (unsigned int j = 0; j < num_freqs_; j++)
+    {
+      for (unsigned int i = 0; i < num_pts_; i++)
+      {
+        p += 2;
+        switch (output_type_)
+        {
+        case ETHETA:
+          break;
+
+        case EPHI:
+          break;
+
+        case HTHETA:
+          break;
+
+        case HPHI:
+          break;
+
+        case ETHETAPHI:
+          break;
+
+        case HTHETAPHI:
+          break;
+
+        case RCSNORM:
+          break;
+
+        case RCSDBPOL:
+          break;
+        }
+      }
+    }
+
+    data_.set_num(1);
+    data_.set_ptr(result_);
+  }
+
+  return data_;
 }
 
 void FarfieldResult::init(const Grid &grid)
@@ -130,7 +174,88 @@ void FarfieldResult::init(const Grid &grid)
 
   time_dim_ = false; 
 
-  //dim_lens_.push_back(N);
+  // Output will be a three dimensional result, with a 2d table for
+  // each frequency, and each frequency on it's own page. It will look
+  // like this:
+  // theta phi e_theta e_phi h_theta h_phi
+  // or a variation on that. 
+  unsigned int num_cols = 0;
+  switch (output_type_)
+  {
+  case ETHETA:
+    var_name_ = "Electric field in theta";
+    break;
+    num_cols = 4;
+    break;
+
+  case EPHI:
+    var_name_ = "Electric field in phi";
+    break;
+    num_cols = 4;
+    break;
+
+  case HTHETA:
+    var_name_ = "Magnetic field in theta";
+    num_cols = 4;
+    break;
+
+  case HPHI:
+    var_name_ = "Magentic field in phi";
+    num_cols = 4;
+    break;
+
+  case RCSNORM:
+    var_name_ = "Normalized RADAR cross-section";
+    num_cols = 4;
+    break;
+
+  case RCSDBPOL:
+    var_name_ = "Normalized RADAR cross-section in dB";
+    num_cols = 4;
+    break;
+
+  case ETHETAPHI:
+    var_name_ = "Electric field in theta and phi";
+    num_cols = 6;
+    break;
+
+  case HTHETAPHI:
+    var_name_ = "Magentic field in theta and phi"; 
+    num_cols = 6;
+    break;
+  }
+  
+  dim_lens_.push_back(num_cols);
+  dim_lens_.push_back(num_pts_);
+  dim_lens_.push_back(num_freqs_);
+
+  result_ = new field_t[num_cols * num_freqs_ * num_pts_];
+  if (!result_)
+  {
+    deinit(grid);
+    throw MemoryException();
+  }
+  memset(result_, 0, num_cols * num_freqs_ * num_ptrs_);
+  
+  field_t *r = result_;
+
+  for (int j = 0; j < num_freqs_; j++)
+  {
+    for (int i = 0; i < num_pts_; i++)
+    {
+      *p = theta_[i]; 
+      ++p;
+      *p = phi_[i];
+      p += num_cols;
+    }
+  }
+  
+  MPI_Datatype temp;
+  MPI_Type_contiguous(num_cols * num_freqs_ * num_pts_, 
+                      GRID_MPI_TYPE, &temp);
+  MPI_Type_commit(&temp);
+  data_.set_datatype(temp);
+  data_.set_num(0);
 }
   
 void FarfieldResult::deinit(const Grid &grid)
@@ -235,6 +360,12 @@ void FarfieldResult::deinit(const Grid &grid)
   {
     delete[] phi_;
     phi_ = 0;
+  }
+
+  if (result_)
+  {
+    delete[] result_;
+    result_ = 0;
   }
 }
 
@@ -422,9 +553,7 @@ void FarfieldResult::ffpu_calculate(const Grid &grid,
     }
   }
 		
-
-  // FIX THIS: 
-  if(time_step==time_stop_)
+  if (time_step == time_stop_) 
   {
     for(ptnr = 0; ptnr<num_pts_;ptnr++)
     {
@@ -432,46 +561,47 @@ void FarfieldResult::ffpu_calculate(const Grid &grid,
       {
         for(tnr = 0;tnr < time_stop_-
               time_start_+1; tnr++)
-				
+        
           e_theta_im_[ptnr][tnr] = (tnr == 0 ? 0. :
-                                             (e_theta_re_[ptnr][tnr]
-                                              -e_theta_re_[ptnr][tnr-1])
-                                             /grid.get_deltat());
-						
+                                    (e_theta_re_[ptnr][tnr]
+                                     -e_theta_re_[ptnr][tnr-1])
+                                    /grid.get_deltat());
+      
         for(tnr = 0;tnr < time_stop_-
               time_start_+1; tnr++)
-					
+        
           e_phi_im_[ptnr][tnr] = (tnr == 0 ? 0. :
-                                           (e_phi_re_[ptnr][tnr]
-                                            -e_phi_re_[ptnr][tnr-1])
-                                           /grid.get_deltat());
+                                  (e_phi_re_[ptnr][tnr]
+                                   -e_phi_re_[ptnr][tnr-1])
+                                  /grid.get_deltat());
       }
       else
         for(fnr = 0; fnr < num_freqs_ ; fnr++)
         {
           omega = 2*M_PI*(freq_start_
                           +fnr*freq_space_);
-						
+        
           tmp_im = 2.*sin(0.5*omega*grid.get_deltat())
             *e_theta_re_[ptnr][fnr];
-						
+        
           e_theta_re_[ptnr][fnr] = 
             -2.*sin(0.5*omega*grid.get_deltat())*
             e_theta_im_[ptnr][fnr];
-						
+        
           e_theta_im_[ptnr][fnr] = tmp_im;
-					
+	
           tmp_im = 2.*sin(0.5*omega*grid.get_deltat())
             *e_phi_re_[ptnr][fnr];
-						
+        
           e_phi_re_[ptnr][fnr] = 
             -2.*sin(0.5*omega*grid.get_deltat())*
             e_phi_im_[ptnr][fnr];
-						
+        
           e_phi_im_[ptnr][fnr] = tmp_im;
         }
     }
   }
+
   ffpu_moment_cycle();
 	
 }
