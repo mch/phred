@@ -54,7 +54,7 @@ class ExcitationWrap : public Excitation
   PyObject* self_;
 
 public:
-  ExcitationWrap(PyObject* self, SourceFunction *sf)
+  ExcitationWrap(PyObject* self, shared_ptr<SourceFunction> sf)
     :  Excitation(sf), self_(self) {}
 
   ExcitationWrap(PyObject *self, const Excitation &e)
@@ -86,7 +86,7 @@ private:
   PyObject *self_;
 
 public:
-  WindowedExcitationWrap(PyObject *self, SourceFunction *sf)
+  WindowedExcitationWrap(PyObject *self, shared_ptr<SourceFunction> sf)
     : WindowedExcitation(sf)
   {}
 
@@ -127,7 +127,7 @@ void export_excitations()
   //def("call_excite", call_excite);
   //def("call_source_function", call_source_function);
     
-  class_<Excitation, ExcitationWrap>("Excitation", "Excitations applied to the FDTD grid", init<SourceFunction *>())
+  class_<Excitation, ExcitationWrap>("Excitation", "Excitations applied to the FDTD grid", init<shared_ptr<SourceFunction> >())
     .def("excite", &ExcitationWrap::excite)
     .def("excite", &ExcitationWrap::default_excite)
     .def("set_polarization", &Excitation::set_polarization)
@@ -140,7 +140,7 @@ void export_excitations()
   class_<WindowedExcitation, WindowedExcitationWrap, bases<Excitation>,
     boost::noncopyable>("WindowedExcitation", 
                         "Excitations that apply a windowing function to the excitation in the FDTD grid", 
-                        init<SourceFunction *>())
+                        init<shared_ptr<SourceFunction> >())
     .def("excite", &WindowedExcitation::excite, 
          &WindowedExcitationWrap::default_excite)
     ;
@@ -166,16 +166,16 @@ void export_excitations()
                   &ExpSine::set_amplitude)
     ;
 
-  class_<BartlettExcitation, bases<WindowedExcitation> >("BartlettExcitation", "Bartlett windowed excitation; an attempt at a plane wave.", init<SourceFunction *>())
+  class_<BartlettExcitation, bases<WindowedExcitation> >("BartlettExcitation", "Bartlett windowed excitation; an attempt at a plane wave.", init<shared_ptr<SourceFunction> >())
     .def("excite", &BartlettExcitation::excite)
     ;
 
-  class_<WaveguideExcitation, bases<WindowedExcitation> >("WaveguideExcitation", "Waveguide excitation; you know, for those pesky waveguides!", init<SourceFunction *>())
+  class_<WaveguideExcitation, bases<WindowedExcitation> >("WaveguideExcitation", "Waveguide excitation; you know, for those pesky waveguides!", init<shared_ptr<SourceFunction> >())
     .def("excite", &WaveguideExcitation::excite)
     .def("set_mode", &WaveguideExcitation::set_mode)
     ;
 
-  class_<GaussWindExcitation, bases<WindowedExcitation> >("GaussWindow", "Gaussian windowed excitation; approximates a plane wave.", init<SourceFunction *>())
+  class_<GaussWindExcitation, bases<WindowedExcitation> >("GaussWindow", "Gaussian windowed excitation; approximates a plane wave.", init<shared_ptr<SourceFunction> >())
     .def("excite", &GaussWindExcitation::excite)
     .def("get_std_dev", &GaussWindExcitation::get_std_dev)
     .def("set_std_dev", &GaussWindExcitation::set_std_dev)
