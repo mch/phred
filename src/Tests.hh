@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -42,3 +42,4 @@ void grooves_bottom();
 void grooves_both();
 
 void square_hole(int ysize);
+void square_hole_Ag(int ysize);

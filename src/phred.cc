@@ -357,9 +357,12 @@ int main (int argc, char **argv)
        << " processes in this group." << endl;
 
 #ifdef USE_OPENMP
+  int max_threads = omp_get_max_threads();
+  omp_set_num_threads(max_threads);
+
   cout << "\nOpenMP information: \nNumber of threads in team: " 
        << omp_get_num_threads()
-       << "\nMaximum number of threads in team: " << omp_get_max_threads()
+       << "\nMaximum number of threads in team: " << max_threads
        << "\nNumber of processors: " << omp_get_num_procs()
        << "\nCurrent thread number: " << omp_get_thread_num()
        << "\nDynamic thread adjustment? " 

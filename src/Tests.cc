@@ -70,13 +70,14 @@ void mn_benchmark()
    // Test the OpenMP
    time_t start, now;
    clock_t cpu_start, cpu_now;
+   int max_threads = omp_get_max_threads();
 
-   for (int numthreads = 1; numthreads <= omp_get_max_threads(); numthreads++)
+   for (int numthreads = 1; numthreads <= max_threads; numthreads++)
      {
        omp_set_num_threads(numthreads);
        
        cout << "100x100x100 million node 100 time step benchmark on "
-            << numthreads << " of " << omp_get_max_threads() << "...\n";
+            << numthreads << " of " << max_threads << "...\n";
 
        start = time(NULL);
        cpu_start = clock();
@@ -122,13 +123,14 @@ void var_benchmark(unsigned int x_cells, unsigned int y_cells,
    // Test the OpenMP
    time_t start, now;
    clock_t cpu_start, cpu_now;
+   int max_threads = omp_get_max_threads();
 
-   for (int numthreads = 1; numthreads <= omp_get_max_threads(); numthreads++)
+   for (int numthreads = 1; numthreads <= max_threads; numthreads++)
      {
        omp_set_num_threads(numthreads);
        
        cout << "Variable size, 100 time step benchmark on "
-            << numthreads << " of " << omp_get_max_threads() << "...\n";
+            << numthreads << " of " << max_threads << "...\n";
 
        start = time(NULL);
        cpu_start = clock();
@@ -359,13 +361,8 @@ void grooves_bottom()
 void grooves_both()
 {}
 
-void square_hole(int ysize)
+void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
 {
-  cout << "Simulating a square hole in a plate of perfect conductor..." 
-       << endl;
-
-  string prefix = "sqhole_";
-
   // Time steps is recalculated based on the length of the excitation.
   unsigned int time_steps = 3000;
 
@@ -381,10 +378,6 @@ void square_hole(int ysize)
   float hole_x = 270e-9;
   float hole_y = ysize * 1.0e-9;
 
-  cout << "Hole is " << hole_x * 1e9 << " nm by " << ysize 
-       << " nm in a PEC place that is " 
-       << plate_thickness * 1e9 << " nm thick." << endl;
-
   // Excitation parameters
   float ex_ampl = 10;
   float ex_freq_size = 200e12;
@@ -395,22 +388,6 @@ void square_hole(int ysize)
   float dft_low = 300e12;
   float dft_high = 750e12;
   unsigned int dft_num = 30;
-
-  // GRID
-  FDTD fdtd;
-
-  fdtd.set_grid_deltas(deltax, deltay, deltaz);
-  fdtd.set_grid_size(gridx, gridy, gridz);
-
-  // MATERIAL
-  shared_ptr<MaterialLib> mlib 
-    = shared_ptr<MaterialLib>(new MaterialLib());
-
-  Material mat;
-  mat.set_epsilon(2.2);
-  (*mlib).add_material("dielectric", mat);
-
-  fdtd.load_materials(mlib);
 
   // BOUNDARIES
   for (int i = 0; i < 6; i++)
@@ -558,7 +535,53 @@ void square_hole(int ysize)
   
   fdtd.map_result_to_datawriter("ffy", "mdw");
   fdtd.map_result_to_datawriter("ffx", "mdw");
-    
+}
+
+void square_hole(int ysize)
+{
+  cout << "Simulating a square hole in a plate of perfect conductor..." 
+       << endl;
+
+  string prefix = "sqhole_";
+
+  // Time steps is recalculated based on the length of the excitation.
+  unsigned int time_steps = 3000;
+
+  float deltax = 5e-9;
+  float deltay = 5e-9;
+  float deltaz = 5e-9;
+
+  float gridx = 1000e-9;
+  float gridy = 1000e-9;
+  float gridz = 1000e-9;
+
+  float plate_thickness = 300e-9;
+  float hole_x = 270e-9;
+  float hole_y = ysize * 1.0e-9;
+
+  cout << "Hole is " << hole_x * 1e9 << " nm by " << ysize 
+       << " nm in a PEC plate that is " 
+       << plate_thickness * 1e9 << " nm thick." << endl;
+
+
+  // GRID
+  FDTD fdtd;
+
+  fdtd.set_grid_deltas(deltax, deltay, deltaz);
+  fdtd.set_grid_size(gridx, gridy, gridz);
+
+  // MATERIAL
+  shared_ptr<MaterialLib> mlib 
+    = shared_ptr<MaterialLib>(new MaterialLib());
+
+  Material mat;
+  mat.set_epsilon(2.2);
+  (*mlib).add_material("dielectric", mat);
+
+  fdtd.load_materials(mlib);
+
+  square_hole_setup(fdtd, ysize, prefix);
+
   shared_ptr<CSGBox> metal = shared_ptr<CSGBox>(new CSGBox());
   metal->set_size(gridx, gridy, plate_thickness);
 
@@ -570,6 +593,68 @@ void square_hole(int ysize)
     = shared_ptr<CSGDifference>(new CSGDifference(metal, hole));
   
   fdtd.add_object("PEC", plate);
+
+  fdtd.set_time_steps(time_steps);
+  fdtd.run();
+}
+
+void square_hole_Ag(int ysize)
+{
+  cout << "Simulating a square hole in a plate of gooooold..." 
+       << endl;
+
+  string prefix = "sqhole_";
+
+  // Time steps is recalculated based on the length of the excitation.
+  unsigned int time_steps = 3000;
+
+  float deltax = 5e-9;
+  float deltay = 5e-9;
+  float deltaz = 5e-9;
+
+  float gridx = 1000e-9;
+  float gridy = 1000e-9;
+  float gridz = 1000e-9;
+
+  float plate_thickness = 300e-9;
+  float hole_x = 270e-9;
+  float hole_y = ysize * 1.0e-9;
+
+  cout << "Hole is " << hole_x * 1e9 << " nm by " << ysize 
+       << " nm in a Ag plate that is " 
+       << plate_thickness * 1e9 << " nm thick." << endl;
+
+
+  // GRID
+  FDTD fdtd;
+
+  fdtd.set_grid_deltas(deltax, deltay, deltaz);
+  fdtd.set_grid_size(gridx, gridy, gridz);
+
+  // MATERIAL
+  shared_ptr<MaterialLib> mlib 
+    = shared_ptr<MaterialLib>(new MaterialLib());
+
+  Material mat;
+  mat.set_collision_freq(213);
+  mat.set_plasma_freq(12.32);
+  (*mlib).add_material("AgPlasma", mat);
+
+  fdtd.load_materials(mlib);
+
+  square_hole_setup(fdtd, ysize, prefix);
+
+  shared_ptr<CSGBox> metal = shared_ptr<CSGBox>(new CSGBox());
+  metal->set_size(gridx, gridy, plate_thickness);
+
+  shared_ptr<CSGBox> hole 
+    = shared_ptr<CSGBox>(new CSGBox());
+  hole->set_size(hole_x, hole_y, plate_thickness * 2);
+  
+  shared_ptr<CSGDifference> plate 
+    = shared_ptr<CSGDifference>(new CSGDifference(metal, hole));
+  
+  fdtd.add_object("AgPlasma", plate);
 
   fdtd.set_time_steps(time_steps);
   fdtd.run();
