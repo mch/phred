@@ -146,63 +146,63 @@ void Grid::set_define_mode(bool d)
       {
         switch (i) {
         case FRONT:
-          update_ex_r_.xmax -= thickness;
-          update_ey_r_.xmax -= thickness;
-          update_ez_r_.xmax -= thickness;
+          update_ex_r_.xmax -= (thickness + 1);
+          update_ey_r_.xmax -= (thickness + 1);
+          update_ez_r_.xmax -= (thickness + 1);
 
-          update_hx_r_.xmax -= thickness;
-          update_hy_r_.xmax -= (thickness - 1);
-          update_hz_r_.xmax -= (thickness - 1);
+          update_hx_r_.xmax -= (thickness + 1);
+          update_hy_r_.xmax -= (thickness);
+          update_hz_r_.xmax -= (thickness);
           break;
 
         case BACK:
           update_ex_r_.xmin += thickness;
-          update_ey_r_.xmin += (thickness - 1);
-          update_ez_r_.xmin += (thickness - 1);
+          update_ey_r_.xmin += (thickness);
+          update_ez_r_.xmin += (thickness);
 
           update_hx_r_.xmin += thickness;
-          update_hy_r_.xmin += thickness;
-          update_hz_r_.xmin += thickness;
+          update_hy_r_.xmin += (thickness + 1);
+          update_hz_r_.xmin += (thickness + 1);
           break;
 
         case TOP:
-          update_ex_r_.zmax -= thickness;
-          update_ey_r_.zmax -= thickness;
-          update_ez_r_.zmax -= thickness;
+          update_ex_r_.zmax -= (thickness + 1);
+          update_ey_r_.zmax -= (thickness + 1);
+          update_ez_r_.zmax -= (thickness + 1);
 
-          update_hx_r_.zmax -= (thickness - 1);
-          update_hy_r_.zmax -= (thickness - 1);
-          update_hz_r_.zmax -= thickness;
+          update_hx_r_.zmax -= (thickness);
+          update_hy_r_.zmax -= (thickness);
+          update_hz_r_.zmax -= (thickness + 1);
           break;
 
         case BOTTOM:
-          update_ex_r_.zmin += (thickness - 1);
-          update_ey_r_.zmin += (thickness - 1);
+          update_ex_r_.zmin += (thickness);
+          update_ey_r_.zmin += (thickness);
           update_ez_r_.zmin += thickness;
 
           update_hx_r_.zmin += thickness;
           update_hy_r_.zmin += thickness;
-          update_hz_r_.zmin += thickness;
+          update_hz_r_.zmin += (thickness + 1);
           break;
 
         case LEFT:
-          update_ex_r_.ymin += (thickness - 1);
+          update_ex_r_.ymin += (thickness);
           update_ey_r_.ymin += thickness;
-          update_ez_r_.ymin += (thickness - 1);
+          update_ez_r_.ymin += (thickness);
 
           update_hx_r_.ymin += thickness;
-          update_hy_r_.ymin += thickness;
+          update_hy_r_.ymin += (thickness + 1);
           update_hz_r_.ymin += thickness;
           break;
 
         case RIGHT:
-          update_ex_r_.ymax -= thickness;
-          update_ey_r_.ymax -= thickness;
-          update_ez_r_.ymax -= thickness;
+          update_ex_r_.ymax -= (thickness + 1);
+          update_ey_r_.ymax -= (thickness + 1);
+          update_ez_r_.ymax -= (thickness + 1);
 
-          update_hx_r_.ymax -= (thickness - 1);
-          update_hy_r_.ymax -= thickness;
-          update_hz_r_.ymax -= (thickness - 1);
+          update_hx_r_.ymax -= (thickness);
+          update_hy_r_.ymax -= (thickness + 1);
+          update_hz_r_.ymax -= (thickness);
           break;
         }
       }
@@ -239,43 +239,43 @@ void Grid::set_define_mode(bool d)
       }
     }
     
-//   cout << "Grid Update region:"
-//        << "\n\tEx, x: " << update_ex_r_.xmin << " -> " 
-//        << update_ex_r_.xmax
-//        << ", y: " << update_ex_r_.ymin << " -> " 
-//        << update_ex_r_.ymax
-//        << ", z: " << update_ex_r_.zmin << " -> " 
-//        << update_ex_r_.zmax
-//        << "\n\tEy, x: " << update_ey_r_.xmin << " -> " 
-//        << update_ey_r_.xmax
-//        << ", y: " << update_ey_r_.ymin << " -> " 
-//        << update_ey_r_.ymax
-//        << ", z: " << update_ey_r_.zmin << " -> " 
-//        << update_ey_r_.zmax
-//        << "\n\tEz, x: " << update_ez_r_.xmin << " -> " 
-//        << update_ez_r_.xmax
-//        << ", y: " << update_ez_r_.ymin << " -> " 
-//        << update_ez_r_.ymax
-//        << ", z: " << update_ez_r_.zmin << " -> " 
-//        << update_ez_r_.zmax 
-//        << "\n\tHx, x: " << update_hx_r_.xmin << " -> " 
-//        << update_hx_r_.xmax
-//        << ", y: " << update_hx_r_.ymin << " -> " 
-//        << update_hx_r_.ymax
-//        << ", z: " << update_hx_r_.zmin << " -> " 
-//        << update_hx_r_.zmax
-//        << "\n\tHy, x: " << update_hy_r_.xmin << " -> " 
-//        << update_hy_r_.xmax
-//        << ", y: " << update_hy_r_.ymin << " -> " 
-//        << update_hy_r_.ymax
-//        << ", z: " << update_hy_r_.zmin << " -> " 
-//        << update_hy_r_.zmax
-//        << "\n\tHz, x: " << update_hz_r_.xmin << " -> " 
-//        << update_hz_r_.xmax
-//        << ", y: " << update_hz_r_.ymin << " -> " 
-//        << update_hz_r_.ymax
-//        << ", z: " << update_hz_r_.zmin << " -> " 
-//        << update_hz_r_.zmax << endl;
+  cout << "Grid Update region:"
+       << "\n\tEx, x: " << update_ex_r_.xmin << " -> " 
+       << update_ex_r_.xmax
+       << ", y: " << update_ex_r_.ymin << " -> " 
+       << update_ex_r_.ymax
+       << ", z: " << update_ex_r_.zmin << " -> " 
+       << update_ex_r_.zmax
+       << "\n\tEy, x: " << update_ey_r_.xmin << " -> " 
+       << update_ey_r_.xmax
+       << ", y: " << update_ey_r_.ymin << " -> " 
+       << update_ey_r_.ymax
+       << ", z: " << update_ey_r_.zmin << " -> " 
+       << update_ey_r_.zmax
+       << "\n\tEz, x: " << update_ez_r_.xmin << " -> " 
+       << update_ez_r_.xmax
+       << ", y: " << update_ez_r_.ymin << " -> " 
+       << update_ez_r_.ymax
+       << ", z: " << update_ez_r_.zmin << " -> " 
+       << update_ez_r_.zmax 
+       << "\n\tHx, x: " << update_hx_r_.xmin << " -> " 
+       << update_hx_r_.xmax
+       << ", y: " << update_hx_r_.ymin << " -> " 
+       << update_hx_r_.ymax
+       << ", z: " << update_hx_r_.zmin << " -> " 
+       << update_hx_r_.zmax
+       << "\n\tHy, x: " << update_hy_r_.xmin << " -> " 
+       << update_hy_r_.xmax
+       << ", y: " << update_hy_r_.ymin << " -> " 
+       << update_hy_r_.ymax
+       << ", z: " << update_hy_r_.zmin << " -> " 
+       << update_hy_r_.zmax
+       << "\n\tHz, x: " << update_hz_r_.xmin << " -> " 
+       << update_hz_r_.xmax
+       << ", y: " << update_hz_r_.ymin << " -> " 
+       << update_hz_r_.ymax
+       << ", z: " << update_hz_r_.zmin << " -> " 
+       << update_hz_r_.zmax << endl;
 
 
     // Calculate common PML coefficients. 

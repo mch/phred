@@ -118,6 +118,11 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
   grid_hz_r_.xmax--;
   grid_hz_r_.ymax--;
 
+  // Corrections made by comparing to Jan's FDTD
+  grid_ex_r_.xmax--;
+  grid_ey_r_.ymax--;
+  grid_ez_r_.zmax--;
+
   // Don't allow external face E field updates (electric walls)
   // Make sure that the PML computes all components at internal faces. 
   if (thickness_ > 0) 
@@ -138,8 +143,8 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
       break;
 
     case BACK:
-      grid_hz_r_.xmax++;
-      grid_hy_r_.xmax++;
+      //grid_hz_r_.xmax++;
+      //grid_hy_r_.xmax++;
 
       grid_ex_r_.ymax--;
       grid_ez_r_.ymax--;
@@ -163,8 +168,8 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
       break;
 
     case BOTTOM:
-      grid_hy_r_.zmax++;
-      grid_hx_r_.zmax++;
+      //grid_hy_r_.zmax++;
+      //grid_hx_r_.zmax++;
 
       grid_ey_r_.xmax--;
       grid_ez_r_.xmax--;
@@ -174,8 +179,8 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
       break;
 
     case LEFT:
-      grid_hz_r_.ymax++;
-      grid_hx_r_.ymax++;
+      //grid_hz_r_.ymax++;
+      //grid_hx_r_.ymax++;
 
       grid_ey_r_.xmax--;
       grid_ez_r_.xmax--;
