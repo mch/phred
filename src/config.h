@@ -13,7 +13,7 @@
 /* #undef C_ALLOCA */
 
 /* Turn on debugging messages */
-#define DEBUG 1
+/* #undef DEBUG */
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
@@ -36,7 +36,7 @@
 #define HAVE_LIBMPI 1
 
 /* Define to 1 if you have the `popt' library (-lpopt). */
-#define HAVE_LIBPOPT 1
+/* #undef HAVE_LIBPOPT */
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
@@ -84,7 +84,7 @@
 /* #undef HAVE_SYS_STAT_H */
 
 /* Define to 1 if you have the <sys/sysmacros.h> header file. */
-/* #undef HAVE_SYS_SYSMACROS_H */
+#define HAVE_SYS_SYSMACROS_H 1
 
 /* Define to 1 if you have the <sys/time.h> header file. */
 #define HAVE_SYS_TIME_H 1
@@ -107,7 +107,7 @@
 /* #undef MAJOR_IN_SYSMACROS */
 
 /* Turn off assertions */
-/* #undef NDEBUG */
+#define NDEBUG 1
 
 /* Name of package */
 #define PACKAGE "phred"
@@ -142,7 +142,7 @@
 /* #undef TM_IN_SYS_TIME */
 
 /* Use the popt library */
-#define USE_POPT 1
+/* #undef USE_POPT */
 
 /* Version number of package */
 #define VERSION "0.1.0"

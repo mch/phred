@@ -176,6 +176,7 @@ if [[ ! -z "$with_lammpi" ]] || [[ ! -z "$with_lammpi_libs" ]] || [[ ! -z "$with
 fi
 
 if [[ ! "$with_popt" = no ]]; then
+        AC_MSG_WARN([WARNING: the use of popt has been see to cause mysterious seg faults! RECOMMEND --without-popt!])
         AC_DEFINE([USE_POPT], [1], [Use the popt library])
         AC_CHECK_LIB(popt, poptGetContext, [], [
             AC_MSG_ERROR(*** Cannot find the popt library); exit])
