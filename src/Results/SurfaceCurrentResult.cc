@@ -109,7 +109,8 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_front_Jz");
       Mt1_[i].set_name(base_name_ + "_front_My");
       Mt2_[i].set_name(base_name_ + "_front_Mz");
-      face_size = (*region_).xmax() - (*region_).xmin();
+      //face_size = (*region_).xmax() - (*region_).xmin();
+      face_size = (*region_).ylen() * (*region_).zlen();
 
       Jt1_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
                             (*region_).ystart());
@@ -137,7 +138,8 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_back_Jz");
       Mt1_[i].set_name(base_name_ + "_back_My");
       Mt2_[i].set_name(base_name_ + "_back_Mz");
-      face_size = (*region_).xmax() - (*region_).xmin();
+      //face_size = (*region_).xmax() - (*region_).xmin();
+      face_size = (*region_).ylen() * (*region_).zlen();
 
       Jt1_[i].add_dimension("y", (*region_).ylen(), (*gregion).ylen(),
                             (*region_).ystart());
@@ -165,7 +167,8 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_left_Jz");
       Mt1_[i].set_name(base_name_ + "_left_Mx");
       Mt2_[i].set_name(base_name_ + "_left_Mz");
-      face_size = (*region_).ymax() - (*region_).ymin();
+      //face_size = (*region_).ymax() - (*region_).ymin();
+      face_size = (*region_).xlen() * (*region_).zlen();
 
       Jt1_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
                             (*region_).zstart());
@@ -193,7 +196,8 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_right_Jz");
       Mt1_[i].set_name(base_name_ + "_right_Mx");
       Mt2_[i].set_name(base_name_ + "_right_Mz");
-      face_size = (*region_).ymax() - (*region_).ymin();
+      //face_size = (*region_).ymax() - (*region_).ymin();
+      face_size = (*region_).xlen() * (*region_).zlen();
 
       Jt1_[i].add_dimension("z", (*region_).zlen(), (*gregion).zlen(),
                             (*region_).zstart());
@@ -221,7 +225,8 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_top_Jy");
       Mt1_[i].set_name(base_name_ + "_top_Mx");
       Mt2_[i].set_name(base_name_ + "_top_My");
-      face_size = (*region_).zmax() - (*region_).zmin();
+      //face_size = (*region_).zmax() - (*region_).zmin();
+      face_size = (*region_).xlen() * (*region_).ylen();
 
       Jt1_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
                             (*region_).xstart());
@@ -249,7 +254,8 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_bottom_Jy");
       Mt1_[i].set_name(base_name_ + "_bottom_Mx");
       Mt2_[i].set_name(base_name_ + "_bottom_My");
-      face_size = (*region_).zmax() - (*region_).zmin();
+      //face_size = (*region_).zmax() - (*region_).zmin();
+      face_size = (*region_).xlen() * (*region_).ylen();
 
       Jt1_[i].add_dimension("x", (*region_).xlen(), (*gregion).xlen(),
                             (*region_).xstart());
@@ -286,10 +292,10 @@ void SurfaceCurrentResult::init(const Grid &grid)
       Mt1_[i].set_ptr(Mt1_data_[i]);
       Mt2_[i].set_ptr(Mt2_data_[i]);
 
-      Jt1_[i].set_num(1);
-      Jt2_[i].set_num(1);
-      Mt1_[i].set_num(1);
-      Mt2_[i].set_num(1);
+      Jt1_[i].set_num(face_size);
+      Jt2_[i].set_num(face_size);
+      Mt1_[i].set_num(face_size);
+      Mt2_[i].set_num(face_size);
 
     } else {
       Jt1_[i].set_num(0);
@@ -422,6 +428,8 @@ void SurfaceCurrentResult::calc_currents(unsigned int xmin,
   field_t *Mt1 = Mt1_data_[face_idx];
   field_t *Mt2 = Mt2_data_[face_idx];
 
+  unsigned int idx = 0;
+
   for (unsigned int i = xmin; i < xmax; i++)
   {
     for (unsigned int j = ymin; j < ymax; j++)
@@ -431,7 +439,6 @@ void SurfaceCurrentResult::calc_currents(unsigned int xmin,
       h_t1 = p.get_h_t1_ptr(i, j, zmin);
       h_t2 = p.get_h_t2_ptr(i, j, zmin);
 
-      unsigned int idx = 0;
       for (unsigned int k = zmin; k < zmax; k++, idx++)
       {
         Jt1[idx] = - *h_t2;

@@ -1127,6 +1127,11 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in,
 //      ? info_.dimz_ : (*in).zmax_ - info_.start_z_ + 1)
 //     : 0;
 
+  r.len_x_ = r.xmax_ - r.xmin_;
+  r.len_y_ = r.ymax_ - r.ymin_;
+  r.len_z_ = r.zmax_ - r.zmin_;
+
+  //r.start_x_ = 
 
   for (int i = 0; i < 6; i++)
   {
@@ -1438,6 +1443,10 @@ shared_ptr<Block> Grid::get_local_region(CSGBox &box) const
        << ", " << (*ret).zmin_ << ") -> (" << (*ret).xmax_ << ", " 
        << (*ret).ymax_ << ", " << (*ret).zmax_ << ")"
        << endl;
+  cerr << "\t Lengths: " << (*ret).xlen() << ", " << (*ret).ylen()
+       << ", " << (*ret).zlen() << endl;
+  cerr << "\tStarting point in global grid: " << (*ret).xstart()
+       << ", " << (*ret).ystart() << ", " << (*ret).zstart() << endl;  
 #endif
 
   return ret;
@@ -1493,6 +1502,10 @@ shared_ptr<Block> Grid::get_global_region(CSGBox &box) const
        << ", " << ret.zmin_ << ") -> (" << ret.xmax_ << ", " 
        << ret.ymax_ << ", " << ret.zmax_ << ")"
        << endl;
+  cerr << "\t Lengths: " << ret.xlen() << ", " << ret.ylen()
+       << ", " << ret.zlen() << endl;
+  cerr << "\tStarting point in global grid: " << ret.xstart()
+       << ", " << ret.ystart() << ", " << ret.zstart() << endl;
 #endif
 
   return shared_ptr<Block> (new Block(ret));

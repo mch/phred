@@ -73,6 +73,8 @@ public:
   inline bool is_global()
   { return is_global_; }
 
+  ostream &operator<<(ostream &os);
+
 private:
 
   Block() // Only Grid can make me!
