@@ -30,9 +30,16 @@ using namespace boost::python;
 #include "../CSG/CSGUnion.hh"
 #include "../CSG/CSGIntersection.hh"
 #include "../CSG/CSGArray.hh"
+#include "../CSG/CSGTransform.hh"
 
 void export_csg() 
 {
+  enum_<CSGStatus>("CSGStatus")
+    .value("INSIDE", INSIDE)
+    .value("BOUNDARY", BOUNDARY)
+    .value("OUTSIDE", OUTSIDE)
+    ;
+
   class_<CSGObject>("CSGObject", "Base class for all CSGObjects.", 
                     no_init)
     .def("is_point_inside", &CSGObject::is_point_inside)
@@ -94,5 +101,12 @@ void export_csg()
     .def("get_height", &CSGCylinder::get_height)
     ;
 
+  class_<CSGTransform, bases<CSGObject> >("CSGTransform",
+                                          "Scale, rotate, and translate an object.", 
+                                          init<shared_ptr<CSGObject> >())
+    .def("set_rotation", &CSGTransform::set_rotation)
+    .def("set_scaling", &CSGTransform::set_scaling)
+    .def("set_translation", &CSGTransform::set_translation)
+    ;
 }
 

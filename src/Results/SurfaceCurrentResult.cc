@@ -23,12 +23,9 @@
 #include <math.h>
 
 SurfaceCurrentResult::SurfaceCurrentResult()
-  : freq_start_(0), freq_end_(0), num_freqs_(0), freq_space_(0), 
+  : freq_start_(0), freq_stop_(0), num_freqs_(0), freq_space_(0), 
     freqs_(0), do_dft_(false)
 {
-  region_.xmin = region_.ymin = region_.zmin = 0;
-  region_.xmax = region_.ymax = region_.zmax = 0;
-
   for (int i = 0; i < 6; i++)
   {
     Jt1_data_[i] = 0;
@@ -41,7 +38,7 @@ SurfaceCurrentResult::SurfaceCurrentResult()
 SurfaceCurrentResult::~SurfaceCurrentResult()
 { deinit(); }
 
-void init(const Grid &grid)
+void SurfaceCurrentResult::init(const Grid &grid)
 {
   variables_["back_Jy"] = &Jt1_[BACK];
   variables_["back_Jz"] = &Jt2_[BACK];
@@ -80,9 +77,9 @@ void init(const Grid &grid)
     throw ResultException("SurfaceCurrentResult has no surface defined!");
   }
   
-  if (do_dft_ && num_freqs_ > 2 && freq_end > freq_start_)
+  if (do_dft_ && num_freqs_ > 2 && freq_stop_ > freq_start_)
   {
-    freq_space_ = (freq_end_ - freq_start_) / (num_freqs_ - 1);
+    freq_space_ = (freq_stop_ - freq_start_) / (num_freqs_ - 1);
 
     freqs_ = new field_t[num_freqs_];
 
@@ -91,7 +88,7 @@ void init(const Grid &grid)
 
     for (unsigned int i = 0; i < num_freqs_; i++)
     {
-      freqs_ = freq_start_ + i * freq_space_;
+      freqs_[i] = freq_start_ + i * freq_space_;
     }
   }
   else 
@@ -108,7 +105,7 @@ void init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_front_Jz");
       Mt1_[i].set_name(base_name_ + "_front_My");
       Mt2_[i].set_name(base_name_ + "_front_Mz");
-      face_size = region_.xmax() - region_.xmin();
+      face_size = (*region_).xmax() - (*region_).xmin();
       break;
 
     case BACK:
@@ -116,7 +113,7 @@ void init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_back_Jz");
       Mt1_[i].set_name(base_name_ + "_back_My");
       Mt2_[i].set_name(base_name_ + "_back_Mz");
-      face_size = region_.xmax() - region_.xmin();
+      face_size = (*region_).xmax() - (*region_).xmin();
       break;
 
     case LEFT:
@@ -124,7 +121,7 @@ void init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_left_Jz");
       Mt1_[i].set_name(base_name_ + "_left_Mx");
       Mt2_[i].set_name(base_name_ + "_left_Mz");
-      face_size = region_.ymax() - region_.ymin();
+      face_size = (*region_).ymax() - (*region_).ymin();
       break;
 
     case RIGHT: 
@@ -132,7 +129,7 @@ void init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_right_Jz");
       Mt1_[i].set_name(base_name_ + "_right_Mx");
       Mt2_[i].set_name(base_name_ + "_right_Mz");
-      face_size = region_.ymax() - region_.ymin();
+      face_size = (*region_).ymax() - (*region_).ymin();
       break;
 
     case TOP:
@@ -140,7 +137,7 @@ void init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_top_Jy");
       Mt1_[i].set_name(base_name_ + "_top_Mx");
       Mt2_[i].set_name(base_name_ + "_top_My");
-      face_size = region_.zmax() - region_.zmin();
+      face_size = (*region_).zmax() - (*region_).zmin();
       break;
 
     case BOTTOM:
@@ -148,22 +145,22 @@ void init(const Grid &grid)
       Jt2_[i].set_name(base_name_ + "_bottom_Jy");
       Mt1_[i].set_name(base_name_ + "_bottom_Mx");
       Mt2_[i].set_name(base_name_ + "_bottom_My");
-      face_size = region_.zmax() - region_.zmin();
+      face_size = (*region_).zmax() - (*region_).zmin();
       break;
 
     }
 
-    if ((*region_).has_face_data(i))
+    if ((*region_).has_face_data(static_cast<Face>(i)))
     {
       Jt1_data_[i] = new field_t[face_size];
       Jt2_data_[i] = new field_t[face_size];
       Mt1_data_[i] = new field_t[face_size];
       Mt2_data_[i] = new field_t[face_size];
 
-      Jt1_[i].set_ptr(Jt1_data[i]);
-      Jt2_[i].set_ptr(Jt2_data[i]);
-      Mt1_[i].set_ptr(Mt1_data[i]);
-      Mt2_[i].set_ptr(Mt2_data[i]);
+      Jt1_[i].set_ptr(Jt1_data_[i]);
+      Jt2_[i].set_ptr(Jt2_data_[i]);
+      Mt1_[i].set_ptr(Mt1_data_[i]);
+      Mt2_[i].set_ptr(Mt2_data_[i]);
 
       Jt1_[i].set_num(1);
       Jt2_[i].set_num(1);
@@ -180,33 +177,33 @@ void init(const Grid &grid)
 
 }
 
-void deinit()
+void SurfaceCurrentResult::deinit()
 {
 
   for (int i = 0; i < 6; i++)
   {
     if (Jt1_data_[i])
     {
-      delete[] Jt1_data_;
-      Jt1_data_ = 0;
+      delete[] Jt1_data_[i];
+      Jt1_data_[i] = 0;
     }
 
     if (Jt2_data_[i])
     {
-      delete[] Jt2_data_;
-      Jt2_data_ = 0;
+      delete[] Jt2_data_[i];
+      Jt2_data_[i] = 0;
     }
 
     if (Mt1_data_[i])
     {
-      delete[] Mt1_data_;
-      Mt1_data_ = 0;
+      delete[] Mt1_data_[i];
+      Mt1_data_[i] = 0;
     }
 
     if (Mt2_data_[i])
     {
-      delete[] Mt2_data_;
-      Mt2_data_ = 0;
+      delete[] Mt2_data_[i];
+      Mt2_data_[i] = 0;
     }
   }
 
@@ -224,17 +221,17 @@ SurfaceCurrentResult::get_result(const Grid &grid,
 
   for (int face_idx = 0; face_idx < 6; face_idx++)
   {
-    if (!region_.has_face_data(face_idx))
+    if (!(*region_).has_face_data(static_cast<Face>(face_idx)))
       continue;
 
     unsigned int xmin, xmax, ymin, ymax, zmin, zmax;
     
-    xmin = region_.xmin();
-    ymin = region_.ymin();
-    zmin = region_.zmin();
-    xmax = region_.xmax();
-    ymax = region_.ymax();
-    zmax = region_.zmax();
+    xmin = (*region_).xmin();
+    ymin = (*region_).ymin();
+    zmin = (*region_).zmin();
+    xmax = (*region_).xmax();
+    ymax = (*region_).ymax();
+    zmax = (*region_).zmax();
 
     switch (face_idx)
     {

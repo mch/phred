@@ -20,9 +20,10 @@
 */
 
 #include "CSGTransform.hh"
+#include "../Constants.hh"
 #include <math.h>
 
-CSGTransform::CSGTransform(shared_ptr<CGSObject> child)
+CSGTransform::CSGTransform(shared_ptr<CSGObject> child)
   : child_(child), tx_(0), ty_(0), tz_(0), angle_(0), 
     sx_(1), sy_(1), sz_(1)
 {
@@ -37,7 +38,7 @@ CSGTransform::CSGTransform(shared_ptr<CGSObject> child)
 CSGTransform::~CSGTransform()
 {}
 
-bool CSGTransform::is_point_inside(float x, float y, float z) const
+CSGStatus CSGTransform::is_point_inside(float x, float y, float z) const
 {
   // Transform the point to the child object's coordinates. 
   float x0 = x - tx_ + rotation_point_.x;
@@ -54,30 +55,33 @@ bool CSGTransform::is_point_inside(float x, float y, float z) const
   return (*child_).is_point_inside(x1, y1, z1);
 }
 
-shared_ptr<CSGObject> CSGTransform::copy() const;
+shared_ptr<CSGObject> CSGTransform::copy() const
 {
   return shared_ptr<CSGObject> (new CSGTransform(*this));
 }
 
 void CSGTransform::set_rotation(point p, point v, float angle)
 {
-  float norm = 1/sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+  float norm = v.x * v.x + v.y * v.y + v.z * v.z;
+
+  if (norm == 0)
+    throw CSGException("Rotation vector may not have a norm of zero!");
 
   vector_.x = v.x * norm;
   vector_.y = v.y * norm;
   vector_.z = v.z * norm;
 
   rotation_point_ = p;
-  angle_ = angle;
+  angle_ = angle * (PI / 180);
 
   // Calculate the transformation matrix. 
-  calc_rotation_matrix(rotation_point_, vector_, angle_, &A);
-  calc_rotation_matrix(rotation_point_, vector_, (-1) * angle_, &Ainv);
+  calc_rotation_matrix(vector_, angle_, A);
+  calc_rotation_matrix(vector_, (-1) * angle_, Ainv);
 }
 
 void CSGTransform::calc_rotation_matrix(const point &v, 
                                         const float &angle, 
-                                        float **A) const
+                                        float M[3][3]) const
 {
   float half_angle = angle / 2;
   float sha = sin(half_angle);
@@ -86,27 +90,27 @@ void CSGTransform::calc_rotation_matrix(const point &v,
   float z = v.z * sha;
   float w = cos(half_angle);
 
-  A[0][0] = 1 - 2 * (y*y + z*z);
-  A[1][0] = 2 * (x*y + w*z);
-  A[2][0] = 2 * (x*z - w*y);
+  M[0][0] = 1 - 2 * (y*y + z*z);
+  M[1][0] = 2 * (x*y + w*z);
+  M[2][0] = 2 * (x*z - w*y);
   
-  A[0][1] = 2 * (x*y - w*z);
-  A[1][1] = 1 - 2*(x*x + z*z);
-  A[2][1] = 2 * (y*z + w*x);
+  M[0][1] = 2 * (x*y - w*z);
+  M[1][1] = 1 - 2*(x*x + z*z);
+  M[2][1] = 2 * (y*z + w*x);
 
-  A[0][2] = 2 * (x*z + w*y);
-  A[1][2] = 2 * (y*z - w*x);
-  A[2][2] = 1 - 2 * (x*x + y*y);
+  M[0][2] = 2 * (x*z + w*y);
+  M[1][2] = 2 * (y*z - w*x);
+  M[2][2] = 1 - 2 * (x*x + y*y);
 }
 
-void set_scaling(float sx, float sy, float sz)
+void CSGTransform::set_scaling(float sx, float sy, float sz)
 {
   sx_ = sx;
   sy_ = sy;
   sz_ = sz;
 }
 
-void set_translation(float tx, float ty, float tz)
+void CSGTransform::set_translation(float tx, float ty, float tz)
 {
   tx_ = tx;
   ty_ = ty;

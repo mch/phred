@@ -22,7 +22,7 @@
 #ifndef CSG_TRANSFORM_H
 #define CSG_TRANSFORM_H
 
-#include "CGSObject.hh"
+#include "CSGObject.hh"
 
 /**
  * This class transforms a child object by rotation, translation,
@@ -33,7 +33,7 @@
  */ 
 class CSGTransform : public CSGObject {
 public:
-  CSGTransform(shared_ptr<CGSObject> child);
+  CSGTransform(shared_ptr<CSGObject> child);
   ~CSGTransform();
   
   /**
@@ -44,7 +44,7 @@ public:
    * @param z z coordinate of the point
    * @return true if the point is inside the solid.
    */
-  bool is_point_inside(float x, float y, float z) const;
+  CSGStatus is_point_inside(float x, float y, float z) const;
   
   /**
    * Create a copy of this object. 
@@ -96,7 +96,7 @@ protected:
    */ 
   void calc_rotation_matrix(const point &v, 
                             const float &angle, 
-                            float **A) const;
+                            float A[3][3]) const;
 };
 
 #endif // CSG_TRANSFORM_H

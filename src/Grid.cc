@@ -116,9 +116,12 @@ void Grid::set_define_mode(bool d)
       point size = (*pg_).get_grid_size();
       point centre = (*pg_).get_grid_centre();
 
-      float x = centre.x - size.x / 2 + get_deltax() * info_.start_x_;
-      float y = centre.y - size.y / 2 + get_deltay() * info_.start_y_;
-      float z = centre.z - size.z / 2 + get_deltaz() * info_.start_z_;
+      float x = centre.x - size.x / 2 + get_deltax() / 2 
+        + get_deltax() * info_.start_x_;
+      float y = centre.y - size.y / 2 + get_deltay() / 2 
+        + get_deltay() * info_.start_y_;
+      float z = centre.z - size.z / 2 + get_deltaz() / 2 
+        + get_deltaz() * info_.start_z_;
 
       for (unsigned int i = 0; i < info_.dimx_; i++)
       {
