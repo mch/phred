@@ -273,8 +273,13 @@ unsigned int NetCDFDataWriter::write_data(unsigned int time_step,
     start[0] = variable.get_output_time();
   }
 
-  return write_data(var.var_id_, start, count, data.get_datatype(), 
-                    ptr, len);
+  unsigned int ret = write_data(var.var_id_, start, count, 
+                                data.get_datatype(), ptr, len);
+
+  delete[] start;
+  delete[] count;
+
+  return ret;
 }
 
 unsigned int NetCDFDataWriter::write_data(int var_id, size_t *start, 

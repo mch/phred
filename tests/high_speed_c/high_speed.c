@@ -137,8 +137,8 @@ void run(unsigned int num_time_steps)
 #ifdef USE_OPENMP
     omp_e_update();
 #else
-    restricted_e_update();
-    /* e_update(); */
+    /* restricted_e_update(); */
+    e_update(); 
 #endif
 
     ey_[pi(20, 20, 20)] = ey_[pi(20, 20, 20)] + gaussm(i, 500e12, 1, 300e12);
@@ -146,8 +146,8 @@ void run(unsigned int num_time_steps)
 #ifdef USE_OPENMP
     omp_h_update();
 #else
-    restricted_h_update();
-    /* h_update(); */
+    /* restricted_h_update(); */
+    h_update(); 
 #endif
 
 /*      fprintf(fields, "%i %g %g %g %g %g %g %g\n",  */

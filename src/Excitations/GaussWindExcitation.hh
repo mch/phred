@@ -33,8 +33,9 @@
 class GaussWindExcitation : public WindowedExcitation
 {
 private:
-  float std_dev_; /**< Standard deviation of Gaussian window */ 
-  float std_dev_sqrd_two_; /**< Standard deviation squared times 2 */ 
+  float sdev_x_; /**< Standard deviation squared times 2 for x */ 
+  float sdev_y_; /**< Standard deviation squared times 2 for y */ 
+  float sdev_z_; /**< Standard deviation squared times 2 for z */ 
 
 protected:
   /**
@@ -46,9 +47,11 @@ public:
   GaussWindExcitation(shared_ptr<SourceFunction> sf); 
 
   ~GaussWindExcitation();
-  
-  void set_std_dev(float stddev);
-  float get_std_dev();
+
+  /**
+   * Set up some parameters. 
+   */ 
+  virtual void init(const Grid &grid);
 
 };
 

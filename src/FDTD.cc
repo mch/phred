@@ -356,9 +356,6 @@ void FDTD::run()
       time_total_cpu += now_cpu - start_cpu;
     }
 
-    // Boundary condition application
-    grid_->apply_boundaries(H);
-
     // Excitations
     h_eiter = h_eiter_b;
     while (h_eiter != h_eiter_e)
@@ -366,6 +363,9 @@ void FDTD::run()
       (*h_eiter).second->excite(*grid_, ts, H);
       ++h_eiter;
     }
+
+    // Boundary condition application
+    grid_->apply_boundaries(H);
 
     // Fields update
     if (mnps) 
@@ -384,9 +384,6 @@ void FDTD::run()
       time_total_cpu += now_cpu - start_cpu;
     }
 
-    // Boundary condition application
-    grid_->apply_boundaries(E);
-
     // Excitations
     e_eiter = e_eiter_b;
     while (e_eiter != e_eiter_e)
@@ -395,6 +392,9 @@ void FDTD::run()
       ++e_eiter;
     }
     
+    // Boundary condition application
+    grid_->apply_boundaries(E);
+
     // Results
     vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
     vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();

@@ -177,7 +177,5 @@ void export_excitations()
 
   class_<GaussWindExcitation, bases<WindowedExcitation> >("GaussWindow", "Gaussian windowed excitation; approximates a plane wave.", init<shared_ptr<SourceFunction> >())
     .def("excite", &GaussWindExcitation::excite)
-    .def("get_std_dev", &GaussWindExcitation::get_std_dev)
-    .def("set_std_dev", &GaussWindExcitation::set_std_dev)
     ;
 }

@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -31,8 +31,9 @@ Gaussm::~Gaussm()
 field_t Gaussm::source_function(const Grid &grid, unsigned int time_step)
 {
   field_t t = time_step * grid.get_deltat();
+  field_t temp = (t - 4. / (PI * deltaf_)) * deltaf_ * PI;
 
-  return alpha_ * exp(-pow((t - 4. / (PI * deltaf_)) * deltaf_ * PI, 2))
+  return alpha_ * exp((-1) * temp * temp)
     * sin(2. * PI * f0_ * (t - 4. / (PI * deltaf_)));
 }
 

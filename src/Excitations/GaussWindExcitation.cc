@@ -24,9 +24,7 @@
 
 GaussWindExcitation::GaussWindExcitation(shared_ptr<SourceFunction> sf)
   : WindowedExcitation(sf)
-{
-  set_std_dev(1);
-}
+{}
 
 GaussWindExcitation::~GaussWindExcitation()
 {}
@@ -43,21 +41,19 @@ field_t GaussWindExcitation::window(float x, float y, float z)
     float j = (y - ymin_) - centre.y;
     float k = (z - zmin_) - centre.z;
 
-    wx = exp((-(i*i)) / std_dev_sqrd_two_);
-    wy = exp((-(j*j)) / std_dev_sqrd_two_);
-    wz = exp((-(k*k)) / std_dev_sqrd_two_);
+    wx = exp((-(i*i)) / sdev_x_);
+    wy = exp((-(j*j)) / sdev_y_);
+    wz = exp((-(k*k)) / sdev_z_);
   }
 
   return wx * wy * wz;
 }
 
-void GaussWindExcitation::set_std_dev(float stddev)
+void GaussWindExcitation::init(const Grid &grid)
 {
-  std_dev_ = stddev;
-  std_dev_sqrd_two_ = 2 * std_dev_ * std_dev_;
-}
+  WindowedExcitation::init(grid);
 
-float GaussWindExcitation::get_std_dev()
-{
-  return std_dev_;
+  sdev_x_ = (xmax_ - xmin_) * 0.1;
+  sdev_y_ = (ymax_ - ymin_) * 0.1;
+  sdev_z_ = (zmax_ - zmin_) * 0.1;
 }

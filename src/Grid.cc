@@ -125,10 +125,12 @@ void Grid::set_define_mode(bool d)
 
       for (unsigned int i = 0; i < info_.dimx_; i++)
       {
-        y = centre.y - size.y / 2 + get_deltay() * info_.start_y_;
+        y = centre.y - size.y / 2 + get_deltay() * info_.start_y_
+          + get_deltay() / 2 ;
         for (unsigned int j = 0; j < info_.dimy_; j++)
         {
-          z = centre.z - size.z / 2 + get_deltaz() * info_.start_z_;
+          z = centre.z - size.z / 2 + get_deltaz() * info_.start_z_
+            + get_deltaz() / 2 ;
           for (unsigned int k = 0; k < info_.dimz_; k++)
           {
             material_[pi(i,j,k)] = pg_->get_material_id(x, y, z);
