@@ -24,7 +24,9 @@
 
 GaussWindExcitation::GaussWindExcitation(shared_ptr<SourceFunction> sf)
   : WindowedExcitation(sf)
-{}
+{
+  set_std_dev(1);
+}
 
 GaussWindExcitation::~GaussWindExcitation()
 {}
