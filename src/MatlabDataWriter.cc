@@ -106,24 +106,69 @@ MATLAB_data_type MPI_to_matlab_dt(MPI_Datatype mpi_type)
 /************************************************************
  * MatlabElement function implementations
  ************************************************************/
-MatlabElement::MatlabElement()
-  : buffer_(0), buffer_pos_(0), buffer_size_(0)
+MatlabElement::MatlabElement(bool compress)
+  : buffer_(0), buffer_pos_(0), buffer_size_(0), compress_(compress)
 {
   tag_.datatype = miINT8;
   tag_.num_bytes = 0;
 }
 
-MatlabElement::MatlabElement(MATLAB_data_type type)
-  : buffer_(0), buffer_pos_(0), buffer_size_(0)
+MatlabElement::MatlabElement(MATLAB_data_type type, bool compress)
+  : buffer_(0), buffer_pos_(0), buffer_size_(0), compress_(compress)
 {
   tag_.datatype = type;
   tag_.num_bytes = 0;
-}
+}  
 
 MatlabElement::~MatlabElement()
 {
   if (buffer_)
     delete[] buffer_;
+}
+
+void MatlabElement::set_type(MATLAB_data_type type)
+{
+  source_datatype_ = type;
+  tag_.datatype = type;
+  tag_.num_bytes = 0;
+}
+
+void MatlabElement::compress()
+{
+  if (compress_)
+  {
+    if (tag_.datatype <= 9)
+    {
+      switch (source_datatype)
+      {
+      case miINT8:
+        compress_helper<signed char>();
+        break;
+      case miUINT8:
+        compress_helper<unsigned char>();
+        break;
+      case miINT16:
+        compress_helper<signed short>();
+        break;
+      case miUINT16:
+        compress_helper<unsigned short>();
+        break;
+      case miINT32:
+        compress_helper<signed int>();
+        break;
+      case miUINT32:
+        compress_helper<unsigned int>();
+        break;
+      case miSINGLE:
+        compress_helper<float>();
+        break;
+      case miDOUBLE:
+        compress_helper<double>();
+        break;
+      }
+    } else
+      compressed_tag_ = tag_;
+  }
 }
 
 unsigned int MatlabElement::get_num_bytes()
@@ -601,9 +646,9 @@ void MatlabDataWriter::test()
   float data2[] = {1, 2, 3, 4, 1, 2, 3, 4, 7, 8, 9, 5, 7, 8, 9, 5};
 
   MatlabArray *ma = new MatlabArray("test2", dims, true, MPI_DOUBLE, false);
-  MatlabArray *ma2 = new MatlabArray("abc", dims2, false, MPI_DOUBLE, false);
+  //MatlabArray *ma2 = new MatlabArray("abc", dims2, false, MPI_DOUBLE, false);
 
-  if (!ma || !ma2)
+  if (!ma) //|| !ma2)
     throw MemoryException();
 
   double data[] = {2, 3, 4, 5};
@@ -611,16 +656,16 @@ void MatlabDataWriter::test()
   ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data + 2));
   ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data));
 
-  ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
-  ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
+  //ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
+  //ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
   
   ofstream tf("a.mat",  ofstream::out | ofstream::binary
              | ofstream::trunc);
 
   tf.write(reinterpret_cast<char *>(&header_), 128);
   tf.flush();
-  ma2->write_buffer(tf);
-  delete ma2;
+  //ma2->write_buffer(tf);
+  //delete ma2;
 
   ma->write_buffer(tf);
   delete ma;

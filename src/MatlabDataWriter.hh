@@ -35,6 +35,7 @@
 #endif
 
 #include <mpi.h>
+#include <limits.h>
 
 using namespace std;
 
@@ -118,8 +119,8 @@ class MatlabElement {
   friend class MatlabArray;
   friend class MatlabDataWriter;
 private:
-  MatlabElement(MATLAB_data_type type);
-  MatlabElement();
+  MatlabElement(MATLAB_data_type type, bool compress = false);
+  MatlabElement(bool compress = false);
 
   // Not allowed. 
   MatlabElement(const MatlabElement &rhs)
@@ -131,12 +132,17 @@ private:
 
 protected:
   data_tag_t tag_; /**< Type and size of data */ 
+  data_tag_t compressed_tag_; /**< Type and size of data if written in
+                                 compressed format */
+
   unsigned char num_pad_bytes_; /**< Number of pad bytes on the end of
                                    the data to make it align to 64 bit
                                    boundaries. */  
 
-  MPI_Datatype mpi_type_; 
-  
+  MATLAB_data_type source_datatype_; /**< Indicates the matlab
+                                        datatype of the buffered
+                                        data. */
+
   unsigned int file_offset_; /**< Position (in bytes) in the file of
                                 the start of the tag for this element */ 
 
@@ -145,6 +151,75 @@ protected:
   unsigned int buffer_pos_; /**< Place to start appending data in the
                                buffer. */ 
   unsigned int buffer_size_; /**< Actual allocated memory */ 
+
+  bool compress_; /**< Report byte counts and write data in MATLAB's
+                     'compressed' mode, which simply uses the smallest possible
+                     data-type to represent output. */
+  /**
+   * Check the data and compute the size and type of the data as it
+   * would be written. If compress_ is false, this function does
+   * nothing. Otherwise, it finds the smallest data type that may be
+   * used to represent the buffered data, and stores that in compressed_tag_. 
+   */
+  void compress();
+
+  template<class T>
+  void compress_helper()
+  {
+    T *ptr = static_cast<T *>(buffer_);
+    unsigned int size = tag_.num_bytes / sizeof(T);
+    bool is_int = true;
+    double max = 0;
+    double min = 0;
+    
+    for (unsigned int idx = 0; idx < size; idx++)
+    {      
+      T temp = ptr[idx];
+      if (temp > max)
+        max = temp;
+      if (temp < min)
+        min = temp;
+      if (temp % 1 > 0)
+        is_int = false;
+    }
+
+    if (is_int) {
+      if (min >= UCHAR_MIN && max <= UCHAR_MAX)
+      {
+        compressed_tag_.datatype = miUINT8;
+        compressed_tag_.num_bytes = size * sizeof(unsigned char);
+      }
+      else if (min >= CHAR_MIN && max <= CHAR_MAX)
+      {
+        compressed_tag_.datatype = miINT8;
+        compressed_tag_.num_bytes = size * sizeof(signed char);
+      }
+      else if (min >= 0 && max <= USHRT_MAX)
+      {
+        compressed_tag_.datatype = miUINT16;
+        compressed_tag_.num_bytes = size * sizeof(unsigned short);
+      }
+      else if (min >= SHRT_MIN && max <= SHRT_MAX)
+      {
+        compressed_tag_.datatype = miINT16;
+        compressed_tag_.num_bytes = size * sizeof(signed short);
+      }
+      else if (min >= 0 && max <= UINT_MAX)
+      {
+        compressed_tag_.datatype = miUINT32;
+        compressed_tag_.num_bytes = size * sizeof(unsigned int);
+      }
+      else if (min >= INT_MIN && max <= INT_MAX)
+      {
+        compressed_tag_.datatype = miINT32;
+        compressed_tag_.num_bytes = size * sizeof(signed int);
+      }
+    } 
+    else
+    {
+      compressed_tag_ = tag_;
+    }
+  }
 
 public:
   virtual ~MatlabElement();
@@ -159,11 +234,7 @@ public:
    *
    * @param type The MATLAB datatype
    */
-  inline void set_type(MATLAB_data_type type)
-  {
-    tag_.datatype = type;
-    tag_.num_bytes = 0;
-  }
+  void set_type(MATLAB_data_type type);
 
   /**
    * Overwrite data in the buffer

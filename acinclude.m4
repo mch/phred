@@ -493,3 +493,93 @@ fi
 
 
 ])
+
+
+dnl ----------------------------------------------------------------------------
+dnl @synopsis AC_CXX_LIB_BOOST_PYTHON([optional-string "required"])
+dnl
+dnl Check whether Boost Python is installed.
+dnl Boost Python is available at http://boost.org/.
+dnl
+dnl Set the path to the Boost installation with
+dnl --with-boost[=DIR]
+dnl
+dnl Then try to compile and run a simple program with a Blitz Array
+dnl Optional argument `required' triggers an error if Blitz++ not installed
+dnl dnl @version $Id: ac_cxx_lib_boost_python.m4,v 1.4 2004/03/25 14:17:52 patricg Exp $
+dnl @author Patrick Guio <address@bogus.example.com>
+dnl
+AC_DEFUN([AC_MSG_ERROR_BOOST_PYTHON],[
+AC_MSG_ERROR([
+$PACKAGE_STRING requires the Boost Python library
+available at http://boost.org/
+Give the location of the boost installation with
+--with-boost@<:@=DIR@:>@
+])])
+
+
+AC_DEFUN([AC_CXX_LIB_BOOST_PYTHON],[
+
+
+AC_ARG_WITH(boost,
+AS_HELP_STRING([--with-boost@<:@=DIR@:>@],[Set the path to the Boost installation]),
+[],[withval='yes'])
+
+if test "$1" = required -a "$withval" = no ; then
+        AC_MSG_ERROR_BOOST_PYTHON
+fi
+
+if test "$withval" != no ; then
+
+        saveCPPFLAGS=$CPPFLAGS
+        saveLDFLAGS=$LDFLAGS
+        saveLIBS=$LIBS
+
+
+        if test "$withval" != 'yes'; then
+                CPPFLAGS="-I$withval/include"
+                LDFLAGS="-L$withval/lib"
+        fi
+        LIBS="-lboost_python"
+
+
+        AC_CACHE_CHECK([whether Boost Python is installed],ac_cxx_lib_boost_python,
+        [AC_LANG_SAVE
+        AC_LANG_CPLUSPLUS
+        AC_RUN_IFELSE(
+        [AC_LANG_PROGRAM([[
+#include <boost/python.hpp>
+char const* greet()
+{ return "hello, world"; }
+using namespace boost::python;
+BOOST_PYTHON_MODULE(hello)
+{ def("greet", greet); }
+]],[[
+        ]])],[ac_cxx_lib_boost_python=yes],[ac_cxx_lib_boost_python=no])
+        AC_LANG_RESTORE
+        ])
+
+
+        CPPFLAGS=$saveCPPFLAGS
+        LDFLAGS=$saveLDFLAGS
+        LIBS=$saveLIBS
+
+
+        if test "$ac_cxx_lib_boost_python" = yes ; then
+                if test "$withval" != yes ; then
+                        CPPFLAGS="-I$withval/include $CPPFLAGS"
+                        LDFLAGS="-L$withval/lib $LDFLAGS"
+                fi
+                LIBS="-lboost_python $LIBS"
+                AC_DEFINE([HAVE_BOOST_PYTHON], [1], [Using Boost Python])
+        else
+                if test "$1" = required ; then
+                        AC_MSG_ERROR_BOOST_PYTHON
+                fi
+        fi
+
+
+fi
+
+
+])

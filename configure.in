@@ -82,8 +82,8 @@ AC_ARG_WITH(python, AC_HELP_STRING([--with-python], [Generate Python scripting s
 AC_ARG_WITH(python_libs, AC_HELP_STRING([--with-python-libs], [Location of Python libraries]))
 AC_ARG_WITH(python_includes, AC_HELP_STRING([--with-python-includes], [Location of Python include files]))
 
-AC_ARG_WITH(boost_libs, AC_HELP_STRING([--with-boost-libs], [Location of boost libraries]))
-AC_ARG_WITH(boost_includes, AC_HELP_STRING([--with-boost-includes], [Location of boost include files]))
+dnl AC_ARG_WITH(boost_libs, AC_HELP_STRING([--with-boost-libs], [Location of boost libraries]))
+dnl AC_ARG_WITH(boost_includes, AC_HELP_STRING([--with-boost-includes], [Location of boost include files]))
 
 AC_ARG_WITH(readline, AC_HELP_STRING([--without-readline], [Don't use readline for Python interactive mode. Interactive mode will be restricted to single node execution.]))
 
@@ -267,28 +267,30 @@ Py_Initialize();
 
         AC_CHECK_HEADER([Python.h], [], [AC_MSG_ERROR([*** Can't find the Python header files])])
 
-        if [[ ! -z "$with_boost_includes" ]]; then
-            CPPFLAGS="$CPPFLAGS -I$with_boost_includes"
-        fi
+dnl         if [[ ! -z "$with_boost_includes" ]]; then
+dnl             CPPFLAGS="$CPPFLAGS -I$with_boost_includes"
+dnl         fi
 
-	OLD_CXX=$CXX
-	OLD_CXXCPP=$CXXCPP
-	CXXCPP="g++ -E"
-	CXX="g++"
+dnl 	OLD_CXX=$CXX
+dnl 	OLD_CXXCPP=$CXXCPP
+dnl 	CXXCPP="g++ -E"
+dnl 	CXX="g++"
 
-        AC_CHECK_HEADER([boost/python.hpp], [], [AC_MSG_ERROR([*** Can't find the Boost Python header files])])
+dnl         AC_CHECK_HEADER([boost/python.hpp], [], [AC_MSG_ERROR([*** Can't find the Boost Python header files])])
 
-	BOOST_LIBS=""
-	if [[ ! -z "$with_boost_libs" ]]; then
-		BOOST_LIBS="-L$with_boost_libs"
-	fi
+dnl 	BOOST_LIBS=""
+dnl 	if [[ ! -z "$with_boost_libs" ]]; then
+dnl 		BOOST_LIBS="-L$with_boost_libs"
+dnl 	fi
 
 dnl        AC_CHECK_LIB(boost_python, PyBaseObject_Type, [], [
 dnl            AC_MSG_ERROR(*** Can't find the Boost Python library.)], 
 dnl            [$BOOST_LIBS])
 
-	LIBS="$LIBS -lboost_python"
-	CXXFLAGS="$CXXFLAGS $BOOST_LIBS"
+dnl	LIBS="$LIBS -lboost_python"
+dnl	CXXFLAGS="$CXXFLAGS $BOOST_LIBS"
+
+        AC_CXX_LIB_BOOST_PYTHON("required")
 
 	CXX=$OLD_CXX
 	CXXCPP=$OLD_CXXCPP
