@@ -46,6 +46,8 @@ protected:
   // UPML Specific update coeffs. 
   mat_coef_t **C1_;
   mat_coef_t **C2_;
+  mat_coef_t **D1_;
+  mat_coef_t **D2_;
 
 //   template<region_t region, field_t component, field_t curl1, field_t curl2>
 //   void normal_update(Grid &grid);

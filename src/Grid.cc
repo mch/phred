@@ -249,43 +249,43 @@ void Grid::set_define_mode(bool d)
       }
     }
     
-  cout << "Grid Update region:"
-       << "\n\tEx, x: " << update_ex_r_.xmin << " -> " 
-       << update_ex_r_.xmax
-       << ", y: " << update_ex_r_.ymin << " -> " 
-       << update_ex_r_.ymax
-       << ", z: " << update_ex_r_.zmin << " -> " 
-       << update_ex_r_.zmax
-       << "\n\tEy, x: " << update_ey_r_.xmin << " -> " 
-       << update_ey_r_.xmax
-       << ", y: " << update_ey_r_.ymin << " -> " 
-       << update_ey_r_.ymax
-       << ", z: " << update_ey_r_.zmin << " -> " 
-       << update_ey_r_.zmax
-       << "\n\tEz, x: " << update_ez_r_.xmin << " -> " 
-       << update_ez_r_.xmax
-       << ", y: " << update_ez_r_.ymin << " -> " 
-       << update_ez_r_.ymax
-       << ", z: " << update_ez_r_.zmin << " -> " 
-       << update_ez_r_.zmax 
-       << "\n\tHx, x: " << update_hx_r_.xmin << " -> " 
-       << update_hx_r_.xmax
-       << ", y: " << update_hx_r_.ymin << " -> " 
-       << update_hx_r_.ymax
-       << ", z: " << update_hx_r_.zmin << " -> " 
-       << update_hx_r_.zmax
-       << "\n\tHy, x: " << update_hy_r_.xmin << " -> " 
-       << update_hy_r_.xmax
-       << ", y: " << update_hy_r_.ymin << " -> " 
-       << update_hy_r_.ymax
-       << ", z: " << update_hy_r_.zmin << " -> " 
-       << update_hy_r_.zmax
-       << "\n\tHz, x: " << update_hz_r_.xmin << " -> " 
-       << update_hz_r_.xmax
-       << ", y: " << update_hz_r_.ymin << " -> " 
-       << update_hz_r_.ymax
-       << ", z: " << update_hz_r_.zmin << " -> " 
-       << update_hz_r_.zmax << endl;
+//   cout << "Grid Update region:"
+//        << "\n\tEx, x: " << update_ex_r_.xmin << " -> " 
+//        << update_ex_r_.xmax
+//        << ", y: " << update_ex_r_.ymin << " -> " 
+//        << update_ex_r_.ymax
+//        << ", z: " << update_ex_r_.zmin << " -> " 
+//        << update_ex_r_.zmax
+//        << "\n\tEy, x: " << update_ey_r_.xmin << " -> " 
+//        << update_ey_r_.xmax
+//        << ", y: " << update_ey_r_.ymin << " -> " 
+//        << update_ey_r_.ymax
+//        << ", z: " << update_ey_r_.zmin << " -> " 
+//        << update_ey_r_.zmax
+//        << "\n\tEz, x: " << update_ez_r_.xmin << " -> " 
+//        << update_ez_r_.xmax
+//        << ", y: " << update_ez_r_.ymin << " -> " 
+//        << update_ez_r_.ymax
+//        << ", z: " << update_ez_r_.zmin << " -> " 
+//        << update_ez_r_.zmax 
+//        << "\n\tHx, x: " << update_hx_r_.xmin << " -> " 
+//        << update_hx_r_.xmax
+//        << ", y: " << update_hx_r_.ymin << " -> " 
+//        << update_hx_r_.ymax
+//        << ", z: " << update_hx_r_.zmin << " -> " 
+//        << update_hx_r_.zmax
+//        << "\n\tHy, x: " << update_hy_r_.xmin << " -> " 
+//        << update_hy_r_.xmax
+//        << ", y: " << update_hy_r_.ymin << " -> " 
+//        << update_hy_r_.ymax
+//        << ", z: " << update_hy_r_.zmin << " -> " 
+//        << update_hy_r_.zmax
+//        << "\n\tHz, x: " << update_hz_r_.xmin << " -> " 
+//        << update_hz_r_.xmax
+//        << ", y: " << update_hz_r_.ymin << " -> " 
+//        << update_hz_r_.ymax
+//        << ", z: " << update_hz_r_.zmin << " -> " 
+//        << update_hz_r_.zmax << endl;
 
 
     if (ok)
@@ -590,6 +590,14 @@ void Grid::load_materials(MaterialLib &matlib)
       Dbz_[index] = (get_deltat() / (mu * get_deltaz())) / 
                     (1 + (sigs * get_deltat() * 0.5)/mu);
     }
+
+    cerr << "index: " << index << "\n\tCa_ = " << Ca_[index]
+         << ", Da_ = " << Da_[index] 
+         << "\n\tCbx_ = " << Cbx_[index] << ", Cby_" << Cby_[index]
+         << ", Cbz_ = " << Cbz_[index]
+         << "\n\tDbx_ = " << Dbx_[index] << ", Dby_" << Dby_[index]
+         << ", Dbz_ = " << Dbz_[index]
+         << endl;
 
     ++iter;
     ++index;
