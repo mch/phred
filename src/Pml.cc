@@ -81,7 +81,7 @@ const Pml &Pml::operator=(const Pml &rhs)
   return *this;
 }
 
-void Pml::alloc_pml_fields(Face face, Grid &grid)
+void Pml::alloc_pml_fields(Face face, const Grid &grid)
 {
   if (alloced_)
     return; 
@@ -89,121 +89,7 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
   if (thickness_ == 0)
     throw exception();
   
-  grid_r_ = find_face(face, grid);
-
-  pml_r_.xmin = pml_r_.ymin = pml_r_.zmin = 0;
-
-  pml_r_.xmax = grid_r_.xmax - grid_r_.xmin;
-  pml_r_.ymax = grid_r_.ymax - grid_r_.ymin;
-  pml_r_.zmax = grid_r_.zmax - grid_r_.zmin;
-
-  grid_ex_r_ = grid_ey_r_ = grid_ez_r_ = grid_r_;
-  grid_hx_r_ = grid_hy_r_ = grid_hz_r_ = grid_r_;
-
-  grid_ex_r_.ymin++;
-  grid_ex_r_.zmin++;
-  
-  grid_ey_r_.xmin++;
-  grid_ey_r_.zmin++;
-  
-  grid_ez_r_.xmin++;
-  grid_ez_r_.ymin++;
-  
-  grid_hx_r_.ymax--;
-  grid_hx_r_.zmax--;
-  
-  grid_hy_r_.xmax--;
-  grid_hy_r_.zmax--;
-  
-  grid_hz_r_.xmax--;
-  grid_hz_r_.ymax--;
-
-  // Corrections made by comparing to Jan's FDTD
-  grid_ex_r_.xmax--;
-  grid_ey_r_.ymax--;
-  grid_ez_r_.zmax--;
-
-  // Don't allow external face E field updates (electric walls)
-  // Make sure that the PML computes all components at internal faces. 
-  if (thickness_ > 0) 
-  {
-    switch (face) {
-    case FRONT:
-      grid_ey_r_.xmin--;
-      grid_ez_r_.xmin--;
-
-      grid_ey_r_.xmax--;
-      grid_ez_r_.xmax--;
-
-      grid_ex_r_.ymax--;
-      grid_ez_r_.ymax--;
-
-      grid_ex_r_.zmax--;
-      grid_ey_r_.zmax--;
-      break;
-
-    case BACK:
-      //grid_hz_r_.xmax++;
-      //grid_hy_r_.xmax++;
-
-      grid_ex_r_.ymax--;
-      grid_ez_r_.ymax--;
-
-      grid_ex_r_.zmax--;
-      grid_ey_r_.zmax--;
-      break;
-
-    case TOP:
-      grid_ex_r_.zmin--;
-      grid_ey_r_.zmin--;
-
-      grid_ex_r_.zmax--;
-      grid_ey_r_.zmax--;
-
-      grid_ey_r_.xmax--;
-      grid_ez_r_.xmax--;
-
-      grid_ez_r_.ymax--;
-      grid_ex_r_.ymax--;
-      break;
-
-    case BOTTOM:
-      //grid_hy_r_.zmax++;
-      //grid_hx_r_.zmax++;
-
-      grid_ey_r_.xmax--;
-      grid_ez_r_.xmax--;
-
-      grid_ez_r_.ymax--;
-      grid_ex_r_.ymax--;
-      break;
-
-    case LEFT:
-      //grid_hz_r_.ymax++;
-      //grid_hx_r_.ymax++;
-
-      grid_ey_r_.xmax--;
-      grid_ez_r_.xmax--;
-
-      grid_ex_r_.zmax--;
-      grid_ey_r_.zmax--;
-      break;
-
-    case RIGHT:
-      grid_ez_r_.ymin--;
-      grid_ex_r_.ymin--;
-
-      grid_ez_r_.ymax--;
-      grid_ex_r_.ymax--;
-
-      grid_ey_r_.xmax--;
-      grid_ez_r_.xmax--;
-
-      grid_ex_r_.zmax--;
-      grid_ey_r_.zmax--;
-      break;
-    }
-  }
+  compute_regions(face, grid);
 
 //   cout << "PML Update region for face " << face << ":"
 //        << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
@@ -289,12 +175,7 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
 
 }
 
-void Pml::set_thickness(unsigned int thickness)
-{
-  thickness_ = thickness;
-}
-
-void Pml::setup(Face face, Grid &grid)
+void Pml::init(const Grid &grid, Face face)
 {
   delta_t d_space;
 
@@ -349,37 +230,37 @@ void Pml::setup(Face face, Grid &grid)
 
 //   MPI_Datatype y_vec;
 
-//   MPI_Type_vector(pml_r_.ymax, 1, pml_r_.zmax, GRID_MPI_TYPE, &y_vec);
+//   MPI_Type_vector(bc_r_.ymax, 1, bc_r_.zmax, GRID_MPI_TYPE, &y_vec);
 
-//   MPI_Type_contiguous(pml_r_.zmax * pml_r_.ymax, GRID_MPI_TYPE, &yz_plane_);
+//   MPI_Type_contiguous(bc_r_.zmax * bc_r_.ymax, GRID_MPI_TYPE, &yz_plane_);
 //   MPI_Type_commit(&yz_plane_);
 
-//   MPI_Type_vector(pml_r_.xmax, pml_r_.zmax, pml_r_.ymax * pml_r_.zmax, 
+//   MPI_Type_vector(bc_r_.xmax, bc_r_.zmax, bc_r_.ymax * bc_r_.zmax, 
 //                   GRID_MPI_TYPE, &xz_plane_);
 //   MPI_Type_commit(&xz_plane_);
 
-//   MPI_Type_hvector(pml_r_.xmax, 1, sizeof(field_t) * pml_r_.ymax 
-//                    * pml_r_.zmax, y_vec, &xy_plane_);
+//   MPI_Type_hvector(bc_r_.xmax, 1, sizeof(field_t) * bc_r_.ymax 
+//                    * bc_r_.zmax, y_vec, &xy_plane_);
 //   MPI_Type_commit(&xy_plane_);
 
-  MPI_Type_contiguous(pml_r_.zmax, GRID_MPI_TYPE, &z_vector_);
+  MPI_Type_contiguous(bc_r_.zmax, GRID_MPI_TYPE, &z_vector_);
   MPI_Type_commit(&z_vector_);
 
-  MPI_Type_vector(pml_r_.ymax, 1, pml_r_.zmax, GRID_MPI_TYPE, &y_vector_);
+  MPI_Type_vector(bc_r_.ymax, 1, bc_r_.zmax, GRID_MPI_TYPE, &y_vector_);
   MPI_Type_commit(&y_vector_);
   
-  MPI_Type_vector(pml_r_.xmax, 1, pml_r_.ymax * pml_r_.zmax, 
+  MPI_Type_vector(bc_r_.xmax, 1, bc_r_.ymax * bc_r_.zmax, 
                   GRID_MPI_TYPE, &x_vector_);
   MPI_Type_commit(&x_vector_);
 
-  MPI_Type_contiguous(pml_r_.zmax * pml_r_.ymax, GRID_MPI_TYPE, &yz_plane_);
+  MPI_Type_contiguous(bc_r_.zmax * bc_r_.ymax, GRID_MPI_TYPE, &yz_plane_);
   MPI_Type_commit(&yz_plane_);
 
-  MPI_Type_vector(pml_r_.xmax, pml_r_.zmax, pml_r_.ymax * pml_r_.zmax, 
+  MPI_Type_vector(bc_r_.xmax, bc_r_.zmax, bc_r_.ymax * bc_r_.zmax, 
                   GRID_MPI_TYPE, &xz_plane_);
   MPI_Type_commit(&xz_plane_);
 
-  MPI_Type_hvector(pml_r_.xmax, 1, sizeof(field_t) * pml_r_.zmax * pml_r_.ymax, 
+  MPI_Type_hvector(bc_r_.xmax, 1, sizeof(field_t) * bc_r_.zmax * bc_r_.ymax, 
                    y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
 
@@ -453,7 +334,7 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
 //   }
   
 
-  region_t grid_r = find_face(face, grid);
+  //region_t grid_r = find_face(face, grid);
 
   if (type == E)
   {
@@ -494,29 +375,6 @@ void Pml::apply(Face face, Grid &grid, FieldType type)
 //     }
 //   }
   
-}
-
-region_t Pml::find_local_region(region_t field_r)
-{
-  region_t r;
-
-  // The old way:
-//   r.xmin = r.ymin = r.zmin = 0;
-
-//   r.xmax = field_r.xmax - field_r.xmin;
-//   r.ymax = field_r.ymax - field_r.ymin;
-//   r.zmax = field_r.zmax - field_r.zmin;
-
-// The right way: 
-  r.xmin = field_r.xmin - grid_r_.xmin;
-  r.ymin = field_r.ymin - grid_r_.ymin;
-  r.zmin = field_r.zmin - grid_r_.zmin;
-  
-  r.xmax = r.xmin  + (field_r.xmax - field_r.xmin);
-  r.ymax = r.ymin  + (field_r.ymax - field_r.ymin);
-  r.zmax = r.zmin  + (field_r.zmax - field_r.zmin);
-  
-  return r;
 }
 
 void Pml::pml_update_ex(Grid &grid)
@@ -784,8 +642,8 @@ void Pml::add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface)
     ret.set_datatype(yz_plane_);
     break;
   case FRONT:
-    s_idx = pi(pml_r_.xmax - 2, 0, 0);
-    r_idx = pi(pml_r_.xmax - 1, 0, 0);
+    s_idx = pi(bc_r_.xmax - 2, 0, 0);
+    r_idx = pi(bc_r_.xmax - 1, 0, 0);
     ret.set_datatype(yz_plane_);
     break;
   case LEFT:
@@ -794,8 +652,8 @@ void Pml::add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface)
     ret.set_datatype(xz_plane_);
     break;
   case RIGHT:
-    s_idx = pi(0, pml_r_.ymax - 2, 0);
-    r_idx = pi(0, pml_r_.ymax - 1, 0);
+    s_idx = pi(0, bc_r_.ymax - 2, 0);
+    r_idx = pi(0, bc_r_.ymax - 1, 0);
     ret.set_datatype(xz_plane_);
     break;
   case BOTTOM:
@@ -804,8 +662,8 @@ void Pml::add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface)
     ret.set_datatype(xy_plane_);
     break;
   case TOP:
-    s_idx = pi(0, 0, pml_r_.zmax - 2);
-    r_idx = pi(0, 0, pml_r_.zmax - 1);
+    s_idx = pi(0, 0, bc_r_.zmax - 2);
+    r_idx = pi(0, 0, bc_r_.zmax - 1);
     ret.set_datatype(xy_plane_);
     break;
   }

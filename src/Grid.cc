@@ -41,7 +41,8 @@ Grid::Grid()
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
     Da_(0), Dbx_(0), Dby_(0), Dbz_(0),
     ex_(0), ey_(0), ez_(0), hx_(0), hy_(0), hz_(0), 
-    material_(0), types_alloced_(false), define_(true)
+    material_(0), types_alloced_(false), define_(true),
+    pml_common_(0)
 {
 
 }
@@ -74,6 +75,7 @@ const Grid &Grid::operator=(const Grid &rhs)
   y_vector_ = rhs.y_vector_;
   z_vector_ = rhs.z_vector_;
   define_ = rhs.define_;
+  pml_common_ = rhs.pml_common_;
 
   return *this;
 }
@@ -210,10 +212,11 @@ void Grid::set_define_mode(bool d)
           break;
         }
       }
-      // Initialize the PML's
-      Pml *p = dynamic_cast<Pml *>(&info_.get_boundary(static_cast<Face>(i)));
+      // Initialize the Boundary conditions. 
+      BoundaryCond *p = &info_.get_boundary(static_cast<Face>(i));
+
       if (p) {
-        p->setup(static_cast<Face>(i), *this);
+        p->init(*this, static_cast<Face>(i));
 
         // Check ajacent faces and see if there are any subdomains
         // that need to have data shared across them.

@@ -97,22 +97,6 @@ protected:
                  // otherwise. Only intended to make calling
                  // alloc_fields multiple times consqeunce free.
 
-  region_t grid_r_; /**< Total Grid region */
-  region_t pml_r_; /**< Total PML Region */
-
-  // These regions are regions *in the grid coordinates*, not in the
-  // PML coordinates, which are the regions for each field component
-  // to update. 
-
-  region_t grid_ex_r_; /**< Region over which ex update is applied. */
-  region_t grid_ey_r_; /**< Region over which ey update is applied. */
-  region_t grid_ez_r_; /**< Region over which ez update is applied. */
-
-  region_t grid_hx_r_; /**< Region over which hx update is applied. */
-  region_t grid_hy_r_; /**< Region over which hy update is applied. */
-  region_t grid_hz_r_; /**< Region over which hz update is applied. */
-
-
   // MPI Derived data types for moving split field data across
   // subdomain boundaries
   MPI_Datatype z_vector_;
@@ -123,12 +107,6 @@ protected:
   MPI_Datatype xz_plane_;
 
   /** 
-   * Compute the local PML region to update for a particular field
-   * component. 
-   */
-  region_t find_local_region(region_t field_r);
-
-  /** 
    * A helper function called by PmlCommon::init_ratios
    * @param x
    */
@@ -137,7 +115,7 @@ protected:
   /**
    * Allocate memory for the field data. Thickness must be non zero. 
    */
-  virtual void alloc_pml_fields(Face face, Grid &grid);
+  virtual void alloc_pml_fields(Face face, const Grid &grid);
 
   /**
    * Free the memory used to hold the PML field data.
@@ -160,34 +138,12 @@ public:
   const Pml &operator=(const Pml &rhs);
 
   /**
-   * Point Index: Calculate the index in the arrays of a 3d
-   * coordinate. ALWAYS USE THIS FUNCTION, in case I change the way
-   * things are organized for some reason. It's inline, so it should
-   * compile out.
-   *
-   * @param x
-   * @param y
-   * @param z
-   * @param an index into the field component and material arrays. 
-   */
-  inline unsigned int pi(unsigned int x, unsigned int y, 
-                         unsigned int z)
-  {
-    assert(x < pml_r_.xmax && y < pml_r_.ymax && z < pml_r_.zmax);
-    //assert(z + (y + x*(pml_r_.ymax - pml_r_.ymin) 
-    //            * (pml_r_.zmax - pml_r_.zmin)) < sz_);
-
-    return z + (y + x*(pml_r_.ymax - pml_r_.ymin)) 
-                * (pml_r_.zmax - pml_r_.zmin);
-  }
-
-  /**
    * Set up the PML; allocate storage space for fields, calculate
    * coefficients. 
    * @param face the face this PML is on
    * @param grid the grid this PML is on
    */
-  virtual void setup(Face face, Grid &grid);
+  virtual void init(const Grid &grid, Face face);
 
   /**
    * Applys a PML boundary condition to a face of the grid. 
@@ -197,15 +153,6 @@ public:
    * @param the field components to affect. 
    */
   virtual void apply(Face face, Grid &grid, FieldType type);  
-
-  /**
-   * Set the thickness of the PML. I.e. the number of cells devoted to
-   * the PML along the normal to the face to which PML is being
-   * applied, and into the grid. 
-   *
-   * @param thickness yup
-   */
-  void set_thickness(unsigned int thickness);
 
   /**
    * Set the profile variation of the PML. May be one of 'c', 'l',

@@ -37,7 +37,7 @@ class Grid;
  * methods. Clients other the a Grid or a Pml won't be able to do much
  * with this...
  */
-class PmlCommon 
+class PmlCommon
 {
   //friend class Pml;
   //friend class Grid;

@@ -54,9 +54,9 @@
 #include "Types.hh"
 #include "MaterialLib.hh"
 #include "GridInfo.hh"
-#include "PmlCommon.hh"
 
 class Grid {
+  friend class UPml;
   friend class Pml; // So that PML update equations can access the
                     // field pointers quickly; and also so that they
                     // can make a giant mess of them. 
@@ -148,11 +148,6 @@ class Grid {
    * equations cannot be run in define mode. 
    */
   bool define_;
-
-  /**
-   * Contains common data used by all PML boundary conditions. 
-   */
-  PmlCommon pml_common_;
 
   /**
    * Compute the update equatations for the Ex field component. 

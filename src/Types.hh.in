@@ -53,7 +53,8 @@ enum BoundaryCondition {
   SUBDOMAIN, /**< Means that the face is shared with another node */
   EWALL, /**< Electric wall */
   HWALL, /**< Magnetic wall */
-  PML /**< Perfectly matched layers (Berenger's absorbing boundary) */
+  PML, /**< Perfectly matched layers (Berenger's absorbing boundary) */
+  UPML /**< Gedney's uniaxial PML */ 
   /* MUR */ /**< 2nd order absorbing boundary condition */
   /* IMPEDANCE, */ /**< Imedance boundary */
 };

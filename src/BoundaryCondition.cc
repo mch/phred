@@ -24,7 +24,7 @@
 
 // PML's are actually one cell thicker than advertised, and this
 // routine bears that out...
-region_t BoundaryCond::find_face(Face face, Grid &grid)
+region_t BoundaryCond::find_face(Face face, const Grid &grid)
 {
   region_t r;
 
@@ -88,6 +88,141 @@ region_t BoundaryCond::find_face(Face face, Grid &grid)
   return r; 
 }
 
+void BoundaryCond::compute_regions(Face face, const Grid &grid)
+{
+  grid_r_ = find_face(face, grid);
+
+  bc_r_.xmin = bc_r_.ymin = bc_r_.zmin = 0;
+
+  bc_r_.xmax = grid_r_.xmax - grid_r_.xmin;
+  bc_r_.ymax = grid_r_.ymax - grid_r_.ymin;
+  bc_r_.zmax = grid_r_.zmax - grid_r_.zmin;
+
+  grid_ex_r_ = grid_ey_r_ = grid_ez_r_ = grid_r_;
+  grid_hx_r_ = grid_hy_r_ = grid_hz_r_ = grid_r_;
+
+  grid_ex_r_.ymin++;
+  grid_ex_r_.zmin++;
+  
+  grid_ey_r_.xmin++;
+  grid_ey_r_.zmin++;
+  
+  grid_ez_r_.xmin++;
+  grid_ez_r_.ymin++;
+  
+  grid_hx_r_.ymax--;
+  grid_hx_r_.zmax--;
+  
+  grid_hy_r_.xmax--;
+  grid_hy_r_.zmax--;
+  
+  grid_hz_r_.xmax--;
+  grid_hz_r_.ymax--;
+
+  // Corrections made by comparing to Jan's FDTD
+  grid_ex_r_.xmax--;
+  grid_ey_r_.ymax--;
+  grid_ez_r_.zmax--;
+
+  // Don't allow external face E field updates (electric walls)
+  // Make sure that the PML computes all components at internal faces. 
+  if (thickness_ > 0) 
+  {
+    switch (face) {
+    case FRONT:
+      grid_ey_r_.xmin--;
+      grid_ez_r_.xmin--;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ex_r_.ymax--;
+      grid_ez_r_.ymax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+      break;
+
+    case BACK:
+      //grid_hz_r_.xmax++;
+      //grid_hy_r_.xmax++;
+
+      grid_ex_r_.ymax--;
+      grid_ez_r_.ymax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+      break;
+
+    case TOP:
+      grid_ex_r_.zmin--;
+      grid_ey_r_.zmin--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ez_r_.ymax--;
+      grid_ex_r_.ymax--;
+      break;
+
+    case BOTTOM:
+      //grid_hy_r_.zmax++;
+      //grid_hx_r_.zmax++;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ez_r_.ymax--;
+      grid_ex_r_.ymax--;
+      break;
+
+    case LEFT:
+      //grid_hz_r_.ymax++;
+      //grid_hx_r_.ymax++;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+      break;
+
+    case RIGHT:
+      grid_ez_r_.ymin--;
+      grid_ex_r_.ymin--;
+
+      grid_ez_r_.ymax--;
+      grid_ex_r_.ymax--;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+      break;
+    }
+  }
+}
+
+region_t BoundaryCond::find_local_region(region_t field_r)
+{
+  region_t r;
+
+// The right way: 
+  r.xmin = field_r.xmin - grid_r_.xmin;
+  r.ymin = field_r.ymin - grid_r_.ymin;
+  r.zmin = field_r.zmin - grid_r_.zmin;
+  
+  r.xmax = r.xmin  + (field_r.xmax - field_r.xmin);
+  r.ymax = r.ymin  + (field_r.ymax - field_r.ymin);
+  r.zmax = r.zmin  + (field_r.zmax - field_r.zmin);
+  
+  return r;
+}
+
 // void BoundaryCond::apply(Face face, Grid &grid)
 // {
 //   region_t r = find_face(face, grid);
@@ -111,6 +246,11 @@ region_t BoundaryCond::find_face(Face face, Grid &grid)
 //   }
   
 // }
+
+void BoundaryCond::set_thickness(unsigned int thickness)
+{
+  thickness_ = thickness;
+}
 
 unsigned int BoundaryCond::get_thickness()
 {

@@ -23,9 +23,12 @@
 #define BOUNDARY_CONDITION_H
 
 #include "Types.hh"
+#include "config.h"
+#include <assert.h>
 
 // Trust me, there is one, but #include "Grid.hh" is a circular include
 class Grid;
+class SubdomainBc;
 
 /**
  * An abstract base class for boundary conditions. Subclass this to
@@ -46,13 +49,62 @@ protected:
    * @param grid the Grid object that we are looking at
    * @return a region_t containing the coordinate mins and maxs
    */
-  region_t find_face(Face face, Grid &grid);
+  region_t find_face(Face face, const Grid &grid);
 
   /**
    * The thickness of the boundary condition. Usually zero, but will
    * be nonzero for PML's.
    */
   unsigned int thickness_;
+
+  region_t bc_r_; /**< Boundary condition region in local coords */ 
+
+  /**
+   * Point Index: Calculate the index in the arrays of a 3d
+   * coordinate. ALWAYS USE THIS FUNCTION, in case I change the way
+   * things are organized for some reason. It's inline, so it should
+   * compile out.
+   *
+   * @param x
+   * @param y
+   * @param z
+   * @param an index into the field component and material arrays. 
+   */
+  inline unsigned int pi(unsigned int x, unsigned int y, 
+                         unsigned int z)
+  {
+    assert(x < bc_r_.xmax && y < bc_r_.ymax && z < bc_r_.zmax);
+    //assert(z + (y + x*(bc_r_.ymax - bc_r_.ymin) 
+    //            * (bc_r_.zmax - bc_r_.zmin)) < sz_);
+
+    return z + (y + x*(bc_r_.ymax - bc_r_.ymin)) 
+                * (bc_r_.zmax - bc_r_.zmin);
+  }
+
+  // These regions are regions *in the grid coordinates*, not in the
+  // BC coordinates, which are the regions for each field component
+  // to update. 
+
+  region_t grid_r_; /**< Total Grid region */
+
+  region_t grid_ex_r_; /**< Region over which ex update is applied. */
+  region_t grid_ey_r_; /**< Region over which ey update is applied. */
+  region_t grid_ez_r_; /**< Region over which ez update is applied. */
+
+  region_t grid_hx_r_; /**< Region over which hx update is applied. */
+  region_t grid_hy_r_; /**< Region over which hy update is applied. */
+  region_t grid_hz_r_; /**< Region over which hz update is applied. */
+
+  /**
+   * Calculates the field component update regions. 
+   */
+  void compute_regions(Face face, const Grid &grid);
+
+  /** 
+   * Compute the local boundary condition region to update for a
+   * particular field component.
+   */
+  region_t find_local_region(region_t field_r);
 
 public:
   BoundaryCond() : thickness_(0) {}
@@ -70,6 +122,15 @@ public:
                      FieldType type) = 0;
 
   /**
+   * Set the thickness of the PML. I.e. the number of cells devoted to
+   * the PML along the normal to the face to which PML is being
+   * applied, and into the grid. 
+   *
+   * @param thickness yup
+   */
+  void set_thickness(unsigned int thickness);
+
+  /**
    * Returns the thickness of the boundary condition. 
    */
   unsigned int get_thickness();
@@ -82,6 +143,33 @@ public:
   {
     return UNKNOWN;
   }
+
+  /**
+   * Our own special version of LifeCycle's init() which has an
+   * additional parameter: the face number the bounary is on.
+   */ 
+  virtual void init(const Grid &grid, Face face)
+  {}
+
+  /**
+   * Our own special version of LifeCycle's deinit() which has an
+   * additional parameter: the face number the bounary is on.
+   */ 
+  virtual void deinit(const Grid &grid, Face face)
+  {}
+
+  /**
+   * Boundaries may have to share data across subdomain
+   * boundaries. This function is called when the grid is set up so
+   * they can tell subdomain boundary conditions all about it.
+   * 
+   * @param sd the subdomain boundary condition that has to exchange
+   * the data. 
+   * @param bcface the face the PML is on
+   * @param sdface the face the subdmoain is on
+   */ 
+  virtual void add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface)
+  {}
 };
 
 /**
