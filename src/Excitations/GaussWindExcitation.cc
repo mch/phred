@@ -51,13 +51,16 @@ field_t GaussWindExcitation::window(float x, float y, float z)
 //     wx = exp((-(i*i)) / sdev_x_);
 //     wy = exp((-(j*j)) / sdev_y_);
 //     wz = exp((-(k*k)) / sdev_z_);
-    if (polarization_[0] == 0.0 && sdev_x_ > 0.0)
+    //if (polarization_[0] == 0.0 && sdev_x_ > 0.0)
+    if (sdev_x_ > 0.0)
       wx = exp(-1 * PI * (i*i)/(sdev_x_*sdev_x_) * (50/8));
 
-    if (polarization_[1] == 0.0 && sdev_y_ > 0.0)
+    //if (polarization_[1] == 0.0 && sdev_y_ > 0.0)
+    if (sdev_y_ > 0.0)
       wy = exp(-1 * PI * (j*j)/(sdev_y_*sdev_y_) * (50/8));
 
-    if (polarization_[2] == 0.0 && sdev_z_ > 0.0)
+    //if (polarization_[2] == 0.0 && sdev_z_ > 0.0)
+    if (sdev_z_ > 0.0)
       wz = exp(-1 * PI * (k*k)/(sdev_z_*sdev_z_) * (50/8));
     //  }
 
