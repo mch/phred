@@ -90,16 +90,112 @@ typedef struct {
 } array_flags_t;
 
 /**
- * Represents a variable in a MATLAB file. Knows how to write it's
- * data tag and data to an ofstream, and can append data to the end of
- * the variable once it has been written to the file. 
- */ 
-class MatlabVariable {
+ * Represents a data element in a MATLAB file. 
+ */
+class MatlabElement {
+  friend class MatlabMatrix;
+  friend class MatlabDataWriter;
 private:
+  MatlabElement();
+  MatlabElement(const MatlabElement &rhs);
+  const MatlabElement &operator=(const MatlabElement &rhs);
+
 protected:
+  data_tag_t tag_; /**< Type and size of data */ 
+  unsigned char num_pad_bytes_; /**< Number of pad bytes on the end of
+                                   the data to make it align to 64 bit
+                                   boundaries. */  
   
+  unsigned int file_offset_; /**< Position (in bytes) in the file of
+                                the start of the tag for this element */ 
 public:
+
+  /**
+   * How many bytes (data and tag) will this variable write? 
+   */
+  virtual unsigned int get_num_bytes();
+
+  /**
+   * Set the MATLAB data type for this element. 
+   *
+   * @param type The MATLAB datatype
+   */
+  inline void set_type(MATLAB_data_type type)
+  {
+    tag_.datatype = type;
+    tag_.num_bytes = 0;
+  }
+
+  /**
+   * Writes some data to the given ostream
+   *
+   * @param stream The output stream to write to. 
+   * @param num_bytes The number of bytes to append to the end of
+   * this element. 
+   * @param ptr The memory to get the data from. 
+   */
+  virtual void write_data(ostream &stream, unsigned int num_bytes,
+                          const void *ptr);
   
+  /**
+   * Updates the file offset so that we know where to find the tag in
+   * the file. 
+   *
+   * @param bytes The number of bytes to add to the current offset. 
+   */ 
+  virtual void update_file_offset(int bytes);
+};
+
+/**
+ * Represents a chunk of array data, like a matrix, in a MATLAB
+ * file. Knows how to write it's data tag and data to an ofstream, and
+ * can append data to the end of the variable once it has been written
+ * to the file.
+ */ 
+class MatlabArray : public MatlabElement {
+  friend class MatlabDataWriter; 
+private:
+  MatlabArray(); 
+  MatlabArray(const MatlabVariable &rhs);
+  const MatlabArray &operator=(const MatlabVariable &rhs);
+
+protected:
+  vector <MatlabElement *> children_;
+
+public:
+  /**
+   * Construct a numeric array with a given MATLAB datatype. 
+   *
+   * @param name The name of the variable (in the MATLAB workspace)
+   * @param num_dimensions The number of dimensions of the array
+   * @param type The MATLAB datatype of the array
+   * @param complex True if the array contains elements which are
+   * complex. 
+   */
+  static MatlabArray build_array(const char *name, 
+                                 unsigned int num_dimensions, 
+                                 MATLAB_data_type type,
+                                 bool complex);
+
+  //static MatlabArray build_char_array(const char *name);
+
+  /**
+   * Writes this array to the given ostream
+   *
+   * @param stream The output stream to write to. 
+   * @param num_bytes The number of bytes to append to the end of
+   * this element. 
+   * @param ptr The memory to get the data from. 
+   */
+  void write_data(ostream &stream, unsigned int num_bytes,
+                          const void *ptr);
+  
+  /**
+   * How many bytes (data and tag) will this variable write? This
+   * must ask all of the children how big they are, and report the
+   * sum plus the header. 
+   */
+  unsigned int get_num_bytes();
 };
 
 /**
