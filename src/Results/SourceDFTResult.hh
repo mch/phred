@@ -19,21 +19,21 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef SOURCE_DFT_RESULT_H
-#define SOURCE_DFT_RESULT_H
+#ifndef SIGNAL_DFT_RESULT_H
+#define SIGNAL_DFT_RESULT_H
 
 #include "DFTResult.hh"
-#include "../Sources/SourceFunction.hh"
+#include "../Signals/SignalFunction.hh"
 
 /**
- * Outputs the DFT of a source function. Only really applies to
+ * Outputs the DFT of a signal function. Only really applies to
  * excitations that are applied at a single point in space.
  */
-class SourceDFTResult : public DFTResult
+class SignalDFTResult : public DFTResult
 {
 private:
 protected:
-  SourceFunction &te_; /**< The dft excitation to save. */
+  SignalFunction &te_; /**< The dft excitation to save. */
 
   field_t *result_; /**< Storage for the result. Interlevaved data;
                        freq, Real DFT value, Imag DFT value, etc */
@@ -41,19 +41,19 @@ protected:
   Variable var_;
 
 public:
-  SourceDFTResult(SourceFunction &te);
-  SourceDFTResult(SourceFunction &te, field_t freq_start,
+  SignalDFTResult(SignalFunction &te);
+  SignalDFTResult(SignalFunction &te, field_t freq_start,
                   field_t freq_stop, unsigned int num_freqs);
-  ~SourceDFTResult();
+  ~SignalDFTResult();
 
   /**
-   * Set the source or TimeExcitation to use.
+   * Set the signal or TimeExcitation to use.
    * @param a reference to a TimeExcitation object
    */ 
-  void set_excitation(const SourceFunction &te);
+  void set_excitation(const SignalFunction &te);
 
   /**
-   * Produces a running DFT from the source, considering only the time
+   * Produces a running DFT from the signal, considering only the time
    * step. Output is only available at time_end. 
    *
    * @param grid a reference to a Grid object
@@ -83,4 +83,4 @@ public:
 
 };
 
-#endif // SOURCE_DFT_RESULT_H
+#endif // SIGNAL_DFT_RESULT_H

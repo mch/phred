@@ -11,10 +11,10 @@ libresults_a_SOURCES = 	Result.hh \
 	DFTResult.cc \
 	PointDFTResult.hh \
 	PointDFTResult.cc \
-	SourceTimeResult.hh \
-	SourceTimeResult.cc \
-	SourceDFTResult.hh \
-	SourceDFTResult.cc \
+	SignalTimeResult.hh \
+	SignalTimeResult.cc \
+	SignalDFTResult.hh \
+	SignalDFTResult.cc \
 	PowerResult.hh \
 	PowerResult.cc \
 	FakeResult.hh \

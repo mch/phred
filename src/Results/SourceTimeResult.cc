@@ -19,14 +19,14 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#include "SourceTimeResult.hh"
+#include "SignalTimeResult.hh"
 #include "../Globals.hh"
 
-SourceTimeResult::SourceTimeResult(SourceFunction &te)
+SignalTimeResult::SignalTimeResult(SignalFunction &te)
   : te_(te)
 {
-  variables_["Source time excitation"] = &var_;
-  var_.add_dimension("Source Time Excitation", 2, 2, 0);
+  variables_["Signal time excitation"] = &var_;
+  var_.add_dimension("Signal Time Excitation", 2, 2, 0);
 
   MPI_Datatype temp;
   MPI_Type_contiguous(2, GRID_MPI_TYPE, &temp);
@@ -36,29 +36,29 @@ SourceTimeResult::SourceTimeResult(SourceFunction &te)
   var_.set_datatype(temp);
 }
 
-SourceTimeResult::~SourceTimeResult()
+SignalTimeResult::~SignalTimeResult()
 { }
 
-void SourceTimeResult::init(const Grid &grid)
+void SignalTimeResult::init(const Grid &grid)
 {
   var_.set_name(base_name_);
 }
 
-void SourceTimeResult::set_excitation(const SourceFunction &te)
+void SignalTimeResult::set_excitation(const SignalFunction &te)
 {
   te_ = te;
 }
 
-map<string, Variable *> &SourceTimeResult::get_result(const Grid &grid, 
+map<string, Variable *> &SignalTimeResult::get_result(const Grid &grid, 
                                                       unsigned int time_step)
 {
   if (result_time(time_step) && MPI_RANK == 0) 
   {
     result_[0] = grid.get_deltat() * time_step; 
-    result_[1] = te_.source_function(result_[0]);
+    result_[1] = te_.signal_function(result_[0]);
     var_.set_num(1); 
 
-//     cerr << "SourceTimeResult, data is " << result_[0] 
+//     cerr << "SignalTimeResult, data is " << result_[0] 
 //          << " and " << result_[1] << endl;
 //     cerr << "Pointer is " << reinterpret_cast<void *>(result_) << endl;
 
@@ -70,7 +70,7 @@ map<string, Variable *> &SourceTimeResult::get_result(const Grid &grid,
   return variables_;
 }
 
-ostream& SourceTimeResult::to_string(ostream &os) const
+ostream& SignalTimeResult::to_string(ostream &os) const
 {
-  os << "SourceTimeResult";
+  os << "SignalTimeResult";
 }

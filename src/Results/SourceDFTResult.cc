@@ -19,39 +19,39 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#include "SourceDFTResult.hh"
+#include "SignalDFTResult.hh"
 #include "../Constants.hh"
 #include "../Globals.hh"
 
 #include <math.h>
 
-SourceDFTResult::SourceDFTResult(SourceFunction &te)
+SignalDFTResult::SignalDFTResult(SignalFunction &te)
   : te_(te), result_(0)
 {
-  variables_["Source_DFT"] = &var_;
+  variables_["Signal_DFT"] = &var_;
 }
 
-SourceDFTResult::SourceDFTResult(SourceFunction &te, 
+SignalDFTResult::SignalDFTResult(SignalFunction &te, 
                                   field_t freq_start,
                                   field_t freq_stop, 
                                   unsigned int num_freqs)
   : DFTResult(freq_start, freq_stop, num_freqs), te_(te), 
     result_(0)
 {
-  variables_["Source_DFT"] = &var_;
+  variables_["Signal_DFT"] = &var_;
 }
 
-SourceDFTResult::~SourceDFTResult()
+SignalDFTResult::~SignalDFTResult()
 { 
   if (result_)
     delete[] result_;
 }
 
-void SourceDFTResult::init(const Grid &grid)
+void SignalDFTResult::init(const Grid &grid)
 {
   if (interval_.length() == 0)
   {
-    throw ResultException("SourceDFTResult: Frequency interval is not"
+    throw ResultException("SignalDFTResult: Frequency interval is not"
                           " correctly set up. ");
   }
 
@@ -81,7 +81,7 @@ void SourceDFTResult::init(const Grid &grid)
   var_.set_datatype(temp);
 }
 
-void SourceDFTResult::deinit()
+void SignalDFTResult::deinit()
 {
   if (result_) {
     delete[] result_;
@@ -89,18 +89,18 @@ void SourceDFTResult::deinit()
   }
 }
 
-void SourceDFTResult::set_excitation(const SourceFunction &te)
+void SignalDFTResult::set_excitation(const SignalFunction &te)
 {
   te_ = te;
 }
 
-map<string, Variable *> &SourceDFTResult::get_result(const Grid &grid, 
+map<string, Variable *> &SignalDFTResult::get_result(const Grid &grid, 
                                                      unsigned int time_step)
 {
   if (result_time(time_step) && MPI_RANK == 0) 
   {
     float time = time_step * grid.get_deltat();
-    field_t sf = te_.source_function(time);
+    field_t sf = te_.signal_function(time);
     for (unsigned int i = 0; i <= interval_.length(); i++)
     {
       result_[i*3 + 1] += sf * cos(-2 * PI * result_[i*3] 
@@ -117,9 +117,9 @@ map<string, Variable *> &SourceDFTResult::get_result(const Grid &grid,
   return variables_;
 }
 
-ostream& SourceDFTResult::to_string(ostream &os) const
+ostream& SignalDFTResult::to_string(ostream &os) const
 {
-  os << "SourceDFTResult outputting " << interval_.length() 
+  os << "SignalDFTResult outputting " << interval_.length() 
      << ", starting at " << interval_.get_start() << " and ending at "
      << interval_.get_end();
 

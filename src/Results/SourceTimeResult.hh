@@ -19,28 +19,28 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef SOURCE_TIME_RESULT_H
-#define SOURCE_TIME_RESULT_H
+#ifndef SIGNAL_TIME_RESULT_H
+#define SIGNAL_TIME_RESULT_H
 
 #include "Result.hh"
-#include "../Sources/SourceFunction.hh"
+#include "../Signals/SignalFunction.hh"
 
 /**
- * Outputs a source function at the timestep.
+ * Outputs a signal function at the timestep.
  */
-class SourceTimeResult : public Result
+class SignalTimeResult : public Result
 {
 private:
 protected:
-  SourceFunction &te_; /**< The time excitation to save. */
+  SignalFunction &te_; /**< The time excitation to save. */
 
   field_t result_[2]; /**< Storage for the result. */
   
   Variable var_;
 
 public:
-  SourceTimeResult(SourceFunction &te);
-  ~SourceTimeResult();
+  SignalTimeResult(SignalFunction &te);
+  ~SignalTimeResult();
 
   /**
    * Set the name on the variable
@@ -48,13 +48,13 @@ public:
   virtual void init(const Grid &grid);
 
   /**
-   * Set the source or SourceFunction to use.
-   * @param a reference to a SourceFunction object
+   * Set the signal or SignalFunction to use.
+   * @param a reference to a SignalFunction object
    */ 
-  void set_excitation(const SourceFunction &te);
+  void set_excitation(const SignalFunction &te);
 
   /**
-   * Produces output from the source, considering only the time step. 
+   * Produces output from the signal, considering only the time step. 
    *
    * @param grid a reference to a Grid object
    * @return a reference to a data object, which contains an MPI
@@ -71,4 +71,4 @@ public:
 
 };
 
-#endif // SOURCE_TIME_RESULT_H
+#endif // SIGNAL_TIME_RESULT_H
