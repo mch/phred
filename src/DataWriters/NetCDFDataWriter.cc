@@ -296,6 +296,12 @@ unsigned int NetCDFDataWriter::write_data(int var_id, size_t *start,
                                static_cast<signed char *>(ptr));
     bytes_written = 0;
   }
+  else if (t == MPI_BYTE) 
+  {
+    status = nc_put_vara_uchar(ncid_, var_id, start, count, 
+                               static_cast<signed char *>(ptr));
+    bytes_written = 0;
+  }
   else if (t == MPI_SHORT)
   {
     status = nc_put_vara_short(ncid_, var_id, start, count, 

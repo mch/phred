@@ -40,7 +40,7 @@ void GridResult::init(const Grid &grid)
   if (MPI_SIZE == 1)
   {
     MPI_Type_contiguous(grid.get_ldx() * grid.get_ldy() * grid.get_ldz(), 
-                        GRID_MPI_TYPE, &datatype_);
+                        MAT_IDX_MPI_TYPE, &datatype_);
     MPI_Type_commit(&datatype_);
   } 
   else
@@ -75,7 +75,7 @@ void GridResult::init(const Grid &grid)
         contig_lens[i] = static_cast<int>(info.dimz_no_sd_);
 
       MPI_Type_indexed(ndisps, contig_lens, displacements, 
-                       GRID_MPI_TYPE, &datatype_);
+                       MAT_IDX_MPI_TYPE, &datatype_);
       MPI_Type_commit(&datatype_);
     } else {
       cerr << "BlockResult error: number of displacements is zero. ";

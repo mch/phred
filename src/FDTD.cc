@@ -198,6 +198,9 @@ void FDTD::run()
   //...
 
   // Subdivide the grid using a domain decomosition algorithm.
+  if (!quiet)
+    cout << "Performing domain decomposition..." << endl;
+
   SubdomainAlg *alg = 0;
   if (MPI_SIZE == 1 || MPI_SIZE == 2 || MPI_SIZE == 4 || MPI_SIZE == 8)
     alg = new SimpleSDAlg();
@@ -267,6 +270,9 @@ void FDTD::run()
       grid_ = shared_ptr<Grid>(new Grid());
     }
 
+  if (!quiet)
+    cout << "Initializing grid..." << endl;
+
   grid_->setup_grid(local_ginfo_);
 
   grid_->load_materials(mlib_);
@@ -275,6 +281,9 @@ void FDTD::run()
   grid_->load_geometry(&geometry_);
 
   grid_->set_define_mode(false);
+
+  if (!quiet)
+    cout << "Initializing results, data writers, and excitations..." << endl;
 
   // Life cycle init
   map<string, shared_ptr<Excitation> >::iterator 
@@ -333,8 +342,28 @@ void FDTD::run()
   // trouble with a data writer or something. 
   MPI_Barrier(MPI_COMM_WORLD);
 
+  if (!quiet)
+    cout << "Starting FDTD time stepping." << endl;
+
   // Run
   unsigned int ts = 0;
+
+  // Do data output for results that do that first thing, like GridResult
+//   vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
+//   vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();
+
+//   while (iter != iter_e)
+//   {
+//     riter = results_.find((*iter).first);
+//     dwiter = datawriters_.find((*iter).second);      
+    
+//     if (riter != riter_e && dwiter != dwiter_e)
+//       (*dwiter).second->handle_data(ts, 
+//                                     (*riter).second->get_result(*grid_, ts));
+    
+    
+//     ++iter;
+//   }
 
   // For optionally tracking millions of nodes per second. 
   time_t start, now;
@@ -482,6 +511,24 @@ void FDTD::run()
          << endl;
     cout << "NOTE: These numbers only account for the time required to do node updates.\nIt does not include time required for applying boundary conditions or\nexcitations, or for generating output data.\n";
   }
+
+  // Do data output for results that only produce data at the end
+//   vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
+//   vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();
+
+//   while (iter != iter_e)
+//   {
+//     riter = results_.find((*iter).first);
+//     dwiter = datawriters_.find((*iter).second);      
+    
+//     if (riter != riter_e && dwiter != dwiter_e)
+//       (*dwiter).second->handle_data(ts, 
+//                                     (*riter).second->get_result(*grid_, ts));
+    
+    
+//     ++iter;
+//   }
+
 
   // life cycle de init
   e_eiter = e_eiter_b;
