@@ -46,10 +46,6 @@ phred_SOURCES=\
 	FDTD.cc \
 	Geometry.hh \
 	Geometry.cc \
-	Box.hh \
-	Box.cc \
-	SphereGeom.hh \
-	SphereGeom.cc \
 	Grid.cc \
 	Grid.hh \
 	GridInfo.hh \

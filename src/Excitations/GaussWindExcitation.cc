@@ -29,14 +29,15 @@ GaussWindExcitation::GaussWindExcitation(SourceFunction *sf)
 GaussWindExcitation::~GaussWindExcitation()
 {}
 
-field_t GaussWindExcitation::window(region_t r, 
-                                    unsigned int i, unsigned int j, 
-                                    unsigned int k) 
+field_t GaussWindExcitation::window(float x, float y, float z) 
 {
-  field_t wx = 0, wy = 0, wz = 0;
-  double x = (i - r.xmin) - 0.5 * (r.xmax - r.xmin - 1); 
-  double y = (j - r.ymin) - 0.5 * (r.ymax - r.ymin - 1); 
-  double z = (k - r.zmin) - 0.5 * (r.zmax - r.zmin - 1); 
+  field_t wx = 1, wy = 1, wz = 1;
+
+  point centre = bx_.get_centre();
+
+  float x = (i - r.xmin) - 0.5 * (r.xmax - r.xmin - 1); 
+  float y = (j - r.ymin) - 0.5 * (r.ymax - r.ymin - 1); 
+  float z = (k - r.zmin) - 0.5 * (r.zmax - r.zmin - 1); 
 
   wx = exp((-pow(x, 2))/(2*pow(std_dev_, 2)));
   wy = exp((-pow(y, 2))/(2*pow(std_dev_, 2)));

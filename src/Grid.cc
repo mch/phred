@@ -656,6 +656,17 @@ void Grid::load_materials(MaterialLib &matlib)
 }
 
 
+void Grid::setup_grid(const Region &region)
+{
+  if (!define_)
+  {
+    cerr << "Unable to setup grid; the grid is not in define mode." << endl;
+    return;
+  }
+
+  
+}
+
 void Grid::setup_grid(const GridInfo &info)
 {
   if (!define_)
@@ -1263,4 +1274,20 @@ void Grid::setup_subdomain_data(SubdomainBc *sd, Face face)
   rxtx.set_tx_ptr(get_face_start(face, FC_HZ, 1));
   rxtx.set_rx_ptr(get_face_start(face, FC_HZ, 0));
   sd->add_tx_rx_data(rxtx);
+}
+
+Region Grid::get_region(CSGBox &box) const
+{
+  point centre = box.get_centre();
+  point size = box.get_size();
+  
+  grid_point start, lengths;
+
+  
+  
+}
+
+OverlapRegion Grid::get_overlap_region(CSGBox &box) const
+{
+
 }

@@ -34,8 +34,8 @@ protected:
   field_t *result_; /**< Storage for the result. Interlevaved data;
                        freq, Real DFT value, Imag DFT value, etc */
 
-  point_t point_; /**< The point to aquire the data at (global) */
-  point_t l_; /**< The point to aquire the data at (local) */
+  grid_point point_; /**< The point to aquire the data at (global) */
+  grid_point l_; /**< The point to aquire the data at (local) */
 
   bool ours_; /**< True if the point is in our part of the grid. */
 
@@ -52,7 +52,7 @@ public:
    *
    * @param point
    */
-  inline void set_point(point_t p)
+  inline void set_point(grid_point p)
   {
     point_ = p;
   }
@@ -60,9 +60,9 @@ public:
   /**
    * Get the point in global coordinates
    *
-   * @return point_t
+   * @return grid_point
    */
-  inline point_t get_point()
+  inline grid_point get_point()
   {
     return point_;
   }

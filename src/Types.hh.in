@@ -196,18 +196,18 @@ public:
  * Represents a single point in the Grid. The class constructor makes it
  * easy to construct temporary objects for more terse syntax
  */
-class point_t
+class grid_point
 {
 public:
   unsigned int x;
   unsigned int y;
   unsigned int z;
 
-  point_t()
+  grid_point()
     : x(0), y(0), z(0)
   {}
 
-  point_t(unsigned int xn, unsigned int yn, unsigned int zn)
+  grid_point(unsigned int xn, unsigned int yn, unsigned int zn)
     : x(xn), y(yn), z(zn)
   {}
 };
@@ -216,7 +216,7 @@ typedef struct {
   unsigned int x;
   unsigned int y;
   unsigned int z;
-} point_t;
+} grid_point;
 
 typedef struct {
   float x;
@@ -225,8 +225,6 @@ typedef struct {
 } point;
 
 #endif
-
-typedef point_t grid_point;
 
 #endif
 

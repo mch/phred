@@ -39,8 +39,7 @@ protected:
   /**
    * Defines a Gaussian window function. 
    */
-  virtual field_t window(region_t r, unsigned int i, unsigned int j, 
-                         unsigned int k);
+  virtual field_t window(float x, float y, float z);
 
 public:
   GaussWindExcitation(SourceFunction *sf); 

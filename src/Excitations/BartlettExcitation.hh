@@ -38,8 +38,7 @@ protected:
   /**
    * Defines a bartlett window function. 
    */
-  virtual field_t window(region_t r, unsigned int i, unsigned int j, 
-                         unsigned int k);
+  virtual field_t window(float x, float y, float z);
 
 public:
   BartlettExcitation(SourceFunction *sf);

@@ -33,7 +33,6 @@ using namespace std;
 using namespace boost;
 
 #include "Types.hh"
-#include "Region.hh"
 #include "Boundaries/BoundaryCondition.hh"
 #include "MaterialLib.hh"
 #include "Excitations/Excitation.hh"

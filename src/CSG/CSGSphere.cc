@@ -20,6 +20,7 @@
 */
 
 #include "CSGSphere.hh"
+#include <math.h>
 
 CSGSphere::CSGSphere()
   : radius_(0.5)
@@ -42,12 +43,12 @@ CSGStatus CSGSphere::is_point_inside(float x, float y, float z) const
   return ret; 
 }
 
-void set_radius(float radius)
+void CSGSphere::set_radius(float radius)
 {
   radius_ = radius;
 }
 
-float get_radius() const
+float CSGSphere::get_radius() const
 {
   return radius_;
 }

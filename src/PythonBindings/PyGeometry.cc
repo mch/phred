@@ -90,7 +90,7 @@ void export_geometry()
     ;
 
   class_<Sphere, bases<Geometry> >("Sphere", "A sphere")
-    .def(init<point_t, unsigned int>())
+    .def(init<grid_point, unsigned int>())
     .add_property("radius", &Sphere::get_radius, 
                   &Sphere::set_radius)
     .add_property("centre", &Sphere::get_centre,

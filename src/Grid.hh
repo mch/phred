@@ -975,6 +975,17 @@ class Grid {
 //        update_hz_r_.xmax - update_hz_r_.xmin;
   }
 
+  /**
+   * Returns a region of cells contained inside a given non-rotated
+   * CSGBox, NOT INCLUDING any overlap due to subdomain division. 
+   */ 
+  Region get_region(CSGBox &box) const;
+
+  /**
+   * Returns a region of cells contained inside a given non-rotated
+   * CSGBox, INCLUDING any overlap due to subdomain division. 
+   */ 
+  OverlapRegion get_overlap_region(CSGBox &box) const;
 };
 
 #endif // GRID_H

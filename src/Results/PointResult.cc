@@ -27,7 +27,7 @@ PointResult::PointResult()
   variables_["Point result"] = &var_;
 }
 
-PointResult::PointResult(point_t p)
+PointResult::PointResult(grid_point p)
   : point_(p)
 {
   variables_["Point result"] = &var_;

@@ -42,7 +42,7 @@ class Excitation : public LifeCycle
 {
 protected:
   /**
-   * Region to apply the source to (in global coordinates)
+   * Region to apply the source to (in the local grid)
    */
   region_t region_;
 
@@ -64,6 +64,9 @@ protected:
   bool soft_;
 
   SourceFunction *sf_; /**< Source function object to apply */
+
+  shared_ptr<CSGBox> box_; /**< The box representing the area where
+                              the excitation is to be applied. */
 
 public:
 
@@ -103,8 +106,6 @@ public:
     if (type != BOTH && type != type_)
       return;
 
-    region_t r = grid.global_to_local(region_);
-
     field_t sf = sf_->source_function(grid, time_step);
     field_t fld[3];
 
@@ -114,11 +115,11 @@ public:
 
     if (!soft_) 
     {
-      for(unsigned int i = r.xmin; i < r.xmax; i++)
+      for(unsigned int i = region_.xmin; i < region_.xmax; i++)
       {
-        for (unsigned int j = r.ymin; j < r.ymax; j++)
+        for (unsigned int j = region_.ymin; j < region_.ymax; j++)
         {
-          for (unsigned int k = r.zmin; k < r.zmax; k++)
+          for (unsigned int k = region_.zmin; k < region_.zmax; k++)
           {
             switch (type_) 
             {
@@ -142,11 +143,11 @@ public:
         }
       }
     } else {
-      for(unsigned int i = r.xmin; i < r.xmax; i++)
+      for(unsigned int i = region_.xmin; i < region_.xmax; i++)
       {
-        for (unsigned int j = r.ymin; j < r.ymax; j++)
+        for (unsigned int j = region_.ymin; j < region_.ymax; j++)
         {
-          for (unsigned int k = r.zmin; k < r.zmax; k++)
+          for (unsigned int k = region_.zmin; k < region_.zmax; k++)
           {
             switch (type_) 
             {
@@ -179,42 +180,14 @@ public:
   }
 
   /**
-   * Set the (rectangular) region to apply the excitation to. The
-   * start and end coordinates can range from 0 to global grid size -
-   * 1. 
+   * Set the CSGBox inside which the excitation is to be applied. 
    *
-   * @param region the region
+   * @param box the CSGBox to apply the excitation to. 
    */
-  void set_region(region_t region)
+  void set_region(shared_ptr<CSGBox> box)
   {
-    region_ = region;
+    box_ = box;
   }
-
-  /**
-   * Set the (rectangular) region to apply the excitation to. The
-   * start and end coordinates can range from 0 to global grid size -
-   * 1. 
-   *
-   * @param x_start The starting x coordinate
-   * @param x_end The ending x coordinate
-   * @param y_start The starting y coordinate
-   * @param y_end The ending y coordinate
-   * @param z_start The starting z coordinate
-   * @param z_end The ending z coordinate
-   */ 
-  void set_region(unsigned int x_start, unsigned int x_end, 
-                  unsigned int y_start, unsigned int y_end, 
-                  unsigned int z_start, unsigned int z_end)
-  {
-    region_.xmin = x_start;
-    region_.ymin = y_start;
-    region_.zmin = z_start;
-    
-    region_.xmax = x_end;
-    region_.ymax = y_end;
-    region_.zmax = z_end;
-  }
-
 
   /**
    * Set the polarization vector
@@ -271,7 +244,10 @@ public:
    */
   virtual void init(const Grid &grid)
   {
-    
+    if (box.get())
+    {
+      region_ = grid.get_local_region(*(box_.get()));
+    }
   }
 
 };

@@ -32,13 +32,40 @@ class WindowedExcitation : public Excitation
 {
 private:
 protected:
+
+  // Box ranges in real global coordinates. 
+  float xmin_, xmax_, ymin_, ymax_, zmin_, zmax_;
+
 public:
   WindowedExcitation(SourceFunction *sf) 
-    : Excitation(sf)
+    : Excitation(sf), xmin_(0), xmax_(0), ymin_(0), ymax_(0),
+      zmin_(0), zmax_(0)
   {}
 
   virtual ~WindowedExcitation()
   {}
+
+  /**
+   * init the windowing function.
+   */ 
+  virtual void init(const Grid &grid)
+  {
+    Excitation::init(grid);
+
+    if (box_.get())
+    {
+      point centre = box_->get_centre();
+      point size = box_->get_size();
+  
+      xmin_ = centre.x - size.x / 2;
+      ymin_ = centre.y - size.y / 2;
+      zmin_ = centre.z - size.z / 2;
+      
+      xmax_ = centre.x + size.x / 2;
+      ymax_ = centre.y + size.y / 2;
+      zmax_ = centre.z + size.z / 2;
+    }
+  }
 
   /**
    * Subclasses must override this to provide the window
@@ -47,16 +74,12 @@ public:
    * every z step. If profiling shows there is too much time wasted
    * here, then optimize this by spliting it into three functions. 
    *
-   * @param r the region in the local grid over which the excitation
-   * is being applied. The global region is stored in the member
-   * variable region_.
-   * @param x the x coordinate
-   * @param y the y coordinate
-   * @param z the z coordinate
+   * @param x the x position in the global real coordinate system
+   * @param y the y position in the global real coordinate system
+   * @param z the z position in the global real coordinate system
    * @return a value describing the strength of the field at the given point. 
    */
-  virtual field_t window(region_t r, unsigned int x, unsigned int y, 
-                         unsigned int z) = 0;
+  virtual field_t window(float x, float y, float z) = 0;
 
   /**
    * This applied the windowed excitation to the grid.
@@ -72,11 +95,8 @@ public:
     if (type != BOTH && type != type_)
       return;
 
-    region_t r = grid.global_to_local(region_);
-
     field_t sf = sf_->source_function(grid, time_step);
     field_t fld[3];
-    unsigned int gi, gj, gk; 
             
     // Bartlett window coefficients
     field_t w = 1;
@@ -85,21 +105,23 @@ public:
     fld[1] = sf * polarization_[1];
     fld[2] = sf * polarization_[2];
 
+    float fx, fy, fz;
+
     //cout << "Windowing function on " << MPI_RANK 
     //     << ": ---------------------" << endl;
     if (!soft_) 
     {
-      for(unsigned int i = r.xmin; i < r.xmax; i++)
+      for(unsigned int i = region_.xmin; i < region_.xmax; i++)
       {
-        for (unsigned int j = r.ymin; j < r.ymax; j++)
+        fx = grid.get_deltax() * (grid.get_lsx_ol() + i);
+        for (unsigned int j = region_.ymin; j < region_.ymax; j++)
         {
-          for (unsigned int k = r.zmin; k < r.zmax; k++)
+          fy = grid.get_deltay() * (grid.get_lsy_ol() + j);
+          fz = grid.get_deltaz() * grid.get_lsz_ol();
+          for (unsigned int k = region_.zmin; k < region_.zmax; k++,
+                 fz += grid.get_deltaz())
           {
-            gi = grid.get_lsx_ol() + i;
-            gj = grid.get_lsy_ol() + j;
-            gk = grid.get_lsz_ol() + k;
-
-            w = window(r, gi, gj, gk);
+            w = window(fx, fy, fz);
             //cout << gi << " " << gj << " " << gk << " " << w << endl;
 
             switch (type_) 
@@ -124,17 +146,17 @@ public:
         }
       }
     } else {
-      for(unsigned int i = r.xmin; i < r.xmax; i++)
+      for(unsigned int i = region_.xmin; i < region_.xmax; i++)
       {
-        for (unsigned int j = r.ymin; j < r.ymax; j++)
+        fx = grid.get_deltax() * (grid.get_lsx_ol() + i);
+        for (unsigned int j = region_.ymin; j < region_.ymax; j++)
         {
-          for (unsigned int k = r.zmin; k < r.zmax; k++)
+          fy = grid.get_deltay() * (grid.get_lsy_ol() + j);
+          fz = grid.get_deltaz() * grid.get_lsz_ol();
+          for (unsigned int k = region_.zmin; k < region_.zmax; k++,
+                 fz += grid.get_deltaz())
           {
-            gi = grid.get_lsx_ol() + i;
-            gj = grid.get_lsy_ol() + j;
-            gk = grid.get_lsz_ol() + k;
-
-            w = window(r, gi, gj, gk);
+            w = window(fx, fy, fz);
             //cout << gi << " " << gj << " " << gk << " " << w << endl;
 
             switch (type_) 

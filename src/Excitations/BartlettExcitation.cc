@@ -22,20 +22,21 @@
 #include "BartlettExcitation.hh"
 #include <math.h>
 
-field_t BartlettExcitation::window(region_t r, 
-                                   unsigned int i, unsigned int j, 
-                                   unsigned int k) 
+field_t BartlettExcitation::window(float x, float y, float z) 
 {
-  field_t wx = 0, wy = 0, wz = 0;
+  field_t wx = 1, wy = 1, wz = 1;
+
+  if (xmax_ - xmin_ > 0)
+    wx = 1 - fabs( ( (x - xmin_) - 0.5 * (xmax_ - xmin_)) 
+                   / (0.5 * (xmax_ - xmin_)));
   
-  wx = 1 - fabs( ( (i - r.xmin) - 0.5 * (r.xmax - r.xmin - 1)) 
-                 / (0.5 * (r.xmax - r.xmin + 1)));
+  if (ymax_ - ymin_ > 0)
+    wy = 1 - fabs( ( (y - ymin_) - 0.5 * (ymax_ - ymin_)) 
+                   / (0.5 * (ymax_ - ymin_)));
   
-  wy = 1 - fabs( ( (j - r.ymin) - 0.5 * (r.ymax - r.ymin - 1)) 
-                 / (0.5 * (r.ymax - r.ymin + 1)));
-  
-  wz = 1 - fabs( ( (k - r.zmin) - 0.5 * (r.zmax - r.zmin - 1)) 
-                 / (0.5 * (r.zmax - r.zmin + 1)));
+  if (zmax_ - zmin_ > 0)
+    wz = 1 - fabs( ( (z - zmin_) - 0.5 * (zmax_ - zmin_)) 
+                   / (0.5 * (zmax_ - zmin_)));
   
   return wx * wy * wz;
 }

@@ -6,7 +6,6 @@ libpyphread_a_SOURCES = PyExcitations.hh \
 	PyInterpreter.cc \
 	PyResults.cc \
 	PyMaterial.cc \
-	PyGeometry.cc \
 	PyGrid.cc \
 	PyFDTD.cc \
 	PyTypes.cc \

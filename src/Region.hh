@@ -47,20 +47,47 @@
  *
  * This region NEVER includes overlapping Yee cells, which arise when
  * the grid is split across nodes. 
+ *
+ * The global part of the region is immutable. Min and max values are
+ * ALWAYS set in global coordinates. 
  */
 class Region {
 public:
   /**
-   * Class contructor. 
+   * Class contructor. The region starts at 0,0,0 and contains 0 cells
+   * along each dimension. The region does not have a parent; global
+   * and local values are the same.
    */
   Region();
 
   /**
-   * Class contructor. This one initializes the region to a non-null space.  
+   * Class contructor. The region starts at 0,0,0 and contains 0 cells
+   * along each dimension. The given global region is interperted as
+   * the region containing this one; it is a superset of this
+   * region. A copy of the global is stored.
+   */
+  Region(const Region &global);
+
+  /**
+   * Class contructor. This one initializes the region to a non-null space. 
+   * The region does not have a parent; global and local values are
+   * the same.
    */
   Region(unsigned int xmin, unsigned int xmax,
          unsigned int ymin, unsigned int ymax,
          unsigned int zmin, unsigned int zmax);
+
+  /**
+   * Class contructor. This one initializes the region to a non-null space. 
+   * The region does not have a parent; global and local values are
+   * the same. The given global region is interperted as
+   * the region containing this one; it is a superset of this
+   * region. A copy of the global is stored.
+   */
+  Region(unsigned int xmin, unsigned int xmax,
+         unsigned int ymin, unsigned int ymax,
+         unsigned int zmin, unsigned int zmax,
+         const Region &global);
 
   virtual ~Region();
 
@@ -69,7 +96,7 @@ public:
    * to this processor. This should be called before calling any of
    * the get_{x,y,z}{min,max}() functions. 
    */ 
-  virtual bool is_local(const GridInfo &grid_info) const;
+  virtual bool is_local() const;
 
   /**
    * Set the closed interval along the x axis containing this region. 
@@ -142,42 +169,42 @@ public:
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_xmin(const GridInfo &grid_info) const;
+  virtual unsigned int get_xmin() const;
 
   /**
    * Returns the local ymin of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_ymin(const GridInfo &grid_info) const;
+  virtual unsigned int get_ymin() const;
 
   /**
    * Returns the local zmin of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_zmin(const GridInfo &grid_info) const;
+  virtual unsigned int get_zmin() const;
 
   /**
    * Returns the local xmax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_xmax(const GridInfo &grid_info) const;
+  virtual unsigned int get_xmax() const;
 
   /**
    * Returns the local ymax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_ymax(const GridInfo &grid_info) const;
+  virtual unsigned int get_ymax() const;
 
   /**
    * Returns the local zmax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_zmax(const GridInfo &grid_info) const;
+  virtual unsigned int get_zmax() const;
   
 protected:
   unsigned int global_xmin_;
@@ -189,7 +216,7 @@ protected:
   unsigned int global_zmin_;
   unsigned int global_zmax_;
 
-  shared_ptr<Region> parent_;
+  Region *global_;
 };
 
 /**
@@ -202,14 +229,15 @@ public:
   /**
    * Class contructor. 
    */
-  OverlapRegion();
+  OverlapRegion(const Region &global);
 
   /**
    * Class contructor. This one initialized the region to a non-null space.  
    */
   OverlapRegion(unsigned int xmin, unsigned int xmax,
                 unsigned int ymin, unsigned int ymax,
-                unsigned int zmin, unsigned int zmax);
+                unsigned int zmin, unsigned int zmax, 
+                const Region &global);
 
   virtual ~OverlapRegion();
 
@@ -218,49 +246,49 @@ public:
    * to this processor. This should be called before calling any of
    * the get_{x,y,z}{min,max}() functions. 
    */ 
-  virtual bool is_local(const GridInfo &grid_info) const;
+  virtual bool is_local() const;
 
    /**
    * Returns the local xmin of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_xmin(const GridInfo &grid_info) const;
+  virtual unsigned int get_xmin() const;
 
   /**
    * Returns the local ymin of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_ymin(const GridInfo &grid_info) const;
+  virtual unsigned int get_ymin() const;
 
   /**
    * Returns the local zmin of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_zmin(const GridInfo &grid_info) const;
+  virtual unsigned int get_zmin() const;
 
   /**
    * Returns the local xmax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_xmax(const GridInfo &grid_info) const;
+  virtual unsigned int get_xmax() const;
 
   /**
    * Returns the local ymax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_ymax(const GridInfo &grid_info) const;
+  virtual unsigned int get_ymax() const;
 
   /**
    * Returns the local zmax of this region. This is *VIRTUAL* and NOT
    * inlined, so for high performance code like loops, store this
    * result in a variable.
    */
-  virtual unsigned int get_zmax(const GridInfo &grid_info) const;
+  virtual unsigned int get_zmax() const;
 
 protected:
 

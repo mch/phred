@@ -22,7 +22,19 @@
 #include "Region.hh"
 
 Region::Region()
+  : global_xmin_(0), global_xmax_(0),
+    global_ymin_(0), global_ymax_(0),
+    global_zmin_(0), global_zmax_(0),
+    global_(0)
 {}
+
+Region::Region(const Region &global)
+  : global_xmin_(0), global_xmax_(0),
+    global_ymin_(0), global_ymax_(0),
+    global_zmin_(0), global_zmax_(0)
+{
+  global_ = new Region(global);
+}
 
 Region::Region(unsigned int xmin, unsigned int xmax,
                unsigned int ymin, unsigned int ymax,
@@ -32,10 +44,21 @@ Region::Region(unsigned int xmin, unsigned int xmax,
     global_zmin_(zmin), global_zmax_(zmax)
 {}
 
-Region::~Region()
-{}
+Region::Region(unsigned int xmin, unsigned int xmax,
+               unsigned int ymin, unsigned int ymax,
+               unsigned int zmin, unsigned int zmax,
+               const Region &global)
+{
+  global_ = new Region(global);
+}
 
-bool Region::is_local(const GridInfo &grid_info) const
+Region::~Region()
+{
+  if (global_)
+    delete global_;
+}
+
+bool Region::is_local() const
 {
   bool ret = false;
   if (global_xmin_ >= grid_info.start_x_no_sd_ 
@@ -85,7 +108,7 @@ void Region::set_z(unsigned int zmin, unsigned int zmax)
   global_zmax_ = zmax;
 }
 
-unsigned int Region::get_xmin(const GridInfo &grid_info) const
+unsigned int Region::get_xmin() const
 {
   unsigned int ret = 0;
   if (global_xmin_ < grid_info.start_x_no_sd_
@@ -99,7 +122,7 @@ unsigned int Region::get_xmin(const GridInfo &grid_info) const
   return ret;
 }
 
-unsigned int Region::get_ymin(const GridInfo &grid_info) const
+unsigned int Region::get_ymin() const
 {
   unsigned int ret = 0;
   if (global_ymin_ < grid_info.start_y_no_sd_
@@ -113,7 +136,7 @@ unsigned int Region::get_ymin(const GridInfo &grid_info) const
   return ret;
 }
 
-unsigned int Region::get_zmin(const GridInfo &grid_info) const
+unsigned int Region::get_zmin() const
 {
   unsigned int ret = 0;
   if (global_zmin_ < grid_info.start_z_no_sd_
@@ -127,7 +150,7 @@ unsigned int Region::get_zmin(const GridInfo &grid_info) const
   return ret;
 }
 
-unsigned int Region::get_xmax(const GridInfo &grid_info) const
+unsigned int Region::get_xmax() const
 {
   unsigned int upper_bnd = grid_info.start_x_no_sd_ 
     + grid_info.dimx_no_sd_ - 1;
@@ -141,7 +164,7 @@ unsigned int Region::get_xmax(const GridInfo &grid_info) const
   return ret;
 }
 
-unsigned int Region::get_ymax(const GridInfo &grid_info) const
+unsigned int Region::get_ymax() const
 {
   unsigned int upper_bnd = grid_info.start_y_no_sd_ 
     + grid_info.dimy_no_sd_ - 1;
@@ -155,7 +178,7 @@ unsigned int Region::get_ymax(const GridInfo &grid_info) const
   return ret;
 }
 
-unsigned int Region::get_zmax(const GridInfo &grid_info) const
+unsigned int Region::get_zmax() const
 {
   unsigned int upper_bnd = grid_info.start_z_no_sd_ 
     + grid_info.dimz_no_sd_ - 1;
@@ -173,19 +196,21 @@ unsigned int Region::get_zmax(const GridInfo &grid_info) const
 // OverlapRegion implementation
 ///////////////////////////////////////////////////////////////
 
-OverlapRegion::OverlapRegion()
+OverlapRegion::OverlapRegion(const Region &region)
+  : Region(region)
 {}
 
 OverlapRegion::OverlapRegion(unsigned int xmin, unsigned int xmax,
-       unsigned int ymin, unsigned int ymax,
-       unsigned int zmin, unsigned int zmax)
-  : Region(xmin, xmax, ymin, ymax, zmin, zmax)
+                             unsigned int ymin, unsigned int ymax,
+                             unsigned int zmin, unsigned int zmax, 
+                             const Region &region)
+  : Region(xmin, xmax, ymin, ymax, zmin, zmax, region)
 {}
 
 OverlapRegion::~OverlapRegion()
 {}
 
-bool OverlapRegion::is_local(const GridInfo &grid_info) const
+bool OverlapRegion::is_local() const
 {
   bool ret = false;
   if (global_xmin_ >= grid_info.start_x_ 
@@ -199,7 +224,7 @@ bool OverlapRegion::is_local(const GridInfo &grid_info) const
   return ret;
 }
 
-unsigned int OverlapRegion::get_xmin(const GridInfo &grid_info) const
+unsigned int OverlapRegion::get_xmin() const
 {
   unsigned int ret = 0;
   if (global_xmin_ < grid_info.start_x_
@@ -213,7 +238,7 @@ unsigned int OverlapRegion::get_xmin(const GridInfo &grid_info) const
   return ret;
 }
 
-unsigned int OverlapRegion::get_ymin(const GridInfo &grid_info) const
+unsigned int OverlapRegion::get_ymin() const
 {
   unsigned int ret = 0;
   if (global_ymin_ < grid_info.start_y_
@@ -227,7 +252,7 @@ unsigned int OverlapRegion::get_ymin(const GridInfo &grid_info) const
   return ret;
 }
 
-unsigned int OverlapRegion::get_zmin(const GridInfo &grid_info) const
+unsigned int OverlapRegion::get_zmin() const
 {
   unsigned int ret = 0;
   if (global_zmin_ < grid_info.start_z_
@@ -241,7 +266,7 @@ unsigned int OverlapRegion::get_zmin(const GridInfo &grid_info) const
   return ret;
 }
 
-unsigned int OverlapRegion::get_xmax(const GridInfo &grid_info) const
+unsigned int OverlapRegion::get_xmax() const
 {
   unsigned int upper_bnd = grid_info.start_x_ 
     + grid_info.dimx_ - 1;
@@ -255,7 +280,7 @@ unsigned int OverlapRegion::get_xmax(const GridInfo &grid_info) const
   return ret;
 }
 
-unsigned int OverlapRegion::get_ymax(const GridInfo &grid_info) const
+unsigned int OverlapRegion::get_ymax() const
 {
   unsigned int upper_bnd = grid_info.start_y_ 
     + grid_info.dimy_ - 1;
@@ -269,7 +294,7 @@ unsigned int OverlapRegion::get_ymax(const GridInfo &grid_info) const
   return ret;
 }
 
-unsigned int OverlapRegion::get_zmax(const GridInfo &grid_info) const
+unsigned int OverlapRegion::get_zmax() const
 {
   unsigned int upper_bnd = grid_info.start_z_ 
     + grid_info.dimz_ - 1;

@@ -41,10 +41,10 @@ protected:
    */
   field_t field_data_[7];
 
-  point_t point_; /**< Point in global space. Have to translate it to
+  grid_point point_; /**< Point in global space. Have to translate it to
                      the local grid. */
 
-  point_t l_; /**< Point in local space. */
+  grid_point l_; /**< Point in local space. */
 
   // True if the point is in our part of the grid
   bool ours_;
@@ -55,7 +55,7 @@ protected:
 public:
 
   PointResult();
-  PointResult(point_t p);
+  PointResult(grid_point p);
   ~PointResult();
 
   /**
@@ -74,7 +74,7 @@ public:
    *
    * @param point
    */
-  inline void set_point(point_t p)
+  inline void set_point(grid_point p)
   {
     point_ = p;
   }
@@ -82,9 +82,9 @@ public:
   /**
    * Get the point in global coordinates
    *
-   * @return point_t
+   * @return grid_point
    */
-  inline point_t get_point()
+  inline grid_point get_point()
   {
     return point_;
   }

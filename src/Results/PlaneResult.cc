@@ -56,7 +56,7 @@ void PlaneResult::init(const Grid &grid)
 
 //   cerr << "PlaneResult global point location: " << plane_.x 
 //        << " x " << plane_.y << " x " << plane_.z << endl;
-//   point_t l_point = grid.global_to_local(plane_);
+//   grid_point l_point = grid.global_to_local(plane_);
 //   cerr << "PlaneResult local point location: " << l_point.x 
 //        << " x " << l_point.y << " x " << l_point.z << endl;
 

@@ -82,7 +82,7 @@ void BlockResult::deinit()
 //   var_.set_name(base_name_);
 //   var_.set_datatype(temp);
 //   var_.set_num(0);
-//   var_.set_ptr(const_cast<field_t *>(grid.get_pointer(point_t(region_.xmin, 
+//   var_.set_ptr(const_cast<field_t *>(grid.get_pointer(grid_point(region_.xmin, 
 //                                                               region_.ymin, 
 //                                                               region_.zmin), 
 //                                                       field_comp_)));
@@ -118,7 +118,7 @@ void BlockResult::init(const Grid &grid)
   } 
   else
   {
-    var_.set_ptr(const_cast<field_t *>(grid.get_pointer(point_t(0,0,0), 
+    var_.set_ptr(const_cast<field_t *>(grid.get_pointer(grid_point(0,0,0), 
                                                         field_comp_)));
   }
 

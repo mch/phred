@@ -37,7 +37,7 @@ private:
 protected:
   // Position of the plane in global space. Have to translate it to
   // the local grid.
-  point_t plane_;
+  grid_point plane_;
 
   // The face the plane is parallel to
   Face face_;
@@ -72,7 +72,7 @@ public:
    *
    * @param p
    */
-  inline void set_plane(point_t p, Face face)
+  inline void set_plane(grid_point p, Face face)
   {
     plane_ = p;
     face_ = face;
@@ -81,9 +81,9 @@ public:
   /**
    * Get the position of the plane in global coordinates
    *
-   * @return point_t
+   * @return grid_point
    */
-  inline point_t get_plane()
+  inline grid_point get_plane()
   {
     return plane_;
   }

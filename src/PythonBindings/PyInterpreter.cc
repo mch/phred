@@ -39,7 +39,6 @@ void export_boundaries();
 void export_materials();
 void export_types();
 void export_datawriters();
-void export_geometry();
 void export_grids();
 void export_csg();
 
@@ -52,7 +51,6 @@ BOOST_PYTHON_MODULE(Phred)
   export_materials();
   export_types();
   export_datawriters();
-  export_geometry();
   export_grids();
   export_csg();
 }
