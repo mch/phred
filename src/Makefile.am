@@ -1,8 +1,11 @@
 bin_PROGRAMS=phred
 
+phred_cond = 
+phred_cond_bs = 
+
 # Conditional on having Python and boost.python
 if PY_BINDINGS
-phred_cond = python-bindings/PyExcitations.cc
+phred_cond += python-bindings/PyExcitations.cc
 #	python-bindings/PyGrid.cc \
 #	python-bindings/PyMaterial.cc
 
@@ -10,7 +13,13 @@ phred_LDADD = ../thirdparty/boost.python/src/libboost_python.la
 phred_LDFLAGS = @PYTHON_LDFLAGS@
 endif
 
+BUILT_SOURCES = jan-grammer.hh
+
+AM_YFLAGS = -d
+
 phred_SOURCES=phred.cc \
+	jan-grammer.yy \
+	jan-grammer-flex.ll \
 	system.h \
 	Grid.cc \
 	Grid.hh \
@@ -68,13 +77,5 @@ phred_SOURCES=phred.cc \
 	SourceTimeResult.cc \
 	SourceDFTResult.hh \
 	SourceDFTResult.cc $(phred_cond)
-#	jan-grammer.yy \
-#	jan-grammer-flex.ff \
-#	lex.yy.cc
 
 #	SpaceExcitation.cc 
-
-#BUILT_SOURCES = jan-grammer.h
-
-AM_YFLAGS = -d
-

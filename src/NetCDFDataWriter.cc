@@ -4,14 +4,23 @@
 
 using namespace std;
 
-/* FIX ME! This code sucks right now. Worst in all of phred. */
 
 #ifdef USE_NETCDF
 
 NetCDFDataWriter::NetCDFDataWriter(int rank, int size)
   : DataWriter(rank, size), ncid_(0), omode_(NC_WRITE | NC_SHARE),
-    fopen_(false)
+    fopen_(false), clobber_(false)
 {}
+
+NetCDFDataWriter::NetCDFDataWriter(int rank, int size, 
+                                   const char *filename, 
+                                   bool clobber)
+  : DataWriter(rank, size), ncid_(0), omode_(NC_WRITE | NC_SHARE),
+    fopen_(false), clobber_(clobber)
+{
+  set_filename(string(filename));
+}
+
 
 NetCDFDataWriter::~NetCDFDataWriter()
 {
@@ -27,13 +36,23 @@ void NetCDFDataWriter::init()
 
   if (filename_.length() > 0) 
   {
-    status = nc_open(filename_.c_str(), omode_, &ncid_);
-    if (status != NC_NOERR)
+    if (!clobber_)
     {
-      // Maybe we couldn't open it because it DNE, try creating it. 
-      if (status == 2)
-        status = nc_create(filename_.c_str(), NC_SHARE, &ncid_);
-
+      status = nc_open(filename_.c_str(), omode_, &ncid_);
+      if (status != NC_NOERR)
+      {
+        // Maybe we couldn't open it because it DNE, try creating it. 
+        if (status == 2)
+          status = nc_create(filename_.c_str(), NC_SHARE, &ncid_);
+        
+        if (status != NC_NOERR)
+          handle_error(status);
+      }
+    } 
+    else
+    {
+      status = nc_create(filename_.c_str(), NC_CLOBBER|NC_SHARE, &ncid_);
+      
       if (status != NC_NOERR)
         handle_error(status);
     }

@@ -446,7 +446,7 @@ static void pml_test(int rank, int size)
   Grid grid; 
   GridInfo info_g;
 
-  info_g.global_dimx_ = info_g.dimx_ = 40;
+  info_g.global_dimx_ = info_g.dimx_ = 100;
   info_g.global_dimy_ = info_g.dimy_ = 50;
   info_g.global_dimz_ = info_g.dimz_ = 60;
   info_g.deltax_ = 18.75e-9; 
@@ -502,11 +502,11 @@ static void pml_test(int rank, int size)
   grid.load_materials(mats);
 
   // Global coordinates. 
-  grid.define_box(0, 40, 0, 50, 0, 60, 1);
+  grid.define_box(0, 100, 0, 50, 0, 60, 1);
 
   // Excitation
   Gaussm ex;
-  ex.set_soft(false);
+  ex.set_soft(true);
   ex.set_parameters(1, 500e12, 300e12);
   ex.set_region(20, 20, 25, 25, 30, 30);
   ex.set_polarization(0.0, 1.0, 0.0);

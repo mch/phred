@@ -57,6 +57,8 @@ protected:
   
   map<string, ncdfvar_t> vars_;
 
+  bool clobber_; /**< Indicates if the file should be overwritten or
+                    not. Defaults to false. */
 
   /**
    * Handle a NetCDF error... throws an exception. 
@@ -95,17 +97,36 @@ protected:
 
 public:
 
+  /**
+   * Create a new NetCDFWriter using the given filename. The file is
+   * opened for writing. 
+   *
+   * @param rank the MPI rank of the current process
+   * @param size the total number of MPI processes
+   * @param filename the filename to use
+   * @param clobber Overwrite the file when opening it. Default is false. 
+   */
+  NetCDFDataWriter(int rank, int size, const char *filename, 
+                   bool clobber = false);
+
+  /**
+   * Create a new NetCDFWriter
+   * @param rank the MPI rank of the current process
+   * @param size the total number of MPI processes
+   */
   NetCDFDataWriter(int rank, int size);
+
   ~NetCDFDataWriter();
 
   /**
-   * Set the filename to write to. 
+   * Set the filename to write to. The file is opened for writing. 
    *
    * @param filename 
    */
   inline void set_filename(string filename)
   {
     filename_ = filename;
+    init();
   }
 
   /**
@@ -134,6 +155,12 @@ class NetCDFDataWriter : public DataWriter {
 public:
   NetCDFDataWriter(int rank, int size)
     : DataWriter(rank, size)
+  {
+    throw NoNetCDFException(); //("NetCDF Support is not available.");
+  }
+
+  NetCDFDataWriter(int rank, int size, const char *filename, 
+                   bool clobber = false)
   {
     throw NoNetCDFException(); //("NetCDF Support is not available.");
   }

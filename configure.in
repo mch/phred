@@ -59,8 +59,8 @@ AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_CXXCPP
-dnl AM_PROG_LEX
-dnl AC_PROG_YACC
+AC_PROG_YACC
+AM_PROG_LEX
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 
@@ -130,6 +130,7 @@ for (i = 0; i < 100; i++)
   j += i;
 }], [
         AC_MSG_RESULT([yes])
+        USE_OPENMP="1"
         AC_DEFINE([USE_OPENMP], [1], [Using OpenMP (-qSMP=omp on AIX)])
         CXXFLAGS_TEMP="$CXXFLAGS_TEMP -qSMP=omp"], [
         AC_LANG_POP(C++)
@@ -161,6 +162,7 @@ void test()
 {}
 ], [
         AC_MSG_RESULT([yes])
+        USE_ALTIVEC="1"
         AC_DEFINE([USE_ALTIVEC], [1], [Using AltiVec])
         ], [AC_MSG_RESULT[no]])
             
@@ -196,6 +198,7 @@ if [[ ! "$with_netcdf" = "no" ]]; then
 AC_CHECK_LIB(netcdf, ncopen, [
     LIBS="-lnetcdf $LIBS";
     AC_CHECK_HEADER([netcdf.h], [
+        USE_NETCDF="1"
         AC_DEFINE([USE_NETCDF], [1], [Use netCDF as a DataWriter])], [], 
                   [$with_netcdf_includes])], [], [$with_netcdf_libs])
 fi 
@@ -204,6 +207,7 @@ if [[ "$with_hdf" = "yes" ]]; then
 AC_CHECK_LIB(mfhdf, hdf_close, [
     LIBS="-lmfhdf -ldf -ljpeg -lz $LIBS"
     AC_CHECK_HEADER([hdf.h], [
+        USE_HDF4="1"
         AC_DEFINE([USE_HDF4], [1], [Use HDF4 as a DataWriter])], [], 
                   [$with_hdf4_includes])], [], [-ldf -ljpeg -lz])
 
@@ -216,6 +220,7 @@ if [[ ! "$with_hdf5" = "no" ]]; then
 AC_CHECK_LIB(hdf5, H5open, [
     LIBS="-lhdf5 $LIBS";
     AC_CHECK_HEADER([hdf5.h], [
+        USE_HDF5="1"
         AC_DEFINE([USE_HDF5], [1], [Use HDF5 as a DataWriter])], [], 
                   [$with_hdf5_includes])], [], [$with_hdf5_libs])
 fi
@@ -294,3 +299,40 @@ AC_SUBST(LIBS, $LIBS)
 AC_SUBST(PYTHON_LDFLAGS, $PYTHON_LDFLAGS)
 
 AC_OUTPUT(Makefile src/Makefile doc/Makefile tests/Makefile tests/high_speed_c/Makefile thirdparty/Makefile thirdparty/boost.python/Makefile thirdparty/boost.python/src/Makefile src/Types.hh doc/Doxyfile doc/phred.lsm phred.spec)
+
+
+dnl Display a summary of results
+echo "Configured $PACKAGE_NAME $PACKAGE_VERSION"
+echo
+echo "C++ compiler: $CXX"
+echo "C compiler: $CC"
+echo
+echo -n "Using popt to parse command line arguments? "
+if test "x$HAVE_LIBPOPT" = "x1"; then echo "yes"; else echo "no"; fi
+echo
+echo "DataWriters: " 
+echo -n " - NetCDF? $USE_NETCDF " 
+if test "x$USE_NETCDF" = "x1"; then echo "yes"; else echo "no"; fi
+echo -n " - HDF 4? " 
+if [[ "x$USE_HDF4" = "x1" ]]; then echo "yes"; else echo "no"; fi
+echo -n " - HDF 5? " 
+if [[ "x$USE_HDF5" = "x1" ]]; then echo "yes"; else echo "no"; fi
+echo
+echo -n "Building AltiVec support? " 
+if [[ "x$USE_ALTIVEC" = "x1" ]]; then echo "yes"; else echo "no"; fi
+echo -n "Using OpenMP parallization? " 
+if [[ "x$USE_OPENMP" = "x1" ]]; then echo "yes"; else echo "no"; fi
+echo
+echo -n "Building Python bindings? " 
+if [[ "x$USE_PY_BINDINGS" == "x1" ]]; then echo "yes"; else echo "no"; fi
+echo -n "Building a parser for Jan's input files? "
+if test ! -z "$LEX" && test ! -z "$YACC"; then echo "yes"; else echo "no"; fi
+echo
+echo "Field components will use $FIELD_TYPE."
+echo
+echo -n "Build type: "
+if test "x$WANT_DEBUG" = "x1"; then echo "debugging"; else echo "optimized"; fi
+echo -n "Profiling? " 
+if test "x$WANT_PROFILE" = "x1"; then echo "yes"; else echo "no"; fi
+echo
+echo "$PACKAGE_NAME is ready to be built. Type 'make'."

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "jan-grammer.h"
+#include "jan-grammer.hh"
 %}
 
  /* Definitions */

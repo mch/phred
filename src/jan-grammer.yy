@@ -16,66 +16,66 @@ void yyerror(const char *s);
   int ival; /* for returning integers */
 }
 
-%token <dval> NUM  /* Double precision number */
-%token <ival> INT  /* Integer */
-%token <str> STR  /* String */
+%token <dval> JAN_NUM  /* Double precision number */
+%token <ival> JAN_INT  /* Integer */
+%token <str> JAN_STR  /* String */
 
 %type <str> exprs
 %type <dval> exprd
 %type <ival> expri
 %type <ival> exprm
 
-%token COMMENT
-%token NEWLINE
-%token PROGRAM_MODE
-%token STRUCTURE_MODE
-%token TIMESTEP_MODE
-%token RUNTIME
-%token TIME_MODULO
-%token DIMX
-%token DIMY
-%token DIMZ
-%token DELTAX
-%token DELTAY
-%token DELTAZ
-%token DELTAT
-%token NR_OF_MATERIALS
+%token JAN_COMMENT
+%token JAN_NEWLINE
+%token JAN_PROGRAM_MODE
+%token JAN_STRUCTURE_MODE
+%token JAN_TIMESTEP_MODE
+%token JAN_RUNTIME
+%token JAN_TIME_MODULO
+%token JAN_DIMX
+%token JAN_DIMY
+%token JAN_DIMZ
+%token JAN_DELTAX
+%token JAN_DELTAY
+%token JAN_DELTAZ
+%token JAN_DELTAT
+%token JAN_NR_OF_MATERIALS
 
-%token ABC_XMIN_TYPE
-%token ABC_YMIN_TYPE
-%token ABC_ZMIN_TYPE
-%token ABC_XMAX_TYPE
-%token ABC_YMAX_TYPE
-%token ABC_ZMAX_TYPE
+%token JAN_ABC_XMIN_TYPE
+%token JAN_ABC_YMIN_TYPE
+%token JAN_ABC_ZMIN_TYPE
+%token JAN_ABC_XMAX_TYPE
+%token JAN_ABC_YMAX_TYPE
+%token JAN_ABC_ZMAX_TYPE
 
-%token PML
-%token EWALL
-%token MWALL
-%token MUR2
+%token JAN_PML
+%token JAN_EWALL
+%token JAN_MWALL
+%token JAN_MUR2
 
-%token SOURCE
-%token WAVEGUIDE
-%token DIPOLE
+%token JAN_SOURCE
+%token JAN_WAVEGUIDE
+%token JAN_DIPOLE
 
-%token TYPE
-%token EX
-%token EY
-%token EZ
-%token HX
-%token HY
-%token HZ
+%token JAN_TYPE
+%token JAN_EX
+%token JAN_EY
+%token JAN_EZ
+%token JAN_HX
+%token JAN_HY
+%token JAN_HZ
 
-%token FUNCTION
-%token SINE
-%token EXPSINE
-%token GAUSS
-%token GAUSSM 
-%token PULSE
+%token JAN_FUNCTION
+%token JAN_SINE
+%token JAN_EXPSINE
+%token JAN_GAUSS
+%token JAN_GAUSSM 
+%token JAN_PULSE
 
-%token ALPHA
-%token TAU
-%token PERIOD_SIZE
-%token FIXED
+%token JAN_ALPHA
+%token JAN_TAU
+%token JAN_PERIOD_SIZE
+%token JAN_FIXED
 
 
 
@@ -86,11 +86,11 @@ input: /* empty */
        | input line
        ;
 
-line: NEWLINE
-      | exprs NEWLINE { cout << "String Line: " << $1 << endl; }
-      | exprd NEWLINE { cout << "Double Line: " << $1 << endl; }
-      | expri NEWLINE { cout << "Int Line: " << $1 << endl; }
-      | exprm NEWLINE { cout << "Material Line: " << $1 << endl; }
+line: JAN_NEWLINE
+      | exprs JAN_NEWLINE { cout << "String Line: " << $1 << endl; }
+      | exprd JAN_NEWLINE { cout << "Double Line: " << $1 << endl; }
+      | expri JAN_NEWLINE { cout << "Int Line: " << $1 << endl; }
+      | exprm JAN_NEWLINE { cout << "Material Line: " << $1 << endl; }
       ;
 
 exprm: exprd exprd exprd exprd exprd {
@@ -98,40 +98,40 @@ exprm: exprd exprd exprd exprd exprd {
        << $2 << ", " << $3 << ", etc.\n"; }
        ;
 
-exprs: STR { $$ = $1; }
-       | COMMENT { $$ = ""; cout << "parser comment." << endl; }
-       | PROGRAM_MODE STR { $$ = $2; cout << "program_mode " <<
+exprs: JAN_STR { $$ = $1; }
+       | JAN_COMMENT { $$ = ""; cout << "parser comment." << endl; }
+       | JAN_PROGRAM_MODE JAN_STR { $$ = $2; cout << "program_mode " <<
        $2 << endl; }
-       | STRUCTURE_MODE STR { $$ = $2; cout <<
+       | JAN_STRUCTURE_MODE JAN_STR { $$ = $2; cout <<
        "structure_mode " << $2 << endl; }
-       | TIMESTEP_MODE STR { $$ = $2; cout <<
+       | JAN_TIMESTEP_MODE JAN_STR { $$ = $2; cout <<
        "timestep_mode " << $2 << endl; }
        ;
 
-exprd: NUM
-       | DELTAX exprd { $$ = $2; cout << "deltax " <<
+exprd: JAN_NUM
+       | JAN_DELTAX exprd { $$ = $2; cout << "deltax " <<
        $2 << endl; }
-       | DELTAY exprd { $$ = $2; cout << "deltay " <<
+       | JAN_DELTAY exprd { $$ = $2; cout << "deltay " <<
        $2 << endl; }
-       | DELTAZ exprd { $$ = $2; cout << "deltaz " <<
+       | JAN_DELTAZ exprd { $$ = $2; cout << "deltaz " <<
        $2 << endl; }
-       | DELTAT exprd { $$ = $2; cout << "deltat " <<
+       | JAN_DELTAT exprd { $$ = $2; cout << "deltat " <<
        $2 << endl; }
-       | DIMX exprd { $$ = $2; cout << "dimx " <<
+       | JAN_DIMX exprd { $$ = $2; cout << "dimx " <<
        $2 << endl; }
-       | DIMY exprd { $$ = $2; cout << "dimy " <<
+       | JAN_DIMY exprd { $$ = $2; cout << "dimy " <<
        $2 << endl; }
-       | DIMZ exprd { $$ = $2; cout << "dimz " <<
+       | JAN_DIMZ exprd { $$ = $2; cout << "dimz " <<
        $2 << endl; }
-       | TIME_MODULO exprd { $$ = $2; cout << "time_modulo " <<
+       | JAN_TIME_MODULO exprd { $$ = $2; cout << "time_modulo " <<
        $2 << endl; }
-       | RUNTIME exprd { $$ = $2; cout << "runtime " <<
+       | JAN_RUNTIME exprd { $$ = $2; cout << "runtime " <<
        $2 << endl; }
-       | NR_OF_MATERIALS exprd { $$ = $2; cout << "num mat: " <<
+       | JAN_NR_OF_MATERIALS exprd { $$ = $2; cout << "num mat: " <<
        $2 << endl; }
        ;
 
-expri: INT { $$ = $1; }
+expri: JAN_INT { $$ = $1; }
        ;
 
 %%

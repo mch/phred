@@ -58,20 +58,20 @@ void TimeExcitation::excite(Grid &grid, unsigned int time_step,
           switch (type_) 
           {
           case E:
-            if (fld[0] > 0) grid.set_ex(i,j,k, 
+            if (polarization_[0] != 0.0) grid.set_ex(i,j,k, 
                                         fld[0] + grid.get_ex(i,j,k));
-            if (fld[1] > 0) grid.set_ey(i,j,k, 
+            if (polarization_[1] != 0.0) grid.set_ey(i,j,k, 
                                         fld[1] + grid.get_ey(i,j,k));
-            if (fld[2] > 0) grid.set_ez(i,j,k, 
+            if (polarization_[2] != 0.0) grid.set_ez(i,j,k, 
                                         fld[2] + grid.get_ez(i,j,k));
             break;
 
           case H:
-            if (fld[0] > 0) grid.set_hx(i,j,k, 
+            if (polarization_[0] != 0.0) grid.set_hx(i,j,k, 
                                         fld[0] + grid.get_hx(i,j,k));
-            if (fld[1] > 0) grid.set_hy(i,j,k, 
+            if (polarization_[1] != 0.0) grid.set_hy(i,j,k, 
                                         fld[1] + grid.get_hy(i,j,k));
-            if (fld[2] > 0) grid.set_hz(i,j,k, 
+            if (polarization_[2] != 0.0) grid.set_hz(i,j,k, 
                                         fld[2] + grid.get_hz(i,j,k));
             break;
 
