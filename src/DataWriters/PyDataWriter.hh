@@ -22,6 +22,8 @@
 #ifndef PY_DATA_WRITER_H
 #define PY_DATA_WRITER_H
 
+#include "config.h"
+
 #ifdef USE_PY_BINDINGS
 #include <Python.h>
 #include <boost/python/numeric.hpp>
@@ -31,12 +33,11 @@
 #include "DataWriter.hh"
 #include "Exceptions.hh"
 
-#include "config.h"
-
 #include <map>
 #include <vector>
 
 using namespace std;
+using namespace boost::python; 
 
 /**
  * This data writer makes data available to DataWriters written in
@@ -48,16 +49,19 @@ private:
   {}
 
 protected:
+#ifdef USE_PY_BINDINGS
   vector<string> varnames_; /**< Variable names; data is placed into a
                                Python dictionary in this object
                                reference by this same name. */
+
+  map<string, object> vars_;
+#endif
   
 public:
   PyDataWriter(int rank, int size);
   ~PyDataWriter();
 
 #ifdef USE_PY_BINDINGS
-
 
   /**
    * Init the PY writer, open file and stuff. 

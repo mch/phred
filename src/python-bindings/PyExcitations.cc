@@ -118,7 +118,7 @@ public:
   {}
 
   field_t source_function(const Grid &grid, unsigned int time_step)
-  { return call_method<field_t>(self_, "source_function"); }
+  { return call_method<field_t>(self_, "source_function", grid, time_step); }
 };
 
 void export_excitations()
@@ -148,7 +148,7 @@ void export_excitations()
     ;
 
   class_<SourceFunction, SourceFunctionWrap, boost::noncopyable>("SourceFunction", "Make derived classes from this to create source functions for excitations")
-    .def("source_function", &SourceFunction::source_function)
+    .def("source_function", &SourceFunctionWrap::source_function)
     ;
   //.def("call_sf", call_sf)
 

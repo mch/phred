@@ -1,5 +1,15 @@
 from Phred import *
 
+PI = 3.14159;
+
+class ExpSource(SourceFunction):
+    ampl_ = 1
+    omega_ = 15e9 * 2 * PI;
+    period_ = 1 / 15e9;
+    def source_function(this, grid, time_step):
+        t = grid.get_deltat() * time_step
+        return ampl_ * (1 - exp(-1 * t / period_)) * sin(omega_ * t)
+
 
 def pml_test(pml_thickness, xlen):
     temp = "node"
@@ -27,11 +37,11 @@ def pml_test(pml_thickness, xlen):
     zlen = int(b / cs)
 
     # Prefix for output files
-    output_prefix = "pml_test_" + str(MPI_SIZE) + "_" + str(xlen) + "_" + "_" + str(pml_thickness) + "_"
+    output_prefix = "pml_test_" + str(MPI_SIZE) + "_" + str(xlen) + "_" + str(pml_thickness) + "_"
 
     #num_time_steps = 110
-    #num_time_steps = 500
-    num_time_steps = 10
+    num_time_steps = 500
+    #num_time_steps = 10
 
     fdtd = FDTD()
     fdtd.set_grid_size(xlen, ylen, zlen)
@@ -76,8 +86,8 @@ def pml_test(pml_thickness, xlen):
     fdtd.add_geometry(interior)
     
     # Excitation
-    gm = Gaussm()
-    gm.set_parameters(1, 3e9, 15e9)
+    #gm = Gaussm()
+    #gm.set_parameters(1, 3e9, 15e9)
     
     #ex = Excitation(gm)
     #ex.set_soft(0)
@@ -85,6 +95,9 @@ def pml_test(pml_thickness, xlen):
     #ex.set_polarization(0.0, 1.0, 0.0)
 
     #gm = ExpSine(centre_f)
+
+    gm = ExpSource()
+    
     ex = WaveguideExcitation(gm)
     ex.set_soft(1)
     ex.set_region(xlen/2, xlen/2, 0, ylen, 0, zlen)
@@ -151,6 +164,11 @@ def pml_test(pml_thickness, xlen):
         fdtd.map_result_to_datawriter("ez_yzplane", "ncdw")    
     except:
         print "NetCDF output is not available."
+
+    p1r = PointResult()
+    p1r.set_point(p1)
+    fdtd.add_result("point1", p1r)
+    fdtd.map_result_to_datawriter("point1", "mdw")
 
     p2r = PointResult()
     p2r.set_point(p2)

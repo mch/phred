@@ -35,10 +35,13 @@ PmlCommon::PmlCommon(const Grid &grid)
     h_x_coef1_(0), h_x_coef2_(0), 
     h_y_coef1_(0), h_y_coef2_(0), 
     h_z_coef1_(0), h_z_coef2_(0)
-{}
+{
+  cerr << "In PmlCommon::PmlCommon()" << endl;
+}
 
 PmlCommon::~PmlCommon()
 {
+  cerr << "In PmlCommon::~PmlCommon()" << endl;
   free_coeffs();
 }
 
@@ -57,6 +60,8 @@ PmlCommon *PmlCommon::get_pml_common(Grid &grid)
     return 0; // stack unwinding may be too costly here
 
   pml_common->init_coeffs(grid);
+
+  grid.add_auxdata(PML_COMMON, (void *)pml_common);
 
   return pml_common;
 }

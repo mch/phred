@@ -27,30 +27,6 @@
 
 using namespace std;
 
-// #include "PyTypes.hh"
-// #include "PyMaterial.hh"
-// #include "PyResults.hh"
-// #include "PyGeometry.hh"
-// #include "PyExcitations.hh"
-// #include "PyFDTD.hh"
-// #include "PyDatawriters.hh"
-// #include "PyBoundaries.hh"
-// #include "PyGrid.hh"
-
-// static struct _inittab modules_[] = 
-//   {
-//     {"Results", &initResults},
-//     {"Excitations", &initExcitations},
-//     {"FDTD", &initFDTD},
-//     {"Boundaries", &initBoundaries},
-//     {"Materials", &initMaterials},
-//     {"Types", &initTypes},
-//     {"DataWriters", &initDataWriters},
-//     {"Geometry", &initGeometry},
-//     {"Grids", &initGrids},
-//     {0, 0}
-//   };
-
 #include <boost/python.hpp>
 using namespace boost::python;
 

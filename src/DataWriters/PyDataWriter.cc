@@ -29,7 +29,7 @@ PyDataWriter::PyDataWriter(int rank, int size)
   // Python script, and not a Jan script.
   if (!Py_IsInitialized())
     throw NoPythonException();
-
+  
   
 
 #else
@@ -54,7 +54,10 @@ void PyDataWriter::add_variable(Result &result)
   const map<string, Variable *> vars = result.get_variables();
   map<string, Variable *>::const_iterator iter;
   map<string, Variable *>::const_iterator iter_e = vars.end();
-  
+
+  handle<> main_module( PyModule_New("__main__") );
+  handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
+
   for (iter = vars.begin(); iter != iter_e; ++iter)
   {
     Variable *var = iter->second;
@@ -63,11 +66,12 @@ void PyDataWriter::add_variable(Result &result)
     if (dim_lens.size() == 0)
       throw DataWriterException("Result must have at least one dimension.");
     
-    vars_[var->get_name()] = 
-      new MatlabArray(var->get_name().c_str(), 
-                      dim_lens, var->has_time_dimension(), 
-                      var->get_element_type(),
-                      false);
+    numeric::array arr(make_tuple(1));
+    vars_[var->get_name()] = arr;
+
+    PyDict_SetItemString(main_namespace.get(), 
+                         var->get_name().c_str(), arr.ptr());
+
   }  
 }
 
