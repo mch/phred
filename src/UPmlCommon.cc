@@ -175,7 +175,6 @@ void UPmlCommon::init_sigmas()
       for (int sigidx = start, idx = thickness; idx > 0; 
            idx--, sigidx += incr)
       {
-        // THIS FORMULA IS WRONG! WRONGGG!
         sigmas[sigidx] = sigma_max * pow(static_cast<float>(idx) 
 					 / static_cast<float>(thickness), 
                                          static_cast<float>(poly_order_));
