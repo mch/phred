@@ -38,6 +38,9 @@ using namespace std;
 #include <string> 
 #include <vector>
 
+// This ties us to Numeric... 
+#include <Numeric/arrayobject.h>
+
 char *rl(const char *prompt)
 {
   char *line_read = readline (prompt);
@@ -102,7 +105,7 @@ public:
 
   virtual const Hmm &get_hmm() { return hmm_; }
   virtual std::string say_hmm() { return hmm_.say(); }
-  virtual std::string say_else(const Fiction& hmm) 
+  virtual std::string say_else(Fiction& hmm) 
   { 
     ostringstream out;
     out << "ABC says hmm " << hmm.get_count() << " times. " << endl;
@@ -128,7 +131,7 @@ int call_bam(ABC& abc, int a, int b) { return abc.bam(a, b); }
 std::string call_say_what(ABC& b) { return b.say_what(); }
 const Hmm & call_get_hmm(ABC &b) { return b.get_hmm(); }
 std::string call_say_hmm(ABC &b) { return b.say_hmm(); }
-std::string call_say_else(ABC &b, const Fiction &hmm) { return b.say_else(hmm); }
+std::string call_say_else(ABC &b, Fiction &hmm) { return b.say_else(hmm); }
 
 class ABCWrap : public ABC
 {
@@ -139,12 +142,12 @@ public:
   std::string say_what() { return call_method<std::string>(self, "say_what"); }
   int bam(int a, int b) { return call_method<int>(self, "bam"); }
   const Hmm &get_hmm() { return call_method<const Hmm&>(self, "get_hmm"); }
-  std::string say_else(const Fiction &hmm)
+  std::string say_else(Fiction &hmm)
   { 
     return call_method<std::string>(self, "say_else", boost::ref(hmm)); 
   }
 
-  std::string default_say_else(const Fiction &hmm)
+  std::string default_say_else(Fiction &hmm)
   { return ABC::say_else(hmm); }
 
   PyObject* self;
@@ -313,10 +316,19 @@ int main(int argc, char **argv)
 
     numeric::array arr(make_tuple(1, 2, 3));
     PyDict_SetItemString(main_namespace.get(), "garr", arr.ptr());
-    handle<> bonk(PyRun_String("zeros((3,3))", Py_single_input,
+    handle<> bonk(PyRun_String("z = zeros((3,3))", Py_single_input,
                              main_namespace.get(),
                              main_namespace.get()));
     
+    numeric::array obj(make_tuple(1));
+    //obj.resize(make_tuple(2,2));
+    PyDict_SetItemString(main_namespace.get(), "blargh", obj.ptr());
+
+    //char* data_ptr=((PyArrayObject*)obj.ptr())->data;
+    //char src_ptr[] = {2, 3, 6, 7};
+    //memcpy(data_ptr, src_ptr, 4);
+
+
     //Py_Main(argc, argv);
     string buffer; // for multiline commands
     char *ln = 0; 

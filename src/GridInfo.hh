@@ -29,6 +29,7 @@
 #include "Boundaries/SubdomainBc.hh"
 #include "Boundaries/Pml.hh"
 
+// Replace with Boost's smart pointers
 #include "counted_ptr.hh"
 
 /**
@@ -56,16 +57,13 @@ public:
   unsigned int global_dimy_;
   unsigned int global_dimz_;
 
-  // Local grid starting point
+  // Local grid starting point in global grid
   unsigned int start_x_;
   unsigned int start_y_;
   unsigned int start_z_;
 
-  // Local grid size (this sub domain only)
-  // If a face must be communicated to a processor, then the
-  // dimention will increase by one. If both the top and bottom must
-  // be sent to other processors, dimz_ = actual subdomain size +
-  // 2. This is overlap which allows us to calculate the interior of
+  // Local grid size (this sub domain only) INCLUDING overlap
+  // This overlap allows us to calculate the interior of
   // the subdomain without having to stop and ask the other
   // processors for data. 
   unsigned int dimx_;

@@ -182,7 +182,7 @@ void FDTD::run(int rank, int size)
        << "Global grid starts at: "
        << local_ginfo_.start_x_ << " x " 
        << local_ginfo_.start_y_ << " x " 
-       << local_ginfo_.start_z_ << ".\n";
+       << local_ginfo_.start_z_ << ".\n\n";
 #endif
 
   // Decide what grid to used from materials

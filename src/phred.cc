@@ -295,17 +295,7 @@ int main (int argc, char **argv)
     } 
 #endif
 
-#ifdef DEBUG
-    if (mnps)
-      cout << "Calculating MNPS..." << endl;
-    else
-      cout << "NOT Calculating MNPS..." << endl;
-#endif
-
     if (!interactive) {
-#ifdef DEBUG
-      cout << "non interactive mode; calling takakura_test. " << endl;
-#endif
 
       if (argc > 1)
       {

@@ -952,9 +952,17 @@ point_t Grid::global_to_local(point_t p) const
   return r;
 }
 
-region_t Grid::global_to_local(region_t in) const
+region_t Grid::global_to_local(region_t in, bool no_ol) const
 {
   region_t r;
+  unsigned int dx = info_.dimx_, dy = info_.dimy_, dz = info_.dimz_;
+
+  if (no_ol)
+  {
+    dx = info_.dimx_no_sd_;
+    dy = info_.dimy_no_sd_;
+    dz = info_.dimz_no_sd_;
+  }
 
   r.xmin = (info_.start_x_ > in.xmin) ? 0
     : in.xmin - info_.start_x_;
@@ -982,8 +990,9 @@ region_t Grid::global_to_local(region_t in) const
 }
 
 region_t Grid::global_to_local(unsigned int x_start, unsigned int x_stop, 
-                             unsigned int y_start, unsigned int y_stop, 
-                             unsigned int z_start, unsigned int z_stop) const
+                               unsigned int y_start, unsigned int y_stop, 
+                               unsigned int z_start, unsigned int z_stop,
+                               bool no_ol) const
 {
   region_t result;
   
@@ -994,7 +1003,7 @@ region_t Grid::global_to_local(unsigned int x_start, unsigned int x_stop,
   result.zmin = z_start;
   result.zmax = z_stop;
 
-  return global_to_local(result);
+  return global_to_local(result, no_ol);
 }
 
 field_t *Grid::get_face_start(Face face, FieldComponent comp,
@@ -1053,24 +1062,31 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp,
 field_t *Grid::get_face_start(Face face, FieldComponent comp,
                               point_t p) const
 {
-  unsigned int idx = 0;
+  unsigned int idx = 0, xstart, ystart, zstart;
   field_t *ptr = 0;
+
+  xstart = info_.start_x_no_sd_ - info_.start_x_;
+  ystart = info_.start_y_no_sd_ - info_.start_y_;
+  zstart = info_.start_z_no_sd_ - info_.start_z_;
+
+  //  cerr << "Grid::get_face_start(), xstart x ystart x zstart: " 
+  //       << xstart << " x " << ystart << " x " << zstart << endl << endl;
 
   switch (face)
   {
   case FRONT:
   case BACK:
-    idx = pi(p.x, 0, 0);    
+    idx = pi(p.x, ystart, zstart);    
     break;
 
   case TOP:
   case BOTTOM:
-    idx = pi(0, 0, p.z);    
+    idx = pi(xstart, ystart, p.z);    
     break;
 
   case LEFT:
   case RIGHT:
-    idx = pi(0, p.y, 0);
+    idx = pi(xstart, p.y, zstart);
     break;
   }
 

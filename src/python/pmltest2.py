@@ -39,7 +39,6 @@ def pml_test(pml_thickness, xlen):
     # Prefix for output files
     output_prefix = "pml_test_" + str(MPI_SIZE) + "_" + str(xlen) + "_" + str(pml_thickness) + "_"
 
-    #num_time_steps = 110
     num_time_steps = 270
     #num_time_steps = 10
 
@@ -133,6 +132,16 @@ def pml_test(pml_thickness, xlen):
     p3.x = (xlen / 2) - 5;
     p3.y = ylen / 2
     p3.z = zlen / 2
+
+    p4 = point();
+    p4.x = xlen / 2
+    p4.y = ylen / 2
+    p4.z = 5;
+
+    p5 = point();
+    p5.x = xlen / 2
+    p5.y = ylen / 2
+    p5.z = zlen / 2 + 10;
     
     print "Measurement point 1: %ix%ix%i, point 2: %ix%ix%i. " % (p1.x, p1.y, p1.z, p2.x, p2.y, p2.z)
     
@@ -143,32 +152,32 @@ def pml_test(pml_thickness, xlen):
         
         pr1 = PlaneResult()
         # #pr1.set_name("ey-xzplane")
-        pr1.set_plane(p, TOP)
-        pr1.set_field(EX)
-        fdtd.add_result("ex_xyplane", pr1)
-        fdtd.map_result_to_datawriter("ex_xyplane", "ncdw")
+        pr1.set_plane(p4, TOP)
+        pr1.set_field(EZ)
+        fdtd.add_result("ez_xyplane_p4", pr1)
+        fdtd.map_result_to_datawriter("ez_xyplane_p4", "ncdw")
         
         pr2 = PlaneResult()
         # #pr2.set_name("ey-xzplane")
-        pr2.set_plane(p, TOP)
-        pr2.set_field(EY)
-        fdtd.add_result("ey_xyplane", pr2)
-        fdtd.map_result_to_datawriter("ey_xyplane", "ncdw")
+        pr2.set_plane(p5, TOP)
+        pr2.set_field(EZ)
+        fdtd.add_result("ez_xyplane_p5", pr2)
+        fdtd.map_result_to_datawriter("ez_xyplane_p5", "ncdw")
         
         pr3 = PlaneResult()
         # #pr2.set_name("ey-xzplane")
         pr3.set_plane(p, TOP)
         pr3.set_field(EZ)
-        fdtd.add_result("ez_xyplane", pr3)
-        fdtd.map_result_to_datawriter("ez_xyplane", "ncdw")
+        fdtd.add_result("ez_xyplane_c", pr3)
+        fdtd.map_result_to_datawriter("ez_xyplane_c", "ncdw")
         
         pr4 = PlaneResult()
         pr4.set_plane(p1, FRONT)
         pr4.set_field(EZ)
         fdtd.add_result("ez_yzplane", pr4)
         fdtd.map_result_to_datawriter("ez_yzplane", "ncdw")    
-    except:
-        print "NetCDF output is not available."
+    except exception, e:
+        print e.what()
 
     p1r = PointResult()
     p1r.set_point(p1)
@@ -229,6 +238,6 @@ def pml_test(pml_thickness, xlen):
 
 if (__name__ == "__main__"):
     pml_test(4, 110)
-    pml_test(4, 165)
-    pml_test(8, 110)
-    pml_test(8, 165)
+    #pml_test(4, 165)
+    #pml_test(8, 110)
+    #pml_test(8, 165)

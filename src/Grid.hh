@@ -394,9 +394,11 @@ class Grid {
    * local ones that can be used. 
    *
    * @param r the global region to convert.
+   * @param no_ol true if the subdomain overlap should NOT be included (for Results)
+   *
    * @return region in local coordinate. 
    */
-  region_t global_to_local(region_t r) const;
+  region_t global_to_local(region_t r, bool no_ol = false) const;
 
   /**
    * Convert a global point to local coordinates.
@@ -423,8 +425,9 @@ class Grid {
    * @return region_t in local coordinate. 
    */
   region_t global_to_local(unsigned int x_start, unsigned int x_stop, 
-                         unsigned int y_start, unsigned int y_stop, 
-                         unsigned int z_start, unsigned int z_stop) const;
+                           unsigned int y_start, unsigned int y_stop, 
+                           unsigned int z_start, unsigned int z_stop,
+                           bool no_ol = false) const;
 
   /**
    * Define geometry in the grid (i.e. assign material indicies to

@@ -98,7 +98,7 @@ PowerResult::~PowerResult()
 void PowerResult::init(const Grid &grid)
 {
   /* Region must be in out local sub-domain */ 
-  region_ = grid.global_to_local(region_);
+  region_ = grid.global_to_local(region_, true);
   x_size_ = region_.xmax - region_.xmin;
   y_size_ = region_.ymax - region_.ymin;
   z_size_ = region_.zmax - region_.zmin;
@@ -314,26 +314,47 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
     }
   }
 
-  if (0 == MPI_RANK) 
-  {
-    field_t *recv_buf = new field_t[MPI_SIZE];
+//   if (MPI_SIZE > 1)
+//   {
+
+//     field_t *recv_buf = 0;
+
+//     if (0 == MPI_RANK)
+//       recv_buf = new field_t[MPI_SIZE];
     
-    //int MPI_Gather(void* sendbuf, int sendcount, 
-    //               MPI_Datatype sendtype, void* recvbuf, 
-    //               int recvcount, MPI_Datatype recvtype, 
-    //               int root, MPI_Comm comm) 
+//     //int MPI_Gather(void* sendbuf, int sendcount, 
+//     //               MPI_Datatype sendtype, void* recvbuf, 
+//     //               int recvcount, MPI_Datatype recvtype, 
+//     //               int root, MPI_Comm comm) 
 
-    MPI_Gather(&time_power_, 1, GRID_MPI_TYPE, recv_buf, MPI_SIZE, 
-               GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
+//     MPI_Gather(&time_power_, 1, GRID_MPI_TYPE, recv_buf, 1, 
+//                GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
 
-    for (unsigned int idx = 1; idx < MPI_SIZE; idx++)
-      time_power_ += recv_buf[idx];
+//     if (0 == MPI_RANK)
+//     {
+//       time_power_ = 0;
+//       for (unsigned int idx = 0; idx < MPI_SIZE; idx++)
+//       {
+//         // cerr << "Gathered data item " << idx << " is " << recv_buf[idx]
+//         //              << endl;
+//         time_power_ += recv_buf[idx];
+//       }
 
-    delete[] recv_buf;
-  } else {
-    MPI_Gather(&time_power_, 1, GRID_MPI_TYPE, 0, 0, 
-               GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
-  }
+// //       cerr << "After gathering data to rank 0, time_power_ is " 
+// //            << time_power_ << endl << endl;
+    
+//       delete[] recv_buf;
+//     }
+//   }
+
+//   cerr << "PowerResult, time_power_ = " << time_power_
+//        << " on rank " << MPI_RANK << endl;
+
+  MPI_Reduce(&time_power_, &time_power_, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
+             MPI_COMM_WORLD);
+
+//   cerr << "After reduce, time_power_ = " << time_power_
+//        << " on rank " << MPI_RANK << endl;
 
   // Compute the power throught the surface in the frequency domain
   for (unsigned int i = 0; i <= num_freqs_; i++)
@@ -394,33 +415,40 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
         }
       }
     }
-   
-    if (0 == MPI_RANK) 
-    {
-      field_t *recv_buf1 = new field_t[MPI_SIZE];
-      field_t *recv_buf2 = new field_t[MPI_SIZE];
+    //int MPI_Reduce(void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
+
+    MPI_Reduce(&p_real2, &p_real2, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
+               MPI_COMM_WORLD);
+
+    MPI_Reduce(&p_imag2, &p_imag2, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
+               MPI_COMM_WORLD);
+
+//     if (0 == MPI_RANK) 
+//     {
+//       field_t *recv_buf1 = new field_t[MPI_SIZE];
+//       field_t *recv_buf2 = new field_t[MPI_SIZE];
     
-      MPI_Gather(&power_real_, 1, GRID_MPI_TYPE, recv_buf1, MPI_SIZE, 
-                 GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
+//       MPI_Gather(&power_real_, 1, GRID_MPI_TYPE, recv_buf1, 1, 
+//                  GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
 
-      MPI_Gather(&power_imag_, 1, GRID_MPI_TYPE, recv_buf2, MPI_SIZE, 
-                 GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
+//       MPI_Gather(&power_imag_, 1, GRID_MPI_TYPE, recv_buf2, 1, 
+//                  GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
       
-      for (unsigned int idx = 1; idx < MPI_SIZE; idx++)
-      {
-        p_real2 += recv_buf1[idx];
-        p_imag2 += recv_buf2[idx];
-      }
+//       for (unsigned int idx = 1; idx < MPI_SIZE; idx++)
+//       {
+//         p_real2 += recv_buf1[idx];
+//         p_imag2 += recv_buf2[idx];
+//       }
 
-      delete[] recv_buf1;
-      delete[] recv_buf2;
-    } else {
-      MPI_Gather(&power_real_, 1, GRID_MPI_TYPE, 0, 0, 
-                 GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
+//       delete[] recv_buf1;
+//       delete[] recv_buf2;
+//     } else {
+//       MPI_Gather(&power_real_, 1, GRID_MPI_TYPE, 0, 0, 
+//                  GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
 
-      MPI_Gather(&power_imag_, 1, GRID_MPI_TYPE, 0, 0, 
-                 GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
-    }
+//       MPI_Gather(&power_imag_, 1, GRID_MPI_TYPE, 0, 0, 
+//                  GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
+//     }
     
     power_real_[i] = 0.5 * p_real2 * cell_area_;
     power_imag_[i] = 0.5 * p_imag2 * cell_area_;
