@@ -23,6 +23,7 @@
 #define WINDOWED_EXCITATION_H
 
 #include "Excitation.hh"
+#include "../Globals.hh"
 
 /**
  * An excitation that is windowed in 3 space by some windowing function. 
@@ -45,6 +46,14 @@ public:
    * unnecessarilly calculates the x and y parts of the window at
    * every z step. If profiling shows there is too much time wasted
    * here, then optimize this by spliting it into three functions. 
+   *
+   * @param r the region in the local grid over which the excitation
+   * is being applied. The global region is stored in the member
+   * variable region_.
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * @param z the z coordinate
+   * @return a value describing the strength of the field at the given point. 
    */
   virtual field_t window(region_t r, unsigned int x, unsigned int y, 
                          unsigned int z) = 0;
@@ -67,7 +76,8 @@ public:
 
     field_t sf = sf_->source_function(grid, time_step);
     field_t fld[3];
-
+    unsigned int gi, gj, gk; 
+            
     // Bartlett window coefficients
     field_t w = 1;
 
@@ -75,6 +85,8 @@ public:
     fld[1] = sf * polarization_[1];
     fld[2] = sf * polarization_[2];
 
+    //cout << "Windowing function on " << MPI_RANK 
+    //     << ": ---------------------" << endl;
     if (!soft_) 
     {
       for(unsigned int i = r.xmin; i < r.xmax; i++)
@@ -83,7 +95,12 @@ public:
         {
           for (unsigned int k = r.zmin; k < r.zmax; k++)
           {
-            w = window(r, i, j, k);
+            gi = grid.get_lsx_ol() + i;
+            gj = grid.get_lsy_ol() + j;
+            gk = grid.get_lsz_ol() + k;
+
+            w = window(r, gi, gj, gk);
+            //cout << gi << " " << gj << " " << gk << " " << w << endl;
 
             switch (type_) 
             {
@@ -113,7 +130,12 @@ public:
         {
           for (unsigned int k = r.zmin; k < r.zmax; k++)
           {
-            w = window(r, i, j, k);
+            gi = grid.get_lsx_ol() + i;
+            gj = grid.get_lsy_ol() + j;
+            gk = grid.get_lsz_ol() + k;
+
+            w = window(r, gi, gj, gk);
+            //cout << gi << " " << gj << " " << gk << " " << w << endl;
 
             switch (type_) 
             {
@@ -149,6 +171,7 @@ public:
         }
       }
     }
+    //cout << "---------------------" << endl;
   }
   
 };

@@ -30,8 +30,8 @@ using namespace boost::python;
 void call_init(Geometry &geom, const Grid &grid)
 { return geom.init(grid); }
 
-void call_deinit(Geometry &geom, const Grid &grid)
-{ return geom.deinit(grid); }
+void call_deinit(Geometry &geom)
+{ return geom.deinit(); }
 
 void call_set_material(Geometry &geom, Grid &grid)
 { return geom.set_material(grid); }

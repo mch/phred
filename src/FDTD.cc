@@ -279,6 +279,10 @@ void FDTD::run(int rank, int size)
   
   setup_datawriters();
 
+  // This barrier prevent ranks > 0 from continuing on if rank 0 has
+  // trouble with a data writer or something. 
+  MPI_Barrier(MPI_COMM_WORLD);
+
   // Run
   unsigned int ts = 0;
 

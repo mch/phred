@@ -20,6 +20,7 @@
 */
 
 #include "PointResult.hh"
+#include "../Globals.hh"
 
 PointResult::PointResult()
 {
@@ -64,22 +65,29 @@ void PointResult::init(const Grid &grid)
   ours_ = true; 
 
   if (point_.x < grid.get_lsx() 
-      || point_.x >= grid.get_lsx() + grid.get_ldx())
+      || point_.x > grid.get_lsx() + grid.get_ldx())
     ours_ = false;
   else 
     l_.x = point_.x - grid.get_lsx();
 
   if (point_.y < grid.get_lsy() 
-      || point_.y >= grid.get_lsy() + grid.get_ldy())
+      || point_.y > grid.get_lsy() + grid.get_ldy())
     ours_ = false;
   else 
     l_.y = point_.y - grid.get_lsy();
 
   if (point_.z < grid.get_lsz() 
-      || point_.z >= grid.get_lsz() + grid.get_ldz())
+      || point_.z > grid.get_lsz() + grid.get_ldz())
     ours_ = false;
   else 
     l_.z = point_.z - grid.get_lsz();
+
+//   if (ours_)
+//     cerr << "PointResult at " << l_.x << "x" << l_.y
+//          << "x" << l_.z << " belongs to " << MPI_RANK << endl;
+//   else
+//     cerr << "PointResult at " << l_.x << "x" << l_.y
+//          << "x" << l_.z << " DOES NOT belong to " << MPI_RANK << endl;
 
   MPI_Datatype temp;
   MPI_Type_contiguous(7, GRID_MPI_TYPE, &temp);

@@ -21,6 +21,7 @@
 
 #include "PyInterpreter.hh"
 #include "../Exceptions.hh"
+#include "../Globals.hh"
 
 #include <iostream>
 #include <mpi.h>
@@ -102,7 +103,28 @@ void PyInterpreter::run_script(const char *filename)
 
   add_modules();
 
-  PyRun_SimpleFile(fp, filename);
+  handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
+  handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
+
+  PyObject *result = PyRun_File(fp, filename, Py_file_input, 
+                                main_namespace.get(), 
+                                main_namespace.get());
+  
+  if (!result) {
+    cerr << "Python Result is null... error likely..." << endl;
+    MPI_Abort(MPI_COMM_WORLD, 0);
+  }
+
+//   else
+//     Py_DECREF(result);
+
+//   PyObject *err = PyErr_Occurred();
+
+//   if (err) {
+//     cerr << "Tossing an exception..." << endl;
+//     throw PyInterpException("Script execution caused an exception. ");
+//   }
+
   fclose(fp);
 }
 

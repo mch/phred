@@ -124,8 +124,8 @@ def pml_test(pml_thickness, xlen):
     p1.z = zlen / 2
     
     p2 = point();
-    p2.x = (xlen / 2) + 40
-    p2.y = ylen / 2
+    p2.x = (xlen / 2) - 40
+    p2.y = ylen / 2 - ylen / 4
     p2.z = zlen / 2
 
     p3 = point();
@@ -177,7 +177,7 @@ def pml_test(pml_thickness, xlen):
         fdtd.add_result("ez_yzplane", pr4)
         fdtd.map_result_to_datawriter("ez_yzplane", "ncdw")    
     except exception, e:
-        print e.what()
+        print "Script caught exception: " + e.what()
 
     p1r = PointResult()
     p1r.set_point(p1)

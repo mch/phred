@@ -355,6 +355,7 @@ int main (int argc, char **argv)
     }
   } catch (const std::exception &e) {
     cout << "Caught exception: " << e.what() << endl;
+    MPI_Abort(MPI_COMM_WORLD, 0);
   }
 
   cout << "Phred is phinished." << endl;

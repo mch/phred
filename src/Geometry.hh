@@ -29,7 +29,7 @@
  * This is an abstract base class which defines an interface which is
  * to be used to build objects which define... geometry
  * objects. Boxes and spheres and stuff. You know. Each object must
- * know how to iterate over the cells it constains, so that you can
+ * know how to iterate over the cells it constrains, so that you can
  * do things to it. 
  *
  * Geometry objects can store auxilary data that may be required for

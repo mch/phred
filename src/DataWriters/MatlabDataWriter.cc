@@ -342,7 +342,7 @@ void MatlabElement::reshape_buffer(int N, int M, MPI_Datatype type)
   char *new_buf = new char[buffer_size_];
   
 #ifdef DEBUG
-  //cerr << "Reshaping buffer to " << N << " by " << M << endl;
+  cerr << "Reshaping buffer to " << N << " by " << M << endl;
 #endif
 
   if (!new_buf)
@@ -637,7 +637,7 @@ void MatlabDataWriter::add_variable(Result &result)
       throw DataWriterException("Result must have at least one dimension.");
     
     vector<int> dim_lens;
-    for(unsigned int idx; idx < dimensions.size(); idx++)
+    for(unsigned int idx = 0; idx < dimensions.size(); idx++)
       dim_lens.push_back(dimensions[idx].global_len_);
 
     vars_[var->get_name()] = 

@@ -523,7 +523,35 @@ class Grid {
     return info_.start_z_no_sd_;
   }
 
+  /**
+   * Returns the local start of the x dimension, INCLUDING any overlap. 
+   *
+   * @return local grid x start
+   */
+  inline unsigned int get_lsx_ol() const
+  {
+    return info_.start_x_;
+  }
 
+  /**
+   * Returns the local start of the y dimension, INCLUDING any overlap.
+   *
+   * @return local grid y start
+   */
+  inline unsigned int get_lsy_ol() const
+  {
+    return info_.start_y_;
+  }
+
+  /**
+   * Returns the local start of the z dimension, INCLUDING any overlap. 
+   *
+   * @return local grid z start
+   */
+  inline unsigned int get_lsz_ol() const
+  {
+    return info_.start_z_;
+  }
 
   /**
    * Returns the local size of the x dimension.
