@@ -48,8 +48,11 @@ WANT_ALTIVEC=0
 AC_ARG_ENABLE(altivec, AC_HELP_STRING([--enable-altivec], [Use AltiVec instructions on G4 and G5 processors]), [WANT_ALTIVEC=1], [WANT_ALTIVEC=0])
 
 WANT_TIMING_TESTS=0
-AC_ARG_ENABLE(ctests, AC_HELP_STRING([--enable-tests], [Build C timing tests]), [WANT_TIMING_TESTS=1], [WANT_TIMING_TESTS=0])
+AC_ARG_ENABLE(ctests, AC_HELP_STRING([--enable-ctests], [Build C timing tests]), [WANT_TIMING_TESTS=1], [WANT_TIMING_TESTS=0])
 AM_CONDITIONAL(WANT_TIMING_TESTS, test "x$WANT_TIMING_TESTS" = "x1")
+
+WANT_64BIT=0
+AC_ARG_ENABLE(64bit, AC_HELP_STRING([--enable-64bit], [Compile 64 bit binaries (IBM RS/6000 SP and SGI machines only at the moment... all libraries must also be compiled to 64 bit.)]), [WANT_64BIT=1], [WANT_64BIT=0])
 
 # Stolen in part from the LAM MPI configure.in file
 if test "$with_cxx" = yes; then
@@ -103,6 +106,30 @@ dnl so there is no need to worry if no mpi library is specified.
 AC_ARG_WITH(mpi_libs, AC_HELP_STRING([--with-mpi-libs], [Location of MPI libraries]), [MPI_LIBS=$withval])
 
 AC_ARG_WITH(mpi_includes, AC_HELP_STRING([--with-mpi-includes], [Location of MPI include files]), [MPI_INCLUDES=$withval])
+
+dnl Set up compiler flags, so that libraries will be tested with these
+dnl (so that 64 bit tests will fail to work against 32 bit libs for
+dnl instance).
+if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then
+dnl Turn on inlining, template registry, RTTI, 2 GB memory access
+   CXXFLAGS="$CXXFLAGS -Q -qtemplateregistry -qrtti=all"
+   if test "$WANT_64BIT" = "1"; then
+      CXXFLAGS="-q64 -qwarn64 $CXXFLAGS"
+   else
+      CXXFLAGS="-bmaxdata:0x80000000 $CXXFLAGS"
+   fi
+fi
+
+dnl If we are on IRIX, add -LANG:std to CXXFLAGS
+if test "$build_vendor" = "sgi"; then
+  CXXFLAGS="$CXXFLAGS -LANG:std"
+  LIBS="$LIBS -lm"
+
+  if test "$WANT_64BIT" = "1"; then
+    CXXFLAGS="$CXXFLAGS -64"
+  fi
+fi
+
 
 dnl Checks for a MPI library.
 if [[ ! -z $MPI_LIBS ]]; then 
@@ -331,16 +358,6 @@ AC_STRUCT_ST_BLOCKS
 AC_FUNC_CLOSEDIR_VOID
 
 dnl Checks for typedefs, structures, and compiler characteristics.
-if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then
-dnl Turn on inlining, template registry, RTTI, 2 GB memory access
-   CXXFLAGS="$CXXFLAGS -Q -qtemplateregistry -qrtti=all -bmaxdata:0x80000000"
-fi
-
-dnl If we are on IRIX, add -LANG:std to CXXFLAGS
-if test "$build_vendor" = "sgi"; then
-  CXXFLAGS="$CXXFLAGS -LANG:std"
-  LIBS="$LIBS -lm"
-fi
 
 AC_SUBST(CFLAGS, $CFLAGS)
 AC_SUBST(CXXFLAGS, $CXXFLAGS)
