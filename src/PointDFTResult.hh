@@ -2,7 +2,6 @@
 #define POINT_DFT_RESULT_H
 
 #include "Result.hh"
-#include "TimeExcitation.hh"
 
 /**
  * Outputs the DFT of the a field component at a point in space. 

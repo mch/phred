@@ -103,6 +103,7 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "PointDFTResult.hh"
 #include "SourceDFTResult.hh"
 #include "SourceTimeResult.hh"
+#include "Excitation.hh"
 
 #ifdef USE_PY_BINDINGS
 #include <Python.h>
@@ -350,9 +351,10 @@ static void point_test(int rank, int size)
   grid.define_box(40, 60, 40, 60, 40, 60, 2);
 
   // Excitation
-  Gaussm ex;
+  Gaussm gm;
+  gm.set_parameters(1, 500e12, 300e12);
+  Excitation<Gaussm> ex(gm);
   ex.set_soft(false);
-  ex.set_parameters(1, 500e12, 300e12);
   ex.set_region(50, 50, 50, 50, 50, 50);
   ex.set_polarization(0.0, 1.0, 0.0);
 
@@ -387,7 +389,7 @@ static void point_test(int rank, int size)
   //adw4.add_variable(pr1);
   ncdw.add_variable(pr1);
 
-  SourceDFTResult sdftr(ex, 100e12, 600e12, 50);
+  SourceDFTResult sdftr(gm, 100e12, 600e12, 50);
   sdftr.set_time_param(0, 100, 0);
 
   AsciiDataWriter adw5(rank, size);
@@ -407,7 +409,7 @@ static void point_test(int rank, int size)
   cout << "main loop begins." << endl;  
   for (ts = 1; ts < num_time_steps; ts++) {
     cout << "phred, time step " << ts << ", excitation: " 
-         << ex.source_function(grid, ts) << endl;
+         << gm.source_function(grid, ts) << endl;
 
     // Fields update
     grid.update_h_field();
@@ -525,9 +527,11 @@ static void pml_test(int rank, int size)
   grid.define_box(0, 100, 0, 50, 0, 60, 1);
 
   // Excitation
-  Gaussm ex;
+  Gaussm gm;
+  gm.set_parameters(1, 500e12, 300e12);
+
+  Excitation<Gaussm> ex(gm);
   ex.set_soft(true);
-  ex.set_parameters(1, 500e12, 300e12);
   ex.set_region(20, 20, 25, 25, 30, 30);
   ex.set_polarization(0.0, 1.0, 0.0);
 
@@ -615,21 +619,17 @@ static void pml_test(int rank, int size)
    pr3.set_field(FC_HZ);
    pr3.set_size(grid.get_ldx(), grid.get_ldz());
 
-   p.x = 4;
-   p.y = 25;
-   p.z = 30;
    PlaneResult pr4;
    pr4.set_name("hx-yzplane4");
    pr4.set_plane(p, FRONT);
    pr4.set_field(FC_HX);
    pr4.set_size(grid.get_ldy(), grid.get_ldz());
 
-   p.x = 5;
    PlaneResult pr5;
-   pr5.set_name("hx-yzplane5");
-   pr5.set_plane(p, FRONT);
-   pr5.set_field(FC_HX);
-   pr5.set_size(grid.get_ldy(), grid.get_ldz());
+   pr5.set_name("ey-xyplane5");
+   pr5.set_plane(p, BOTTOM);
+   pr5.set_field(FC_EY);
+   pr5.set_size(grid.get_ldx(), grid.get_ldy());
 
    //adw4.set_filename("yz_plane.txt");
    //adw4.add_variable(pr1);
@@ -639,14 +639,14 @@ static void pml_test(int rank, int size)
    ncdw.add_variable(pr4);
    ncdw.add_variable(pr5);
 
-   SourceDFTResult sdftr(ex, 100e12, 600e12, 50);
+   SourceDFTResult sdftr(gm, 100e12, 600e12, 50);
    sdftr.set_time_param(0, 500, 0);
 
    AsciiDataWriter adw5(rank, size);
    adw5.set_filename("src_dft.txt");
    adw5.add_variable(sdftr);
 
-   SourceTimeResult srctr(ex);
+   SourceTimeResult srctr(gm);
    AsciiDataWriter adw8(rank, size);
    adw8.set_filename("src.txt");
    adw8.add_variable(srctr);
@@ -655,7 +655,7 @@ static void pml_test(int rank, int size)
   grid.set_define_mode(false);
   
   // Main loop
-  unsigned int num_time_steps = 500;
+  unsigned int num_time_steps = 11;
   unsigned int ts = 0;
 
   //ex.excite(grid, ts, E);
@@ -682,7 +682,7 @@ static void pml_test(int rank, int size)
   cout << "main loop begins." << endl;  
   for (ts = 1; ts < num_time_steps; ts++) {
     cout << "phred, time step " << ts << ", excitation: " 
-         << ex.source_function(grid, ts) << endl;
+         << gm.source_function(grid, ts) << endl;
 
     // Find out if the PML will have anything to work with in this time step. 
 
@@ -747,7 +747,8 @@ static void pml_test(int rank, int size)
      ncdw.handle_data(ts, pr1.get_result(grid, ts));
      ncdw.handle_data(ts, pr2.get_result(grid, ts));
      ncdw.handle_data(ts, pr3.get_result(grid, ts));
-
+     ncdw.handle_data(ts, pr4.get_result(grid, ts));
+     ncdw.handle_data(ts, pr5.get_result(grid, ts));
 
   }
 }

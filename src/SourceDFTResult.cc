@@ -1,7 +1,7 @@
 #include "SourceDFTResult.hh"
 #include "Constants.hh"
 
-SourceDFTResult::SourceDFTResult(TimeExcitation &te, 
+SourceDFTResult::SourceDFTResult(SourceFunction &te, 
                                   field_t freq_start,
                                   field_t freq_stop, 
                                   unsigned int num_freqs)
@@ -45,7 +45,7 @@ SourceDFTResult::~SourceDFTResult()
   delete[] result_;
 }
 
-void SourceDFTResult::set_excitation(const TimeExcitation &te)
+void SourceDFTResult::set_excitation(const SourceFunction &te)
 {
   te_ = te;
 }

@@ -2,7 +2,7 @@
 #define SOURCE_TIME_RESULT_H
 
 #include "Result.hh"
-#include "TimeExcitation.hh"
+#include "SourceFunction.hh"
 
 /**
  * Outputs a source function at the timestep.
@@ -11,19 +11,19 @@ class SourceTimeResult : public Result
 {
 private:
 protected:
-  TimeExcitation &te_; /**< The time excitation to save. */
+  SourceFunction &te_; /**< The time excitation to save. */
 
   field_t result_[2]; /**< Storage for the result. */
 
 public:
-  SourceTimeResult(TimeExcitation &te);
+  SourceTimeResult(SourceFunction &te);
   ~SourceTimeResult();
 
   /**
-   * Set the source or TimeExcitation to use.
-   * @param a reference to a TimeExcitation object
+   * Set the source or SourceFunction to use.
+   * @param a reference to a SourceFunction object
    */ 
-  void set_excitation(const TimeExcitation &te);
+  void set_excitation(const SourceFunction &te);
 
   /**
    * Produces output from the source, considering only the time step. 

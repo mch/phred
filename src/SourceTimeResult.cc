@@ -1,6 +1,6 @@
 #include "SourceTimeResult.hh"
 
-SourceTimeResult::SourceTimeResult(TimeExcitation &te)
+SourceTimeResult::SourceTimeResult(SourceFunction &te)
   : te_(te)
 {
   dim_lens_.push_back(2);
@@ -17,7 +17,7 @@ SourceTimeResult::SourceTimeResult(TimeExcitation &te)
 SourceTimeResult::~SourceTimeResult()
 { }
 
-void SourceTimeResult::set_excitation(const TimeExcitation &te)
+void SourceTimeResult::set_excitation(const SourceFunction &te)
 {
   te_ = te;
 }

@@ -7,12 +7,12 @@
 #ifndef EXCITE_GAUSSM_H
 #define EXCITE_GAUSSM_H
 
-#include "TimeExcitation.hh"
+#include "SourceFunction.hh"
 #include "Constants.hh"
 
 #include <math.h>
 
-class Gaussm : public TimeExcitation
+class Gaussm : public SourceFunction
 {
 protected:
   field_t alpha_;
@@ -21,7 +21,7 @@ protected:
   
 public:
   Gaussm();
-  ~Gaussm();
+  virtual ~Gaussm();
 
   /**
    * Set the parameters of the modulated Gauss function.

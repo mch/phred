@@ -2,16 +2,17 @@
 #define SOURCE_DFT_RESULT_H
 
 #include "Result.hh"
-#include "TimeExcitation.hh"
+#include "SourceFunction.hh"
 
 /**
- * Outputs the DFT of a source function at the end of it's run. 
+ * Outputs the DFT of a source function. Only really applies to
+ * excitations that are applied at a single point in space.
  */
 class SourceDFTResult : public Result
 {
 private:
 protected:
-  TimeExcitation &te_; /**< The dft excitation to save. */
+  SourceFunction &te_; /**< The dft excitation to save. */
 
   field_t freq_start_; /**< First frequency in the range */
   field_t freq_stop_; /**< Last frequency in the range */
@@ -22,7 +23,7 @@ protected:
                        freq, Real DFT value, Imag DFT value, etc */
 
 public:
-  SourceDFTResult(TimeExcitation &te, field_t freq_start,
+  SourceDFTResult(SourceFunction &te, field_t freq_start,
                   field_t freq_stop, unsigned int num_freqs);
   ~SourceDFTResult();
 
@@ -30,7 +31,7 @@ public:
    * Set the source or TimeExcitation to use.
    * @param a reference to a TimeExcitation object
    */ 
-  void set_excitation(const TimeExcitation &te);
+  void set_excitation(const SourceFunction &te);
 
   /**
    * Produces a running DFT from the source, considering only the time

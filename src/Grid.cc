@@ -257,13 +257,12 @@ void Grid::init_datatypes()
   MPI_Type_contiguous(get_ldz() * get_ldy(), GRID_MPI_TYPE, &yz_plane_);
   MPI_Type_commit(&yz_plane_);
 
-  // Not 100% sure about these:
   MPI_Type_vector(get_ldx(), get_ldz(), get_ldy() * get_ldz(), 
                   GRID_MPI_TYPE, &xz_plane_);
   MPI_Type_commit(&xz_plane_);
 
-  // THIS ONE DOESN'T WORK:
-  MPI_Type_vector(get_ldx(), 1, get_ldz(), y_vector_, &xy_plane_);
+  MPI_Type_hvector(get_ldx(), 1, sizeof(field_t) * get_ldz() * get_ldy(), 
+                   y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
 
   types_alloced_ = true;

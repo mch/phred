@@ -154,7 +154,7 @@ public:
    * Called to perform any initialization that may be required. Does
    * nothing by default. 
    */
-  virtual void init()
+  virtual void init(const Grid &grid)
   {}
 
   /**
