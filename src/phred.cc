@@ -177,11 +177,14 @@ main (int argc, char **argv)
   try {
 #ifdef USE_PY_BINDINGS
     if (interactive) {
+      cout << "interactive mode, starting python..." << endl;
       PyInterpreter interp;
+      cout << "calling run..." << endl;
       interp.run(rank, size);
     } 
 #endif
     if (!interactive) {
+      cout << "non interactive mode; calling pml_test. " << endl;
       // If the file extension is .py, run it in the python interpreter. 
 
       // If there is no extension, look for files named fn.in, fn.str,
@@ -426,10 +429,10 @@ static void pml_test(int rank, int size)
 
   mat.set_epsilon(1);
   mat.set_name("Silver");
-  mat.set_collision_freq(57e12); // THz
-  mat.set_plasma_freq(2 * PI * 2000e+12); // THz * 2 * pi
-  //mat.set_collision_freq(1.4e+14);
-  //mat.set_plasma_freq(2 * PI * 1.85e+15);
+  //mat.set_collision_freq(57e12); // THz
+  //mat.set_plasma_freq(2 * PI * 2000e+12); // THz * 2 * pi
+  mat.set_collision_freq(1.4e+14);
+  mat.set_plasma_freq(2 * PI * 1.85e+15);
   mats.add_material(mat);
 
   fdtd.load_materials(mats);
@@ -441,7 +444,7 @@ static void pml_test(int rank, int size)
 
   Box metal1;
   //metal1.set_region(45, 55, 5, 46, 5, 56); // UNSTABLE
-  metal1.set_region(45, 55, 14, 37, 14, 47); // UNSTABLE
+  metal1.set_region(45, 75, 15, 37, 14, 47); // UNSTABLE
   //metal1.set_region(45, 55, 23, 27, 28, 33); // STABLE!?!
   metal1.set_material_id(3);
 

@@ -24,21 +24,22 @@
 
 #include "PyResults.hh"
 #include "PyExcitations.hh"
-//#include "PyFDTD.hh"
+#include "PyFDTD.hh"
+#include "PyDatawriters.hh"
 //#include "PyGrid.hh"
 
 static struct _inittab modules_[] = 
   {
     {"results", &initresults},
     {"excitations", &initexcitations},
-    //{"FDTD", &initFDTD},
+    {"FDTD", &initFDTD},
     //{"Grid", &initGrid},
     {0, 0}
   };
   
 #include <stdio.h>
 
-#ifdef HAVE_READLINE
+#ifdef HAVE_LIBREADLINE
 #include <unistd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -56,7 +57,7 @@ PyInterpreter::PyInterpreter()
   
   Py_Initialize();
 
-#ifdef HAVE_READLINE
+#ifdef HAVE_LIBREADLINE
   rl_bind_key ('\t', rl_insert);
 #endif
 }
@@ -101,6 +102,8 @@ void PyInterpreter::slave()
   handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
   handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
   
+  //add_modules();
+
   while (size > 0) 
   {
     MPI_Bcast(static_cast<void *>(&size), 1, MPI_INT, 
@@ -148,8 +151,10 @@ void PyInterpreter::master()
   handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
   handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
   
-  if (size_ > 1) {
-#ifdef HAVE_READLINE
+  //add_modules();
+
+  //if (size_ > 1) {
+#ifdef HAVE_LIBREADLINE
     cout << "Phred interactive Python interpreter running. Type ctrl-d to quit." << endl;
     char *ln = 0; 
     const char *prompt, *p1 = ">>> ", *p2 = "... ";
@@ -173,11 +178,11 @@ void PyInterpreter::master()
       {
         int size = buffer.length();
         MPI_Bcast(static_cast<void *>(&size), 1, MPI_INT, 0, MPI_COMM_WORLD);
-        MPI_Bcast(static_cast<void *>(buffer.c_str()), buffer.length(), 
+        MPI_Bcast(static_cast<void *>(const_cast<char *>(buffer.c_str())), buffer.length(), 
                   MPI_CHAR, 0, MPI_COMM_WORLD);
 
         try {
-          handle<> res( PyRun_String(buffer.c_str(), Py_file_input, 
+          handle<> res( PyRun_String(buffer.c_str(), Py_single_input, 
                                      main_namespace.get(),
                                      main_namespace.get()));
         }
@@ -194,22 +199,42 @@ void PyInterpreter::master()
 #else
     throw PyInterpException("Only one process can be used in interactive mode.");
 #endif
-  }  
-  else
-  {
-    char **argv = 0;
-    Py_Main(0, argv);  
-  }
+    //}  
+  // else
+//   {
+//     char **argv;
+//     argv = new char*[2];
+//     argv[0] = "phred";
+//     argv[1] = "\0";
+
+//     Py_Main(1, argv);  
+
+//     delete[] argv;
+//   }
 }
 
 void PyInterpreter::add_modules()
 {
+  handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
+  handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
+  
+  handle<> rname ( PyString_FromString("results") );
+  handle<> res( PyImport_Import(rname.get()) );
+  PyDict_SetItemString(main_namespace.get(), "results", res.get());
+
+  handle<> ename ( PyString_FromString("excitations") );
+  handle<> ex( PyImport_Import(ename.get()) );
+  PyDict_SetItemString(main_namespace.get(), "excitations", ex.get());
+
+  handle<> fname ( PyString_FromString("FDTD") );
+  handle<> fdtd( PyImport_Import(fname.get()) );
+  PyDict_SetItemString(main_namespace.get(), "FDTD", fdtd.get());
 
 }
 
 char *PyInterpreter::rl()
 {
-#ifdef HAVE_READLINE
+#ifdef HAVE_LIBREADLINE
   char *line_read = readline (">> ");
 
   /* If the line has any text in it,

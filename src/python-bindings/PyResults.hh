@@ -57,7 +57,7 @@ public:
 
 BOOST_PYTHON_MODULE(results)
 {
-//   class_<Result, ResultWrap, boost::noncopyable>("Result")
+   class_<Result, ResultWrap, boost::noncopyable>("Result", "Result data derieved from the Grid")
 //     .def("has_time_dimension", &Result::has_time_dimension)
 //     .def("set_time_param", &Result::set_time_param)
 //     .def("set_dw_name", &Result::set_dw_name)
@@ -66,7 +66,7 @@ BOOST_PYTHON_MODULE(results)
 //     .def("get_name", &Result::get_name)
 //     .def("get_dim_lengths", &Result::get_dim_lengths)
 //     .def("get_dim_names", &Result::get_dim_names)
-//     ;
+     ;
 
 //   def("call_get_result", call_get_result);
 

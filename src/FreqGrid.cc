@@ -244,8 +244,8 @@ void FreqGrid::update_ex()
                         i, j, k);
             
           sx_[idx] = (1 + vcdt_[mid]) * sxm1_[idx]
-            - vcdt_[mid] * sxm2_[idx]
-            + omegapsq_[mid] * (1 - vcdt_[mid]) * *ex;
+            - (vcdt_[mid] * sxm2_[idx])
+            + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ex;
           
           sxm2_[idx] = sxm1_[idx];
           sxm1_[idx] = sx_[idx];
@@ -307,13 +307,13 @@ void FreqGrid::update_ey()
                         i, j, k);
 
           sy_[idx] = (1 + vcdt_[mid]) * sym1_[idx]
-            - vcdt_[mid] * sym2_[idx]
-            + omegapsq_[mid] * (1 - vcdt_[mid]) * *ey;
+            - (vcdt_[mid] * sym2_[idx])
+            + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ey;
           
           sym2_[idx] = sym1_[idx];
           sym1_[idx] = sy_[idx];
 
-          ++plasma_idx;
+          //++plasma_idx;
         }
 
         ey++;
@@ -372,8 +372,8 @@ void FreqGrid::update_ez()
                         i, j, k);
 
           sz_[idx] = (1 + vcdt_[mid]) * szm1_[idx]
-            - vcdt_[mid] * szm2_[idx]
-            + omegapsq_[mid] * (1 - vcdt_[mid]) * *ez;
+            - (vcdt_[mid] * szm2_[idx])
+            + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ez;
           
           szm2_[idx] = szm1_[idx];
           szm1_[idx] = sz_[idx];
