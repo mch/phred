@@ -289,7 +289,6 @@ public:
  * return data at more than one time step anyway, then later data
  * overwrites previous data, as far as the DataWriter is concerened. 
  *
- * \bug Build a seperate struct or class to hold dimension info? 
  */
 class Result : public LifeCycle
 {

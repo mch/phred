@@ -43,6 +43,8 @@ class PmlCommon
   //friend class Grid;
 
 private:
+  const Grid &grid_;
+
   float *ratio_x_;
   float *ratio_star_x_;
   
@@ -76,11 +78,6 @@ private:
   unsigned int dimz_;
 
   /**
-   * The pointer to the one and only PmlCommon object.
-   */ 
-  static PmlCommon *pml_common_;
-
-  /**
    * Setup the coefficients 
    */
   void alloc_coeffs(const Grid &grid);
@@ -98,7 +95,7 @@ private:
   /**
    * Constructor
    */
-  PmlCommon();
+  PmlCommon(const Grid &grid);
 
   /**
    * Set the common PML parameters and calculate coeffs and

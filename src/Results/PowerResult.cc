@@ -32,10 +32,12 @@ PowerResult::PowerResult()
   real_var_.has_time_dimension(false);
   imag_var_.has_time_dimension(false);
   freq_var_.has_time_dimension(false);
+  power_var_.has_time_dimension(true);
 
   variables_["real_power"] = &real_var_;
   variables_["imag_power"] = &imag_var_;
   variables_["freqs"] = &freq_var_;
+  variables_["time_power"] = &power_var_;
 }
 
 PowerResult::PowerResult(field_t freq_start, field_t freq_stop, 
@@ -47,10 +49,12 @@ PowerResult::PowerResult(field_t freq_start, field_t freq_stop,
   real_var_.has_time_dimension(false);
   imag_var_.has_time_dimension(false);
   freq_var_.has_time_dimension(false);
+  power_var_.has_time_dimension(true);
 
   variables_["real_power"] = &real_var_;
   variables_["imag_power"] = &imag_var_;
   variables_["freqs"] = &freq_var_;
+  variables_["time_power"] = &power_var_;
 }
 
 PowerResult::~PowerResult()
@@ -172,20 +176,26 @@ void PowerResult::init(const Grid &grid)
   real_var_.reset();
   imag_var_.reset();
   freq_var_.reset();
+  power_var_.reset();
 
   real_var_.set_name(base_name_ + "_power_real");
   imag_var_.set_name(base_name_ + "_power_imag");
   freq_var_.set_name(base_name_ + "_freqs");
+  power_var_.set_name(base_name_ + "_time_power");
 
   real_var_.add_dimension("Frequency", num_freqs_);
   imag_var_.add_dimension("Frequency", num_freqs_);
   freq_var_.add_dimension("Frequency", num_freqs_);
+  power_var_.add_dimension("Power", 1, 0);
+
   imag_var_.set_ptr(power_imag_);
   real_var_.set_ptr(power_real_);  
   freq_var_.set_ptr(freqs_);
+  power_var_.set_ptr(&time_power_);
   real_var_.set_num(num_freqs_);
   imag_var_.set_num(num_freqs_);
   freq_var_.set_num(num_freqs_);
+  power_var_.set_num(1);
 }
 
 void PowerResult::deinit(const Grid &grid)
@@ -245,7 +255,6 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
   field_t et2_real, et2_imag;
   field_t ht1_real, ht1_imag;
   field_t ht2_real, ht2_imag;
-  field_t p_real, p_imag;
   field_t p_real2, p_imag2;
 
   delta_t dt = grid.get_deltat();
@@ -273,7 +282,8 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
   // Compute the instantaneous power through the surface at this
   // instant in time.
   unsigned int idx = 0;
-  
+  time_power_ = 0;
+
   for (unsigned int x = region_.xmin; x < region_.xmax; x++) 
   {
     for (unsigned int y = region_.ymin; y < region_.ymax; y++) 
@@ -290,7 +300,7 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
                + plane_->get_h_t2(x + step_x_, y + step_y_, 
                                   z + step_z_)) / 2;
 
-        // .....
+        time_power_ += et1 * ht2 - et2 * ht1;
       }
     }
   }
@@ -300,9 +310,6 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
   {
     cos_temp = cos(2 * PI * freqs_[i] * time);
     sin_temp = sin(2 * PI * freqs_[i] * time);
-
-    p_real = 0;
-    p_imag = 0;
 
     p_real2 = 0;
     p_imag2 = 0;
@@ -347,12 +354,6 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
           ht1i_[idx] += ht1_imag;
           ht2i_[idx] += ht2_imag;
 
-//           p_real += (et1_real * ht2_real + et1_imag * ht2_imag)
-//             - (et2_real * ht1_real + et2_imag * ht1_imag);
-
-//           p_imag += et1_imag * ht2_real - ht2_imag * et1_real 
-//             + ht1_imag * et2_real - et2_imag * ht1_real;
-
           p_real2 += (et1r_[idx] * ht2r_[idx] + et1i_[idx] * ht2i_[idx])
             - (et2r_[idx] * ht1r_[idx] + et2i_[idx] * ht1i_[idx]);
 
@@ -364,23 +365,9 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
       }
     }
    
-//     power_real_[i] += 0.5 * p_real * cell_area_;
-//     power_imag_[i] += 0.5 * p_imag * cell_area_;
-
-//     p_real2 = 0.5 * p_real2 * cell_area_;
-//     p_imag2 = 0.5 * p_imag2 * cell_area_;
-    
     power_real_[i] = 0.5 * p_real2 * cell_area_;
     power_imag_[i] = 0.5 * p_imag2 * cell_area_;
 
-//     if (power_real_[i] != p_real2)
-//     {
-//       cerr << "Power discrepency detected for f = " << freqs_[i] 
-//            << ", power_real_[i] = " << power_real_[i]
-//            << ", p_real2 = " << p_real2 << endl;
-//       cerr << "power_imag_[i] = " << power_imag_[i]
-//            << ", p_imag2 = " << p_imag2 << endl;
-//     }
   }
 
   return variables_;

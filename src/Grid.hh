@@ -66,6 +66,8 @@ class Grid {
   friend class Pml; // So that PML update equations can access the
                     // field pointers quickly; and also so that they
                     // can make a giant mess of them. 
+  friend class PmlCommon;
+
  private:
  protected:
 
@@ -172,7 +174,7 @@ class Grid {
    * A sancturary for boundary condition common data. The valid int's
    * that can be used as keys are enumerated in Types.hh.in.
    */
-  map<int, void *> auxdata_; 
+  map<GridAuxData, void *> auxdata_; 
 
   /**
    * Store some auxiliary data. 
@@ -188,7 +190,7 @@ class Grid {
    */
   inline void *get_auxdata(GridAuxData n)
   {
-    map<int, void *>::iterator iter = auxdata_.find(n);
+    map<GridAuxData, void *>::iterator iter = auxdata_.find(n);
     if (iter == auxdata_.end())
       return 0;
     else

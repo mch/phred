@@ -78,6 +78,8 @@ protected:
   field_t *freqs_; /**< Frequencies */ 
   field_t *power_real_; /**< Power at each frequency */ 
   field_t *power_imag_; /**< Power at each frequency */ 
+  field_t time_power_; /**< Power at the current instant in time domain */ 
+
   region_t region_; /**< The region to get the power through, should
                        be a plane, so the min and max on one axis
                        should be the same. */

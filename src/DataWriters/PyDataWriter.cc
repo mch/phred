@@ -25,7 +25,13 @@ PyDataWriter::PyDataWriter(int rank, int size)
   : DataWriter(rank, size)
 {
 #ifdef USE_PY_BINDINGS
+  // Ensure that this class is only used if the script being run is a
+  // Python script, and not a Jan script.
+  if (!Py_IsInitialized())
+    throw NoPythonException();
+
   
+
 #else
     throw NoPythonException();
 #endif
@@ -44,10 +50,29 @@ void PyDataWriter::deinit(const Grid &grid)
 {}
 
 void PyDataWriter::add_variable(Result &result)
-{}
+{
+  const map<string, Variable *> vars = result.get_variables();
+  map<string, Variable *>::const_iterator iter;
+  map<string, Variable *>::const_iterator iter_e = vars.end();
+  
+  for (iter = vars.begin(); iter != iter_e; ++iter)
+  {
+    Variable *var = iter->second;
+    const vector<int> &dim_lens = var->get_dim_lengths();
+    
+    if (dim_lens.size() == 0)
+      throw DataWriterException("Result must have at least one dimension.");
+    
+    vars_[var->get_name()] = 
+      new MatlabArray(var->get_name().c_str(), 
+                      dim_lens, var->has_time_dimension(), 
+                      var->get_element_type(),
+                      false);
+  }  
+}
 
 unsigned int PyDataWriter::write_data(unsigned int time_step, 
-                                      Data &data, MPI_Datatype t, 
+                                      Variable &var, MPI_Datatype t, 
                                       void *ptr, unsigned int len)
 {
 

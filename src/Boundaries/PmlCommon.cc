@@ -25,10 +25,8 @@
 
 #include <math.h>
 
-PmlCommon *PmlCommon::pml_common_ = 0;
-
-PmlCommon::PmlCommon()
-  : ratio_x_(0), ratio_star_x_(0), 
+PmlCommon::PmlCommon(const Grid &grid)
+  : grid_(grid), ratio_x_(0), ratio_star_x_(0), 
     ratio_y_(0), ratio_star_y_(0), 
     ratio_z_(0), ratio_star_z_(0), 
     e_x_coef1_(0), e_x_coef2_(0), 
@@ -49,16 +47,18 @@ PmlCommon *PmlCommon::get_pml_common(Grid &grid)
   if (grid.get_define_mode())
     return 0;
 
-  if (pml_common_)
-    return pml_common_;
+  void *tmp = grid.get_auxdata(PML_COMMON);
 
-  pml_common_ = new PmlCommon();
-  if (!pml_common_)
+  if (tmp)
+    return (PmlCommon *)tmp;
+
+  PmlCommon *pml_common = new PmlCommon(grid);
+  if (!pml_common)
     return 0; // stack unwinding may be too costly here
 
-  pml_common_->init_coeffs(grid);
+  pml_common->init_coeffs(grid);
 
-  return pml_common_;
+  return pml_common;
 }
 
 void PmlCommon::alloc_coeffs(const Grid &grid)
@@ -133,6 +133,8 @@ void PmlCommon::alloc_coeffs(const Grid &grid)
   dimx_ = grid.get_ldx_sd();
   dimy_ = grid.get_ldy_sd();
   dimz_ = grid.get_ldz_sd();
+  cerr << "Set dimx_ to " << dimx_ << ", dimy_ to " << dimy_
+       << ", and dimz_ to " << dimz_ << endl;
 #endif
 }
 
