@@ -33,9 +33,30 @@ Python your self, be sure to 'make libinstall' and 'make
 libpython2.3.so'. 'make altinstall' seems to be the only target that
 actually installs the shared library in $PREFIX/lib. 
 
-On Minerva (an RS/6000 SP), I could not compile python in because the
+Phred uses Boost.Python (http://boost.org/) to bring the C++ and
+Python languages together. Boost.Python is a sophisticated library
+that depends on a number of modern C++ compiler features, so make
+sure things are up to date. One thing about boost is that it is
+somewhat of a pain to install, partly due to the use of their own
+build tool, bjam. If you are compiling from source (download from
+boost.org), you may need to compile bjam before you can start. 
+
+cd boost/tools/build/jam_src/
+./build.sh
+cp bin.XXX SOME_BIN_DIR
+cd ../../..
+bjam -sTOOLS=gcc --layout=system --prefix=/opt/boost_OR_SOMETHING install
+
+Phred expects to see 
+
+On Minerva (an RS/6000 SP), I could not compile python because the
 compiler version we have has a bug related to partial template
-specialization which the Boost.Python glue library relies on. 
+specialization which the Boost.Python glue library relies on. Recent
+versions of Visual Age C++ should have fixed this, but the Minerva
+admins are understandably reluctant to change things outside of their
+normal upgrade cycle, so I'm stuck with a buggy version and cannot
+test it. 
+
 
 NOTE ON LICENCES:
 This program optionally depends on a number of other software

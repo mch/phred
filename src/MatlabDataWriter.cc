@@ -139,7 +139,7 @@ void MatlabElement::compress()
   {
     if (tag_.datatype <= 9)
     {
-      switch (source_datatype)
+      switch (source_datatype_)
       {
       case miINT8:
         compress_helper<signed char>();
@@ -171,19 +171,67 @@ void MatlabElement::compress()
   }
 }
 
+void MatlabElement::write_compress(ostream &stream)
+{
+  if (compress_)
+  {
+    if (tag_.datatype <= 9)
+    {
+      switch (source_datatype_)
+      {
+      case miINT8:
+        write_compress_helper<signed char>(stream);
+        break;
+      case miUINT8:
+        write_compress_helper<unsigned char>(stream);
+        break;
+      case miINT16:
+        write_compress_helper<signed short>(stream);
+        break;
+      case miUINT16:
+        write_compress_helper<unsigned short>(stream);
+        break;
+      case miINT32:
+        write_compress_helper<signed int>(stream);
+        break;
+      case miUINT32:
+        write_compress_helper<unsigned int>(stream);
+        break;
+      case miSINGLE:
+        write_compress_helper<float>(stream);
+        break;
+      case miDOUBLE:
+        write_compress_helper<double>(stream);
+        break;
+      }
+    } else {
+    throw DataWriterException("MatlabElement::write_compress: can't write this data type!");
+    }
+
+  } else
+    throw DataWriterException("MatlabElement::write_compress erroniously called!");
+}
+
 unsigned int MatlabElement::get_num_bytes()
 {
   unsigned int nbytes = 0;
+  data_tag_t &tag = tag_;
 
-  if (tag_.num_bytes <= 4)
+  if (compress_)
+  {
+    compress();
+    tag = compressed_tag_;
+  }
+
+  if (tag.num_bytes <= 4)
   {
     nbytes = 8;
   } else {
-    unsigned int padding = (8 - (tag_.num_bytes) % 8);
+    unsigned int padding = (8 - (tag.num_bytes) % 8);
     if (padding >= 8)
       padding = 0;
 
-    nbytes = tag_.num_bytes + 8 + padding;
+    nbytes = tag.num_bytes + 8 + padding;
   }
 
   return nbytes;
@@ -244,40 +292,44 @@ void MatlabElement::append_buffer(unsigned int num_bytes, const void *ptr)
 
 void MatlabElement::write_buffer(ostream &stream)
 {
-  if (tag_.num_bytes <= 4)
+  data_tag_t tag = tag_;
+  int padding = 0;
+
+  if (compress_)
+    tag = compressed_tag_;
+
+  if (tag.num_bytes <= 4)
   {
 #ifdef WORDS_BIGENDIAN
-    uint16_t temp = static_cast<uint16_t>(tag_.num_bytes);
+    uint16_t temp = static_cast<uint16_t>(tag.num_bytes);
     stream.write(reinterpret_cast<char *>(&temp), 2);
     
-    temp = static_cast<uint16_t>(tag_.datatype);
+    temp = static_cast<uint16_t>(tag.datatype);
     stream.write(reinterpret_cast<char *>(&temp), 2);
 #else
-    uint16_t temp = static_cast<uint16_t>(tag_.datatype);
+    uint16_t temp = static_cast<uint16_t>(tag.datatype);
     stream.write(reinterpret_cast<char *>(&temp), 2);
     
-    temp = static_cast<uint16_t>(tag_.num_bytes);
+    temp = static_cast<uint16_t>(tag.num_bytes);
     stream.write(reinterpret_cast<char *>(&temp), 2);    
 #endif
-    stream.write(buffer_, tag_.num_bytes);
-    
-    int padding = 8 - (tag_.num_bytes + 4) % 8;
-
-    if (padding > 0 && padding < 8)
-      for (int i = 0; i < padding; i++)
-        stream.put(0);
+ 
+    padding = 8 - (tag.num_bytes + 4) % 8;
 
   } else {
 
-    stream.write(reinterpret_cast<char *>(&tag_), 8);
-  
-    stream.write(buffer_, tag_.num_bytes);
-    
-    int padding = 8 - (tag_.num_bytes) % 8;
-    if (padding > 0 && padding < 8)
-      for (int i = 0; i < padding; i++)
-        stream.put(0);
+    stream.write(reinterpret_cast<char *>(&tag), 8);
+    padding = 8 - (tag.num_bytes) % 8;
   }
+
+  if (compress_)
+    write_compress(stream);
+  else
+    stream.write(buffer_, tag.num_bytes);
+    
+  if (padding > 0 && padding < 8)
+    for (int i = 0; i < padding; i++)
+      stream.put(0);
   
   stream.flush();
 }

@@ -51,6 +51,8 @@ WANT_TIMING_TESTS=0
 AC_ARG_ENABLE(ctests, AC_HELP_STRING([--enable-ctests], [Build C timing tests]), [WANT_TIMING_TESTS=1], [WANT_TIMING_TESTS=0])
 AM_CONDITIONAL(WANT_TIMING_TESTS, test "x$WANT_TIMING_TESTS" = "x1")
 
+AC_ARG_WITH(readline, AC_HELP_STRING([--without-readline], [Don't use readline for Python interactive mode. Interactive mode will be restricted to single node execution.]))
+
 WANT_64BIT=0
 AC_ARG_ENABLE(64bit, AC_HELP_STRING([--enable-64bit], [Compile 64 bit binaries (IBM RS/6000 SP and SGI machines only at the moment... all libraries must also be compiled to 64 bit.)]), [WANT_64BIT=1], [WANT_64BIT=0])
 
@@ -62,13 +64,12 @@ fi
 dnl Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_CC
-AC_PROG_CXX
+AC_PROG_CXX(mpic++ mpiCC)
 AC_PROG_CXXCPP
 AC_PROG_YACC
 AM_PROG_LEX
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
-AC_PROG_RANLIB
 
 dnl Check for compiler things
 AC_C_INLINE
@@ -77,26 +78,37 @@ AC_C_BIGENDIAN
 dnl Blitz++, required for optimization
 AC_CXX_LIB_BLITZ
 
-dnl Generate python scripting support?
-AC_ARG_WITH(python, AC_HELP_STRING([--with-python], [Generate Python scripting support]))
-AC_ARG_WITH(python_libs, AC_HELP_STRING([--with-python-libs], [Location of Python libraries]))
-AC_ARG_WITH(python_includes, AC_HELP_STRING([--with-python-includes], [Location of Python include files]))
+dnl Python, for scripting
+AC_CXX_PYTHON
 
-dnl AC_ARG_WITH(boost_libs, AC_HELP_STRING([--with-boost-libs], [Location of boost libraries]))
-dnl AC_ARG_WITH(boost_includes, AC_HELP_STRING([--with-boost-includes], [Location of boost include files]))
+dnl Setup scripting
+USE_PY_BINDINGS=0
+if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
 
-AC_ARG_WITH(readline, AC_HELP_STRING([--without-readline], [Don't use readline for Python interactive mode. Interactive mode will be restricted to single node execution.]))
+        AC_CXX_LIB_BOOST_PYTHON("required")
 
-dnl DX_INIT_DOXYGEN([phred])
+        USE_PY_BINDINGS=1
+        AC_DEFINE([USE_PY_BINDINGS], [1], [Use Python bindings])
+
+dnl Use readline? 
+        if test ! "$with_readline" = "no"; then
+        AC_CHECK_LIB(readline, readline, [], [])
+        AC_CHECK_HEADER([readline/readline.h], [], [])
+        fi
+fi
+AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
+
+
+DX_INIT_DOXYGEN([phred])
 
 dnl Is doxygen availble to generate documentation? 
-AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [])
-AC_ARG_VAR([DOXYGEN], [Indicates if doyxgen is availble to generate documentation.])
-AM_CONDITIONAL(WANT_DOCS, test ! -z $DOXYGEN)
+dnl AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [])
+dnl AC_ARG_VAR([DOXYGEN], [Indicates if doyxgen is availble to generate documentation.])
+dnl AM_CONDITIONAL(WANT_DOCS, test ! -z $DOXYGEN)
 
 dnl Is dot from graphviz available? For doxygen class diagrams
-AC_CHECK_PROG([DOT], [dot], [YES], [NO])
-AC_ARG_VAR([DOT], [Set to YES if dot from the graphviz package is available for doxygen to use])
+dnl AC_CHECK_PROG([DOT], [dot], [YES], [NO])
+dnl AC_ARG_VAR([DOT], [Set to YES if dot from the graphviz package is available for doxygen to use])
 
 AC_LANG(C++)
 
@@ -231,80 +243,6 @@ AC_CHECK_LIB(hdf5, H5open, [
         AC_DEFINE([USE_HDF5], [1], [Use HDF5 as a DataWriter])], [], 
                   [$with_hdf5_includes])], [], [$with_hdf5_libs])
 fi
-
-dnl Setup scripting
-USE_PY_BINDINGS=0
-PYTHON_LDFLAGS=""
-if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
-        PYTHON_LDFLAGS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LINKFORSHARED')" | python -`
-
-        CXXFLAGS="$CXXFLAGS $PYTHON_LD_FLAGS"
-
-        if [[ ! -z "$with_python_includes" ]]; then 
-          CPPFLAGS="$CPPFLAGS -I$with_python_includes"
-        fi
-
-        if [[ "$target_vendor" = "apple" ]]; then
-            AC_MSG_CHECKING([for Apple's Python framework])
-            AC_COMPILE_IFELSE([
-#include <Python.h>
-void test()
-{
-Py_Initialize();
-}
-], [AC_MSG_RESULT([yes])], [AC_MSG_ERROR(*** Can't find Apple's Python framework.)])
-        else
-
-	PY_LIBS=""
-	if [[ ! -z "$with_python_libs" ]]; then 
-		PY_LIBS="-L$with_python_libs"
-	fi
-
-        AC_CHECK_LIB(python2.3, Py_Initialize, [], [
-            AC_MSG_ERROR(*** Can't find the Python libraries.)],
-            [$PY_LIBS])
-        fi
-
-        AC_CHECK_HEADER([Python.h], [], [AC_MSG_ERROR([*** Can't find the Python header files])])
-
-dnl         if [[ ! -z "$with_boost_includes" ]]; then
-dnl             CPPFLAGS="$CPPFLAGS -I$with_boost_includes"
-dnl         fi
-
-dnl 	OLD_CXX=$CXX
-dnl 	OLD_CXXCPP=$CXXCPP
-dnl 	CXXCPP="g++ -E"
-dnl 	CXX="g++"
-
-dnl         AC_CHECK_HEADER([boost/python.hpp], [], [AC_MSG_ERROR([*** Can't find the Boost Python header files])])
-
-dnl 	BOOST_LIBS=""
-dnl 	if [[ ! -z "$with_boost_libs" ]]; then
-dnl 		BOOST_LIBS="-L$with_boost_libs"
-dnl 	fi
-
-dnl        AC_CHECK_LIB(boost_python, PyBaseObject_Type, [], [
-dnl            AC_MSG_ERROR(*** Can't find the Boost Python library.)], 
-dnl            [$BOOST_LIBS])
-
-dnl	LIBS="$LIBS -lboost_python"
-dnl	CXXFLAGS="$CXXFLAGS $BOOST_LIBS"
-
-        AC_CXX_LIB_BOOST_PYTHON("required")
-
-	CXX=$OLD_CXX
-	CXXCPP=$OLD_CXXCPP
-
-        USE_PY_BINDINGS=1
-        AC_DEFINE([USE_PY_BINDINGS], [1], [Use Python bindings])
-
-dnl Use readline? 
-        if test ! "$with_readline" = "no"; then
-        AC_CHECK_LIB(readline, readline, [], [])
-        AC_CHECK_HEADER([readline/readline.h], [], [])
-        fi
-fi
-AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
 
 dnl Use OpenMP parallism? Does the compiler support it? Are the 
 dnl libraries available? 

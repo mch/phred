@@ -163,10 +163,37 @@ protected:
    */
   void compress();
 
+  /**
+   * Writes compressed data to the output stream. 
+   */ 
+  void write_compress(ostream &stream);
+
+  /**
+   * Templated helper for writing compressed data to a stream.
+   */
+  template<class T>
+  void write_compress_helper(ostream &stream)
+  {
+    char *ptr = buffer_;
+    T temp = 0;
+    unsigned int size = tag_.num_bytes / sizeof(T);
+    
+    for (int idx = 0; idx < size; idx++)
+    {
+      temp = static_cast<T>(*ptr);
+      stream.write(reinterpret_cast<char *>(&temp), sizeof(T));
+      ptr += sizeof(T);
+    }    
+  }
+
+  /**
+   * Templated helper for computing the compressed tag. 
+   */ 
   template<class T>
   void compress_helper()
   {
-    T *ptr = static_cast<T *>(buffer_);
+    char *ptr = buffer_;
+    T temp = 0;
     unsigned int size = tag_.num_bytes / sizeof(T);
     bool is_int = true;
     double max = 0;
@@ -174,17 +201,19 @@ protected:
     
     for (unsigned int idx = 0; idx < size; idx++)
     {      
-      T temp = ptr[idx];
+      T temp = static_cast<T>(*ptr);
       if (temp > max)
         max = temp;
       if (temp < min)
         min = temp;
-      if (temp % 1 > 0)
+
+      // HMM!
+      //if (temp % 1.0 > 0)
         is_int = false;
     }
 
     if (is_int) {
-      if (min >= UCHAR_MIN && max <= UCHAR_MAX)
+      if (min >= 0 && max <= UCHAR_MAX)
       {
         compressed_tag_.datatype = miUINT8;
         compressed_tag_.num_bytes = size * sizeof(unsigned char);
@@ -303,6 +332,8 @@ protected:
 
   unsigned int num_dims_; /**< Number of dimensions */ 
   int32_t *dim_lengths_; /**< Dimension lengths */ 
+
+  MPI_Datatype mpi_type_;
 
   /**
    * Translate the given MATLAB data type into the appropriate MATLAB

@@ -432,7 +432,7 @@ AC_DEFUN([AC_CXX_LIB_BLITZ],[
 
 
 AC_ARG_WITH(blitz,
-AS_HELP_STRING([--with-blitz@<:@=DIR@:>@],[Set the path for Blitz++]),
+AC_HELP_STRING([--with-blitz@<:@=DIR@:>@],[Set the path for Blitz++]),
 [],[withval='yes'])
 
 
@@ -495,7 +495,69 @@ fi
 ])
 
 
-dnl ----------------------------------------------------------------------------
+dnl -------------------------------------------------------------------------
+dnl @synopsis AC_CXX_PYTHON([optional-string "required"])
+dnl
+dnl Check whether Python is installed.
+dnl  Python is available at http://python.org/.
+dnl
+AC_DEFUN([AC_CXX_PYTHON], [
+
+AC_ARG_WITH(python, AC_HELP_STRING([--with-python], 
+                    [Generate Python scripting support]))
+AC_ARG_WITH(python_libs, AC_HELP_STRING([--with-python-libs], 
+                         [Location of Python libraries]))
+AC_ARG_WITH(python_includes, AC_HELP_STRING([--with-python-includes], 
+                             [Location of Python include files]))
+
+if test "$with_python" != no ; then
+
+PYTHON_LDFLAGS=""
+if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
+
+        saveCPPFLAGS=$CPPFLAGS
+        saveCXXFLAGS=$CXXFLAGS
+        saveLDFLAGS=$LDFLAGS
+        saveLIBS=$LIBS
+
+        AC_CHECK_HEADER([Python.h], [], [AC_MSG_ERROR([*** Can't find the Python header files])])
+
+        PYTHON_LDFLAGS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LINKFORSHARED')" | python -`
+
+        # ONLY FOR APPLE!
+        CXXFLAGS="$CXXFLAGS $PYTHON_LDFLAGS -framework Python"
+
+        if [[ ! -z "$with_python_includes" ]]; then 
+          CPPFLAGS="$CPPFLAGS -I$with_python_includes"
+        fi
+
+        AC_CACHE_CHECK([whether Python is installed],ac_cxx_python,
+        [AC_LANG_SAVE
+        AC_LANG_CPLUSPLUS
+        AC_RUN_IFELSE(
+        [AC_LANG_PROGRAM([[
+#include <Python.h>
+]],[[ Py_Initialize();
+        ]])],[ac_cxx_python=yes],[ac_cxx_python=no])
+        AC_LANG_RESTORE
+        ])
+
+        CPPFLAGS=$saveCPPFLAGS
+        CXXFLAGS=$saveCXXFLAGS
+        LDFLAGS=$saveLDFLAGS
+        LIBS=$saveLIBS
+
+        if test "$ac_cxx_python" = yes ; then
+                AC_DEFINE([HAVE_PYTHON], [1], [Using Python])
+                CXXFLAGS="$CXXFLAGS $PYTHON_LDFLAGS"
+        fi
+        
+fi
+fi
+
+])
+
+dnl -------------------------------------------------------------------------
 dnl @synopsis AC_CXX_LIB_BOOST_PYTHON([optional-string "required"])
 dnl
 dnl Check whether Boost Python is installed.
@@ -522,7 +584,7 @@ AC_DEFUN([AC_CXX_LIB_BOOST_PYTHON],[
 
 
 AC_ARG_WITH(boost,
-AS_HELP_STRING([--with-boost@<:@=DIR@:>@],[Set the path to the Boost installation]),
+AC_HELP_STRING([--with-boost@<:@=DIR@:>@],[Set the path to the Boost installation]),
 [],[withval='yes'])
 
 if test "$1" = required -a "$withval" = no ; then
@@ -535,6 +597,8 @@ if test "$withval" != no ; then
         saveLDFLAGS=$LDFLAGS
         saveLIBS=$LIBS
 
+        # ONLY FOR APPLE!
+        LIBS="$LIBS -framework Python"
 
         if test "$withval" != 'yes'; then
                 CPPFLAGS="-I$withval/include"
