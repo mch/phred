@@ -1,4 +1,5 @@
 #include "PML.hh"
+#include "Grid.hh"
 
 Pml::Pml()
 {}
@@ -14,17 +15,17 @@ void Pml::apply(Face face, Grid &grid)
   {
   case FRONT:
   case BACK:
-    condition<YZPlane>(r, grid);
+    //condition<YZPlane>(r, grid);
     break;
 
   case LEFT:
   case RIGHT:
-    condition<XZPlane>(r, grid);
+    //condition<XZPlane>(r, grid);
     break;
 
   case TOP:
   case BOTTOM:
-    condition<XYPlane>(r, grid);
+    //condition<XYPlane>(r, grid);
     break;
   }
 }

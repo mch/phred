@@ -2,6 +2,9 @@
 #define POINT_RESULT_H
 
 #include "Result.hh"
+#include "Types.hh"
+
+#include <mpi.h>
 
 /** 
  * A simple class that outputs the value of the field components at a
@@ -15,7 +18,7 @@ protected:
    * The field data the we copy from the grid. In order: ex, ey, ez,
    * hx, hy, hz.
    */
-  field_t data_[6];
+  field_t field_data_[6];
 
   // Point in global space. Have to translate it to the local grid. 
   point_t point_;
@@ -50,7 +53,7 @@ public:
    *
    * @return point_t
    */
-  inline point get_point()
+  inline point_t get_point()
   {
     return point_;
   }

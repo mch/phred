@@ -37,6 +37,9 @@ phred_SOURCES=phred.cc \
 	Result.hh \
 	PointResult.hh \
 	PointResult.cc \
+	DataWriter.hh \
+	AsciiDataWriter.hh \
+	AsciiDataWriter.cc \
 	jan-grammer.yy \
 	jan-grammer-flex.ff \
 	lex.yy.cc

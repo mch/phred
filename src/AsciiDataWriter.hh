@@ -2,7 +2,8 @@
 #define ACSII_DATA_WRITER_H
 
 #include "DataWriter.hh"
-#include <ofstream>
+#include <fstream>
+#include <exception>
 
 using namespace std;
 
@@ -15,9 +16,16 @@ private:
 protected:
   string filename_;
   string var_name_; /**< For future comparison. */
-  bool open_;
 
   ofstream file_;
+  
+  unsigned int dim_len_;
+
+  /**
+   * Does recursive writing of packed data. Increments the pointer
+   * after writing each value, and returns it. 
+   */
+  void *write_data(MPI_Datatype t, void *ptr);
 
 public:
   AsciiDataWriter(int rank, int size);
@@ -60,14 +68,14 @@ public:
    *
    * @param result describes the variable
    */
-  void add_variable(const Result &result);
+  void add_variable(Result &result);
 
   /**
    * Write the Data produced by the Result object to a file. 
    *
    * @param data a Data object containing the data to handle
    */
-  void handle_data(Data &data);
+  void handle_data(unsigned int time_step, Data &data);
 
 };
 

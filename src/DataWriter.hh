@@ -2,9 +2,12 @@
 #define DATA_WRITER_H
 
 #include "Types.hh"
+#include <mpi.h>
 
 #include <map>
 #include <vector>
+
+#include "Result.hh"
 
 using namespace std;
 
@@ -37,7 +40,8 @@ public:
     : rank_(rank), size_(size) 
   {}
 
-  virtual ~DataWriter() = 0;
+  virtual ~DataWriter()
+  {}
 
   /**
    * Initialize this object
@@ -75,14 +79,14 @@ public:
    *
    * @param result describes the result
    */
-  void add_variable(const Result &result) = 0;
+  virtual void add_variable(Result &result) = 0;
 
   /**
    * Handle the data produced by a Result object. 
    *
    * @param data a Data object containing the data to handle
    */
-  void handle_data(Data &data) = 0;
+  virtual void handle_data(unsigned int time_step, Data &data) = 0;
 
 };
 

@@ -86,6 +86,9 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "config.h"
 #include "Ewall.hh"
 #include "Hwall.hh"
+#include "PointResult.hh"
+#include "AsciiDataWriter.hh"
+
 
 #define EXIT_FAILURE 1
 
@@ -228,9 +231,23 @@ main (int argc, char **argv)
   // Excitation
   Gaussm ex;
   ex.set_parameters(1, 500e12, 300e12);
-  ex.set_region(50, 50, 50, 50, 2, 2);
+  ex.set_region(50, 50, 50, 50, 50, 50);
   ex.set_polarization(0.0, 1.0, 0.0);
 
+  // Results
+  point_t p;
+  p.x = 52;
+  p.y = 50;
+  p.z = 50;
+  PointResult res;
+  res.set_point(p);
+
+  AsciiDataWriter adw(rank, size);
+  adw.set_filename("output.txt");
+  adw.add_variable(res);
+  
+  grid.set_define_mode(false);
+  
   // Main loop
   unsigned int num_time_steps = 100;
   unsigned int ts = 0;
@@ -253,8 +270,9 @@ main (int argc, char **argv)
 
     // DFT outputs
     
-    // Data block outputs
-    
+    // Results
+    Data temp_d = res.get_result(grid);
+    adw.handle_data(ts, temp_d);
   }
 
   cout << "phred is phinished." << endl;

@@ -34,7 +34,7 @@ protected:
   unsigned int thickness_;
 
 public:
-  BoundaryCond() {}
+  BoundaryCond() : thickness_(0) {}
   virtual ~BoundaryCond() {}
 
   /**

@@ -18,7 +18,7 @@ Grid::Grid(const Grid &rhs)
   *this = rhs;
 }
 
-const Grid &operator=(const Grid &rhs)
+const Grid &Grid::operator=(const Grid &rhs)
 {
   info_ = rhs.info_;
   update_r_ = rhs.update_r_;
@@ -49,7 +49,7 @@ void Grid::set_define_mode(bool d)
 
   if (!d) 
   {
-    // Sanity checks
+    // Sanity checks (like the grid has non zero size in all dimensions)
     
     // Stability check
     
@@ -369,31 +369,22 @@ void Grid::define_box(unsigned int x_start, unsigned int x_stop,
 {
   // Given coordinates are global, so we have to convert them to local. 
   unsigned int xs, ys, zs, xe, ye, ze;
-
+  
   if (!define_)
   {
     cerr << "Unable to define a box; the grid is not in define mode." << endl;
     return;
   }
 
-  xs = (get_lsx() > x_start) ? get_lsx() - 1 : x_start - get_lsx();
-  ys = (get_lsy() > y_start) ? get_lsy() - 1 : y_start - get_lsy();
-  zs = (get_lsz() > z_start) ? get_lsz() - 1 : z_start - get_lsz();
+  region_t r = global_to_local(x_start, x_stop,
+                               y_start, y_stop,
+                               z_start, z_stop);
 
-  xe = (x_stop >= get_lsx() + get_ldx()) 
-    ? get_ldx() : x_stop - get_lsx() + 1;
-
-  ye = (y_stop >= get_lsy() + get_ldy()) 
-    ? get_ldy() : y_stop - get_lsy() + 1;
-
-  ze = (z_stop >= get_lsz() + get_ldz()) 
-    ? get_ldz() : z_stop - get_lsz() + 1;
-
-  for (unsigned int i = xs; i < xe; i++)
+  for (unsigned int i = r.xmin; i < r.xmax; i++)
   {
-    for (unsigned int j = ys; j < ye; j++)
+    for (unsigned int j = r.ymin; j < r.ymax; j++)
     {
-      for (unsigned int k = zs; k < ze; k++)
+      for (unsigned int k = r.zmin; k < r.zmax; k++)
       {
         material_[i][j][k] = mat_index;
       }
@@ -546,11 +537,11 @@ region_t Grid::global_to_local(region_t in)
 {
   region_t r;
 
-  r.xmin = (get_lsx() > in.xmin) ? get_lsx() - 1
+  r.xmin = (get_lsx() > in.xmin) ? 0
     : in.xmin - get_lsx();
-  r.ymin = (get_lsy() > in.ymin) ? get_lsy() - 1
+  r.ymin = (get_lsy() > in.ymin) ? 0
     : in.ymin - get_lsy();
-  r.zmin = (get_lsz() > in.zmin) ? get_lsz() - 1
+  r.zmin = (get_lsz() > in.zmin) ? 0
     : in.zmin - get_lsz();
 
   r.xmax = (in.xmax >= get_lsx() + get_ldx()) 

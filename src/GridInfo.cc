@@ -12,32 +12,7 @@ GridInfo::GridInfo()
 }
 
 GridInfo::GridInfo(const GridInfo &info) {
-  global_dimx_ = info.global_dimx_;
-  global_dimy_ = info.global_dimy_;
-  global_dimz_ = info.global_dimz_;
-  
-  start_x_ = info.start_x_;
-  start_y_ = info.start_y_;
-  start_z_ = info.start_z_;
-  
-  dimx_ = info.dimx_;
-  dimx_ = info.dimx_;
-  dimx_ = info.dimx_;
-  
-  deltax_ = info.deltax_;
-  deltay_ = info.deltay_;
-  deltaz_ = info.deltaz_;
-  deltat_ = info.deltat_;
-  
-  for (int i = 0; i < 6; i++) {
-    if (info.face_bc_[i]) {
-      face_bc_[i] = copy_bc(info.face_bc_[i], info.face_bc_type_[i]);
-      face_bc_type_[i] = info.face_bc_type_[i];
-    } else {
-      face_bc_[i] = new UnknownBc();
-      face_bc_type_[i] = UNKNOWN;
-    }
-  }
+  *this = info;
 }
 
 GridInfo::~GridInfo()
@@ -63,8 +38,8 @@ GridInfo& GridInfo::operator=(const GridInfo &info)
   start_z_ = info.start_z_;
   
   dimx_ = info.dimx_;
-  dimx_ = info.dimx_;
-  dimx_ = info.dimx_;
+  dimy_ = info.dimy_;
+  dimz_ = info.dimz_;
   
   deltax_ = info.deltax_;
   deltay_ = info.deltay_;

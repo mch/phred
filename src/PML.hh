@@ -79,7 +79,7 @@ public:
   /**
    * Set the common PML parameters and calculate coeffs and stuff
    */
-  void init_coeffs();
+  void init_coeffs(Face face, Pml &pml, Grid &grid);
 };
 
 /**
