@@ -54,6 +54,7 @@ private:
 protected:
   int rank_;  /**< MPI Rank of this process */
   int size_; /**< Number of processes in MPI comm. */  
+  string filename_; /**< File to write data to */
 
   /** 
    * A helper function to gather data from all ranks onto rank 0 so
@@ -108,6 +109,14 @@ public:
   {
     return size_;
   }
+
+  /**
+   * Set the filename to write to. The file is opened for writing. 
+   *
+   * @param filename 
+   */
+  virtual void set_filename(string filename)
+  { }
 
   /**
    * Add a result that this data writer will have to know how to

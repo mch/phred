@@ -205,43 +205,43 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
     }
   }
 
-  cout << "PML Update region for face " << face << ":"
-       << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
-       << grid_ex_r_.xmax
-       << ", y: " << grid_ex_r_.ymin << " -> " 
-       << grid_ex_r_.ymax
-       << ", z: " << grid_ex_r_.zmin << " -> " 
-       << grid_ex_r_.zmax
-       << "\n\tEy, x: " << grid_ey_r_.xmin << " -> " 
-       << grid_ey_r_.xmax
-       << ", y: " << grid_ey_r_.ymin << " -> " 
-       << grid_ey_r_.ymax
-       << ", z: " << grid_ey_r_.zmin << " -> " 
-       << grid_ey_r_.zmax
-       << "\n\tEz, x: " << grid_ez_r_.xmin << " -> " 
-       << grid_ez_r_.xmax
-       << ", y: " << grid_ez_r_.ymin << " -> " 
-       << grid_ez_r_.ymax
-       << ", z: " << grid_ez_r_.zmin << " -> " 
-       << grid_ez_r_.zmax 
-       << "\n\tHx, x: " << grid_hx_r_.xmin << " -> " 
-       << grid_hx_r_.xmax
-       << ", y: " << grid_hx_r_.ymin << " -> " 
-       << grid_hx_r_.ymax
-       << ", z: " << grid_hx_r_.zmin << " -> " 
-       << grid_hx_r_.zmax
-       << "\n\tHy, x: " << grid_hy_r_.xmin << " -> " 
-       << grid_hy_r_.xmax
-       << ", y: " << grid_hy_r_.ymin << " -> " 
-       << grid_hy_r_.ymax
-       << ", z: " << grid_hy_r_.zmin << " -> " 
-       << grid_hy_r_.zmax
-       << "\n\tHz, x: " << grid_hz_r_.xmin << " -> " 
-       << grid_hz_r_.xmax
-       << ", y: " << grid_hz_r_.ymin << " -> " 
-       << grid_hz_r_.ymax
-       << ", z: " << grid_hz_r_.zmin << " -> " 
-       << grid_hz_r_.zmax << endl;
+//   cout << "PML Update region for face " << face << ":"
+//        << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
+//        << grid_ex_r_.xmax
+//        << ", y: " << grid_ex_r_.ymin << " -> " 
+//        << grid_ex_r_.ymax
+//        << ", z: " << grid_ex_r_.zmin << " -> " 
+//        << grid_ex_r_.zmax
+//        << "\n\tEy, x: " << grid_ey_r_.xmin << " -> " 
+//        << grid_ey_r_.xmax
+//        << ", y: " << grid_ey_r_.ymin << " -> " 
+//        << grid_ey_r_.ymax
+//        << ", z: " << grid_ey_r_.zmin << " -> " 
+//        << grid_ey_r_.zmax
+//        << "\n\tEz, x: " << grid_ez_r_.xmin << " -> " 
+//        << grid_ez_r_.xmax
+//        << ", y: " << grid_ez_r_.ymin << " -> " 
+//        << grid_ez_r_.ymax
+//        << ", z: " << grid_ez_r_.zmin << " -> " 
+//        << grid_ez_r_.zmax 
+//        << "\n\tHx, x: " << grid_hx_r_.xmin << " -> " 
+//        << grid_hx_r_.xmax
+//        << ", y: " << grid_hx_r_.ymin << " -> " 
+//        << grid_hx_r_.ymax
+//        << ", z: " << grid_hx_r_.zmin << " -> " 
+//        << grid_hx_r_.zmax
+//        << "\n\tHy, x: " << grid_hy_r_.xmin << " -> " 
+//        << grid_hy_r_.xmax
+//        << ", y: " << grid_hy_r_.ymin << " -> " 
+//        << grid_hy_r_.ymax
+//        << ", z: " << grid_hy_r_.zmin << " -> " 
+//        << grid_hy_r_.zmax
+//        << "\n\tHz, x: " << grid_hz_r_.xmin << " -> " 
+//        << grid_hz_r_.xmax
+//        << ", y: " << grid_hz_r_.ymin << " -> " 
+//        << grid_hz_r_.ymax
+//        << ", z: " << grid_hz_r_.zmin << " -> " 
+//        << grid_hz_r_.zmax << endl;
 
   unsigned int sz = (r.xmax - r.xmin) * (r.ymax - r.ymin) 
     * (r.zmax - r.zmin);

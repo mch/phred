@@ -140,6 +140,7 @@ bool interactive;
 // Test runs
 static void point_test(int rank, int size);
 static void pml_test(int rank, int size);
+static void takakura_test(int rank, int size);
 
 // MAIN!
 int
@@ -184,7 +185,7 @@ main (int argc, char **argv)
     } 
 #endif
     if (!interactive) {
-      cout << "non interactive mode; calling pml_test. " << endl;
+      cout << "non interactive mode; calling takakura_test. " << endl;
       // If the file extension is .py, run it in the python interpreter. 
 
       // If there is no extension, look for files named fn.in, fn.str,
@@ -192,7 +193,8 @@ main (int argc, char **argv)
 
       // TESTS, TEMPORARY
       //point_test(rank, size);
-      pml_test(rank, size);
+      //pml_test(rank, size);
+      takakura_test(rank, size);
     }
   } catch (const std::exception &e) {
     cout << "Caught exception: " << e.what() << endl;
@@ -401,7 +403,7 @@ static void pml_test(int rank, int size)
   
   fdtd.set_grid_size(75, 21, 21);
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
-  fdtd.set_time_delta(3.1250e-17);
+  //fdtd.set_time_delta(3.1250e-17);
 
   Pml front(VP, 1.0), back(VP, 1.0), left(VP, 1.0), right(VP, 1.0),
     top(VP, 1.0), bottom(VP, 1.0);
@@ -442,7 +444,7 @@ static void pml_test(int rank, int size)
   //mat.set_plasma_freq(2 * PI * 2000e+12); // THz * 2 * pi
   mat.set_collision_freq(1.4e+14);
   mat.set_plasma_freq(2 * PI * 1.85e+15);
-  //mats.add_material(mat);
+  mats.add_material(mat);
 
   fdtd.load_materials(mats);
 
@@ -456,9 +458,9 @@ static void pml_test(int rank, int size)
   //metal1.set_region(45, 55, 6, 12, 7, 12); // UNSTABLE
   //metal1.set_region(45, 55, 7, 13, 7, 12); // UNSTABLE, but slower than above
   //metal1.set_region(45, 55, 7, 12, 7, 12); // STABLE
-  metal1.set_region(40, 65, 6, 13, 6, 13); // UNSTABLE
+  metal1.set_region(40, 65, 5, 14, 5, 14); // UNSTABLE
   //metal1.set_region(40, 52, 7, 12, 7, 12); // UNSTABLE, but low intensity at 500
-  metal1.set_material_id(2);
+  metal1.set_material_id(3);
 
   //Box metal2;
   //metal2.set_region(45, 50, 5, 46, 35, 60);
@@ -609,3 +611,128 @@ static void pml_test(int rank, int size)
    fdtd.run(rank, size, 1000);
 }
 
+static void takakura_test(int rank, int size)
+{
+  FDTD fdtd;
+  
+  fdtd.set_grid_size(50, 320, 266);
+  fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
+  //fdtd.set_time_delta(3.1250e-17);
+
+  Pml front(VP, 1.0), back(VP, 1.0), left(VP, 1.0), right(VP, 1.0),
+    top(VP, 1.0), bottom(VP, 1.0);
+  front.set_thickness(5);
+  back.set_thickness(5);
+  left.set_thickness(5);
+  right.set_thickness(5);
+  top.set_thickness(5);
+  bottom.set_thickness(5);
+
+  fdtd.set_boundary(FRONT, &front);
+  fdtd.set_boundary(BACK, &back);
+  fdtd.set_boundary(BOTTOM, &bottom);
+  fdtd.set_boundary(TOP, &top);
+  fdtd.set_boundary(LEFT, &left);
+  fdtd.set_boundary(RIGHT, &right);
+
+  MaterialLib mats; 
+  Material mat; // defaults to free space
+  mats.add_material(mat);
+  
+  // The library stores copies. 
+  mat.set_epsilon(2.2);
+  mat.set_name("Substrate");
+  mats.add_material(mat);
+
+  mat.set_epsilon(1);
+  mat.set_name("Silver");
+  //mat.set_collision_freq(57e12); // THz
+  //mat.set_plasma_freq(2 * PI * 2000e+12); // THz * 2 * pi
+  mat.set_collision_freq(1.4e+14);
+  mat.set_plasma_freq(2 * PI * 1.85e+15);
+  mats.add_material(mat);
+
+  fdtd.load_materials(mats);
+
+  // Global coordinates. 
+  Box all;
+  all.set_region(0, 50, 0, 320, 0, 266);
+  all.set_material_id(1);
+
+  Box metal1;
+  metal1.set_region(6, 43, 6, 155, 106, 160); // UNSTABLE
+  metal1.set_material_id(3);
+
+  Box metal2;
+  metal2.set_region(6, 43, 164, 313, 106, 160);
+  metal2.set_material_id(3);
+
+  fdtd.add_geometry(&all);
+  fdtd.add_geometry(&metal1);
+  fdtd.add_geometry(&metal2);
+
+  // Excitation
+  Gaussm gm;
+  gm.set_parameters(10, 500e12, 300e12);
+
+  //Excitation ex(&gm);
+  BartlettExcitation ex(&gm);
+  ex.set_soft(true);
+  ex.set_region(6, 43, 6, 313, 15, 15);
+  ex.set_polarization(0.0, 1.0, 0.0);
+
+  fdtd.add_excitation("modgauss", &ex);
+
+  // Results
+  point_t p;
+  p.x = 24;
+  p.y = 159;
+  p.z = 75;
+  PointResult res1(p);
+  PointDFTResult pdft(5e12, 600e12, 120);
+  pdft.set_point(p);
+
+  fdtd.add_result("res1", &res1);
+  fdtd.add_result("pdft", &pdft);
+  
+  AsciiDataWriter adw1(rank, size);
+  adw1.set_filename("t_field_75.txt");
+
+  AsciiDataWriter adw2(rank, size);
+  adw2.set_filename("t_field_dft_75.txt");
+
+  fdtd.add_datawriter("adw1", &adw1);
+  fdtd.add_datawriter("adw2", &adw2);
+  fdtd.map_result_to_datawriter("res1", "adw1");
+  fdtd.map_result_to_datawriter("pdft", "adw2");
+
+  point_t p3(24, 159, 200);
+  PointResult pres60(p3);
+  PointDFTResult pdft60(5e12, 600e12, 120);  
+
+  fdtd.add_result("pres60", &pres60);
+  fdtd.add_result("pdft60", &pdft60);
+
+  AsciiDataWriter adwp60(rank, size);
+  adwp60.set_filename("t_field_200.txt");
+
+  AsciiDataWriter adwp60dft(rank, size);
+  adwp60dft.set_filename("t_field_dft_200.txt");
+
+  fdtd.add_datawriter("adwp60", &adwp60);
+  fdtd.add_datawriter("adwp60dft", &adwp60dft);
+  fdtd.map_result_to_datawriter("pres60", "adwp60");
+  fdtd.map_result_to_datawriter("pdft60", "adwp60dft");
+
+  NetCDFDataWriter ncdw(rank, size);
+  ncdw.set_filename("takakura-test.nc");
+
+  fdtd.add_datawriter("ncdw", &ncdw);
+
+  PlaneResult pr1;
+  pr1.set_name("ex-yzplane4");
+  pr1.set_plane(point_t(24, 159, 75), FRONT);
+  pr1.set_field(FC_EY);
+  
+  fdtd.run(rank, size, 1000);
+}

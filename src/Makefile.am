@@ -10,6 +10,7 @@ phred_cond += python-bindings/PyExcitations.hh \
 	python-bindings/PyResults.hh \
 	python-bindings/PyGrid.hh \
 	python-bindings/PyFDTD.hh \
+	python-bindings/PyTypes.hh \
 	python-bindings/PyInterpreter.hh \
 	python-bindings/PyInterpreter.cc
 #	python-bindings/PyMaterial.cc
@@ -89,6 +90,8 @@ phred_SOURCES=\
 	Hdf5DataWriter.hh \
 	VtkDataWriter.hh \
 	VtkDataWriter.cc \
+	PyDataWriter.hh \
+	PyDataWriter.cc \
 	PointDFTResult.hh \
 	PointDFTResult.cc \
 	SourceTimeResult.hh \
