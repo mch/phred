@@ -69,6 +69,6 @@ protected:
   float radius_;
   float height_;
 
-}
+};
 
 #endif // CSG_CYLINDER_H

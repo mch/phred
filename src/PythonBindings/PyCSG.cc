@@ -25,6 +25,10 @@ using namespace boost::python;
 
 #include "../CSG/CSGBox.hh"
 #include "../CSG/CSGSphere.hh"
+#include "../CSG/CSGCylinder.hh"
+#include "../CSG/CSGDifference.hh"
+#include "../CSG/CSGUnion.hh"
+#include "../CSG/CSGIntersection.hh"
 
 void export_csg() 
 {
@@ -41,6 +45,27 @@ void export_csg()
     .def("get_centre", &CSGPrimitive::get_centre)
     ;
 
+  class_<CSGOperator, bases<CSGObject> >("CSGOperator", no_init)
+    ;
+
+  class_<CSGDifference, bases<CSGOperator> >("CSGDifference", 
+                                             "Represents a difference between two CSG objects.",
+                                             init<shared_ptr<CSGObject>, 
+                                             shared_ptr<CSGObject> >())
+    ;
+
+  class_<CSGUnion, bases<CSGOperator> >("CSGUnion", 
+                                        "Represents a union between two CSG objects.",
+                                        init<shared_ptr<CSGObject>, 
+                                        shared_ptr<CSGObject> >())
+    ;
+
+  class_<CSGIntersection, bases<CSGOperator> >("CSGIntersection", 
+                                               "Represents an intersection between two CSG objects.",
+                                               init<shared_ptr<CSGObject>, 
+                                               shared_ptr<CSGObject> >())
+    ;
+
   class_<CSGBox, bases<CSGPrimitive> >("CSGBox", 
                                        "A CSG object representing a box.")
     .def("set_size", &CSGBox::set_size)
@@ -52,5 +77,14 @@ void export_csg()
     .def("set_radius", &CSGSphere::set_radius)
     .def("get_radius", &CSGSphere::get_radius)
     ;
+
+  class_<CSGCylinder, bases<CSGPrimitive> >("CSGCylinder", 
+                                            "A CSG cylinder oriented along the z axis")
+    .def("set_radius", &CSGCylinder::set_radius)
+    .def("get_radius", &CSGCylinder::get_radius)
+    .def("set_height", &CSGCylinder::set_height)
+    .def("get_height", &CSGCylinder::get_height)
+    ;
+
 }
 

@@ -20,6 +20,7 @@
 */
 
 #include "CSGCylinder.hh"
+#include <math.h>
 
 CSGCylinder::CSGCylinder()
   : radius_(0.5), height_(1)

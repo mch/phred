@@ -19,10 +19,13 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef CSG_OBJECT_H
-#define CSG_OBJECT_H
+#ifndef CSG_OPERATOR_H
+#define CSG_OPERATOR_H
 
 #include "CSGObject.hh"
+#include <boost/shared_ptr.hpp>
+
+using namespace boost;
 
 /**
  * This is an abstract base class for a constructive solid geometry
