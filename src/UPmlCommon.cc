@@ -172,11 +172,12 @@ void UPmlCommon::init_sigmas()
       }
       mat_coef_t sigma_max = calc_sigma_max(eps, delta);
       
-      for (int sigidx = start, idx = 1; idx <= thickness; 
-           idx++, sigidx += incr)
+      for (int sigidx = start, idx = thickness; idx > 0; 
+           idx--, sigidx += incr)
       {
         // THIS FORMULA IS WRONG! WRONGGG!
-        sigmas[sigidx] = sigma_max * pow(static_cast<float>(idx / thickness), 
+        sigmas[sigidx] = sigma_max * pow(static_cast<float>(idx) 
+					 / static_cast<float>(thickness), 
                                          static_cast<float>(poly_order_));
       }      
     }
