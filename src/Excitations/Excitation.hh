@@ -67,6 +67,10 @@ protected:
 
   shared_ptr<CSGBox> box_; /**< The box representing the area where
                               the excitation is to be applied. */
+  
+  float time_start_;
+  float time_stop_;
+  float time_offset_;
 
 public:
 
@@ -145,6 +149,26 @@ public:
    * Verify that the excitation region is entierly inside the global grid. 
    */
   virtual void init(const Grid &grid);
+
+  /**
+   * Set the time window over which the excitation is applied, and the
+   * time offset to be applied to the signal. All values are in real
+   * time, NOT time steps.
+   *
+   * @param start time to start returning results at
+   * @param stop time to stop returning results at
+   * @param offset the amount of time to shift the signal being
+   * applied to this excitation by. If the start time is non zero,
+   * this can be used to shift the signal so that it ramps up
+   * properly after the start time.
+   */
+  inline void set_time_param(float start, float stop, 
+                             float offset)
+  {
+    time_start_ = start;
+    time_stop_ = stop;
+    time_offset_ = offset; 
+  }
 
   /**
    * Print a string representation to an ostream.

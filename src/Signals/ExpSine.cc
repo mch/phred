@@ -23,7 +23,7 @@
 #include "../Constants.hh"
 
 ExpSine::ExpSine()
-  : ampl_(1), period_(1/1e9), omega_(1e9*2*PI)
+  : ampl_(1), period_(1), omega_(1*2*PI)
 {}
 
 ExpSine::ExpSine(float frequency)

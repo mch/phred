@@ -359,9 +359,204 @@ void grooves_bottom()
 void grooves_both()
 {}
 
-void square_hole(int argc, char **argv)
+void square_hole(int ysize)
 {
+  cout << "Simulating a square hole in a plate of perfect conductor..." 
+       << endl;
 
+  cout << "Hole is 270 nm by " << ysize << " nm in a PEC place that is 300 nm thick." << endl;
+
+  string prefix = "sqhole_";
+
+  // Time steps is recalculated based on the length of the excitation.
+  unsigned int time_steps = 3000;
+
+  float deltax = 5e-9;
+  float deltay = 5e-9;
+  float deltaz = 5e-9;
+
+  float gridx = 1000e-9;
+  float gridy = 1000e-9;
+  float gridz = 1000e-9;
+
+  float plate_thickness = 300e-9;
+  float hole_x = 270e-9;
+  float hole_y = ysize * 1.0e-9;
+
+  // Excitation parameters
+  float ex_ampl = 1.0;
+  float ex_freq_size = 200e12;
+  float ex_centre_f = 500e12;
+  float ex_offset = -250e-9;
+
+  // DFT Parameters
+  float dft_low = 300e12;
+  float dft_high = 750e12;
+  unsigned int dft_num = 20;
+
+  // GRID
+  FDTD fdtd;
+
+  fdtd.set_grid_deltas(deltax, deltay, deltaz);
+  fdtd.set_grid_size(gridx, gridy, gridz);
+
+  // MATERIAL
+  shared_ptr<MaterialLib> mlib 
+    = shared_ptr<MaterialLib>(new MaterialLib());
+
+  Material mat;
+  mat.set_epsilon(2.2);
+  (*mlib).add_material("dielectric", mat);
+
+  fdtd.load_materials(mlib);
+
+  // BOUNDARIES
+  for (int i = 0; i < 6; i++)
+  {
+    shared_ptr<Pml> bound = shared_ptr<Pml>(new Pml());
+    (*bound).set_thickness(8);
+    fdtd.set_boundary(static_cast<Face>(i), bound);
+  }
+
+  // EXCITATION
+  shared_ptr<Gaussm> gm = shared_ptr<Gaussm>(new Gaussm());
+  gm->set_parameters(ex_ampl, ex_freq_size, ex_centre_f);
+
+  time_steps = static_cast<unsigned int>
+    (ceil((gm->length() + 2 * gridz / 3e8) / fdtd.get_time_delta()));
+  
+  shared_ptr<GaussWindExcitation> ex 
+    = shared_ptr<GaussWindExcitation>(new GaussWindExcitation(gm));
+  shared_ptr<CSGBox> exbox 
+    = shared_ptr<CSGBox>(new CSGBox());
+  exbox->set_size(gridx - 16 * deltax, gridy - 16 * deltay, deltaz);
+  exbox->set_centre(0, 0, ex_offset);
+  ex->set_region(exbox);
+  ex->set_soft(true);
+  ex->set_type(E);
+  ex->set_polarization(1,0,0);
+
+  fdtd.add_excitation("fluffy", ex);
+
+  // DATA WRITERS
+//   shared_ptr<NetCDFDataWriter> ncdw 
+//     = shared_ptr<NetCDFDataWriter>(new NetCDFDataWriter());
+
+//   (*ncdw).set_filename(prefix + "planes.nc");
+//   fdtd.add_datawriter("ncdw", ncdw);
+  
+  shared_ptr<MatlabDataWriter> mdw 
+    = shared_ptr<MatlabDataWriter>(new MatlabDataWriter());
+
+  (*mdw).set_filename(prefix + "power.mat");
+  fdtd.add_datawriter("mdw", mdw);
+
+  shared_ptr<GridResult> gridr
+    = shared_ptr<GridResult>(new GridResult);
+
+  // GRID RESULT: Should be disabled for the full problem
+//   fdtd.add_result("grid", gridr);
+//   fdtd.map_result_to_datawriter("grid", "ncdw");
+
+  // INFORMATION ABOUT EXCIATION
+  shared_ptr<SignalTimeResult> st
+    = shared_ptr<SignalTimeResult>(new SignalTimeResult(*gm));
+  fdtd.add_result("src", st);
+  fdtd.map_result_to_datawriter("src", "mdw");
+
+  shared_ptr<SignalDFTResult> sdft
+    = shared_ptr<SignalDFTResult>(new SignalDFTResult(*gm, dft_low, 
+                                                      dft_high, 
+                                                      dft_num));
+  fdtd.add_result("srcdft", sdft);
+  fdtd.map_result_to_datawriter("srcdft", "mdw");
+
+  // Incident side point
+  shared_ptr<PointResult> pr1
+    = shared_ptr<PointResult>(new PointResult());
+  pr1->set_point(point(0, 0, -plate_thickness));
+  fdtd.add_result("p1", pr1);
+
+  shared_ptr<PointDFTResult> pr1dft 
+    =  shared_ptr<PointDFTResult>(new PointDFTResult());
+  pr1dft->set_point(point(0, 0, -plate_thickness));
+  pr1dft->set_freq(dft_low, dft_high, dft_num);
+  fdtd.add_result("p1dft", pr1dft);
+
+  fdtd.map_result_to_datawriter("p1", "mdw");
+  fdtd.map_result_to_datawriter("p1dft", "mdw");
+
+  // Transmission side point
+  shared_ptr<PointResult> pr2
+    = shared_ptr<PointResult>(new PointResult());
+  pr2->set_point(point(0, 0, plate_thickness));
+  fdtd.add_result("p2", pr2);
+
+  shared_ptr<PointDFTResult> pr2dft 
+    =  shared_ptr<PointDFTResult>(new PointDFTResult());
+  pr2dft->set_point(point(0, 0, plate_thickness));
+  pr2dft->set_freq(dft_low, dft_high, dft_num);
+  fdtd.add_result("p2dft", pr2dft);
+  
+  fdtd.map_result_to_datawriter("p2", "mdw");
+  fdtd.map_result_to_datawriter("p2dft", "mdw");
+
+  // Farfield measurements
+  shared_ptr<CSGBox> ffbox
+    = shared_ptr<CSGBox>(new CSGBox());
+  ffbox->set_size(gridx, gridy, plate_thickness);
+  
+  // About the y axis
+  shared_ptr<FarfieldResult> ffy
+    = shared_ptr<FarfieldResult>(new FarfieldResult());
+  ffy->set_freq(dft_low, dft_high, dft_num);
+  ffy->set_region(ffbox);
+  ffy->use_face(FRONT, false);
+  ffy->use_face(BACK, false);
+  ffy->use_face(LEFT, false);
+  ffy->use_face(RIGHT, false);
+  ffy->use_face(BOTTOM, false);
+  ffy->use_face(TOP, true);  
+  
+  ffy->set_theta_degrees(-9, 9, 7);
+  ffy->set_phi_degrees(0, 0, 1);
+
+  // About the x axis
+  shared_ptr<FarfieldResult> ffx
+    = shared_ptr<FarfieldResult>(new FarfieldResult());
+  ffx->set_freq(dft_low, dft_high, dft_num);
+  ffx->set_region(ffbox);
+  ffx->use_face(FRONT, false);
+  ffx->use_face(BACK, false);
+  ffx->use_face(LEFT, false);
+  ffx->use_face(RIGHT, false);
+  ffx->use_face(BOTTOM, false);
+  ffx->use_face(TOP, true);  
+  
+  ffx->set_theta_degrees(-9, 9, 7);
+  ffx->set_phi_degrees(90, 90, 1);
+
+  fdtd.add_result("ffy", ffy);
+  fdtd.add_result("ffx", ffx);
+  
+  fdtd.map_result_to_datawriter("ffy", "mdw");
+  fdtd.map_result_to_datawriter("ffx", "mdw");
+    
+  shared_ptr<CSGBox> metal = shared_ptr<CSGBox>(new CSGBox());
+  metal->set_size(gridx, gridy, plate_thickness);
+
+  shared_ptr<CSGCylinder> hole 
+    = shared_ptr<CSGCylinder>(new CSGCylinder());
+  hole->set_radius(hole_radius);
+  hole->set_height(2 * plate_thickness);
+  
+  shared_ptr<CSGDifference> plate 
+    = shared_ptr<CSGDifference>(new CSGDifference(metal, hole));
+  
+  fdtd.add_object("PEC", plate);
+
+  fdtd.set_time_steps(time_steps);
+  fdtd.run();
 }
 
 // Test runs

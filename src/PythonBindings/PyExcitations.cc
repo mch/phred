@@ -136,6 +136,7 @@ void export_excitations()
     .def("set_soft", &Excitation::set_soft)
     .def("get_soft", &Excitation::get_soft)
     .def("set_region", &Excitation::set_region)
+    .def("set_time_param", &Excitation::set_time_param)
     ;
 
   class_<WindowedExcitation, WindowedExcitationWrap, bases<Excitation>,

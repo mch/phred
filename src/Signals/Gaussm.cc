@@ -22,7 +22,7 @@
 #include "Gaussm.hh"
 
 Gaussm::Gaussm()
-  : alpha_(1), deltaf_(50e6), f0_(1e9)
+  : alpha_(1), deltaf_(0.5), f0_(1)
 {}
 
 Gaussm::~Gaussm()
