@@ -41,7 +41,8 @@ Grid::Grid()
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
     Da_(0), Dbx_(0), Dby_(0), Dbz_(0),
     ex_(0), ey_(0), ez_(0), hx_(0), hy_(0), hz_(0), 
-    material_(0), types_alloced_(false), define_(true)
+    material_(0), types_alloced_(false), define_(true),
+    geometries_(0), num_geoms_(0)
 {
 
 }
@@ -74,6 +75,9 @@ const Grid &Grid::operator=(const Grid &rhs)
   y_vector_ = rhs.y_vector_;
   z_vector_ = rhs.z_vector_;
   define_ = rhs.define_;
+
+  geometries_ = 0;
+  num_geoms_ = 0;
 
   return *this;
 }
@@ -452,6 +456,16 @@ void Grid::alloc_grid()
   }
 }
 
+void Grid::load_geometries(vector<Geometry *> &geoms)
+{
+  num_geoms_ = geoms.size();
+  vector<Geometry *>::iterator iter;
+  vector<Geometry *>::iterator iter_e = geoms.end();
+  int idx = 0;
+
+  for (iter = geoms.begin(), idx = 0; iter != iter_e; ++iter, idx++)
+    geometries_[idx] = *iter;
+}
 
 void Grid::load_materials(MaterialLib &matlib)
 {
@@ -587,34 +601,34 @@ void Grid::setup_grid(const GridInfo &info)
 }
 
 
-void Grid::define_box(unsigned int x_start, unsigned int x_stop, 
-                      unsigned int y_start, unsigned int y_stop, 
-                      unsigned int z_start, unsigned int z_stop, 
-                      unsigned int mat_index)
-{
-  // Given coordinates are global, so we have to convert them to local. 
+// void Grid::define_box(unsigned int x_start, unsigned int x_stop, 
+//                       unsigned int y_start, unsigned int y_stop, 
+//                       unsigned int z_start, unsigned int z_stop, 
+//                       unsigned int mat_index)
+// {
+//   // Given coordinates are global, so we have to convert them to local. 
   
-  if (!define_)
-  {
-    cerr << "Unable to define a box; the grid is not in define mode." << endl;
-    return;
-  }
+//   if (!define_)
+//   {
+//     cerr << "Unable to define a box; the grid is not in define mode." << endl;
+//     return;
+//   }
 
-  region_t r = global_to_local(x_start, x_stop,
-                               y_start, y_stop,
-                               z_start, z_stop);
+//   region_t r = global_to_local(x_start, x_stop,
+//                                y_start, y_stop,
+//                                z_start, z_stop);
 
-  for (unsigned int i = r.xmin; i < r.xmax; i++)
-  {
-    for (unsigned int j = r.ymin; j < r.ymax; j++)
-    {
-      for (unsigned int k = r.zmin; k < r.zmax; k++)
-      {
-        material_[pi(i, j, k)] = mat_index;
-      }
-    }
-  }
-}
+//   for (unsigned int i = r.xmin; i < r.xmax; i++)
+//   {
+//     for (unsigned int j = r.ymin; j < r.ymax; j++)
+//     {
+//       for (unsigned int k = r.zmin; k < r.zmax; k++)
+//       {
+//         material_[pi(i, j, k)] = mat_index;
+//       }
+//     }
+//   }
+// }
 
 // Straight out of Taflove.
 void Grid::update_e_field()
@@ -906,6 +920,14 @@ void Grid::apply_boundaries(FieldType type)
   info_.apply_boundaries(*this, type);
 }
 
+point_t Grid::global_to_local(point_t p) const
+{
+  point_t r;
+  
+  r.x = (info_.start_x_ > p.x) ? 0 : p.x - info_.start_x_;
+  r.y = (info_.start_y_ > p.y) ? 0 : p.y - info_.start_y_;
+  r.z = (info_.start_z_ > p.z) ? 0 : p.z - info_.start_z_;
+}
 
 region_t Grid::global_to_local(region_t in) const
 {

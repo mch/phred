@@ -31,7 +31,6 @@ class Box : public Geometry
 {
 private:
 protected:
-  region_t r_;
 
 public:
   Box();
@@ -43,7 +42,7 @@ public:
    */
   inline void set_region(region_t r)
   {
-    r_ = r;
+    bounding_box_ = r;
   }
 
   /**
@@ -63,6 +62,14 @@ public:
    * Update the material indicies of the grid 
    */
   virtual void set_material(Grid &grid);
+
+  /**
+   * Returns true if the given point is inside this geometry, with
+   * respect to local grid coordinates. 
+   */ 
+  virtual bool local_point_inside(unsigned int x,
+                                  unsigned int y, 
+                                  unsigned int z);
 
 };
 

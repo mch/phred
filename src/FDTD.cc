@@ -32,6 +32,20 @@ FDTD::~FDTD()
     delete grid_;
 }
 
+Geometry &FDTD::find_geometry(unsigned int x,
+                              unsigned int y,
+                              unsigned int z)
+{
+  vector<Geometry *>::reverse_iterator iter;
+  vector<Geometry *>::reverse_iterator iter_e = geometry_.rend();
+
+  for (iter = geometry_.rbegin(); iter != iter_e; ++iter)
+  {
+    if ((*iter)->local_point_inside(x, y, z))
+      return **iter;
+  }
+}
+
 void FDTD::set_time_steps(unsigned int t)
 {
   time_steps_ = t;
@@ -175,6 +189,7 @@ void FDTD::run(int rank, int size)
   grid_->setup_grid(local_ginfo_);
 
   grid_->load_materials(*mlib_);
+  grid_->load_geometries(geometry_);
 
   grid_->set_define_mode(false);
 

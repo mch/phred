@@ -32,32 +32,44 @@ Sphere::~Sphere()
 
 void Sphere::init(const Grid &grid)
 {
-
-}
-
-void Sphere::set_material(Grid &grid)
-{
   region_t r;
 
   int temp = centre_.x - radius_;
   r.xmin = temp >= 0 ? temp : 0;
   temp = centre_.x + radius_;
-  r.xmax = temp < grid.get_ldx_sd() 
-    ? temp : 0;
+  //r.xmax = temp < grid.get_ldx_sd() ? temp : 0;
+  r.xmax = temp < grid.get_gdx() ? temp : 0;
 
   temp = centre_.y - radius_;
   r.ymin = (centre_.y - radius_) >= 0 ? (centre_.y - radius_) : 0;
   temp = centre_.y + radius_;
-  r.ymax = temp < grid.get_ldy_sd() ? temp : 0;
+  //r.ymax = temp < grid.get_ldy_sd() ? temp : 0;
+  r.ymax = temp < grid.get_gdy() ? temp : 0;
 
   temp = centre_.z - radius_;
   r.zmin = temp >= 0 ? temp : 0;
   temp = centre_.z + radius_;
-  r.zmax = temp < grid.get_ldz_sd() ? temp : 0;
+  //r.zmax = temp < grid.get_ldz_sd() ? temp : 0;  
+  r.zmax = temp < grid.get_gdz() ? temp : 0;  
+  
+  bounding_box_ = r;
+  Geometry::init(grid);
+  
+  // Convert centre and radius to local coords
+  centre_ = grid.global_to_local(centre_);
 
-  for (unsigned int i = r.xmin; i < r.xmax; i++)
+  if (local_bb_.xmin == 0 && local_bb_.xmax == 0
+      && local_bb_.ymin == 0 && local_bb_.ymax == 0
+      && local_bb_.zmin == 0 && local_bb_.zmax == 0)
+    radius_ = 0;
+  
+}
+
+void Sphere::set_material(Grid &grid)
+{
+  for (unsigned int i = local_bb_.xmin; i < local_bb_.xmax; i++)
   {
-    for (unsigned int j = r.ymin; j < r.ymax; j++)
+    for (unsigned int j = local_bb_.ymin; j < local_bb_.ymax; j++)
     {
       // oops, fix this:
       int p = radius_ * radius_ - (i - centre_.x) * (i - centre_.x) 
@@ -79,4 +91,22 @@ void Sphere::set_material(Grid &grid)
       }
     }
   }
+}
+
+
+bool Sphere::local_point_inside(unsigned int x,
+                                unsigned int y, 
+                                unsigned int z)
+{
+  int xsq = centre_.x - x;
+  xsq = xsq * xsq;
+  int ysq = centre_.y - y;
+  ysq = ysq * ysq;
+  int zsq = centre_.z - z;
+  zsq = zsq * zsq;
+
+  if ((xsq + ysq + zsq) < (radius_ * radius_))
+    return true;
+  else
+    return false;
 }

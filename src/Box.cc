@@ -32,21 +32,22 @@ void Box::set_region(unsigned int xstart, unsigned int xstop,
                      unsigned int ystart, unsigned int ystop, 
                      unsigned int zstart, unsigned int zstop)
 {
-  r_.xmin = xstart;
-  r_.xmax = xstop;
-  r_.ymin = ystart;
-  r_.ymax = ystop;
-  r_.zmin = zstart;
-  r_.zmax = zstop;
+  bounding_box_.xmin = xstart;
+  bounding_box_.xmax = xstop;
+  bounding_box_.ymin = ystart;
+  bounding_box_.ymax = ystop;
+  bounding_box_.zmin = zstart;
+  bounding_box_.zmax = zstop;
 }
 
 void Box::init(const Grid &grid)
 {
-
+  Geometry::init(grid);
 }
+
 void Box::set_material(Grid &grid)
 {
-  region_t r = grid.global_to_local(r_);
+  region_t r = grid.global_to_local(bounding_box_);
 
   for (unsigned int i = r.xmin; i < r.xmax; i++)
   {
@@ -58,4 +59,16 @@ void Box::set_material(Grid &grid)
       }
     }
   }
+}
+
+bool Box::local_point_inside(unsigned int x,
+                             unsigned int y, 
+                             unsigned int z)
+{
+  if (x >= local_bb_.xmin && x < local_bb_.xmax 
+      && y >= local_bb_.ymin && y < local_bb_.ymax
+      && z >= local_bb_.zmin && z < local_bb_.zmax)
+    return true;
+  else
+    return false;
 }

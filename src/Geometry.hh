@@ -41,8 +41,13 @@ private:
 protected:
   unsigned int material_id_;
 
-  field_t **aux; /**< Auxilariy data required for dispersion
-                    relationships that happen inside the geometry. */ 
+  field_t **aux_; /**< Auxilariy data required for dispersion
+                     relationships that happen inside the geometry. */ 
+
+  region_t bounding_box_; /**< A box that entierly contains the object
+                             defined by any given geometry. */  
+
+  region_t local_bb_; /**< Bounding box in local coordinates */ 
 
 public:
   Geometry() {}
@@ -77,6 +82,22 @@ public:
   };
 
   /**
+   * Set the auxiliary field data
+   */
+  inline void set_aux_data(field_t **aux)
+  {
+    aux_ = aux;
+  }
+
+  /** 
+   * Return the aux field data
+   */
+  inline field_t **get_aux_data()
+  {
+    return aux_;
+  }
+
+  /**
    * Set the material id to use
    */
   inline void set_material_id(unsigned int mid)
@@ -96,7 +117,7 @@ public:
    * Init the geometry against the grid; check that the geometry is
    * inside the grid
    */ 
-  virtual void init(const Grid &grid) = 0;
+  virtual void init(const Grid &grid);
 
   /**
    * Update the material indicies of the grid 
@@ -107,17 +128,35 @@ public:
    * Returns true if the given point is inside this geometry, with
    * respect to local grid coordinates. 
    */ 
-  virtual void local_point_inside(unsigned int x,
+  virtual bool local_point_inside(unsigned int x,
                                   unsigned int y, 
-                                  unsigned int y) = 0;
+                                  unsigned int z) = 0;
 
   /**
    * Returns true if the given point is inside this geometry, with
    * respect to global grid coordinates. 
    */ 
-  virtual void global_point_inside(unsigned int x,
-                                   unsigned int y, 
-                                   unsigned int y) = 0;
+  //virtual bool global_point_inside(unsigned int x,
+  //                                 unsigned int y, 
+  //                                 unsigned int y) = 0;
+
+  /**
+   * Returns the region which defines the bounding box for this object.
+   */
+  inline region_t get_bounding_box()
+  {
+    return bounding_box_;
+  }
+
+  /**
+   * Returns the region which defines the bounding box for this object
+   * in local coordinates.
+   */
+  inline region_t get_local_bounding_box()
+  {
+    return local_bb_;
+  }
+
 };
 
 #endif // GEOMETRY_H

@@ -36,6 +36,7 @@ phred_SOURCES=\
 	JanFDTD.hh \
 	JanFDTD.cc \
 	Geometry.hh \
+	Geometry.cc \
 	Box.hh \
 	Box.cc \
 	SphereGeom.hh \

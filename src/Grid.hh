@@ -54,6 +54,7 @@
 #include "Types.hh"
 #include "MaterialLib.hh"
 #include "GridInfo.hh"
+#include "Geometry.hh"
 
 class Grid {
   friend class UPml;
@@ -148,6 +149,17 @@ class Grid {
    * equations cannot be run in define mode. 
    */
   bool define_;
+
+  /**
+   * An array of pointers to geometry objects. Since this will be used
+   * inside the update equation loops, it is an array rather than a
+   * vector to avoid iterator construction overhead and so
+   * on. Hopefully the virtual function calls won't be too much of a
+   * problem. 
+   */ 
+  Geometry **geometries_;
+
+  unsigned int num_geoms_;
 
   /**
    * Compute the update equatations for the Ex field component. 
@@ -278,6 +290,12 @@ class Grid {
   virtual void load_materials(MaterialLib &matlib);
 
   /**
+   * Store references to the geometry objects so that more specialized
+   * dispersions can store data in them.
+   */ 
+  virtual void load_geometries(vector<Geometry *> &geoms);
+
+  /**
    * Deallocate the memory used to store material coeffcients and so
    * on. This function can only be used in define mode. 
    */
@@ -327,6 +345,14 @@ class Grid {
   region_t global_to_local(region_t r) const;
 
   /**
+   * Convert a global point to local coordinates.
+   *
+   * @param p the point to convert
+   * @return the point in global coordinates
+   */
+  point_t global_to_local(point_t p) const;
+
+  /**
    * Convert global coordinate to local grid coordinates. Generally
    * excitations and geometry specifications are given in terms of
    * the global FDTD grid. Since each processor only knows about part
@@ -364,10 +390,10 @@ class Grid {
    * perfect electric conductor, 1 and up are ordered as in the
    * material library.
    */
-  virtual void define_box(unsigned int x_start, unsigned int x_stop, 
-                          unsigned int y_start, unsigned int y_stop, 
-                          unsigned int z_start, unsigned int z_stop, 
-                          unsigned int mat_index);
+  //virtual void define_box(unsigned int x_start, unsigned int x_stop, 
+  //                        unsigned int y_start, unsigned int y_stop, 
+  //                        unsigned int z_start, unsigned int z_stop, 
+  //                        unsigned int mat_index);
 
   /**
    * Returns the global size of the x dimension.

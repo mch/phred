@@ -44,19 +44,16 @@ void FreqGrid::alloc_grid()
 {
   Grid::alloc_grid();
 
+  // Ugly-be-gone: Now that the grid knows about the geometries, it
+  // can check each and figure out which have to have aux data stored
+  // in them and set them accordingly. 
+
   unsigned int sz = 0;
 
   sz = info_.dimx_ * info_.dimy_ * info_.dimz_;
 
   // UGLY!
   unsigned int num_plasma = 0;
-
-  // CAN'T do this because material_ hasn't been set to actual material numbers yet!
-//   for (unsigned int i = 0; i < sz; i++)
-//   {
-//     if (vcdt_[material_[i]] != 0.0)
-//       num_plasma++;
-//   }
 
   // TEMPORARY
   num_plasma = sz;

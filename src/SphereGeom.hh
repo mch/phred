@@ -66,6 +66,13 @@ public:
    */
   virtual void set_material(Grid &grid);
 
+  /**
+   * Returns true if the given point is inside this geometry, with
+   * respect to local grid coordinates. 
+   */ 
+  virtual bool local_point_inside(unsigned int x,
+                                  unsigned int y, 
+                                  unsigned int z);
 };
 
 #endif

@@ -217,6 +217,16 @@ public:
    */
   void run(int rank, int size);
 
+  /**
+   * Looks through the geometry stack and returns a reference to the
+   * geometry that a particular point belongs to. 
+   *
+   * @param p the point to find the geometry for
+   */
+  Geometry &find_geometry(unsigned int x,
+                          unsigned int y,
+                          unsigned int z);
+
 };
 
 #endif // FDTD_H
