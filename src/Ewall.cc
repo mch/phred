@@ -8,7 +8,7 @@ Ewall::~Ewall()
 {}
 
 template <class T>
-void Ewall::condition(region r, Grid &grid)
+void Ewall::condition(region_t r, Grid &grid)
 {
   T p(grid);
 
@@ -24,7 +24,7 @@ void Ewall::condition(region r, Grid &grid)
 
 void Ewall::apply(Face face, Grid &grid)
 {
-  region r = find_face(face, grid);
+  region_t r = find_face(face, grid);
 
   switch (face)
   {

@@ -31,7 +31,7 @@ void Grid::set_define_mode(bool d)
     
     // Stability check
     
-    // Calculate update region by considering the thickness of the PML's. 
+    // Calculate update region_t by considering the thickness of the PML's. 
     update_r_.xmin = 0;
     update_r_.xmax = info_.dimx_;
     update_r_.ymin = 0;
@@ -520,9 +520,9 @@ void Grid::apply_boundaries()
 }
 
 
-region Grid::global_to_local(region in)
+region_t Grid::global_to_local(region_t in)
 {
-  region r;
+  region_t r;
 
   r.xmin = (get_lsx() > in.xmin) ? get_lsx() - 1
     : in.xmin - get_lsx();
@@ -543,11 +543,11 @@ region Grid::global_to_local(region in)
   return r;
 }
 
-region Grid::global_to_local(unsigned int x_start, unsigned int x_stop, 
+region_t Grid::global_to_local(unsigned int x_start, unsigned int x_stop, 
                              unsigned int y_start, unsigned int y_stop, 
                              unsigned int z_start, unsigned int z_stop)
 {
-  region result;
+  region_t result;
   
   result.xmin = x_start;
   result.xmax = x_stop;
@@ -558,3 +558,4 @@ region Grid::global_to_local(unsigned int x_start, unsigned int x_stop,
 
   return global_to_local(result);
 }
+

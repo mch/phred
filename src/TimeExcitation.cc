@@ -4,7 +4,7 @@ void TimeExcitation::excite(Grid &grid, unsigned int time_step)
 {
   // Find out where we fit in this grid (convert to local coordinates)
 
-  region r = grid.global_to_local(x_start_, x_end_, 
+  region_t r = grid.global_to_local(x_start_, x_end_, 
                                   y_start_, y_end_,
                                   z_start_, z_end_);
 

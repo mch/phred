@@ -34,6 +34,9 @@ phred_SOURCES=phred.cc \
 	SubdomainAlg.hh \
 	SimpleSDAlg.cc \
 	SimpleSDAlg.hh \
+	Result.hh \
+	PointResult.hh \
+	PointResult.cc \
 	jan-grammer.yy \
 	jan-grammer-flex.ff \
 	lex.yy.cc

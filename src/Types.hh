@@ -90,13 +90,23 @@ typedef double delta_t;
  * \brief min and max coordinates that can be used to define a
  * block within the grid. Or a face. 
  */
-typedef struct region_t {
+typedef struct region_str {
   unsigned int xmin;
   unsigned int xmax;
   unsigned int ymin;
   unsigned int ymax;
   unsigned int zmin;
   unsigned int zmax;
-} region;
+} region_t;
+
+/**
+ * Represents a single point in space
+ */
+typedef struct point_str {
+  unsigned int x;
+  unsigned int y;
+  unsigned int z;
+} point_t;
+
 
 #endif // TYPES_H

@@ -9,7 +9,8 @@ using namespace std;
 
 /**
  * A wrapper for a MPI derived data type, a pointer, and an int
- * indicating the number of items. 
+ * indicating the number of items. This breaks OO principles slightly,
+ * since we are exposing pointers to member data, but oh well. 
  */
 class Data {
 private:
@@ -19,11 +20,18 @@ protected:
   unsigned int num_;
 
 public:
-  Data();
+  Data() 
+  {
+    // A single field_t by default. 
+    MPI_Type_contiguous(1, GRID_MPI_TYPE, &type_);
+    MPI_Type_commit(&type_);
+  }
+
   ~Data();
 
   /**
    * Used to set the data type.
+   * @param type MPI derived data type
    */
   inline void set_datatype(MPI_Datatype &type)
   {
@@ -90,6 +98,7 @@ class Result
 private:
 protected:
   string var_name_; /**< Variable name */
+  Data data_;
 
 public:
   Result() {}
@@ -99,11 +108,37 @@ public:
    * Looks at the grid and produces output
    *
    * @param grid a reference to a Grid object
-   * @return a data object, which contains an MPI derived data type,
-   * a pointer, and the number of items in the result. 
+   * @return a reference to a data object, which contains an MPI
+   * derived data type, a pointer, and the number of items in the
+   * result.
    */
-  virtual Data get_result(Grid &grid) = 0;
+  virtual Data &get_result(Grid &grid) = 0;
 
+  /**
+   * Set the name of the variable. 
+   * @param name a string with the name
+   */
+  void set_name(string name)
+  {
+    name_ = name;
+  }
+
+  /**
+   * Return the name of the variable. 
+   * @return a string with the name in it. 
+   */
+  string get_name()
+  {
+    return var_name_;
+  }
+
+  /**
+   * Called to perform any initialization that may be required. Does
+   * nothing by default. 
+   */
+  virtual void init()
+  {}
+  
 };
 
 #endif // RESULT_H

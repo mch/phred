@@ -18,7 +18,7 @@ enum PmlVariation_t {
 };
 
 // forward decl
-class Pml : public BoundaryCond;
+class Pml;
 
 /**
  * Data common to a set of PML's. This holds coefficients and stuff
@@ -119,9 +119,9 @@ protected:
   /**
    * Allocate memory for the field data
    *
-   * @param r a region describing the size of the PML. 
+   * @param r a region_t describing the size of the PML. 
    */
-  void alloc_pml_fields(region r);
+  void alloc_pml_fields(region_t r);
 
   /**
    * Free the memory used to hold the PML field data.

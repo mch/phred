@@ -1,9 +1,9 @@
 #include "BoundaryCondition.hh"
 #include "Grid.hh" // Flesh out the forward declaration
 
-region BoundaryCond::find_face(Face face, Grid &grid)
+region_t BoundaryCond::find_face(Face face, Grid &grid)
 {
-  region r;
+  region_t r;
 
   switch (face) 
   {
@@ -61,7 +61,7 @@ region BoundaryCond::find_face(Face face, Grid &grid)
 
 // void BoundaryCond::apply(Face face, Grid &grid)
 // {
-//   region r = find_face(face, grid);
+//   region_t r = find_face(face, grid);
 
 //   switch (face)
 //   {

@@ -8,7 +8,7 @@ Hwall::~Hwall()
 {}
 
 template <class T>
-void Hwall::condition(region r, Grid &grid)
+void Hwall::condition(region_t r, Grid &grid)
 {
   T p(grid);
 
@@ -24,7 +24,7 @@ void Hwall::condition(region r, Grid &grid)
 
 void Hwall::apply(Face face, Grid &grid)
 {
-  region r = find_face(face, grid);
+  region_t r = find_face(face, grid);
 
   switch (face)
   {

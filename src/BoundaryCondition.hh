@@ -19,13 +19,13 @@ protected:
    * Returns the min and max coordinates along each axis for a given
    * face. Each boundary condition implements it's own loops, but
    * this factors out some of the tedious work in anycase. If the
-   * thickness is nonzero, the returned region is thick.
+   * thickness is nonzero, the returned region_t is thick.
    *
    * @param face the Face to work on, as defined in Types.hh
    * @param grid the Grid object that we are looking at
-   * @return a region containing the coordinate mins and maxs
+   * @return a region_t containing the coordinate mins and maxs
    */
-  region find_face(Face face, Grid &grid);
+  region_t find_face(Face face, Grid &grid);
 
   /**
    * The thickness of the boundary condition. Usually zero, but will

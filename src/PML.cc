@@ -8,7 +8,7 @@ Pml::~Pml()
 
 void Pml::apply(Face face, Grid &grid)
 {
-  region r = find_face(face, grid);
+  region_t r = find_face(face, grid);
 
   switch (face)
   {

@@ -61,7 +61,7 @@ class Grid {
   // The region over which the Grid update equations are
   // applied. Just the size given in info_ minus the offsets. This is
   // calculated when we leave define mode. 
-  region update_r_;
+  region_t update_r_;
 
   // Number of materials we know about (0 is PEC)
   unsigned int num_materials_;
@@ -225,10 +225,10 @@ class Grid {
    * of that grid, it is necessary to convert global coordinates to
    * local ones that can be used. 
    *
-   * @param region the global region to convert.
+   * @param r the global region to convert.
    * @return region in local coordinate. 
    */
-  region global_to_local(region r);
+  region_t global_to_local(region_t r);
 
   /**
    * Convert global coordinate to local grid coordinates. Generally
@@ -244,9 +244,9 @@ class Grid {
    * @param z_start The starting cell of the box in z
    * @param z_stop The ending cell of the box in z
    *
-   * @return region in local coordinate. 
+   * @return region_t in local coordinate. 
    */
-  region global_to_local(unsigned int x_start, unsigned int x_stop, 
+  region_t global_to_local(unsigned int x_start, unsigned int x_stop, 
                          unsigned int y_start, unsigned int y_stop, 
                          unsigned int z_start, unsigned int z_stop);
 

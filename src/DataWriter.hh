@@ -53,7 +53,7 @@ public:
   private:
     Variable_4d();
   protected:
-    region r_;
+    region_t r_;
 
     /** 
      * Implementing classes must implment this to do the actual saving. 
@@ -62,7 +62,7 @@ public:
                              unsigned int z, field_t val) = 0;
 
   public:
-    Variable_4d(DataWriter &dw, string name, region r)
+    Variable_4d(DataWriter &dw, string name, region_t r)
       : Variable(dw, name), r_(r)
     {}
 
@@ -136,9 +136,9 @@ public:
    * unless that's not supported. 
    *
    * @param name a variable name
-   * @param r describes the region to output
+   * @param r describes the region_t to output
    */
-  Variable_4d& add_4d_variable(string name, region r);
+  Variable_4d& add_4d_variable(string name, region_t r);
 
 };
 
