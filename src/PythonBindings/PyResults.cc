@@ -63,8 +63,8 @@ void export_results()
   class_<FakeResult, bases<Result> >("FakeResult")
     ;
 
-//   class_<GridResult, bases<Result> >("GridResult")
-//     ;
+  class_<GridResult, bases<Result> >("GridResult")
+    ;
 
   class_<PointResult, bases<Result> >("PointResult")
     .def("set_point", &PointResult::set_point)
@@ -79,10 +79,10 @@ void export_results()
                   &PointDFTResult::set_point)
     ;
 
-//   class_<PowerResult, bases<DFTResult> >("PowerResult")
-//     .def(init<field_t, field_t, unsigned int>())
-//     .def("set_region", &PowerResult::set_region)
-//     ;
+  class_<PowerResult, bases<DFTResult> >("PowerResult")
+    .def(init<field_t, field_t, unsigned int>())
+    .def("set_region", &PowerResult::set_region)
+    ;
 
   class_<SignalDFTResult, bases<DFTResult> >
     ("SignalDFTResult", init<Signal &>())
@@ -93,13 +93,13 @@ void export_results()
     ("SignalTimeResult", init<Signal &>())
     ;
 
-//   class_<BlockResult, bases<Result> >
-//     ("BlockResult", "Outputs a single field component in part of the grid.")
-//     .def("set_region", &BlockResult::set_region)
-//     .def("get_region", &BlockResult::get_region)
-//     .def("set_field", &BlockResult::set_field)
-//     .def("get_field", &BlockResult::get_field)
-//     ;
+  class_<BlockResult, bases<Result> >
+    ("BlockResult", "Outputs a single field component in part of the grid.")
+    .def("set_region", &BlockResult::set_region)
+    .def("get_region", &BlockResult::get_region)
+    .def("set_field", &BlockResult::set_field)
+    .def("get_field", &BlockResult::get_field)
+    ;
 
 //   class_<SurfaceCurrentResult, bases<Result> >
 //     ("SurfaceCurrentResult", 
@@ -110,54 +110,54 @@ void export_results()
 //          "currents should be calculated.")
 //     ;
 
-//   class_<FarfieldResult2, bases<DFTResult> >("FarfieldResult2", 
-//                                              "Calculates the farfield "
-//                                              "resulting from a scattering "
-//                                              "object in the near field.")
-//     .def("set_theta", &FarfieldResult2::set_theta, 
-//          "Set the angle range from the X axis in radians")
-//     .def("set_phi", &FarfieldResult2::set_phi,
-//          "Set the angle range from the Z axis in radians")
-//     .def("set_theta_degrees", &FarfieldResult2::set_theta_degrees,
-//          "Set the angle range from the X axis in degrees")
-//     .def("set_phi_degrees", &FarfieldResult2::set_phi_degrees,
-//          "Set the angle range from the Z axis in degrees")
-//     .def("set_radius", &FarfieldResult2::set_radius, 
-//          "Set the radius of the sphere where observations are being done.")
-//     .def("get_radius", &FarfieldResult2::get_radius,
-//          "Get the radius of the sphere where observations are being done.")
-//     .def("set_region", &FarfieldResult2::set_region, 
-//          "Set the CSGBox which defines the surface over which "
-//          "currents should be calculated.")
-//     .def("use_face", &FarfieldResult2::use_face,
-//          "Exclude or include faces from the Huygen's surface. This breaks "
-//          "the surface equivalence theorm slightly, use with caution. ")
-//     ;
+  class_<FarfieldResult2, bases<DFTResult> >("FarfieldResult2", 
+                                             "Calculates the farfield "
+                                             "resulting from a scattering "
+                                             "object in the near field.")
+    .def("set_theta", &FarfieldResult2::set_theta, 
+         "Set the angle range from the X axis in radians")
+    .def("set_phi", &FarfieldResult2::set_phi,
+         "Set the angle range from the Z axis in radians")
+    .def("set_theta_degrees", &FarfieldResult2::set_theta_degrees,
+         "Set the angle range from the X axis in degrees")
+    .def("set_phi_degrees", &FarfieldResult2::set_phi_degrees,
+         "Set the angle range from the Z axis in degrees")
+    .def("set_radius", &FarfieldResult2::set_radius, 
+         "Set the radius of the sphere where observations are being done.")
+    .def("get_radius", &FarfieldResult2::get_radius,
+         "Get the radius of the sphere where observations are being done.")
+    .def("set_region", &FarfieldResult2::set_region, 
+         "Set the CSGBox which defines the surface over which "
+         "currents should be calculated.")
+    .def("use_face", &FarfieldResult2::use_face,
+         "Exclude or include faces from the Huygen's surface. This breaks "
+         "the surface equivalence theorm slightly, use with caution. ")
+    ;
 
-//   class_<FarfieldResult, bases<DFTResult> >("FarfieldResult", 
-//                                             "Calculates the farfield "
-//                                             "resulting from a scattering "
-//                                             "object in the near field using "
-//                                             "Luebbers' time domain method.")
-//     .def("set_theta", &FarfieldResult::set_theta, 
-//          "Set the angle range from the X axis in radians")
-//     .def("set_phi", &FarfieldResult::set_phi,
-//          "Set the angle range from the Z axis in radians")
-//     .def("set_theta_degrees", &FarfieldResult::set_theta_degrees,
-//          "Set the angle range from the X axis in degrees")
-//     .def("set_phi_degrees", &FarfieldResult::set_phi_degrees,
-//          "Set the angle range from the Z axis in degrees")
-//     .def("set_radius", &FarfieldResult::set_radius, 
-//          "Set the radius of the sphere where observations are being done.")
-//     .def("get_radius", &FarfieldResult::get_radius,
-//          "Get the radius of the sphere where observations are being done.")
-//     .def("set_region", &FarfieldResult::set_region, 
-//          "Set the CSGBox which defines the surface over which "
-//          "currents should be calculated.")
-//     .def("use_face", &FarfieldResult::use_face,
-//          "Exclude or include faces from the Huygen's surface. This breaks "
-//          "the surface equivalence theorm slightly, use with caution. ")
-//     ;
+  class_<FarfieldResult, bases<DFTResult> >("FarfieldResult", 
+                                            "Calculates the farfield "
+                                            "resulting from a scattering "
+                                            "object in the near field using "
+                                            "Luebbers' time domain method.")
+    .def("set_theta", &FarfieldResult::set_theta, 
+         "Set the angle range from the X axis in radians")
+    .def("set_phi", &FarfieldResult::set_phi,
+         "Set the angle range from the Z axis in radians")
+    .def("set_theta_degrees", &FarfieldResult::set_theta_degrees,
+         "Set the angle range from the X axis in degrees")
+    .def("set_phi_degrees", &FarfieldResult::set_phi_degrees,
+         "Set the angle range from the Z axis in degrees")
+    .def("set_radius", &FarfieldResult::set_radius, 
+         "Set the radius of the sphere where observations are being done.")
+    .def("get_radius", &FarfieldResult::get_radius,
+         "Get the radius of the sphere where observations are being done.")
+    .def("set_region", &FarfieldResult::set_region, 
+         "Set the CSGBox which defines the surface over which "
+         "currents should be calculated.")
+    .def("use_face", &FarfieldResult::use_face,
+         "Exclude or include faces from the Huygen's surface. This breaks "
+         "the surface equivalence theorm slightly, use with caution. ")
+    ;
 
 //   class_<FarfieldResult, bases<Result> >("FarfieldResult")
 //     .def("set_huygens", &FarfieldResult::set_huygens)

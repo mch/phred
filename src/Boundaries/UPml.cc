@@ -354,55 +354,15 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
 {
   if (type == E)
   {
-    switch (face)
-    {
-    case FRONT:
-    case BACK:
-      update_ex(grid);   
-      update_ey(grid);
-      update_ez(grid);
-      break;
-
-    case LEFT:
-    case RIGHT:
-      update_ex(grid);   
-      update_ey(grid);
-      update_ez(grid);
-      break;
-
-    case TOP:
-    case BOTTOM:
-      update_ex(grid);   
-      update_ey(grid);
-      update_ez(grid);
-      break;
-    }
+    update_ex(grid);   
+    update_ey(grid);
+    update_ez(grid);
   }
   else if (type == H)
   {
-    switch (face)
-    {
-    case FRONT:
-    case BACK:
-      update_hx(grid);   
-      update_hy(grid);
-      update_hz(grid);
-      break;
-
-    case LEFT:
-    case RIGHT:
-      update_hx(grid);   
-      update_hy(grid);
-      update_hz(grid);
-      break;
-
-    case TOP:
-    case BOTTOM:
-      update_hx(grid);   
-      update_hy(grid);
-      update_hz(grid);
-      break;
-    }
+    update_hx(grid);   
+    update_hy(grid);
+    update_hz(grid);
   } 
   else
   {
@@ -413,7 +373,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
 
 void UPml::update_ex(Grid &grid) 
 {
-  unsigned int grid_idx, grid_idx2, pml_idx, mid, sig_idx = 0; 
+  unsigned int grid_idx, grid_idx2, pml_idx, mid; 
 
   loop_idx_t i,j,k; 	/* indices in PML-layer */
   loop_idx_t it,jt,kt;/* indices in total computational domain (FDTD grid) */
@@ -426,14 +386,16 @@ void UPml::update_ex(Grid &grid)
   // Pointers
   field_t *ex, *hz1, *hz2, *hy, *dx;
 
-  sig_idx = 0;
+  // Inverted delta's
+  field_t idy = 1 / grid.get_deltay();
+  field_t idz = 1 / grid.get_deltaz();
 
   // This is outside of the for() statement so that OpenMP can
   // parallelize the loop.
   i = pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, sig_idx, i, j, k, it, jt, kt, d_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, d_temp)
   {
 #pragma omp for
 #endif
@@ -461,7 +423,7 @@ void UPml::update_ex(Grid &grid)
 
           // Update equations go here!
           d_temp = *dx * common_->Ay(jt) 
-            + common_->By(jt) * ( (*hz1 - *hz2) - (*(hy - 1) - *hy) );
+            + common_->By(jt) * ( idy*(*hz1 - *hz2) - idz*(*(hy - 1) - *hy) );
 
           *ex = *ex * common_->Az(kt) 
             + common_->Bz(kt) * common_->er(mid) 
@@ -486,7 +448,7 @@ void UPml::update_ex(Grid &grid)
 
 void UPml::update_ey(Grid &grid) 
 {
-  unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
+  unsigned int grid_idx, pml_idx, mid; 
 
   int i,j,k; 	/* indices in PML-layer */
   int it,jt,kt;/* indices in total computational domain (FDTD grid) */
@@ -498,18 +460,22 @@ void UPml::update_ey(Grid &grid)
 
   field_t *ey, *hx, *hz1, *hz2, *dy;
 
+  // Inverted delta's
+  field_t idx = 1 / grid.get_deltax();
+  field_t idz = 1 / grid.get_deltaz();
+
   i = pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, sig_idx, i, j, k, it, jt, kt, d_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, d_temp)
   {
 #pragma omp for
 #endif
     for(it = grid_ey_r_.xmin; 
         it < grid_ey_r_.xmax; it++)
     {
-      for(sig_idx = 0, j = pml_r.ymin, jt = grid_ey_r_.ymin; 
-          jt < grid_ey_r_.ymax; j++, jt++, sig_idx++)
+      for(j = pml_r.ymin, jt = grid_ey_r_.ymin; 
+          jt < grid_ey_r_.ymax; j++, jt++)
       {
         grid_idx = grid.pi(it, jt, grid_ey_r_.zmin);
         pml_idx = pi(i, j, pml_r.zmin);
@@ -525,10 +491,17 @@ void UPml::update_ey(Grid &grid)
             kt < grid_ey_r_.zmax; k++, kt++)
         {
           mid = grid.material_[grid_idx];
-          
+
+          if (jt == 9 && kt == 9)
+          {
+            cout << "Ey should have non zero hy, hz... it = " 
+                 << it << ", hy[" << it << ", " << jt << ", " 
+                 << kt << "] = " << grid.get_hy(it,jt,kt) << endl;
+          }
+                    
           // Update equations go here!
           d_temp = *dy * common_->Az(kt) 
-            + common_->Bz(kt) * ( (*hx - *(hx-1)) - (*hz1 - *hz2));
+            + common_->Bz(kt) * ( idz*(*hx - *(hx-1)) - idx*(*hz1 - *hz2));
 
           *ey = *ey * common_->Ax(it) 
             + common_->Bx(it) * common_->er(mid)
@@ -554,7 +527,7 @@ void UPml::update_ey(Grid &grid)
 
 void UPml::update_ez(Grid &grid) 
 {
-  unsigned int grid_idx, pml_idx, mid, sig_idx = 0; 
+  unsigned int grid_idx, pml_idx, mid; 
 
   int i,j,k; 	/* indices in PML-layer */
   int it,jt,kt;/* indices in total computational domain (FDTD grid) */
@@ -566,10 +539,14 @@ void UPml::update_ez(Grid &grid)
   
   field_t *ez, *hy1, *hy2, *hx1, *hx2, *dz;
 
+  // Inverted delta's
+  field_t idx = 1 / grid.get_deltax();
+  field_t idy = 1 / grid.get_deltay();
+
   i = pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, sig_idx, i, j, k, it, jt, kt, d_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, d_temp)
   {
 #pragma omp for
 #endif
@@ -591,14 +568,14 @@ void UPml::update_ez(Grid &grid)
 
         dz = &(dz_[pml_idx]);
 
-        for(sig_idx = 0, k = pml_r.zmin, kt = grid_ez_r_.zmin; 
-            kt < grid_ez_r_.zmax; k++, kt++, sig_idx++)
+        for(k = pml_r.zmin, kt = grid_ez_r_.zmin; 
+            kt < grid_ez_r_.zmax; k++, kt++)
         {
           mid = grid.material_[grid_idx];
           
           // Update equations go here!
           d_temp = *dz * common_->Ax(it)
-            + common_->Bx(it) * ( (*hy1 - *hy2) - (*hx1 - *hx2) );
+            + common_->Bx(it) * ( idx*(*hy1 - *hy2) - idy*(*hx1 - *hx2) );
 
           *ez = *ez * common_->Ay(jt)
             + common_->By(jt) * common_->er(mid) 
@@ -635,6 +612,10 @@ void UPml::update_hx(Grid &grid)
   field_t b_temp = 0;
   field_t *hx, *ez1, *ez2, *ey, *bx;
 
+  // Inverted delta's
+  field_t idy = 1 / grid.get_deltay();
+  field_t idz = 1 / grid.get_deltaz();
+
   i = pml_r.xmin;
 
 #ifdef USE_OPENMP
@@ -667,7 +648,7 @@ void UPml::update_hx(Grid &grid)
           
           // Update equations go here. 
           b_temp = *bx * common_->Ay(jt)
-            + common_->By(jt) * ( (*ey - *(ey + 1)) - (*ez2 - *ez1) );
+            + common_->By(jt) * ( idz*(*ey - *(ey + 1)) - idy*(*ez2 - *ez1) );
 
           *hx = *hx * common_->Az(kt)
             + common_->Bz(kt) * common_->ur(mid) 
@@ -692,7 +673,7 @@ void UPml::update_hx(Grid &grid)
 
 void UPml::update_hy(Grid &grid)
 {
-  unsigned int grid_idx, grid_idx2, pml_idx, mid, sig_idx = 0; 
+  unsigned int grid_idx, grid_idx2, pml_idx, mid; 
 
   int i,j,k; 	/* indices in PML-layer */
   int it,jt,kt;/* indices in total computational domain (FDTD grid) */
@@ -703,18 +684,22 @@ void UPml::update_hy(Grid &grid)
   field_t b_temp = 0;
   field_t *hy, *ex, *ez1, *ez2, *by;
 
+  // Inverted delta's
+  field_t idx = 1 / grid.get_deltax();
+  field_t idz = 1 / grid.get_deltaz();
+
   i = pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, sig_idx, i, j, k, it, jt, kt, b_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, b_temp)
   {
 #pragma omp for
 #endif
     for(it = grid_hy_r_.xmin; 
         it < grid_hy_r_.xmax; it++)
     {
-      for(sig_idx = 0, j = pml_r.ymin, jt = grid_hy_r_.ymin; 
-          jt < grid_hy_r_.ymax; j++, jt++, sig_idx++)
+      for(j = pml_r.ymin, jt = grid_hy_r_.ymin; 
+          jt < grid_hy_r_.ymax; j++, jt++)
       {
         grid_idx = grid.pi(it, jt, grid_hy_r_.zmin);
         grid_idx2 = grid.pi(it+1, jt, grid_hy_r_.zmin);
@@ -732,10 +717,10 @@ void UPml::update_hy(Grid &grid)
             kt < grid_hy_r_.zmax; k++, kt++)
         {
           mid = grid.material_[grid_idx];
-          
+
           // Update equations go here. 
           b_temp = *by * common_->Az(kt)
-            + common_->Bz(kt) * ( (*ez2 - *ez1) - (*(ex + 1) - *ex) );
+            + common_->Bz(kt) * ( idx*(*ez2 - *ez1) - idz*(*(ex + 1) - *ex) );
 
           *hy = *hy * common_->Ax(it) 
             + common_->Bx(it) * common_->ur(mid)
@@ -760,7 +745,7 @@ void UPml::update_hy(Grid &grid)
 
 void UPml::update_hz(Grid &grid)
 {
-  unsigned int grid_idx, grid_idx2, grid_idx3, pml_idx, mid, sig_idx = 0; 
+  unsigned int grid_idx, grid_idx2, grid_idx3, pml_idx, mid; 
 
   int i,j,k; 	/* indices in PML-layer */
   int it,jt,kt;/* indices in total computational domain (FDTD grid) */
@@ -771,10 +756,14 @@ void UPml::update_hz(Grid &grid)
   field_t b_temp = 0;
   field_t *hz, *ey1, *ey2, *ex1, *ex2, *bz;
 
+  // Inverted delta's
+  field_t idx = 1 / grid.get_deltax();
+  field_t idy = 1 / grid.get_deltay();
+
   i = pml_r.xmin;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, grid_idx, pml_idx, sig_idx, i, j, k, it, jt, kt, h_temp)
+#pragma omp parallel private(mid, grid_idx, pml_idx, i, j, k, it, jt, kt, h_temp)
   {
 #pragma omp for
 #endif
@@ -799,14 +788,14 @@ void UPml::update_hz(Grid &grid)
         
         bz = &(bz_[pml_idx]);
 
-        for(sig_idx = 0, k = pml_r.zmin, kt = grid_hz_r_.zmin; 
-            kt < grid_hz_r_.zmax; k++, kt++, sig_idx++)
+        for(k = pml_r.zmin, kt = grid_hz_r_.zmin; 
+            kt < grid_hz_r_.zmax; k++, kt++)
         {
           mid = grid.material_[grid_idx];
           
           // Update equations go here. 
           b_temp = *bz * common_->Ax(it)
-            + common_->Bx(it) * ( (*ex2 - *ex1) - (*ey2 - *ey1) );
+            + common_->Bx(it) * ( idy*(*ex2 - *ex1) - idx*(*ey2 - *ey1) );
 
           *hz = *hz * common_->Ay(jt)
             + common_->By(jt) * common_->ur(mid)

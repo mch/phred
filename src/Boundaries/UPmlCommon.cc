@@ -128,6 +128,15 @@ void UPmlCommon::init_coeffs()
   memset(ky_, 0, sizeof(float) * y_size_);
   memset(kz_, 0, sizeof(float) * z_size_);
 
+  for (int i = 0; i < x_size_; i++)
+    kx_[i] = 1;
+
+  for (int i = 0; i < y_size_; i++)
+    ky_[i] = 1;
+
+  for (int i = 0; i < z_size_; i++)
+    kz_[i] = 1;
+
   memset(Ax_, 0, sizeof(float) * x_size_);
   memset(Ay_, 0, sizeof(float) * y_size_);
   memset(Az_, 0, sizeof(float) * z_size_);
@@ -152,6 +161,7 @@ void UPmlCommon::init_coeffs()
   memset(er_, 0, sizeof(float) * nm);
   memset(ur_, 0, sizeof(float) * nm);
 
+  // This isn't working yet... 
   init_sigmas();
 
   init_constants();
@@ -181,81 +191,87 @@ void UPmlCommon::init_sigmas()
     er_[(*iter).second.get_id()] = 1 / (eps);
     ur_[(*iter).second.get_id()] = 1 / (mu);
 
-    if (((*iter).second).is_pec())
-    {
-      
-    }
-    
-    // Loop over the faces, for each may have it's own thickness
-    for (int faceidx = 0; faceidx < 6; faceidx++)
-    {
-      switch (faceidx) {
-      case FRONT:
-      case BACK:
-        delta = grid_.get_deltax();
-        sigmas = sigma_x_;
-
-        if (faceidx == FRONT)
-        {
-          start = xoffset + thicknesses_[BACK] + thicknesses_[FRONT] - 1;
-          thickness = thicknesses_[FRONT];
-          incr = -1;
-        } else {
-          start = xoffset;
-          thickness = thicknesses_[BACK];
-          incr = 1;
-        }
-        break;
-
-      case LEFT:
-      case RIGHT:
-        delta = grid_.get_deltay();
-        sigmas = sigma_y_;
-
-        if (faceidx == RIGHT)
-        {
-          start = yoffset + thicknesses_[RIGHT] + thicknesses_[LEFT] - 1;
-          thickness = thicknesses_[RIGHT];
-          incr = -1;
-        } else {
-          start = yoffset;
-          thickness = thicknesses_[LEFT];
-          incr = 1;
-        }
-        break;
-
-      case TOP:
-      case BOTTOM:
-        delta = grid_.get_deltaz();
-        sigmas = sigma_z_;
-
-        if (faceidx == TOP)
-        {
-          start = zoffset + thicknesses_[TOP] + thicknesses_[BOTTOM] - 1;
-          thickness = thicknesses_[TOP];
-          incr = -1;
-        } else {
-          start = zoffset;
-          thickness = thicknesses_[BOTTOM];
-          incr = 1;
-        }
-        break;
-      }
-      mat_coef_t sigma_max = calc_sigma_max(eps, delta);
-      
-      for (int sigidx = start, idx = thickness; idx > 0; 
-           idx--, sigidx += incr)
-      {
-        sigmas[sigidx] = sigma_max * pow(static_cast<float>(idx) 
-					 / static_cast<float>(thickness), 
-                                         static_cast<float>(poly_order_));
-      }      
-    }
-    xoffset += thicknesses_[FRONT] + thicknesses_[BACK];
-    yoffset += thicknesses_[LEFT] + thicknesses_[RIGHT];
-    zoffset += thicknesses_[BOTTOM] + thicknesses_[TOP];
     ++iter;
   }
+
+//     if (((*iter).second).is_pec())
+//     {
+      
+//     }
+
+  // ???
+//   xoffset += thicknesses_[FRONT] + thicknesses_[BACK];
+//   yoffset += thicknesses_[LEFT] + thicknesses_[RIGHT];
+//   zoffset += thicknesses_[BOTTOM] + thicknesses_[TOP];
+    
+  // Loop over the faces, for each may have it's own thickness
+  for (int faceidx = 0; faceidx < 6; faceidx++)
+  {
+    switch (faceidx) {
+    case FRONT:
+    case BACK:
+      delta = grid_.get_deltax();
+      sigmas = sigma_x_;
+
+      if (faceidx == FRONT)
+      {
+        start = xoffset + thicknesses_[BACK] + thicknesses_[FRONT] - 1;
+        thickness = thicknesses_[FRONT];
+        incr = -1;
+      } else {
+        start = xoffset;
+        thickness = thicknesses_[BACK];
+        incr = 1;
+      }
+      break;
+
+    case LEFT:
+    case RIGHT:
+      delta = grid_.get_deltay();
+      sigmas = sigma_y_;
+
+      if (faceidx == RIGHT)
+      {
+        start = yoffset + thicknesses_[RIGHT] + thicknesses_[LEFT] - 1;
+        thickness = thicknesses_[RIGHT];
+        incr = -1;
+      } else {
+        start = yoffset;
+        thickness = thicknesses_[LEFT];
+        incr = 1;
+      }
+      break;
+
+    case TOP:
+    case BOTTOM:
+      delta = grid_.get_deltaz();
+      sigmas = sigma_z_;
+
+      if (faceidx == TOP)
+      {
+        start = zoffset + thicknesses_[TOP] + thicknesses_[BOTTOM] - 1;
+        thickness = thicknesses_[TOP];
+        incr = -1;
+      } else {
+        start = zoffset;
+        thickness = thicknesses_[BOTTOM];
+        incr = 1;
+      }
+      break;
+    }
+
+    //mat_coef_t sigma_max = calc_sigma_max(eps, delta);
+    //mat_coef_t k_max = calc_k_max(eps, delta);
+
+//     for (int sigidx = start, idx = thickness; idx > 0; 
+//          idx--, sigidx += incr)
+//     {
+//       sigmas[sigidx] = sigma_max * pow(static_cast<float>(idx) 
+//                                        / static_cast<float>(thickness), 
+//                                        static_cast<float>(poly_order_));
+//     }      
+  }
+
 }
 
 void UPmlCommon::init_constants()
@@ -267,14 +283,15 @@ void UPmlCommon::init_constants()
 
     Bx_[i] = 2 * EPS_0 * grid_.get_deltat()
       / ( 2 * EPS_0 * kx_[i] + grid_.get_deltat() * sigma_x_[i] )
-      // * (dx / (dy*dz)) // ???????? CHECK
+      //* (grid_.get_deltax() / (grid_.get_deltay() 
+      //                        * grid_.get_deltaz())) // ???????? CHECK
       ;
 
     Cx_[i] = ( 2 * EPS_0 * kx_[i] + grid_.get_deltat() * sigma_x_[i] ) 
-      / 2 * EPS_0 * grid_.get_deltat();
+      / (2 * EPS_0 * grid_.get_deltat());
 
     Dx_[i] = ( 2 * EPS_0 * kx_[i] - grid_.get_deltat() * sigma_x_[i] ) 
-      / 2 * EPS_0 * grid_.get_deltat();
+      / (2 * EPS_0 * grid_.get_deltat());
   }
 
   for (int j = 0; j < grid_.get_ldy_sd(); j++)
@@ -284,14 +301,15 @@ void UPmlCommon::init_constants()
 
     By_[j] = 2 * EPS_0 * grid_.get_deltat()
       / ( 2 * EPS_0 * ky_[j] + grid_.get_deltat() * sigma_y_[j] )
-      // * (dy / (dx*dz)) // ???????? CHECK
+      //* (grid_.get_deltay() / (grid_.get_deltax() 
+      //                        * grid_.get_deltaz())) // ???????? CHECK
       ;
 
     Cy_[j] = ( 2 * EPS_0 * ky_[j] + grid_.get_deltat() * sigma_y_[j] ) 
-      / 2 * EPS_0 * grid_.get_deltat();
+      / (2 * EPS_0 * grid_.get_deltat());
 
     Dy_[j] = ( 2 * EPS_0 * ky_[j] - grid_.get_deltat() * sigma_y_[j] ) 
-      / 2 * EPS_0 * grid_.get_deltat();
+      / (2 * EPS_0 * grid_.get_deltat());
   }
 
   for (int k = 0; k < grid_.get_ldz_sd(); k++)
@@ -301,14 +319,15 @@ void UPmlCommon::init_constants()
 
     Bz_[k] = 2 * EPS_0 * grid_.get_deltat()
       / ( 2 * EPS_0 * kz_[k] + grid_.get_deltat() * sigma_z_[k] )
-      // * (dz / (dx*dy)) // ???????? CHECK
+      //* (grid_.get_deltaz() / (grid_.get_deltax() 
+      //                        * grid_.get_deltay())) // ???????? CHECK
       ;
 
     Cz_[k] = ( 2 * EPS_0 * kz_[k] + grid_.get_deltat() * sigma_z_[k] ) 
-      / 2 * EPS_0 * grid_.get_deltat();
+      / (2 * EPS_0 * grid_.get_deltat());
 
     Dz_[k] = ( 2 * EPS_0 * kz_[k] - grid_.get_deltat() * sigma_z_[k] ) 
-      / 2 * EPS_0 * grid_.get_deltat();
+      / (2 * EPS_0 * grid_.get_deltat());
 
   }
 
