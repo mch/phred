@@ -405,12 +405,6 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
     p_real2 = 0;
     p_imag2 = 0;
 
-    //power_real_[i] = time_power_ * cos_temp;
-    //power_imag_[i] = time_power_ * sin_temp;
-    
-
-    // What was I thinking here???!?!?
-
     unsigned int idx = 0;
 
     if (has_data_)
@@ -453,11 +447,13 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
             ht1i_[idx] += ht1_imag;
             ht2i_[idx] += ht2_imag;
 
-            p_real2 += (et1r_[idx] * ht2r_[idx] + et1i_[idx] * ht2i_[idx])
-              - (et2r_[idx] * ht1r_[idx] + et2i_[idx] * ht1i_[idx]);
+            p_real2 += ((et1r_[idx] * ht2r_[idx] + et1i_[idx] * ht2i_[idx])
+              - (et2r_[idx] * ht1r_[idx] + et2i_[idx] * ht1i_[idx])) 
+              * cell_area_;
 
-            p_imag2 += et1i_[idx] * ht2r_[idx] - ht2i_[idx] * et1r_[idx] 
-              + ht1i_[idx] * et2r_[idx] - et2i_[idx] * ht1r_[idx];
+            p_imag2 += ((et1i_[idx] * ht2r_[idx] - ht2i_[idx] * et1r_[idx]) 
+              + (ht1i_[idx] * et2r_[idx] - et2i_[idx] * ht1r_[idx]))
+              * cell_area_;
 
             ++idx;
           }
@@ -471,8 +467,8 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
     MPI_Reduce(&p_imag2, &p_imag2, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
                MPI_COMM_WORLD);
     
-    power_real_[i] = 0.5 * p_real2 * cell_area_;
-    power_imag_[i] = 0.5 * p_imag2 * cell_area_;
+    power_real_[i] = p_real2;
+    power_imag_[i] = p_imag2;
 
   }
 

@@ -317,6 +317,9 @@ AC_FUNC_CLOSEDIR_VOID
 AC_SUBST(LIBS, $LIBS)
 AC_SUBST(PYTHON_LDFLAGS, $PYTHON_LDFLAGS)
 
+DATE=`date`
+AC_SUBST(DATE, $DATE)
+
 AC_OUTPUT([Makefile 
            src/Makefile 
            src/PythonBindings/Makefile 
