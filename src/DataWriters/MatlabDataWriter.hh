@@ -36,6 +36,7 @@
 
 #include <mpi.h>
 #include <limits.h>
+#include <math.h>
 
 using namespace std;
 
@@ -71,6 +72,13 @@ unsigned int sizeof_matlab(MATLAB_data_type type);
 
 /**
  * MATLAB Array classes 
+ *
+ * WARNING: If using mxDOUBLE_CLASS, the actual data in the element MUST NOT
+ * be miSINGLE. If it can be represented as an integer, then it seems that
+ * any int type is ok. 
+ *
+ * Only MATLAB has this problem. Octave can load an mxDOUBLE_CLASS with
+ * miSINGLE data, as required by the MATLAB file format specification. 
  */ 
 enum MATLAB_array_type {
   mxCELL_CLASS = 1, /**< Cell array */
@@ -169,86 +177,10 @@ protected:
   void write_compress(ostream &stream);
 
   /**
-   * Templated helper for writing compressed data to a stream.
-   */
-  template<class T>
-  void write_compress_helper(ostream &stream)
-  {
-    char *ptr = buffer_;
-    T temp = 0;
-    unsigned int size = tag_.num_bytes / sizeof(T);
-    
-    for (int idx = 0; idx < size; idx++)
-    {
-      temp = static_cast<T>(*ptr);
-      stream.write(reinterpret_cast<char *>(&temp), sizeof(T));
-      ptr += sizeof(T);
-    }    
-  }
-
-  /**
    * Templated helper for computing the compressed tag. 
    */ 
   template<class T>
-  void compress_helper()
-  {
-    char *ptr = buffer_;
-    T temp = 0;
-    unsigned int size = tag_.num_bytes / sizeof(T);
-    bool is_int = true;
-    double max = 0;
-    double min = 0;
-    
-    for (unsigned int idx = 0; idx < size; idx++)
-    {      
-      T temp = static_cast<T>(*ptr);
-      if (temp > max)
-        max = temp;
-      if (temp < min)
-        min = temp;
-
-      // HMM!
-      //if (temp % 1.0 > 0)
-        is_int = false;
-    }
-
-    if (is_int) {
-      if (min >= 0 && max <= UCHAR_MAX)
-      {
-        compressed_tag_.datatype = miUINT8;
-        compressed_tag_.num_bytes = size * sizeof(unsigned char);
-      }
-      else if (min >= CHAR_MIN && max <= CHAR_MAX)
-      {
-        compressed_tag_.datatype = miINT8;
-        compressed_tag_.num_bytes = size * sizeof(signed char);
-      }
-      else if (min >= 0 && max <= USHRT_MAX)
-      {
-        compressed_tag_.datatype = miUINT16;
-        compressed_tag_.num_bytes = size * sizeof(unsigned short);
-      }
-      else if (min >= SHRT_MIN && max <= SHRT_MAX)
-      {
-        compressed_tag_.datatype = miINT16;
-        compressed_tag_.num_bytes = size * sizeof(signed short);
-      }
-      else if (min >= 0 && max <= UINT_MAX)
-      {
-        compressed_tag_.datatype = miUINT32;
-        compressed_tag_.num_bytes = size * sizeof(unsigned int);
-      }
-      else if (min >= INT_MIN && max <= INT_MAX)
-      {
-        compressed_tag_.datatype = miINT32;
-        compressed_tag_.num_bytes = size * sizeof(signed int);
-      }
-    } 
-    else
-    {
-      compressed_tag_ = tag_;
-    }
-  }
+  void compress_helper();
 
 public:
   virtual ~MatlabElement();
@@ -291,16 +223,9 @@ public:
    * @param stream the stream to write the data to
    */ 
   virtual void write_buffer(ostream &stream);
-
-  /**
-   * Reshape the data into N rows and M columns.
-   * 
-   * @param N number of rows
-   * @param M Number of columns
-   */
-  virtual void reshape_buffer(int N, int M, MPI_Datatype type);
   
 };
+
 
 /**
  * Represents a chunk of array data, like a matrix, in a MATLAB

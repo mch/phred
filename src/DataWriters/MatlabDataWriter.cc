@@ -30,6 +30,154 @@
 #include <stdio.h>
 #include <time.h>
 
+template<class T>
+void MatlabElement::compress_helper()
+{
+  char *ptr = buffer_;
+  T temp = 0;
+  unsigned int size = tag_.num_bytes / sizeof(T);
+  bool is_int = true;
+  double max = 0;
+  double min = 0;
+  T *tptr = reinterpret_cast<T *>(buffer_);
+
+  for (unsigned int idx = 0; idx < size; idx++)
+  {      
+    T temp = tptr[idx];
+    double dtemp = static_cast<double>(temp);
+
+    if (dtemp > max)
+      max = dtemp;
+    if (dtemp < min)
+      min = dtemp;
+
+    double i = nearbyint(dtemp);
+    if (dtemp != i)
+    {
+      is_int = false;
+      break;
+    }
+  }
+
+  if (is_int) {
+    if (min >= 0 && max <= UCHAR_MAX)
+    {
+      compressed_tag_.datatype = miUINT8;
+      compressed_tag_.num_bytes = size * sizeof(unsigned char);
+    }
+    else if (min >= CHAR_MIN && max <= CHAR_MAX)
+    {
+      compressed_tag_.datatype = miINT8;
+      compressed_tag_.num_bytes = size * sizeof(signed char);
+    }
+    else if (min >= 0 && max <= USHRT_MAX)
+    {
+      compressed_tag_.datatype = miUINT16;
+      compressed_tag_.num_bytes = size * sizeof(unsigned short);
+    }
+    else if (min >= SHRT_MIN && max <= SHRT_MAX)
+    {
+      compressed_tag_.datatype = miINT16;
+      compressed_tag_.num_bytes = size * sizeof(signed short);
+    }
+    else if (min >= 0 && max <= UINT_MAX)
+    {
+      compressed_tag_.datatype = miUINT32;
+      compressed_tag_.num_bytes = size * sizeof(unsigned int);
+    }
+    else if (min >= INT_MIN && max <= INT_MAX)
+    {
+      compressed_tag_.datatype = miINT32;
+      compressed_tag_.num_bytes = size * sizeof(signed int);
+    }
+  } 
+  else
+  {
+    // Singles must be written out as doubles, or MATLAB won't be
+    // able to load the file.
+    compressed_tag_.datatype = miDOUBLE;
+    compressed_tag_.num_bytes = size * sizeof(double);
+    //compressed_tag_ = tag_;
+  }
+}
+
+/**
+ * Templated helper for writing compressed data to a stream.
+ */
+template<class T>
+void write_compress_helper(ostream &stream, data_tag_t tag, 
+                           data_tag_t comp_tag, 
+                           const char *ptr)
+{
+  T temp = 0;
+  unsigned int size = tag.num_bytes / sizeof(T);
+  const T *tptr = reinterpret_cast<const T *>(ptr);
+
+  for (int idx = 0; idx < size; idx++)
+  {
+    temp = *tptr;
+
+    switch (comp_tag.datatype)
+    {
+    case miINT8:
+      {
+        signed char temp2 = static_cast<signed char>(temp);
+        stream.write(reinterpret_cast<char *>(&temp2), sizeof(signed char));
+      }
+      break;
+    case miUINT8:
+      {
+        unsigned char temp2 = static_cast<unsigned char>(temp);
+        stream.write(reinterpret_cast<char *>(&temp2), 
+                     sizeof(unsigned char));
+      }
+      break;
+    case miINT16:
+      {
+        signed short int temp2 = static_cast<signed short int>(temp);
+        stream.write(reinterpret_cast<char *>(&temp2), 
+                     sizeof(signed short int));
+      }
+      break;
+    case miUINT16:
+      {
+        unsigned short int temp2 = static_cast<unsigned short int>(temp);
+        stream.write(reinterpret_cast<char *>(&temp2), 
+                     sizeof(unsigned short int));
+      }
+      break;
+    case miINT32:
+      {
+        signed int temp2 = static_cast<signed int>(temp);
+        stream.write(reinterpret_cast<char *>(&temp2), sizeof(signed int));
+      }
+      break;
+    case miUINT32:
+      {
+        unsigned int temp2 = static_cast<unsigned int>(temp);
+        stream.write(reinterpret_cast<char *>(&temp2), sizeof(unsigned int));
+      }
+      break;
+    case miSINGLE:
+      {
+        // Compression has to write floats as doubles or MATLAB won't
+        // be able to load the resulting file.
+        double temp2 = static_cast<double>(temp);
+        stream.write(reinterpret_cast<char *>(&temp2), sizeof(double));
+      }
+      break;
+    case miDOUBLE:
+      {
+        double temp2 = static_cast<double>(temp);
+        stream.write(reinterpret_cast<char *>(&temp2), sizeof(double));
+      }
+      break;
+    }
+
+    tptr++;
+  }    
+}
+
 unsigned int sizeof_matlab(MATLAB_data_type type)
 {
   switch (type)
@@ -181,28 +329,36 @@ void MatlabElement::write_compress(ostream &stream)
       switch (source_datatype_)
       {
       case miINT8:
-        write_compress_helper<signed char>(stream);
+        write_compress_helper<signed char>(stream, tag_,
+                                           compressed_tag_, buffer_);
         break;
       case miUINT8:
-        write_compress_helper<unsigned char>(stream);
+        write_compress_helper<unsigned char>(stream, tag_,
+                                             compressed_tag_, buffer_);
         break;
       case miINT16:
-        write_compress_helper<signed short>(stream);
+        write_compress_helper<signed short>(stream, tag_, 
+                                            compressed_tag_, buffer_);
         break;
       case miUINT16:
-        write_compress_helper<unsigned short>(stream);
+        write_compress_helper<unsigned short>(stream, tag_, 
+                                              compressed_tag_, buffer_);
         break;
       case miINT32:
-        write_compress_helper<signed int>(stream);
+        write_compress_helper<signed int>(stream, tag_, 
+                                          compressed_tag_, buffer_);
         break;
       case miUINT32:
-        write_compress_helper<unsigned int>(stream);
+        write_compress_helper<unsigned int>(stream, tag_,
+                                            compressed_tag_, buffer_);
         break;
       case miSINGLE:
-        write_compress_helper<float>(stream);
+        write_compress_helper<float>(stream, tag_,
+                                     compressed_tag_, buffer_);
         break;
       case miDOUBLE:
-        write_compress_helper<double>(stream);
+        write_compress_helper<double>(stream, tag_,
+                                      compressed_tag_, buffer_);
         break;
       }
     } else {
@@ -216,7 +372,8 @@ void MatlabElement::write_compress(ostream &stream)
 unsigned int MatlabElement::get_num_bytes()
 {
   unsigned int nbytes = 0;
-  data_tag_t &tag = tag_;
+  //data_tag_t &tag = tag_;
+  data_tag_t tag = tag_;
 
   if (compress_)
   {
@@ -341,49 +498,6 @@ void MatlabElement::write_buffer(ostream &stream)
   stream.flush();
 }
 
-void MatlabElement::reshape_buffer(int N, int M, MPI_Datatype type)
-{
-  MPI_Datatype new_t, flat_t, new2_t;
-  MPI_Status status;
-
-  char *new_buf = new char[buffer_pos_];
-  
-  if (!new_buf)
-    throw MemoryException();
-
-  memset(new_buf, 0, sizeof(char) * buffer_pos_);
-
-  int type_size;
-  MPI_Type_size(type, &type_size);
-
-  MPI_Type_vector(N, 1, M, type, &new_t);
-  MPI_Type_commit(&new_t);
-
-  MPI_Type_hvector(M, 1, type_size, new_t, &new2_t);
-  MPI_Type_commit(&new2_t);
-
-  MPI_Type_contiguous(N * M, type, &flat_t);
-  MPI_Type_commit(&flat_t);
-
-  MPI_Sendrecv(buffer_, 1, new2_t, 0, 0, 
-               new_buf, 1, flat_t, 0, 0, 
-               MPI_COMM_WORLD, &status);
-
-  delete[] buffer_;
-  buffer_ = new_buf;
-  buffer_size_ = buffer_pos_;
-
-//   cerr << "After reshape, buffer contains " << buffer_pos_ << " bytes. As floats: \n";
-//   for (int i = 0 ; i < buffer_pos_/sizeof(float); i++)
-//     cerr << "\t" << reinterpret_cast<float*>(buffer_)[i];
-//   cerr << endl;
-  
-
-  MPI_Type_free(&new_t);
-  MPI_Type_free(&new2_t);
-  MPI_Type_free(&flat_t);
-}
-
 /************************************************************
  * MatlabArray function implementations
  ************************************************************/
@@ -401,6 +515,18 @@ MatlabArray::MatlabArray(const char *name,
   time_dim_ = time_dim;
   mpi_type_ = type;
     
+  // Array name
+  me_name_.set_type(miINT8);
+  me_name_.append_buffer(name_.length(), 
+                         static_cast<const void *>(name));
+
+  // Real data
+  me_data_.set_type(MPI_to_matlab_dt(type));
+  me_data_.compress_ = true;
+
+  // Optional Imaginary data ... 
+
+
   memset(reinterpret_cast<void *>(&flags_), 0, sizeof(array_flags_t));
 
 #ifdef WORDS_BIGENDIAN
@@ -446,12 +572,9 @@ MatlabArray::MatlabArray(const char *name,
   
   if (time_dim)
   {
-//     i++;
-//     dim_lengths_[0] = 0;
     dim_lengths_[num_dims_ - 1] = 0;
   }
 
-  //i = 0;
   for(iter = dim_lens.begin(); iter != iter_e; ++iter, ++i)
   {
     sz += *iter;
@@ -460,17 +583,6 @@ MatlabArray::MatlabArray(const char *name,
 
   me_dim_lens_.append_buffer(sizeof(int32_t) * num_dims_,
                              static_cast<const void *>(dim_lengths_));
-
-  // Array name
-  me_name_.set_type(miINT8);
-  me_name_.append_buffer(name_.length(), 
-                         static_cast<const void *>(name));
-
-  // Real data
-  me_data_.set_type(MPI_to_matlab_dt(type));
-
-  // Optional Imaginary data ... 
-
 
   // Setup our tag...
   tag_.datatype = miMATRIX;
@@ -495,7 +607,6 @@ void MatlabArray::append_buffer(unsigned int num_bytes, const void *ptr)
     me_data_.append_buffer(num_bytes, ptr);
     tag_.num_bytes += num_bytes;
 
-    //dim_lengths_[0] += 1;
     dim_lengths_[num_dims_ - 1] += 1;
 
     me_dim_lens_.overwrite_buffer(sizeof(int32_t) * num_dims_,
@@ -519,16 +630,6 @@ void MatlabArray::write_buffer(ostream &stream)
   me_dim_lens_.write_buffer(stream);
   me_name_.write_buffer(stream);
 
-  // This be busted yo
-//   if (time_dim_)
-//   {
-//     unsigned int cols = 0;
-//     for (int i = 1; i < num_dims_; i++)
-//       cols += dim_lengths_[i];
-
-//     me_data_.reshape_buffer(dim_lengths_[0], cols, mpi_type_);
-//   }
-
   me_data_.write_buffer(stream);
 }
 
@@ -550,7 +651,10 @@ MATLAB_array_type MatlabArray::get_array_class(MATLAB_data_type type)
   if (type >= miINT8 && type < miSINGLE)
     ret = static_cast<MATLAB_array_type>(type + mxSINGLE_CLASS);
   else if (type == miSINGLE)
-    ret = static_cast<MATLAB_array_type>(mxSINGLE_CLASS);
+    if (me_data_.compress_)
+      ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
+    else
+      ret = static_cast<MATLAB_array_type>(mxSINGLE_CLASS);
   //ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
   else if (type == miDOUBLE)
     ret = static_cast<MATLAB_array_type>(mxDOUBLE_CLASS);
@@ -602,7 +706,7 @@ void MatlabDataWriter::header_setup()
 
 void MatlabDataWriter::init(const Grid &grid)
 {
-  test();
+  //test();
 
   if (filename_.length() > 0 && MPI_RANK == rank_)
   {
@@ -718,8 +822,9 @@ void MatlabDataWriter::test()
   dims.push_back(2);
   dims2.push_back(4);
   dims2.push_back(2);
-  dims2.push_back(2);
-  float data2[] = {1, 2, 3, 4, 1, 2, 3, 4, 7, 8, 9, 5, 7, 8, 9, 5};
+  dims2.push_back(1);
+  float data2[] = {1.1, 2.2, 3.3, 4.4, 1.5, 2.6, 3.7, 4.8, 7.9, 
+                   8.87, 9.76, 5.65, 7.54, 8.43, 9.32, 5.21};
   short data3[] = {1, 2, 3, 12, 43, 45, 87, 102, 123};
 
   MatlabArray *ma = new MatlabArray("test2", dims, true, MPI_DOUBLE, false);
@@ -728,7 +833,7 @@ void MatlabDataWriter::test()
   if (!ma || !ma3 || !ma2)
     throw MemoryException();
 
-  double data[] = {2, 3, 4, 5};
+  double data[] = {2.2, 3.6, 4.34, 5.354};
   ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data));
   ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data + 2));
   ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data));
