@@ -19,22 +19,25 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef CSG_TRANSFORM_H
-#define CSG_TRANSFORM_H
+#ifndef CSG_ARRAY_H
+#define CSG_ARRAY_H
 
-#include "CGSObject.hh"
+#include "CSGObject.hh"
 
 /**
- * This class transforms a child object by rotation, translation,
- * and scaling.
+ * This class replicates a child object into an array along at least
+ * one dimension.
  */ 
-class CSGTransform : public CSGObject {
+class CSGArray : public CSGObject
+{
 public:
-  CSGTransform(shared_ptr<CGSObject> child);
-  CSGTransform(const CSGTransform &rhs);
-  ~CSGTransform();
-  
-  const CSGTransform &operator= (const CSGTransform &rhs);
+  CSGArray(shared_ptr<CSGObject> obj);
+
+  CSGArray(const CSGArray &rhs);
+
+  const CSGArray &operator= (const CSGArray &rhs);
+
+  ~CSGArray();
 
   /**
    * Tell us if a point is inside or outside the solid.
@@ -42,27 +45,24 @@ public:
    * @param x x coordinate of the point
    * @param y y coordinate of the point
    * @param z z coordinate of the point
-   * @return true if the point is inside the solid.
+   * @return the status of the point, inside, outside, or on the surface.
    */
-  bool is_point_inside(float x, float y, float z) const;
+  CSGStatus is_point_inside(float x, float y, float z) const;
   
   /**
    * Create a copy of this object. 
    */ 
-  virtual shared_ptr<CSGObject> copy() const
-  {
-    return shared_ptr<CSGObject> (new CSGTransform(*this));
-  }
-  
-protected:
-  // The child being transformed
-  shared_ptr<CSGObject> child_; 
+  shared_ptr<CSGObject> copy() const;
 
-  // Translation
+private:
+  // Spacing between the elements in each direction
+  float xspace_, yspace_, zspace_;
 
-  // Rotation about a point
+  // Length of the array in each direction. Must be greater than one. 
+  unsigned int lenx_, leny_, lenz_;
 
-  // Scaling about a point
+  // The child object we are making into an array. 
+  shared_ptr<CSGObject> child_;
 };
 
-#endif // CSG_TRANSFORM_H
+#endif
