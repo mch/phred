@@ -16,25 +16,231 @@ Email: mhughe@uvic.ca
 \maketitle
 
 \begin{abstract}
-  
+  The increasing computational demands of finite-difference
+  time-domain simulations for studying optical phenomenon requires
+  codes with very high performance. This paper introduces a new hybrid
+  parallel code using standard MPI, OpenMP, and vectorization
+  technologies which is portable to a wide variety of high performance
+  systems. An example of applying this code to simulate enhanced
+  optical transmission through an array of nano-scale holes in a gold
+  film is presented. 
 \end{abstract}
 
 
 \section{Introduction}
-The discovery of enhanced optical transmission by Ebessen
-et al. \cite{ebessen1998} in 1998 has  to a large amount of
-experimental and theoretical work on te
+The discovery of enhanced optical transmission through an array of
+nano-scale holes by Ebessen et al. \cite{ebessen1998} in 1998 has lead
+to a large amount of interest in the phenomenon. Enhanced transmission
+is observed when the surface of a thin film of metal is patterned with
+some arrangement of periodic features, such as an array of
+perforations, where each holes is much smaller than the wavelength of
+the incident light. The result was surprising because Bethe's theory
+of diffraction for small holes \cite{bethe1944} predicts lower levels
+of transmission than were observed. Diffraction theory also predicts
+that the light that is transmitted through a small aperture will be
+uniformly diffracted in all directions, but experiments have shown
+that patterning can focus the transmitted light into a narrow
+beam. 
 
+Surface plasmons, or waves that are bound to the surface of the metal,
+are considered to be the cause of the observed enhanced
+transmission. Surface waves are possible because of a property
+of some metals at optical wavelengths. 
+% MORE on this...
 
+Ishimaru explores surface waves in terms of negative permittivity,
+and without going into the details of how light interacts with
+materials, gives a good conceptual overview of the subject
+\cite{ishimaru91}.  
+
+A number of groups have investigated the properties of the effect
+experimentally. 
+
+% Applications, optimization
+
+\section{The FDTD Algorithm} 
+The finite-difference time-domain algorithm \cite{yee1966} is an
+excellent tool for examining the behavior of partial differential
+equations. It has been of great utility in the realm of
+electromagnetics, where it is used to solve Maxwell's equations
+(\ref{eq:max1}) and (\ref{eq:max2}). 
+
+\begin{equation}
+  \label{eq:max1}
+  \nabla \times \vec{E} = -j \omega \mu \vec{H} - \vec{M}
+\end{equation}
+
+\begin{equation}
+  \label{eq:max2}
+  \nabla \times \vec{H} = j \omega \epsilon \vec{E} + \vec{J}
+\end{equation}
+
+The FDTD algorithm is a central difference approximation of the
+equations to be solved. From Taflove \cite{taflove????}, equations
+(\ref{eq:max1}) and (\ref{eq:max2}) can be approximated as follows:
+
+\begin{equation}
+  \label{eq:approxEx}
+  \begin{array}{ll}
+    \hspace{0.15cm} & \\
+    \multicolumn{2}{l}{\left.  E_x \right|^{n+1/2}_{i,j+1/2,k+1/2}
+     = C_a(m) \left. E_x \right|^{n-1/2}_{i,j+1/2,k+1/2}} \\
+    & + C_b(m) \cdot \left( \left. H_z \right|^{n}_{i,j+1,k+1/2} \right.
+      - \left. H_z \right|^{n}_{i,j,k+1/2} \\
+    & + \left. H_y \right|^{n}_{i,j+1/2,k} 
+     - \left. H_y \right|^{n}_{i,j+1/2,k+1} \\
+    & - \left. J_{source_x} \right|^{n}_{i,j+1/2,k+1/2} \Delta \left. \right) 
+  \end{array}
+\end{equation}
+
+\begin{equation}
+  \label{eq:approxEy}
+  \begin{array}{ll}
+    \hspace{0.15cm} & \\
+    \multicolumn{2}{l}{\left.  E_y \right|^{n+1/2}_{i-1/2,j+1,k+1/2} 
+      = C_a(m) \left. E_y \right|^{n-1/2}_{i-1/2,j+1,k+1/2}} \\
+    & + C_b(m) \cdot \left( \left. H_x \right|^{n}_{i-1/2,j+1,k+1} \right.
+    - \left. H_x \right|^{n}_{i-1/2,j+1,k} \\
+    & + \left. H_z \right|^{n}_{i-1,j+1,k+1/2} 
+    - \left. H_z \right|^{n}_{i,j+1,k+1/2} \\
+    & - \left. J_{source_y} \right|^{n}_{i-1/2,j+1,k+1/2} \Delta
+    \left. \right)  
+
+  \end{array}
+\end{equation}
+
+\begin{equation}
+  \label{eq:approxEz}
+  \begin{array}{ll}
+    \hspace{0.15cm} & \\
+    \multicolumn{2}{l}{\left.  E_z \right|^{n+1/2}_{i-1/2,j+1/2,k+1} 
+      = C_a(m) \left. E_z \right|^{n-1/2}_{i-1/2,j+1/2,k+1}} \\
+    & + C_b(m) \cdot \left( \left. H_y \right|^{n}_{i,j+1/2,k+1} \right.
+    - \left. H_y \right|^{n}_{i-1,j+1/2,k+1} \\
+    & + \left. H_x \right|^{n}_{i-1/2,j,k+1} 
+    - \left. H_x \right|^{n}_{i-1/2,j+1,k+1} \\
+    & - \left. J_{source_z} \right|^{n}_{i-1/2,j+1/2,k+1} \Delta
+    \left.\right)    
+  \end{array}
+\end{equation}
+
+% Similarly for H
+%\begin{equation}
+%  \label{eq:approxHx}
+%  
+%\end{equation}
+
+The constants $C_a(m)$, $C_b(m)$, $D_a(m)$, and $D_b(m)$ are calculated from
+material properties, where $m$ is a numeric identifier assigned to a
+particular material. For simplicity, the spacial dependence of these
+values is not shown. 
 
 \section{Parallel Methods}
+Numerous parallel codes have implemented the finite-difference
+time-domain algorithm. Examples include works described by Gedney
+\cite{gedney1995}, Taflove \cite{taflove????}, and Hoteit et al.
+\cite{hoteit1999}. Most older parallel codes have been targeted at
+specialized vector supercomputers, such as those produced by Cray Inc.
+and NEC. Such machines are very expensive compared to the clustering
+approach \cite{becker1995} that has largely overtaken vector machines
+in the supercomputer market.
 
+Clusters of commodity computers, or nodes, rely on a high speed
+network to connect them together. A message passing system allows the
+nodes in the cluster to exchange information amongst themselves as
+needed during the execution of an algorithm. The most common message
+passing system is Message Passing Interface (MPI) \cite{}, and another
+older, less common one is Parallel Virtual Machine (PVM) \cite{}.
+
+Some algorithms require a large amount of communication between nodes
+and are unsuitable for implementation on clusters, since the amount of
+communication required negates any possible performance improvement
+that might be gained by executing the algorithm in parallel.
+Fortunately, FDTD is not such an algorithm.
+
+The FDTD algorithm is well suited to implementation on a
+cluster. Referring to (\ref{eq:approxEx}) through (\ref{eq:approxHz}),
+it is clear that each update depends only on the previous value of the
+field component in a given cell and on the field components in
+adjacent cells. The FDTD domain can be decomposed into a number of
+sub-domains, each of which can be assigned to a single node. Data need
+only be exchanged between nodes once per update cycle. 
+
+A parallel implementation of the FDTD algorithm was described by
+Guiddaut and Mahdjoubi \cite{guiffaut2001}. Since then, a number of
+other codes using MPI have appeared \cite{}. 
+
+Su et al. described an implementation of a FDTD using a OpenMP-MPI
+parallel hybrid \cite{su2004}. OpenMP is an standard for shared memory
+parallelism which makes it straight forward to write code which can
+take advantage of symmetrical multiprocessors (SMP). Since OpenMP is
+supported by a number of major vendors, it is possible to write
+portable C/C++ or FORTRAN code which can be used on a number of
+different systems or compilers with little or no change. 
+
+In FDTD algorithm, SMP parallelism is exploited by using OpenMP
+directives to tell the compiler to assign chunks of the update region
+to different processors in a single node. This approach is the most
+scalable; if more processors are added, the domain is simply divided
+into more chunks.
+
+The OpenMP-MPI hybrid parallel algorithm was implemented as follows:
+
+\begin{enumerate}
+\item Divide FDTD problem domain into $N$ sub-domains, where $N$ is
+  the number of nodes available to MPI. Since each node has it's own
+  memory, each sub-domain may be thought of as ranging from $(0,0,0)$
+  to $(X,Y,Z)$.
+\item Divide each of the $N$ sub-domains into $M$ chunks, where $M$ is
+  the number of processors available in each node.
+\item Perform time stepping updates of the electric field components on each of
+  the $N$ nodes:
+\begin{verbatim}
+for i = (m-1)*X/M to m*X/M
+  for j = 0 to Y
+    for k = 0 to Z
+      ex(i,j,k) = ex(i,j,k) + ...
+      ey(i,j,k) = ey(i,j,k) + ...
+      ez(i,j,k) = ez(i,j,k) + ...
+    end
+  end
+end
+\end{verbatim}
+  $m$ ranges from $1$ to $M$. The first line of this pseudo-code show
+  how the update loops can be divided up among $M$ processors using
+  OpenMP. The complexity shown on the first line is handled by
+  OpenMP. 
+\item Apply electric field boundary conditions and excitations. Data
+  exchange between nodes using MPI is treated as a boundary condition
+  and is handled in this step.
+\item Perform time stepping updates of the magnetic field components
+  on each of the $N$ nodes:
+\begin{verbatim}
+for i = (m-1)*X/M to m*X/M
+  for j = 0 to Y
+    for k = 0 to Z
+      ex(i,j,k) = ex(i,j,k) + ...
+      ey(i,j,k) = ey(i,j,k) + ...
+      ez(i,j,k) = ez(i,j,k) + ...
+    end
+  end
+end
+\end{verbatim}
+\item Apply magnetic field boundary conditions and excitations,
+  including MPI data exchange between nodes. 
+\item Repeat from 3.
+\end{enumerate}
+
+% Stuff that's missing: the role of overlap, details of domain
+% decomposition, details of how the updates are applied, lots of other
+% stuff... 
 
 \section{Optical Simulation}
 Devaus and Ebbesen has reported that a laser focused on one array of
 nano-holes can couple into surface plasmon modes, which travel along
 the surface of the metal to a second array of holes, where the surface
-plasmon modes are coupled back into propagating modes \cite{devaux2003}.
+plasmon modes are coupled back into propagating modes
+\cite{devaux2003}.
 
 In order to explore this effect with FDTD, it is necessary to have
 an extremly large grid, due to the size of the arrays and the space
@@ -47,6 +253,8 @@ conditions, although it does posses one plane of symmetry.
 
 
 \bibliographystyle{IEEEtran}
-\bibliography{IEEEabrv,../biblio/phred}
+\bibliography{../biblio/phred}
+%\bibliography{IEEEabrv,../biblio/phred}
+
 
 \end{document}
