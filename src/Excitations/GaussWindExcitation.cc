@@ -22,7 +22,7 @@
 #include "GaussWindExcitation.hh"
 #include <math.h>
 
-GaussWindExcitation::GaussWindExcitation(SourceFunction *sf)
+GaussWindExcitation::GaussWindExcitation(shared_ptr<SourceFunction> sf)
   : WindowedExcitation(sf)
 {}
 

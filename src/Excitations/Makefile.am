@@ -7,4 +7,7 @@ libexcitations_a_SOURCES = Excitation.hh \
 	GaussWindExcitation.hh \
 	GaussWindExcitation.cc \
 	WaveguideExcitation.hh \
-	WaveguideExcitation.cc
+	WaveguideExcitation.cc \
+	TotalScattered.hh \
+	TotalScattered.cc
+

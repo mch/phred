@@ -42,7 +42,7 @@ protected:
   float lxmin_, lymin_, lzmin_;
 
 public:
-  WindowedExcitation(SourceFunction *sf) 
+  WindowedExcitation(shared_ptr<SourceFunction> sf) 
     : Excitation(sf), xmin_(0), xmax_(0), ymin_(0), ymax_(0),
       zmin_(0), zmax_(0)
   {}

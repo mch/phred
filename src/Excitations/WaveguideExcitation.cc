@@ -23,7 +23,7 @@
 #include "../Constants.hh"
 #include <math.h>
 
-WaveguideExcitation::WaveguideExcitation(SourceFunction *sf)
+WaveguideExcitation::WaveguideExcitation(shared_ptr<SourceFunction> sf)
   : WindowedExcitation(sf)
 {}
 

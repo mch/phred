@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -19,31 +19,31 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef BARTLETT_EXCITATION_H
-#define BARTLETT_EXCITATION_H
+#include "TotalScattered.hh"
 
-#include "WindowedExcitation.hh"
-
-/**
- * An excitation that is windowed in 3 space by Bartlett windows (tent
- * functions). This should make a pseudo plane wave...
- * 
- * Check the Bartlett Window definition at:
- * http://www.cg.tuwien.ac.at/studentwork/CESCG/CESCG99/TTheussl/node6.html
- */
-class BartlettExcitation : public WindowedExcitation
+TotalScattered::TotalScattered(shared_ptr<SourceFunction> sf)
+  : Excitation(sf)
 {
-private:
-protected:
-  /**
-   * Defines a bartlett window function. 
-   */
-  virtual field_t window(float x, float y, float z);
 
-public:
-  BartlettExcitation(shared_ptr<SourceFunction> sf);
-  ~BartlettExcitation();
-  
-};
+}
 
-#endif // BARTLETT_EXCITATION_H
+TotalScattered::~TotalScattered()
+{
+
+}
+
+void TotalScattered::excite(Grid &grid, unsigned int time_step, 
+                            FieldType type)
+{
+
+}
+
+void TotalScattered::init(const Grid &grid)
+{
+
+}
+
+void TotalScattered::deinit()
+{
+
+}

@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -63,7 +63,7 @@ protected:
    */
   bool soft_;
 
-  SourceFunction *sf_; /**< Source function object to apply */
+  shared_ptr<SourceFunction> sf_; /**< Source function object to apply */
 
   shared_ptr<CSGBox> box_; /**< The box representing the area where
                               the excitation is to be applied. */
@@ -78,7 +78,7 @@ public:
    *
    * @param sf SourceFunction object to use as an excitation. 
    */
-  Excitation(SourceFunction *sf)
+  Excitation(shared_ptr<SourceFunction> sf)
     : type_(E), soft_(false),
       sf_(sf)
   {
