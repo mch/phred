@@ -1008,6 +1008,10 @@ void Grid::apply_boundaries(FieldType type)
   info_.apply_boundaries(*this, type);
 }
 
+/**
+ * \bug This doesn't work right if the point is larger than the bounds!!!
+ * \bug No way to indicate that the point is actually outside the local grid
+ */
 grid_point Grid::global_to_local(grid_point p) const
 {
   grid_point r;
@@ -1362,6 +1366,11 @@ void Grid::setup_subdomain_data(SubdomainBc *sd, Face face)
   rxtx.set_tx_ptr(get_face_start(face, FC_HZ, 1));
   rxtx.set_rx_ptr(get_face_start(face, FC_HZ, 0));
   sd->add_tx_rx_data(rxtx);
+}
+
+grid_point Grid::get_global_cell(point p) const
+{
+  return get_global_cell(p.x, p.y, p.z);
 }
 
 grid_point Grid::get_global_cell(float x, float y, float z) const

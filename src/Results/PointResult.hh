@@ -41,6 +41,8 @@ protected:
    */
   field_t field_data_[7];
 
+  point space_point_; /**< Point in real space, as set by the user */ 
+
   grid_point point_; /**< Point in global space. Have to translate it to
                      the local grid. */
 
@@ -74,9 +76,9 @@ public:
    *
    * @param point
    */
-  inline void set_point(grid_point p)
+  inline void set_point(point p)
   {
-    point_ = p;
+    space_point_ = p;
   }
 
   /**
@@ -84,9 +86,9 @@ public:
    *
    * @return grid_point
    */
-  inline grid_point get_point()
+  inline point get_point()
   {
-    return point_;
+    return space_point_;
   }
   
   virtual void init(const Grid &grid);

@@ -42,7 +42,8 @@
  *
  * Components are related thusly: the cross product of the first and
  * second tangential components points in the direction of normal
- * component.
+ * component. For counting tangential components, it's X, Y, then
+ * Z. If Z is first, the second is X.
  */
 class GridPlane
 {
@@ -63,6 +64,76 @@ public:
    */
   virtual ~GridPlane()
   {}
+
+  /**
+   * Returns a pointer the normal E component. This is intended to be
+   * used in Result gathering and update loops to make things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  virtual const field_t *get_e_n_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z) = 0;
+
+  /**
+   * Returns a pointer the normal H component. This is intended to be
+   * used in Result gathering and update loops to make things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  virtual const field_t *get_h_n_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z) = 0;
+
+  /**
+   * Returns a pointer the first tangential E component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  virtual const field_t *get_e_t1_ptr(unsigned int x, unsigned int y, 
+                                      unsigned int z) = 0;
+
+  /**
+   * Returns a pointer the first tangential H component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  virtual const field_t *get_h_t1_ptr(unsigned int x, unsigned int y, 
+                                      unsigned int z) = 0;
+
+  /**
+   * Returns a pointer the second tangential E component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  virtual const field_t *get_e_t2_ptr(unsigned int x, unsigned int y, 
+                                      unsigned int z) = 0;
+
+  /**
+   * Returns a pointer the second tangential H component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  virtual const field_t *get_h_t2_ptr(unsigned int x, unsigned int y, 
+                                      unsigned int z) = 0;
 
   /** 
    * Set the normal E field component
@@ -215,6 +286,93 @@ public:
   ~YZPlane()
   {}
   
+  /**
+   * Returns a pointer the normal (Ex) component. 
+   *
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_e_n_ptr(unsigned int x, unsigned int y, 
+                                    unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_EX);
+  }
+
+  /**
+   * Returns a pointer the (Hx) component. This is intended to be
+   * used in Result gathering and update loops to make things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_h_n_ptr(unsigned int x, unsigned int y, 
+                                    unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_HX);
+  }
+
+  /**
+   * Returns a pointer the first tangential (Ey) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_e_t1_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_EY);
+  }
+
+  /**
+   * Returns a pointer the first tangential (Hy) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_h_t1_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_HY);
+  }
+
+  /**
+   * Returns a pointer the second tangential (Ez) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_e_t2_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_EZ);
+  }
+
+  /**
+   * Returns a pointer the second tangential (Hz) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_h_t2_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_HZ);
+  }
+
   /** 
    * Set the normal E field component, Ex
    *
@@ -400,6 +558,93 @@ public:
 
   ~XZPlane()
   {}
+
+  /**
+   * Returns a pointer the normal (Ey) component. 
+   *
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_e_n_ptr(unsigned int x, unsigned int y, 
+                                    unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_EY);
+  }
+
+  /**
+   * Returns a pointer the (Hy) component. This is intended to be
+   * used in Result gathering and update loops to make things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_h_n_ptr(unsigned int x, unsigned int y, 
+                                    unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_HY);
+  }
+
+  /**
+   * Returns a pointer the first tangential (Ez) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_e_t1_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_EZ);
+  }
+
+  /**
+   * Returns a pointer the first tangential (Hz) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_h_t1_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_HZ);
+  }
+
+  /**
+   * Returns a pointer the second tangential (Ex) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_e_t2_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_EX);
+  }
+
+  /**
+   * Returns a pointer the second tangential (Hx) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_h_t2_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_HX);
+  }
   
   /** 
    * Set the normal E field component, Ey
@@ -586,6 +831,93 @@ public:
   ~XYPlane()
   {}
   
+  /**
+   * Returns a pointer the normal (Ez) component. 
+   *
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_e_n_ptr(unsigned int x, unsigned int y, 
+                                    unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_EZ);
+  }
+
+  /**
+   * Returns a pointer the (Hz) component. This is intended to be
+   * used in Result gathering and update loops to make things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_h_n_ptr(unsigned int x, unsigned int y, 
+                                    unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_HZ);
+  }
+
+  /**
+   * Returns a pointer the first tangential (Ex) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_e_t1_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_EX);
+  }
+
+  /**
+   * Returns a pointer the first tangential (Hx) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_h_t1_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_HX);
+  }
+
+  /**
+   * Returns a pointer the second tangential (Ey) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_e_t2_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_EY);
+  }
+
+  /**
+   * Returns a pointer the second tangential (Hy) component. This is
+   * intended to be used in Result gathering and update loops to make
+   * things faster.
+   * 
+   * @param x
+   * @param y
+   * @param z
+   */ 
+  inline const field_t *get_h_t2_ptr(unsigned int x, unsigned int y, 
+                                     unsigned int z)
+  {
+    return grid_.get_pointer(grid_point(x, y, z), FC_HY);
+  }
+
   /** 
    * Set the normal E field component, Ez
    *

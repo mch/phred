@@ -979,6 +979,14 @@ class Grid {
    * is returned.
    */ 
   grid_point get_global_cell(float x, float y, float z) const;
+
+  /**
+   * Returns the grid cell point containing the given real point. If
+   * the coordinate falls outside of the grid, the closest grid cell
+   * is returned.
+   */ 
+  grid_point get_global_cell(point p) const;
+
 };
 
 #endif // GRID_H

@@ -34,6 +34,8 @@ protected:
   field_t *result_; /**< Storage for the result. Interlevaved data;
                        freq, Real DFT value, Imag DFT value, etc */
 
+  point space_point_; /**< The point in real space to aquire data at. */ 
+
   grid_point point_; /**< The point to aquire the data at (global) */
   grid_point l_; /**< The point to aquire the data at (local) */
 
@@ -52,9 +54,9 @@ public:
    *
    * @param point
    */
-  inline void set_point(grid_point p)
+  inline void set_point(point p)
   {
-    point_ = p;
+    space_point_ = p;
   }
 
   /**
@@ -62,9 +64,9 @@ public:
    *
    * @return grid_point
    */
-  inline grid_point get_point()
+  inline point get_point()
   {
-    return point_;
+    return space_point_;
   }
 
   /**

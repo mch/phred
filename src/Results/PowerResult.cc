@@ -183,6 +183,24 @@ void PowerResult::init(const Grid &grid)
     throw ResultException("Region must be limited to a plane for a PowerResult.");
   }
 
+  // Must always set up the variables, regardless of wether we
+  // contribute any data, otherwise we may have problems with MPI in
+  // the DataWriter.
+  real_var_.reset();
+  imag_var_.reset();
+  freq_var_.reset();
+  power_var_.reset();
+  
+  real_var_.set_name(base_name_ + "_power_real");
+  imag_var_.set_name(base_name_ + "_power_imag");
+  freq_var_.set_name(base_name_ + "_freqs");
+  power_var_.set_name(base_name_ + "_time_power");
+  
+  real_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
+  imag_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
+  freq_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
+  power_var_.add_dimension("Power", 1, 1, 0);
+  
   if (has_data_)
   {
     /* GRR, ARGH! */
@@ -232,27 +250,13 @@ void PowerResult::init(const Grid &grid)
       freqs_[idx] = freq_start_ + idx * freq_space_;
 
     /* Set up output variables. */
-    real_var_.reset();
-    imag_var_.reset();
-    freq_var_.reset();
-    power_var_.reset();
-
-    real_var_.set_name(base_name_ + "_power_real");
-    imag_var_.set_name(base_name_ + "_power_imag");
-    freq_var_.set_name(base_name_ + "_freqs");
-    power_var_.set_name(base_name_ + "_time_power");
-
-    real_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
-    imag_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
-    freq_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
-    power_var_.add_dimension("Power", 1, 1, 0);
-
     imag_var_.set_ptr(power_imag_);
     real_var_.set_ptr(power_real_);  
     freq_var_.set_ptr(freqs_);
     power_var_.set_ptr(&time_power_);
 
-    if (MPI_RANK == 0)
+    if (MPI_RANK == 0) // All data is collected to rank 0 by this
+                       // result, rather than by the DataWriters.
     {
       power_var_.set_num(1);
       real_var_.set_num(num_freqs_);
@@ -283,8 +287,6 @@ void PowerResult::init(const Grid &grid)
     real_var_.set_num(0);
     imag_var_.set_num(0);
     freq_var_.set_num(0);
-
-    variables_.clear();
   }
 }
 
@@ -364,11 +366,11 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
 
   if (has_data_)
   {
-    for (unsigned int x = xmin_; x < xmax_; x++) 
+    for (int x = xmin_; x < xmax_; x++) 
     {
-      for (unsigned int y = ymin_; y < ymax_; y++) 
+      for (int y = ymin_; y < ymax_; y++) 
       {
-        for (unsigned int z = zmin_; z < zmax_; z++) 
+        for (int z = zmin_; z < zmax_; z++) 
         {
           et1 = plane_->get_e_t1(x, y, z);
           et2 = plane_->get_e_t2(x, y, z);
@@ -380,7 +382,7 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
                  + plane_->get_h_t2(x + step_x_, y + step_y_, 
                                     z + step_z_)) / 2;
 
-          time_power_ += et1 * ht2 - et2 * ht1;
+          time_power_ += (et1 * ht2 - et2 * ht1) * cell_area_;
         }
       }
     }
@@ -398,68 +400,74 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
     p_real2 = 0;
     p_imag2 = 0;
 
-    unsigned int idx = 0;
-
-    if (has_data_)
-    {
-      for (unsigned int x = xmin_; x < xmax_; x++) 
-      {
-        for (unsigned int y = ymin_; y < ymax_; y++) 
-        {
-          for (unsigned int z = zmin_; z < zmax_; z++) 
-          {
-            et1 = plane_->get_e_t1(x, y, z);
-            et2 = plane_->get_e_t2(x, y, z);
-
-            ht1 = (plane_->get_h_t1(x, y, z) 
-                   + plane_->get_h_t1(x + step_x_, y + step_y_, 
-                                      z + step_z_)) / 2;
-            ht2 = (plane_->get_h_t2(x, y, z) 
-                   + plane_->get_h_t2(x + step_x_, y + step_y_, 
-                                      z + step_z_)) / 2;
-          
-            et1_real = et1 * cos_temp;
-            et1_imag = (-1) * et1 * sin_temp;
-          
-            et2_real = et2 * cos_temp;
-            et2_imag = (-1) * et2 * sin_temp;
-          
-            ht1_real = ht1 * cos_temp;
-            ht1_imag = (-1) * ht1 * sin_temp;
-          
-            ht2_real = ht2 * cos_temp;
-            ht2_imag = (-1) * ht2 * sin_temp;
-          
-            et1r_[idx] += et1_real;
-            et2r_[idx] += et2_real;
-            et1i_[idx] += et1_imag;
-            et2i_[idx] += et2_imag;
-
-            ht1r_[idx] += ht1_real;
-            ht2r_[idx] += ht2_real;
-            ht1i_[idx] += ht1_imag;
-            ht2i_[idx] += ht2_imag;
-
-            p_real2 += (et1r_[idx] * ht2r_[idx] + et1i_[idx] * ht2i_[idx])
-              - (et2r_[idx] * ht1r_[idx] + et2i_[idx] * ht1i_[idx]);
-
-            p_imag2 += et1i_[idx] * ht2r_[idx] - ht2i_[idx] * et1r_[idx] 
-              + ht1i_[idx] * et2r_[idx] - et2i_[idx] * ht1r_[idx];
-
-            ++idx;
-          }
-        }
-      }
-    } 
-
-    MPI_Reduce(&p_real2, &p_real2, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
-               MPI_COMM_WORLD);
-
-    MPI_Reduce(&p_imag2, &p_imag2, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
-               MPI_COMM_WORLD);
+    power_real_[i] = time_power_ * cos_temp;
+    power_imag_[i] = time_power_ * sin_temp;
     
-    power_real_[i] = 0.5 * p_real2 * cell_area_;
-    power_imag_[i] = 0.5 * p_imag2 * cell_area_;
+
+    // What was I thinking here???!?!?
+
+//     unsigned int idx = 0;
+
+//     if (has_data_)
+//     {
+//       for (int x = xmin_; x < xmax_; x++) 
+//       {
+//         for (int y = ymin_; y < ymax_; y++) 
+//         {
+//           for (int z = zmin_; z < zmax_; z++) 
+//           {
+//             et1 = plane_->get_e_t1(x, y, z);
+//             et2 = plane_->get_e_t2(x, y, z);
+
+//             ht1 = (plane_->get_h_t1(x, y, z) 
+//                    + plane_->get_h_t1(x + step_x_, y + step_y_, 
+//                                       z + step_z_)) / 2;
+//             ht2 = (plane_->get_h_t2(x, y, z) 
+//                    + plane_->get_h_t2(x + step_x_, y + step_y_, 
+//                                       z + step_z_)) / 2;
+          
+//             et1_real = et1 * cos_temp;
+//             et1_imag = (-1) * et1 * sin_temp;
+          
+//             et2_real = et2 * cos_temp;
+//             et2_imag = (-1) * et2 * sin_temp;
+          
+//             ht1_real = ht1 * cos_temp;
+//             ht1_imag = (-1) * ht1 * sin_temp;
+          
+//             ht2_real = ht2 * cos_temp;
+//             ht2_imag = (-1) * ht2 * sin_temp;
+          
+//             et1r_[idx] += et1_real;
+//             et2r_[idx] += et2_real;
+//             et1i_[idx] += et1_imag;
+//             et2i_[idx] += et2_imag;
+
+//             ht1r_[idx] += ht1_real;
+//             ht2r_[idx] += ht2_real;
+//             ht1i_[idx] += ht1_imag;
+//             ht2i_[idx] += ht2_imag;
+
+//             p_real2 += (et1r_[idx] * ht2r_[idx] + et1i_[idx] * ht2i_[idx])
+//               - (et2r_[idx] * ht1r_[idx] + et2i_[idx] * ht1i_[idx]);
+
+//             p_imag2 += et1i_[idx] * ht2r_[idx] - ht2i_[idx] * et1r_[idx] 
+//               + ht1i_[idx] * et2r_[idx] - et2i_[idx] * ht1r_[idx];
+
+//             ++idx;
+//           }
+//         }
+//       }
+//     } 
+
+//     MPI_Reduce(&p_real2, &p_real2, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
+//                MPI_COMM_WORLD);
+
+//     MPI_Reduce(&p_imag2, &p_imag2, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
+//                MPI_COMM_WORLD);
+    
+//     power_real_[i] = 0.5 * p_real2 * cell_area_;
+//     power_imag_[i] = 0.5 * p_imag2 * cell_area_;
 
   }
 

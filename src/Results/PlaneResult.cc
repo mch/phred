@@ -89,9 +89,9 @@ void PlaneResult::init(const Grid &grid)
     var_.add_dimension("y", grid.get_ldy(), grid.get_gdy(), grid.get_lsy_ol());
     var_.add_dimension("z", grid.get_ldz(), grid.get_gdz(), grid.get_lsz_ol());
 
-    cerr << "X subdomin split? " << (x_sd ? "yup":"nope") << " plane_.x: "
-         << plane_.x << ", min: " << grid.get_lsx() 
-         << ", max: " << grid.get_lsx() + grid.get_ldx() << endl;
+//     cerr << "X subdomin split? " << (x_sd ? "yup":"nope") << " plane_.x: "
+//          << plane_.x << ", min: " << grid.get_lsx() 
+//          << ", max: " << grid.get_lsx() + grid.get_ldx() << endl;
      
     if (x_sd && (plane_.x > grid.get_ldx() - 1 + grid.get_lsx() 
                  || plane_.x < grid.get_lsx()))
@@ -121,9 +121,9 @@ void PlaneResult::init(const Grid &grid)
                      sizeof(field_t) * grid.get_ldz_sd() * grid.get_ldy_sd(), 
                      y_vector, &datatype_);
 
-     cerr << "Z subdomin split? " << (z_sd ? "yup":"nope") << " plane_.z: "
-          << plane_.z << ", min: " << grid.get_lsz() 
-          << ", max: " << grid.get_lsz() + grid.get_ldz() << endl;
+//      cerr << "Z subdomin split? " << (z_sd ? "yup":"nope") << " plane_.z: "
+//           << plane_.z << ", min: " << grid.get_lsz() 
+//           << ", max: " << grid.get_lsz() + grid.get_ldz() << endl;
 
     if (z_sd && (plane_.z > grid.get_ldz() - 1 + grid.get_lsz() 
                  || plane_.z < grid.get_lsz()))
@@ -136,9 +136,9 @@ void PlaneResult::init(const Grid &grid)
     var_.add_dimension("x", grid.get_ldx(), grid.get_gdx(), grid.get_lsx_ol());
     var_.add_dimension("z", grid.get_ldz(), grid.get_gdz(), grid.get_lsz_ol());
 
-    cerr << "Y subdomin split? " << (y_sd ? "yup":"nope") << " plane_.y: "
-         << plane_.y << ", min: " << grid.get_lsy() 
-         << ", max: " << grid.get_lsy() + grid.get_ldy() << endl;
+//     cerr << "Y subdomin split? " << (y_sd ? "yup":"nope") << " plane_.y: "
+//          << plane_.y << ", min: " << grid.get_lsy() 
+//          << ", max: " << grid.get_lsy() + grid.get_ldy() << endl;
 
     if (y_sd && (plane_.y > grid.get_ldy() + grid.get_lsy() 
                  || plane_.y < grid.get_lsy()))
@@ -150,7 +150,7 @@ void PlaneResult::init(const Grid &grid)
     break;
   }
 
-  cerr << "Have data? " << (have_data_ ? "yes" : "no") << endl;
+  //  cerr << "Have data? " << (have_data_ ? "yes" : "no") << endl;
 
   MPI_Type_commit(&datatype_);
 

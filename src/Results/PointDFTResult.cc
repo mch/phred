@@ -49,6 +49,8 @@ void PointDFTResult::init(const Grid &grid)
 {
   ours_ = true; 
 
+  point_ = grid.get_global_cell(space_point_);
+
   if (point_.x < grid.get_lsx() 
       || point_.x >= grid.get_lsx() + grid.get_ldx())
     ours_ = false;
