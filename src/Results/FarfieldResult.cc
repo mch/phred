@@ -485,6 +485,9 @@ ostream& FarfieldResult::to_string(ostream &os) const
       os << face_string(static_cast<Face>(i)) << " ";
 
   os << "\b].";
+
+  os << "Theta: " << theta_data_ << ". Phi: " 
+     << phi_data_ << ". Freqs: " << frequencies_ << ". ";
   
   return os;
 }
@@ -893,33 +896,35 @@ map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
     {
       for (int fft_idx = 0; fft_idx < ff_tsteps_; fft_idx++)
       {
-        field_t phi = phi_data_.get(phi_idx);
-        field_t theta = theta_data_.get(theta_idx);
+        double phi = phi_data_.get(phi_idx);
+        double theta = theta_data_.get(theta_idx);
         idx = WU_index(phi_idx, theta_idx, fft_idx, 
                        theta_data_.length(), 
                        ff_tsteps_);
 
-//         cerr << "FFR PP: phi_idx=" << phi_idx << ", theta_idx="
-//              << theta_idx << ", phi=" << phi << ", theta="
-//              << theta << ", idx=" << idx << ", Wx_=" 
-//              << Wx_[idx] << ", Wy_=" << Wy_[idx] << ", Wz_="
-//              << Wz_[idx] << ", Ux_=" << Ux_[idx] << ", Uy_="
-//              << Uy_[idx] << ", Uz_=" << Uz_[idx] << endl;
+        cerr << "FFR PP: phi_idx=" << phi_idx << ", theta_idx="
+             << theta_idx << ", phi=" << phi << ", theta="
+             << theta << ", idx=" << idx << ", Wx_=" 
+             << Wx_[idx] << ", Wy_=" << Wy_[idx] << ", Wz_="
+             << Wz_[idx] << ", Ux_=" << Ux_[idx] << ", Uy_="
+             << Uy_[idx] << ", Uz_=" << Uz_[idx] << endl;
 
         W_t = (Wx_[idx] * cos(theta) * cos(phi)
                + Wy_[idx] * cos(theta) * sin(phi)
                - Wz_[idx] * sin(theta));
 
-        W_p = (- Wx_[idx] * sin(phi) + Wy_[idx] * cos(phi));
+        W_p = -1 * Wx_[idx] * sin(phi) 
+          + Wy_[idx] * cos(phi);
 
         U_t = (Ux_[idx] * cos(theta) * cos(phi)
                + Uy_[idx] * cos(theta) * sin(phi)
                - Uz_[idx] * sin(theta)); 
 
-        U_p = (- Ux_[idx] * sin(phi) + Uy_[idx] * cos(phi));
+        U_p = -1 * Ux_[idx] * sin(phi) 
+          + Uy_[idx] * cos(phi);
 
-        E_theta_[idx] = - ETA * W_t - U_p;
-        E_phi_[idx] = - ETA * W_p + U_t;
+        E_theta_[idx] = (-1 * ETA * W_t) - U_p;
+        E_phi_[idx] = (-1 * ETA * W_p) + U_t;
 
         int dft_idx = dft_index(phi_idx, theta_idx, 0);
         for (int f_idx = 0; f_idx < frequencies_.length(); f_idx++)

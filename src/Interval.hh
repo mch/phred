@@ -199,14 +199,14 @@ std::ostream &operator<<(std::ostream &os, const Interval<T> &interval)
 {
   os << "[";
 
-  if (num_pts_ > 0 && items_)
+  if (interval.num_pts_ > 0 && interval.items_)
   {
-    for (unsigned int i = 0; i < num_pts_ - 1; i++)
+    for (unsigned int i = 0; i < interval.num_pts_ - 1; i++)
     {
-      os << items_[i] << " ";
+      os << interval.items_[i] << " ";
     }
 
-    os << items_[num_pts_ - 1];
+    os << interval.items_[interval.num_pts_ - 1];
   }
 
   os << "]";
