@@ -387,6 +387,17 @@ class Grid {
     return info_;
   }
 
+  /**
+   * Retrieve information about the grid's size, space and time step
+   * size, and boundary conditions. 
+   *
+   * @return a reference to the GridInfo object 
+   */
+  inline const GridInfo& get_grid_info() const
+  {
+    return info_;
+  }
+
   /** 
    * Returns a reference to the boundary condition object for a face. 
    *
@@ -524,7 +535,8 @@ class Grid {
   }
 
   /**
-   * Returns the local start of the x dimension, INCLUDING any overlap. 
+   * Returns the local start of the x dimension, INCLUDING any
+   * overlap. 
    *
    * @return local grid x start
    */

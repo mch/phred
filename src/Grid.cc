@@ -957,6 +957,9 @@ region_t Grid::global_to_local(region_t in, bool no_ol) const
   region_t r;
   unsigned int dx = info_.dimx_, dy = info_.dimy_, dz = info_.dimz_;
 
+  r.xmin = r.ymin = r.zmin = 0;
+  r.xmax = r.ymax = r.zmax = 0;
+
   if (no_ol)
   {
     dx = info_.dimx_no_sd_;

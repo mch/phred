@@ -17,6 +17,8 @@ c.abc_says_else()
 
 */
 
+#include "../../src/config.h"
+
 #include <Python.h>
 #include <boost/python.hpp>
 using namespace boost::python;
@@ -30,9 +32,6 @@ using namespace std;
 #include <unistd.h>
 #include <stdio.h>
 
-// TEMP
-#define HAVE_LIBREADLINE 1
-
 #ifdef HAVE_LIBREADLINE
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -45,7 +44,9 @@ using namespace std;
 #include <vector>
 
 // This ties us to Numeric... 
+#ifdef HAVE_NUMERIC
 #include <Numeric/arrayobject.h>
+#endif
 
 #ifdef HAVE_LIBREADLINE
 char *rl(const char *prompt)
@@ -350,13 +351,13 @@ int main(int argc, char **argv)
     //char src_ptr[] = {2, 3, 6, 7};
     //memcpy(data_ptr, src_ptr, 4);
 
-    list muffins();
+    list muffins;
     muffins.append(1);
     muffins.append(2);
     muffins.append(3);
     muffins.append(4);
 
-    PyDict_SetItemString(main_namespace.get(), "muffins", muffins.get());
+    PyDict_SetItemString(main_namespace.get(), "muffins", muffins.ptr());
 
     //Py_Main(argc, argv);
     string buffer; // for multiline commands

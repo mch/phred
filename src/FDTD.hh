@@ -29,6 +29,7 @@
 using namespace std;
 
 #include "Types.hh"
+#include "Region.hh"
 #include "Boundaries/BoundaryCondition.hh"
 #include "MaterialLib.hh"
 #include "Excitations/Excitation.hh"

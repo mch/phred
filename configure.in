@@ -18,8 +18,6 @@ ISODATE=`date +%Y-%m-%d`
 AC_SUBST(ISODATE)
 
 dnl Optional programs
-AC_ARG_WITH(vtk, AC_HELP_STRING([--without-vtk], [Don't use the VTK library]))
-
 AC_ARG_WITH(netcdf, AC_HELP_STRING([--without-netcdf], [Don't use NetCDF library]))
 
 AC_ARG_WITH(hdf5, AC_HELP_STRING([--without-hdf5], [Don't use the HDF5 library]))
@@ -191,15 +189,6 @@ if [[ ! "$with_popt" = "no" ]]; then
         AC_CHECK_HEADER([popt.h], [], [])
 fi
 
-if [[ ! "$with_vtk" = "no" ]]; then 
-AC_CHECK_LIB(vtkIO, vtkInstantiatorvtkXMLStructuredGridReaderNew, [
-    LIBS="-lvtk $LIBS";
-    AC_CHECK_HEADER([vtk.h], [
-        USE_VTK="1"
-        AC_DEFINE([USE_VTK], [1], [Use VTK as a DataWriter])], [], 
-                  [])], [], [])
-fi 
-
 if [[ ! "$with_netcdf" = "no" ]]; then 
 AC_CHECK_LIB(netcdf, ncopen, [
     LIBS="-lnetcdf $LIBS";
@@ -339,8 +328,6 @@ echo -n " - HDF 4? "
 if [[ "x$USE_HDF4" = "x1" ]]; then echo "yes"; else echo "no"; fi
 echo -n " - HDF 5? " 
 if [[ "x$USE_HDF5" = "x1" ]]; then echo "yes"; else echo "no"; fi
-echo -n " - VTK? " 
-if [[ "x$USE_VTK" = "x1" ]]; then echo "yes"; else echo "no"; fi
 echo
 echo -n "Building AltiVec support? " 
 if [[ "x$USE_ALTIVEC" = "x1" ]]; then echo "yes"; else echo "no"; fi

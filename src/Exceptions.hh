@@ -131,4 +131,12 @@ public:
   const char *what() const throw() { return buf_; }
 };
 
+class RegionException : public std::exception {
+private:
+  const char *buf_;
+public:
+  RegionException(const char *buf) : buf_(buf) {}
+  const char *what() const throw() { return buf_; }
+};
+
 #endif // EXCEPTIONS_H

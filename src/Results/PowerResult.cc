@@ -39,6 +39,8 @@ PowerResult::PowerResult()
   variables_["imag_power"] = &imag_var_;
   variables_["freqs"] = &freq_var_;
   variables_["time_power"] = &power_var_;
+
+  region2_ = 0;
 }
 
 PowerResult::PowerResult(field_t freq_start, field_t freq_stop, 
@@ -56,6 +58,8 @@ PowerResult::PowerResult(field_t freq_start, field_t freq_stop,
   variables_["imag_power"] = &imag_var_;
   variables_["freqs"] = &freq_var_;
   variables_["time_power"] = &power_var_;
+
+  region2_ = 0;
 }
 
 PowerResult::~PowerResult()
@@ -93,34 +97,61 @@ PowerResult::~PowerResult()
     ht2r_ = 0;
     ht2i_ = 0;
   }
+
+  if (region2_)
+    delete region2_;
 }
 
 void PowerResult::init(const Grid &grid)
 {
-  /* Region must be in out local sub-domain */ 
-  region_ = grid.global_to_local(region_, true);
-  x_size_ = region_.xmax - region_.xmin;
-  y_size_ = region_.ymax - region_.ymin;
-  z_size_ = region_.zmax - region_.zmin;
+  const GridInfo &gi = grid.get_grid_info();
 
-  cerr << "PowerResult Region is " << x_size_ << " x "
+  region2_.set_x(region_.xmin, region_.xmax);
+  region2_.set_y(region_.ymin, region_.ymax);
+  region2_.set_z(region_.zmin, region_.zmax);
+
+  cerr << "PowerResult global region is x: " << region2_.get_global_xmin()
+       << " to " << region2_.get_global_xmax() << " y: "
+       << region2_.get_global_ymin() << " to " 
+       << region2_.get_global_ymax() << " z: " 
+       << region2_.get_global_zmin() << " to " 
+       << region2_.get_global_zmax() << endl;
+
+  /* Region must be in out local sub-domain */ 
+  //region_ = grid.global_to_local(region_, true);
+//   x_size_ = region_.xmax - region_.xmin;
+//   y_size_ = region_.ymax - region_.ymin;
+//   z_size_ = region_.zmax - region_.zmin;
+
+  x_size_ = region2_.get_xmax(gi) - region2_.get_xmin(gi) + 1;
+  y_size_ = region2_.get_ymax(gi) - region2_.get_ymin(gi) + 1;
+  z_size_ = region2_.get_zmax(gi) - region2_.get_zmin(gi) + 1;
+
+  cerr << "PowerResult local region is " << x_size_ << " x "
        << y_size_ << " x " << z_size_ << endl;
 
+  cerr << "PowerResult local region is x: " << region2_.get_xmin(gi)
+       << " to " << region2_.get_xmax(gi) << " y: "
+       << region2_.get_ymin(gi) << " to " 
+       << region2_.get_ymax(gi) << " z: " 
+       << region2_.get_zmin(gi) << " to " 
+       << region2_.get_zmax(gi) << endl;
+
   /* Region must be a plane; set up grid plane */
-  if (region_.xmax - region_.xmin == 1)
+  if (x_size_ == 1)
   {
     normal_ = X_AXIS;
     plane_ = new YZPlane(const_cast<Grid&>(grid));
     step_x_ = 1;
     cell_area_ = grid.get_deltay() * grid.get_deltaz();
 
-  } else if (region_.ymax - region_.ymin == 1) {
+  } else if (y_size_ == 1) {
     normal_ = Y_AXIS;
     plane_ = new XZPlane(const_cast<Grid&>(grid));
     step_y_ = -1;
     cell_area_ = grid.get_deltax() * grid.get_deltaz();
 
-  } else if (region_.zmax - region_.zmin == 1) {
+  } else if (z_size_ == 1) {
     normal_ = Z_AXIS;
     plane_ = new XYPlane(const_cast<Grid&>(grid));
     step_z_ = -1;
@@ -212,9 +243,8 @@ void PowerResult::init(const Grid &grid)
 
 #ifdef DEBUG
   cerr << "PowerResult::init(), computing power through a surface which is "
-       << region_.xmax - region_.xmin << "x"
-       << region_.ymax - region_.ymin << "x"
-       << region_.zmax - region_.zmin << " in size." << endl;
+       << x_size_ << " x " << y_size_ << " x " << z_size_ 
+       << " in size." << endl;
   cerr << "Frequency range: " << freq_start_ << " to " 
        << freq_stop_ << ", spacing: " << freq_space_ << ", number: "
        << num_freqs_ << endl;

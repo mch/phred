@@ -27,6 +27,8 @@ phred_SOURCES=\
 	jan-grammer.yy \
 	jan-grammer-flex.ll \
 	system.h \
+	Region.hh \
+	Region.cc \
 	LifeCycle.hh \
 	LifeCycle.cc \
 	FDTD.hh \

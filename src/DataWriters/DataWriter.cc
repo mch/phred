@@ -40,67 +40,12 @@ void DataWriter::handle_data(unsigned int time_step,
 void DataWriter::gather_data(unsigned int time_step, Variable &var)
 {
   // Is the data on the right rank? 
-  unsigned int nums_snd[2], *nums_recv;
   char *ptr, *ptr_head; 
-  int sz; 
+  int buffer_size, sz; 
   const Data &data = var.get_data();
 
   MPI_Status status;
 
-  if (rank_ == 0)
-    nums_recv = new unsigned int[size_ * 2];
-
-  // Every process sends the number of items it has to contribute to
-  // the result to rank 0. 
-  nums_snd[0] = data.get_num();
-  MPI_Type_size(data.get_datatype(), &sz);
-  nums_snd[1] = static_cast<unsigned int>(sz);
-  
-  MPI_Gather(static_cast<void *>(&nums_snd), 2, MPI_UNSIGNED, 
-             static_cast<void *>(nums_recv), 2, MPI_UNSIGNED, 
-             0, MPI_COMM_WORLD);
-
-  // Every process must let us know where the data it is sending
-  // starts, and what it's dimensions are, so we can fit it into the
-  // right place in the buffer. These numbers are in terms of the 
-  const vector<Dimension> dimensions = var.get_dimensions();
-  vector<Dimension>::const_iterator iter = dimensions.begin();
-  vector<Dimension>::const_iterator iter_e = dimensions.end();
-  unsigned int num_dimensions = dimensions.size();
-  unsigned int *dim_starts = new unsigned int[num_dimensions];
-  unsigned int *dim_lengths = new unsigned int[num_dimensions];
-  unsigned int dim_idx = 0;
-
-  cerr << "Rank " << MPI_RANK << " is writing a variable with "
-       << num_dimensions << " dimensions. \n\tstart\tlength:\n";
-
-  for (; iter != iter_e; ++iter, ++dim_idx)
-  {
-    dim_lengths[dim_idx] = iter->local_len_;
-    dim_starts[dim_idx] = iter->start_;
-    cerr << "\t" << dim_starts[dim_idx] << "\t" << dim_lengths << "\n";
-  }
-
-  unsigned int *recv_dim_starts = new unsigned int[num_dimensions * MPI_SIZE];
-  unsigned int *recv_dim_lens = new unsigned int[num_dimensions * MPI_SIZE];
-
-  MPI_Gather(reinterpret_cast<void *>(dim_starts), num_dimensions, 
-             MPI_UNSIGNED, reinterpret_cast<void *>(recv_dim_starts), 
-             num_dimensions, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
-
-  MPI_Gather(reinterpret_cast<void *>(dim_lengths), num_dimensions, 
-             MPI_UNSIGNED, reinterpret_cast<void *>(recv_dim_lens), 
-             num_dimensions, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
-
-  delete[] dim_starts;
-  delete[] dim_lengths;
-
-  if (MPI_RANK == 0)
-  {
-    cerr << "Rank 0 has gathered all data to it:\n\tstart\tlength:\n";
-    for (dim_idx = 0; dim_idx < num_dimensions * MPI_SIZE; dim_idx++)
-      cerr << "\t" << recv_dim_starts << "\t" << recv_dim_lens << "\n";
-  }
 
   if (rank_ != 0)
   {
@@ -111,17 +56,14 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 
   else 
   {
-    unsigned int total = 0;
+    unsigned int rcv_size = get_recieve_size(data);
 
-    // Total number of bytes to recieve...
-    for (int i = 0; i < size_; i++)
-      total += nums_recv[i * 2] * nums_recv[(i*2)+1];
-
-    if (total > 0) 
+    if (rcv_size > 0) 
     {
-    
+      vector<pair<unsigned int, unsigned int> > sizes = gather_sizes(var);
+
       // A buffer to hold the result
-      ptr_head = ptr = new char[total];
+      ptr_head = ptr = new char[buffer_size];
       
       // Copy rank 0 data into the buffer
       // THIS IS BUGGY FOR MPI_SIZE > 1!!!! It does not take size and
@@ -154,6 +96,112 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
     }
   }
 
+  delete[] dim_starts;
+  delete[] dim_lengths;
+
   if (rank_ == 0)
-    delete[] nums_recv;  
+  {
+    delete[] recv_dim_starts;
+    delete[] recv_dim_lengths;
+  }
+}
+
+vector<unsigned int> DataWriter::get_recieve_sizes(const Data &data)
+{
+  unsigned int nums_snd[2], *nums_recv;
+  unsigned int total = 0;
+  vector<unsigned int> ret;
+
+  if (rank_ == 0)
+    nums_recv = new unsigned int[size_ * 2];
+
+  // Every process sends the number of items it has to contribute to
+  // the result to rank 0. 
+  nums_snd[0] = data.get_num();
+  MPI_Type_size(data.get_datatype(), &sz);
+  nums_snd[1] = static_cast<unsigned int>(sz);
+  
+  MPI_Gather(static_cast<void *>(&nums_snd), 2, MPI_UNSIGNED, 
+             static_cast<void *>(nums_recv), 2, MPI_UNSIGNED, 
+             0, MPI_COMM_WORLD);
+
+  if (rank_ == 0)
+  {
+    for (int i = 0; i < size_; i++)
+      ret.push_back(nums_recv[i * 2] * nums_recv[(i*2)+1]);
+    
+    delete[] nums_recv;
+  }
+
+  return ret;
+}
+
+vector<pair<unsigned int, unsigned int> > gather_sizes(const Variable &var)
+{
+  // Every process must let us know where the data it is sending
+  // starts, and what it's dimensions are, so we can fit it into the
+  // right place in the buffer. These numbers are in terms of the 
+  const vector<Dimension> dimensions = var.get_dimensions();
+  vector<Dimension>::const_iterator iter = dimensions.begin();
+  vector<Dimension>::const_iterator iter_e = dimensions.end();
+  unsigned int num_dimensions = dimensions.size();
+  unsigned int *dim_starts = new unsigned int[num_dimensions];
+  unsigned int *dim_lengths = new unsigned int[num_dimensions];
+  unsigned int dim_idx = 0;
+  vector<pair<unsigned int, unsigned int> > ret;
+
+  cerr << "Rank " << MPI_RANK << " is writing a variable with "
+       << num_dimensions << " dimensions. \n\tstart\tlength:\n";
+
+  for (; iter != iter_e; ++iter, ++dim_idx)
+  {
+    if (data.get_num() > 0)
+    {
+      dim_lengths[dim_idx] = iter->local_len_;
+      dim_starts[dim_idx] = iter->start_;
+    } else {
+      dim_lengths[dim_idx] = 0;
+      dim_starts[dim_idx] = 0;
+    }
+    cerr << "\t" << dim_starts[dim_idx] << "\t" << dim_lengths[dim_idx] << "\n";
+  }
+
+  if (rank_ == 0)
+  {
+    unsigned int *recv_dim_starts = new unsigned int[num_dimensions * MPI_SIZE];
+    unsigned int *recv_dim_lens = new unsigned int[num_dimensions * MPI_SIZE];
+  }
+
+  MPI_Gather(reinterpret_cast<void *>(dim_starts), num_dimensions, 
+             MPI_UNSIGNED, reinterpret_cast<void *>(recv_dim_starts), 
+             num_dimensions, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+
+  MPI_Gather(reinterpret_cast<void *>(dim_lengths), num_dimensions, 
+             MPI_UNSIGNED, reinterpret_cast<void *>(recv_dim_lens), 
+             num_dimensions, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+
+
+  if (MPI_RANK == 0)
+  {
+    unsigned int *total_dim_lens = new unsigned int[num_dimensions];
+    memset(total_dim_lens, 0, num_dimensions * sizeof(unsigned int));
+    
+    cerr << "Rank 0 has gathered all data to it:\n\tstart\tlength:\n";
+    for (dim_idx = 0; dim_idx < num_dimensions * MPI_SIZE; dim_idx++)
+    {
+      cerr << "\t" << recv_dim_starts[dim_idx] << "\t" 
+           << recv_dim_lens[dim_idx] << "\n";
+      unsigned int offset = dim_idx % num_dimensions;
+      total_dim_lens[offset] += recv_dim_lens[dim_idx];
+    }
+
+    cerr << "Totalled dimension lengths... \n";
+    for (dim_idx = 0; dim_idx < num_dimensions; dim_idx++)
+      cerr << "\t" << total_dim_lens[dim_idx] << "\n";
+  }
+
+  // DO ANY REGIONS OVERLAP? Is the total number of items to be
+  // recieved, as far as the lengths is concerned, deviate from
+  // expected?
+
 }

@@ -158,7 +158,6 @@ def mpitest(propagation_axis):
                 pr.set_plane(p, axis_faces[axis])
                 fdtd.add_result(field_names[field] + "_" + axis + "_plane", pr)
                 fdtd.map_result_to_datawriter(field_names[field] + "_" + axis + "_plane", "ncdw")
-                print "Added result " + field_names[field] + "_" + axis + "_plane" + " to the ncdw data writer. "
 
     except Exception, e:
         print "Exception setting up NetCDF output:"
@@ -212,6 +211,5 @@ def mpitest(propagation_axis):
 
 
 if (__name__ == "__main__"):
-    print "hello"
     mpitest('x')
    

@@ -85,6 +85,7 @@ public:
     py_geometry_.push_back(g);
     FDTD::add_geometry(extract<Geometry*>(g));
   }
+
 };
 
 void export_fdtd()
