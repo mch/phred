@@ -17,6 +17,7 @@ phred_SOURCES=phred.cc \
 	TimeExcitation.hh \
 	TimeExcitation.cc \
 	SpaceExcitation.hh \
+	BoundaryCondition.hh \
 	Types.hh \
 	jan-grammer.yy \
 	jan-grammer-flex.ff \
