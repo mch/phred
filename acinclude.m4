@@ -540,7 +540,7 @@ if test "$withval" != no ; then
                 CPPFLAGS="-I$withval/include"
                 LDFLAGS="-L$withval/lib"
         fi
-        LIBS="-lboost_python"
+        LIBS="$LIBS -lboost_python"
 
 
         AC_CACHE_CHECK([whether Boost Python is installed],ac_cxx_lib_boost_python,
@@ -548,6 +548,7 @@ if test "$withval" != no ; then
         AC_LANG_CPLUSPLUS
         AC_RUN_IFELSE(
         [AC_LANG_PROGRAM([[
+#include <Python.h>
 #include <boost/python.hpp>
 char const* greet()
 { return "hello, world"; }
