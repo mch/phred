@@ -345,12 +345,14 @@ void FDTD::run()
   unsigned int rt_steps = 9;
   
   for (ts = 1; ts <= time_steps_; ts++) {
-    cout << "Phred time step " << ts << endl;
+    if (!quiet)
+      cout << "Phred time step " << ts << endl;
     
     if ((ts - 10) % 100 == 0)
     {
       rt_now = time(NULL);
-      cout << "Estimated time remaining: " 
+      cout << "Estimated time remaining at time step " 
+           << ts << ": " 
            << (static_cast<double>(rt_now - rt_start) / rt_steps) 
         * (time_steps_ - ts)
            << " seconds. " << endl;

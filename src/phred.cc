@@ -232,7 +232,8 @@ Options:\n\
                              interpreters running on the other ranks.\n");
 #endif
   printf("  -h, --help                 display this help and exit\n\
-  -q, --quiet                Don't output warnings about problem setup, etc.\n\
+  -q, --quiet                Don't echo configuration information at\n\
+                             start up, don't report each time step, etc.\n\
   -m, --memory               Estimate amount of required memory and exit\n\
   -b, --mnps                 Benchmark: estimate the millions of nodes \n\
                              processed per second (this does NOT include\n\

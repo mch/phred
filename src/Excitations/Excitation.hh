@@ -78,17 +78,9 @@ public:
    *
    * @param sf SourceFunction object to use as an excitation. 
    */
-  Excitation(shared_ptr<SourceFunction> sf)
-    : type_(E), soft_(false),
-      sf_(sf)
-  {
-    polarization_[0] = 1;
-    polarization_[1] = 0;
-    polarization_[2] = 0;
-  }
+  Excitation(shared_ptr<SourceFunction> sf);
 
-  virtual ~Excitation()
-  {}
+  virtual ~Excitation();
 
   /**
    * This function is called to apply this excitation to the grid. 
@@ -98,101 +90,14 @@ public:
    * @param type the field type we are allowed to excite. 
    */
   virtual void excite(Grid &grid, unsigned int time_step, 
-                      FieldType type)
-  {
-    // Find out where we fit in this grid (convert to local coordinates)
-    if (type != BOTH && type != type_)
-      return;
-
-    field_t e_sf = sf_->source_function(grid, time_step);
-    field_t h_sf = sf_->source_function(grid, time_step - 0.5);
-
-    field_t e_fld[3];
-    field_t h_fld[3];
-
-    e_fld[0] = e_sf * polarization_[0];
-    e_fld[1] = e_sf * polarization_[1];
-    e_fld[2] = e_sf * polarization_[2];
-
-    h_fld[0] = h_sf * polarization_[0];
-    h_fld[1] = h_sf * polarization_[1];
-    h_fld[2] = h_sf * polarization_[2];
-
-    if (!soft_) 
-    {
-      for(unsigned int i = (*region_).xmin(); i < (*region_).xmax(); i++)
-      {
-        for (unsigned int j = (*region_).ymin(); j < (*region_).ymax(); j++)
-        {
-          for (unsigned int k = (*region_).zmin(); k < (*region_).zmax(); k++)
-          {
-            switch (type_) 
-            {
-            case E:
-              if (polarization_[0] != 0.0) grid.set_ex(i,j,k, e_fld[0]);
-              if (polarization_[1] != 0.0) grid.set_ey(i,j,k, e_fld[1]);
-              if (polarization_[2] != 0.0) grid.set_ez(i,j,k, e_fld[2]);
-              break;
-
-            case H:
-              if (polarization_[0] != 0.0) grid.set_hx(i,j,k, h_fld[0]);
-              if (polarization_[1] != 0.0) grid.set_hy(i,j,k, h_fld[1]);
-              if (polarization_[2] != 0.0) grid.set_hz(i,j,k, h_fld[2]);
-              break;
-
-            case BOTH: // Isn't meant for Excitations.
-              throw std::exception();
-              break; 
-            }
-          }
-        }
-      }
-    } else {
-      for(unsigned int i = (*region_).xmin(); i < (*region_).xmax(); i++)
-      {
-        for (unsigned int j = (*region_).ymin(); j < (*region_).ymax(); j++)
-        {
-          for (unsigned int k = (*region_).zmin(); k < (*region_).zmax(); k++)
-          {
-            switch (type_) 
-            {
-            case E:
-              if (polarization_[0] != 0.0) grid.set_ex(i,j,k, 
-                                                       e_fld[0] + grid.get_ex(i,j,k));
-              if (polarization_[1] != 0.0) grid.set_ey(i,j,k, 
-                                                       e_fld[1] + grid.get_ey(i,j,k));
-              if (polarization_[2] != 0.0) grid.set_ez(i,j,k, 
-                                                       e_fld[2] + grid.get_ez(i,j,k));
-              break;
-
-            case H:
-              if (polarization_[0] != 0.0) grid.set_hx(i,j,k, 
-                                                       h_fld[0] + grid.get_hx(i,j,k));
-              if (polarization_[1] != 0.0) grid.set_hy(i,j,k, 
-                                                       h_fld[1] + grid.get_hy(i,j,k));
-              if (polarization_[2] != 0.0) grid.set_hz(i,j,k, 
-                                                       h_fld[2] + grid.get_hz(i,j,k));
-              break;
-
-            case BOTH: // Isn't meant for Excitations.
-              throw std::exception();
-              break; 
-            }
-          }
-        }
-      }
-    }
-  }
-
+                      FieldType type);
+  
   /**
    * Set the CSGBox inside which the excitation is to be applied. 
    *
    * @param box the CSGBox to apply the excitation to. 
    */
-  void set_region(shared_ptr<CSGBox> box)
-  {
-    box_ = box;
-  }
+  void set_region(shared_ptr<CSGBox> box);
 
   /**
    * Set the polarization vector
@@ -201,22 +106,14 @@ public:
    * @param y the y component
    * @param z the z component
    */
-  void set_polarization(field_t x, field_t y, field_t z)
-  {
-    polarization_[0] = x;
-    polarization_[1] = y;
-    polarization_[2] = z;
-  }
+  void set_polarization(field_t x, field_t y, field_t z);
 
   /**
    * Set the field to excite. Either E or H. 
    *
    * @param t FieldType
    */
-  void set_type(FieldType t)
-  {
-    type_ = t;
-  }
+  void set_type(FieldType t);
 
   /**
    * Returns the field type.
@@ -247,13 +144,7 @@ public:
   /**
    * Verify that the excitation region is entierly inside the global grid. 
    */
-  virtual void init(const Grid &grid)
-  {
-    if (box_.get())
-    {
-      region_ = grid.get_local_region(*(box_.get()));
-    }
-  }
+  virtual void init(const Grid &grid);
 
 };
 
