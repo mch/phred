@@ -30,7 +30,8 @@ def pml_test(pml_thickness, xlen):
     output_prefix = "pml_test_" + str(MPI_SIZE) + "_" + str(xlen) + "_" + "_" + str(pml_thickness) + "_"
 
     #num_time_steps = 110
-    num_time_steps = 500
+    #num_time_steps = 500
+    num_time_steps = 10
 
     fdtd = FDTD()
     fdtd.set_grid_size(xlen, ylen, zlen)
