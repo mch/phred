@@ -121,7 +121,7 @@ fi
 AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
 
 
-DX_INIT_DOXYGEN([Phred])
+DX_INIT_DOXYGEN([Phred], [doc/Doxyfile], [doc])
 
 AC_LANG(C++)
 

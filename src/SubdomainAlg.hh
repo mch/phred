@@ -39,10 +39,7 @@ public:
 
   /**
    * Subclasses must override this method and implement an algorithm
-   * for domain decomposition. Clients should call alloc_grid() on
-   * the returned object to perform memory allocation. Memory
-   * deallocation occurs automatically when the object falls out of
-   * scope due to the destructor.
+   * for domain decomposition. 
    *
    * @param rank the rank of the processor we are finding a grid for. 
    * @param size the total number of processors available to us. 
@@ -54,6 +51,21 @@ public:
    */
   virtual GridInfo decompose_domain(int rank, int size, 
                                     GridInfo &info) = 0;
+
+  /**
+   * Subclasses must override this method and implement an algorithm
+   * for domain decomposition. The input is a Region object describing
+   * a set of voxels or Yee cells. The output is a new region which
+   * describes a set of voxels local only to the currently running
+   * process.
+   *
+   * @param region an object containing information about the
+   * global grid as determined by parsing the input file. 
+   *
+   * @return a new OverlapRegion object describing the voxels that
+   * belong only to this process, including any overlapping cells. 
+   */
+  //virtual OverlapRegion decompose_domain(Region &info) = 0;
 };
 
 #endif // SUBDOMAIN_ALG_H
