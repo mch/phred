@@ -239,8 +239,8 @@ main (int argc, char **argv)
           cout << "Python support is not compiled into this version." << endl;
 #endif
         } else {
-	  //pml_test(rank, size);
-          coupler_test(rank,size);
+	  pml_test(rank, size);
+          //coupler_test(rank,size);
 	}
 
       } else {
@@ -261,8 +261,8 @@ main (int argc, char **argv)
 
         // TESTS, TEMPORARY
         //point_test(rank, size);
-        //pml_test(rank, size);
-        coupler_test(rank,size);
+        pml_test(rank, size);
+        //coupler_test(rank,size);
         //takakura_test(rank, size);
 
         cout << "No filename given to load problem set up from. " << endl;
@@ -503,7 +503,7 @@ static void pml_test(int rank, int size)
 {
   FDTD fdtd;
   
-  fdtd.set_grid_size(500, 317, 79);
+  fdtd.set_grid_size(900, 317, 79);
 
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
   //fdtd.set_time_delta(3.1250e-17);
@@ -737,7 +737,7 @@ static void pml_test(int rank, int size)
 
 //     fdtd.map_result_to_datawriter("srctr", "adw8");
 
-   fdtd.set_time_steps(500);
+   fdtd.set_time_steps(100);
 
    
 #ifdef USE_OPENMP
@@ -1061,17 +1061,17 @@ static void coupler_test(int rank, int size)
   mdw.set_filename("coupler.mat");
   fdtd.add_datawriter("mdw", &mdw);
 
-  NetCDFDataWriter ncdw(rank, size);
-  ncdw.set_filename("coupler.nc");
-  fdtd.add_datawriter("ncdw", &ncdw);
+//  NetCDFDataWriter ncdw(rank, size);
+//  ncdw.set_filename("coupler.nc");
+//  fdtd.add_datawriter("ncdw", &ncdw);
 
-  PlaneResult pr1;
-  pr1.set_name("ez_xyplane");
-  pr1.set_plane(p, TOP);
-  pr1.set_field(FC_EZ);
+//  PlaneResult pr1;
+//  pr1.set_name("ez_xyplane");
+//  pr1.set_plane(p, TOP);
+//  pr1.set_field(FC_EZ);
  
-  fdtd.add_result("ez_xyplane", &pr1);
-  fdtd.map_result_to_datawriter("ez_xyplane", "ncdw");
+//  fdtd.add_result("ez_xyplane", &pr1);
+//  fdtd.map_result_to_datawriter("ez_xyplane", "ncdw");
 
   // S Parameters
   PowerResult s11(start_f, stop_f, 120), s12(start_f, stop_f, 120),
@@ -1115,6 +1115,6 @@ static void coupler_test(int rank, int size)
 
 
   // Let's begin.
-  fdtd.set_time_steps(5000);
+  fdtd.set_time_steps(10000);
   fdtd.run(rank, size);
 }

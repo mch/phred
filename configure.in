@@ -144,8 +144,10 @@ dnl Turn on inlining, template registry, RTTI, 2 GB memory access
    CXXFLAGS="$CXXFLAGS -qtemplateregistry -qrtti=all"
    if test "x$WANT_64BIT" = "x1"; then
       CXXFLAGS="-q64 -qwarn64 $CXXFLAGS"
+      CFLAGS="-q64 -qwarn64 $CFLAGS"
    else
       CXXFLAGS="-bmaxdata:0x80000000 $CXXFLAGS"
+      CFLAGS="-bmaxdata:0x80000000 $CFLAGS"
    fi
 fi
 
@@ -156,6 +158,7 @@ if test "$build_vendor" = "sgi"; then
 
   if test "$WANT_64BIT" = "1"; then
     CXXFLAGS="$CXXFLAGS -64"
+    CFLAGS="$CFLAGS -64"
   fi
 fi
 
@@ -165,7 +168,10 @@ if [[ ! -z $MPI_LIBS ]]; then
    MPI_LIBS="-L$MPI_LIBS"
 fi
 
-dnl HMMMMMM!
+
+
+dnl HMMMMMM! A better way is required. 
+
 dnl If AC_CHECK_LIB suceeds, it must not be allowed to prepend -lmpi because
 dnl the compiler script takes care of that. 
 dnl AC_CHECK_LIB(mpi, MPI_Init, [false], [
@@ -321,6 +327,8 @@ for (i = 0; i < 100; i++)
         else 
             CXXFLAGSTEMP="$CXXFLAGSTEMP -qSMP=omp:noauto"
         fi
+
+	CFLAGS="-qSMP=omp:noauto"
 
         USE_OPENMP="1"
         AC_DEFINE([USE_OPENMP], [1], [Using OpenMP (-qSMP=omp on AIX)])

@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #include "common.h"
 
@@ -37,15 +38,20 @@ void free_material();
 field_t gaussm(unsigned int time_step, field_t deltaf, 
                field_t alpha, field_t f0);
 
+void run(unsigned int num_time_steps);
+
 /****************************************************************
  * MAIN
  ****************************************************************/
 int main(int argc, char **argv)
 {
   field_t eps[2], mu[2];
-  unsigned int num_time_steps = 2000, i, j, k; 
+  unsigned int num_time_steps = 100, i, j, k; 
   FILE *fields;
-  unsigned int x, y, z;
+  unsigned int x, y, z, numthreads;
+  time_t start, now;
+  clock_t cpu_start, cpu_now;
+
   x = 20;
   y = 20;
   z = 15;
@@ -72,7 +78,7 @@ int main(int argc, char **argv)
       for (k = 0; k < 40; k++)
 	material_[pi(i, j, k)] = 1;
 
-  fields = fopen("fields.txt", "w");
+  /*fields = fopen("fields.txt", "w");*/
 
 #ifdef USE_OPENMP
 
@@ -86,13 +92,47 @@ int main(int argc, char **argv)
 	 (omp_in_parallel() ? "yes" : "no"));
   printf("Nested parallism? %s\n", 
 	 (omp_get_nested() ? "yes" : "no"));
+
+  /* Test the OpenMP */
+  for (numthreads = 1; numthreads <= omp_get_max_threads(); numthreads++)
+    {
+      omp_set_num_threads(numthreads);
+      start = time(NULL);
+      cpu_start = clock();
+      
+      run(num_time_steps);
+      
+      now = time(NULL);
+      cpu_now = clock();
+      
+      printf("%i of %i threads took %f wall clock seconds, and %f cpu seconds.\n", 
+	     numthreads, omp_get_max_threads(),
+	     (double)(now - start), (double)(cpu_now - cpu_start) / (double)CLOCKS_PER_SEC);
+    }
+#else
+  run(num_time_steps);
 #endif
+
+  /*fclose(fields);*/
+
+  /* Clean up */
+  free_grid();
+
+  return 0;
+}
+
+/****************************************************************
+ * Function definitions
+ ****************************************************************/
+void run(unsigned int num_time_steps)
+{
+  unsigned int i;
 
   /* Run loop */
   for (i = 0; i < num_time_steps; i++)
   {
-    printf("High speed C, time step %i, source: %g\n", 
-           i, gaussm(i, 500e12, 1, 300e12));
+    /*printf("High speed C, time step %i, source: %g\n", 
+      i, gaussm(i, 500e12, 1, 300e12));*/
 
 #ifdef USE_OPENMP
     omp_e_update();
@@ -108,23 +148,14 @@ int main(int argc, char **argv)
     h_update();
 #endif
 
-    fprintf(fields, "%i %g %g %g %g %g %g %g\n", 
-	    i, i * deltat_, ex_[pi(x, y, z)],
-	    ey_[pi(x, y, z)], ez_[pi(x, y, z)], 
-	    hx_[pi(x, y, z)], hy_[pi(x, y, z)],
-	    hz_[pi(x, y, z)]);
+/*      fprintf(fields, "%i %g %g %g %g %g %g %g\n",  */
+/*  	    i, i * deltat_, ex_[pi(x, y, z)], */
+/*  	    ey_[pi(x, y, z)], ez_[pi(x, y, z)],  */
+/*  	    hx_[pi(x, y, z)], hy_[pi(x, y, z)], */
+/*  	    hz_[pi(x, y, z)]); */
   }
-  fclose(fields);
 
-  /* Clean up */
-  free_grid();
-
-  return 0;
 }
-
-/****************************************************************
- * Function definitions
- ****************************************************************/
 
 field_t gaussm(unsigned int time_step, field_t deltaf, 
                field_t alpha, field_t f0)

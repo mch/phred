@@ -7,7 +7,7 @@
 # @ error = /home1m/bioelec/mhughe/Work/fdtd/phred/minerva/phred/stderr.txt
 # @ initialdir = /home1m/bioelec/mhughe/Work/fdtd/phred/minerva/phred
 # @ notify_user = mhughe@minerva8.uvic.ca
-# @ class = p2
+# @ class = p1
 #  environment = COPY_ALL
 # @ environment = OMP_NUM_THREADS=16; MP_EUIDEVELOP=yes ; MP_LABELIO=yes
 # @ group = bioelec
@@ -15,6 +15,10 @@
 # @ checkpoint = no
 # @ restart = no
 # @ requirements = (Arch == "R6000") && (OpSys == "AIX51")
+
+# Demand exclusive access to the node
+# @ node_usage = not_shared
+
 # @ node = 1
 # @ tasks_per_node = 1
 # @ network.MPI = en0,shared,IP

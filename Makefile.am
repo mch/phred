@@ -1,6 +1,6 @@
 SUBDIRS=src doc tests
 
-EXTRA_DIST=phred.spec.in
+EXTRA_DIST=phred.spec.in minerva/phred.txt minerva/hscfdtd.txt 
 
 # Run doxygen if it is available
 doc:
