@@ -23,6 +23,7 @@
 #include "Constants.hh"
 
 #include <string.h> // for memset
+#include <math.h>
 
 PowerResult::PowerResult()
   : power_real_(0), power_imag_(0), step_x_(0), step_y_(0), step_z_(0), 
