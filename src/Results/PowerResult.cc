@@ -301,7 +301,10 @@ public:
  * This class is a meta-program template which calculates the power
  * through plane in the frequency domain.
  *
- * THIS IS TOTALLY WRONG! 
+ * \bug THIS IS TOTALLY WRONG! Well, this tries to calculate the time
+ * average power of a sine wave... I don't think this is the right
+ * thing to do conceptually, and I'm not sure if it is implemented
+ * correctly.
  */ 
 // class DFTPowerAlg
 // {
