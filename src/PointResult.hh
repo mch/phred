@@ -15,10 +15,10 @@ class PointResult : public Result
 private:
 protected:
   /** 
-   * The field data the we copy from the grid. In order: ex, ey, ez,
+   * The field data the we copy from the grid. In order: time, ex, ey, ez,
    * hx, hy, hz.
    */
-  field_t field_data_[6];
+  field_t field_data_[7];
 
   // Point in global space. Have to translate it to the local grid. 
   point_t point_;
@@ -36,7 +36,7 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  virtual Data &get_result(Grid &grid);
+  virtual Data &get_result(Grid &grid, unsigned int time_step);
 
   /**
    * Set the point in global coordinates

@@ -42,8 +42,10 @@ public:
    *
    * @param grid the grid to operate on
    * @param time_step the time step we are on
+   * @param type the field type we are allowed to excite. 
    */
-  virtual void excite(Grid &grid, unsigned int time_step) = 0;
+  virtual void excite(Grid &grid, unsigned int time_step, 
+                      FieldType type) = 0;
 
   /**
    * Set the (rectangular) region to apply the excitation to. The

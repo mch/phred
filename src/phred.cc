@@ -34,9 +34,19 @@
  * Phred is designed to be an extensible and flexible research
  * code. As such, it is hopefully easy for other programmers to add
  * boundary conditions, excitations, output formats, and other cool
- * things. This section summarizes how to add such items to Phred.
+ * things. This section summarizes how to add such items to Phred in
+ * C++. Phred embeds the Python language, and such items may also be
+ * prototyped in Python by creating derived classes, although for
+ * speed the implementation should be done in C/C++. 
  *
  * \subsection addbc Adding a boundary condition
+ *
+ * Boundary conditions can be added by subclassing the
+ * BoundaryCondition object. For boundary conditions which only need
+ * to consider the tangential and normal field components at a face,
+ * adapter classes can be used to simplify the expression of the
+ * boundary condition. See the electric (Ewall) and magnetic wall
+ * boundary conditions (Hwall) for details. 
  *
  * \subsection adde Adding an excitation
  *
@@ -178,7 +188,8 @@ main (int argc, char **argv)
 //   cout << "I'm going to load data from the file '" << inputfile << "'."
 //        << endl;
 
-  cout << "phread version " << PACKAGE_VERSION << " starting." << endl;
+  cout << "phread version " << PACKAGE_VERSION << " starting. " 
+       << "Rank " << rank << " of " << size << "." << endl;
 
   // Parse the input script (each process will just load it's own file
   // for now. ) 
@@ -196,7 +207,7 @@ main (int argc, char **argv)
   
   info_g.global_dimx_ = info_g.dimx_ = 100;
   info_g.global_dimy_ = info_g.dimy_ = 100;
-  info_g.global_dimz_ = info_g.dimz_ = 97;
+  info_g.global_dimz_ = info_g.dimz_ = 100;
   info_g.deltax_ = info_g.deltay_ = info_g.deltaz_ = 18.75e-9;
   info_g.deltat_ = 36e-18;
   info_g.start_x_ = info_g.start_y_ = info_g.start_z_ = 0;
@@ -236,43 +247,62 @@ main (int argc, char **argv)
 
   // Results
   point_t p;
-  p.x = 52;
+  p.x = 45;
   p.y = 50;
   p.z = 50;
-  PointResult res;
-  res.set_point(p);
+  PointResult res1;
+  PointResult res2;
+  PointResult res3;
+  res1.set_point(p);
+  p.x = 50;
+  res2.set_point(p);
+  p.x = 55;
+  res3.set_point(p);
 
-  AsciiDataWriter adw(rank, size);
-  adw.set_filename("output.txt");
-  adw.add_variable(res);
+  AsciiDataWriter adw1(rank, size);
+  adw1.set_filename("t_ey_45_2.txt");
+  adw1.add_variable(res1);
   
+  AsciiDataWriter adw2(rank, size);
+  adw2.set_filename("t_ey_50_2.txt");
+  adw2.add_variable(res2);
+
+  AsciiDataWriter adw3(rank, size);
+  adw3.set_filename("t_ey_55_2.txt");
+  adw3.add_variable(res3);
+
   grid.set_define_mode(false);
   
   // Main loop
   unsigned int num_time_steps = 100;
   unsigned int ts = 0;
 
+  //ex.excite(grid, ts, BOTH);
+  grid.apply_boundaries();
+    
   cout << "main loop begins." << endl;  
-  for (ts = 0; ts < num_time_steps; ts++) {
+  for (ts = 1; ts < num_time_steps; ts++) {
     cout << "phred, time step " << ts << ", excitation: " 
          << ex.source_function(grid, ts) << endl;
-
-    // Excitations
-    ex.excite(grid, ts);
 
     // Fields update
     grid.update_fields();
 
+    // Total / Scattered excitation
+
+    // Excitations
+    ex.excite(grid, ts, E);
+    ex.excite(grid, ts, H);
+
     // Boundary condition application
     grid.apply_boundaries();
 
-    // Subdomain interface plane sharing
+    // Total / Scattered field interface confditions
 
-    // DFT outputs
-    
     // Results
-    Data temp_d = res.get_result(grid);
-    adw.handle_data(ts, temp_d);
+    adw1.handle_data(ts, res1.get_result(grid, ts));
+    adw2.handle_data(ts, res2.get_result(grid, ts));
+    adw3.handle_data(ts, res3.get_result(grid, ts));
   }
 
   cout << "phred is phinished." << endl;

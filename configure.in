@@ -24,6 +24,12 @@ AC_ARG_ENABLE(debug, [  --enable-debug          Enable debugging messages, turn 
 AC_ARG_WITH(cxx, AC_HELP_STRING([--with-cxx=CXX], [c++ compiler to use]), 
 		 [CXX="$withval"])
 
+AC_ARG_ENABLE(profile, AC_HELP_STRING([--enable-profile], [Compile with -pg flag for gprof support.]), [WANT_PROFILE=1])
+
+AC_ARG_ENABLE(pythonbuild, AC_HELP_STRING([--enable-python-build], [Built 3rd party Python]), [WANT_BP=1]);
+
+AC_ARG_ENABLE(boostpythonbuild, AC_HELP_STRING([--enable-boost-python-build], [Built 3rd party Boost Python interface]), [WANT_BPB=1]);
+
 # Stolen in part from the LAM MPI configure.in file
 if test "$with_cxx" = yes; then
    AC_MSG_ERROR(--with-cxx requires the compiler name)
@@ -151,6 +157,11 @@ else
         CXXFLAGS="-O2"
 fi
 
+dnl Profile?
+if test "x$WANT_PROFILE" = "x1"; then
+        AC_DEFINE([PROFILE], [1], [Using profiling (-pg)])
+        CXXFLAGS="$CXXFLAGS -pg"
+fi
 
 dnl Checks for libraries.
 if [[ ! -z "$with_ibmpe" ]] || [[ ! -z "$with_ibmpe_libs" ]] || [[ ! -z "$with_ibmpe_includes" ]]; then

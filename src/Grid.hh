@@ -109,7 +109,6 @@ class Grid {
    */
   bool define_;
 
-
   /**
    * Compute the update equatations for the Ex field component. 
    */

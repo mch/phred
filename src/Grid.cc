@@ -2,6 +2,7 @@
 
 #include "Ewall.hh"
 #include "Hwall.hh"
+#include "Constants.hh"
 
 Grid::Grid() 
   : num_materials_(0),
@@ -298,9 +299,9 @@ void Grid::load_materials(MaterialLib &matlib)
   while (iter != iter_e) 
   {
     // Make the code cleaner with short var names
-    mat_prop_t eps = (*iter).get_epsilon();
+    mat_prop_t eps = (*iter).get_epsilon() * EPS_0;
     mat_prop_t sig = (*iter).get_sigma();
-    mat_prop_t mu = (*iter).get_mu();
+    mat_prop_t mu = (*iter).get_mu() * MU_0;
     mat_prop_t sigs = (*iter).get_sigma_star();
 
     if (eps == 0 || mu == 0)
@@ -401,13 +402,13 @@ void Grid::update_fields()
     return;
   }
 
-  update_ex();
-  update_ey();
-  update_ez();
-
   update_hx();
   update_hy();
   update_hz();
+
+  update_ex();
+  update_ey();
+  update_ez();
 }
 
 // Straight out of Taflove.

@@ -191,7 +191,7 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  virtual Data &get_result(Grid &grid) = 0;
+  virtual Data &get_result(Grid &grid, unsigned int time_step) = 0;
 
   /**
    * Set the name of the variable. 

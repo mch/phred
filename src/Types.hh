@@ -62,7 +62,8 @@ enum FieldComponent {
  */
 enum FieldType {
   E,
-  H
+  H,
+  BOTH
 };
 
 /**

@@ -43,7 +43,7 @@ void AsciiDataWriter::handle_data(unsigned int time_step, Data &data)
 {
   // Is the data on the right rank? 
   unsigned int nums_snd[2], *nums_recv;
-  void *ptr; 
+  char *ptr, *ptr_head; 
   
   MPI_Status status;
 
@@ -72,10 +72,10 @@ void AsciiDataWriter::handle_data(unsigned int time_step, Data &data)
     for (int i = 0; i < size_; i++)
       total += nums_recv[i * 2] * nums_recv[(i*2)+1];
 
-    ptr = new char[total];
+    ptr_head = ptr = new char[total];
 
     memcpy(ptr, data.get_ptr(), data.get_num() * data.get_num_bytes());
-    (static_cast<char *>(ptr)) += data.get_num() * data.get_num_bytes();
+    ptr += data.get_num() * data.get_num_bytes();
 
     for (int i = 1; i < size_; i++)
     {
@@ -94,10 +94,10 @@ void AsciiDataWriter::handle_data(unsigned int time_step, Data &data)
 
     MPI_Datatype t = data.get_datatype();
 
-    write_data(t, ptr);
+    write_data(t, ptr_head);
     file_ << endl;
 
-    delete[] static_cast<char *>(ptr);
+    delete[] ptr_head;
   }
 
   if (rank_ == 0)

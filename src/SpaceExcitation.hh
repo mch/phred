@@ -23,8 +23,10 @@ public:
    *
    * @param grid the grid to operate on
    * @param time_step the time step we are on
+   * @param type the field type we are allowed to excite. 
    */
-  virtual void excite(Grid &grid, unsigned int time_step);
+  virtual void excite(Grid &grid, unsigned int time_step,
+                      FieldType type);
 
   /**
    * This function is defined in subclasses and produces the source
