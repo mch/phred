@@ -158,6 +158,12 @@ public:
   void set_time_delta(field_t dt);
 
   /**
+   * Returns the time delta. This is computed when set_grid_deltas is
+   * called.
+   */
+  field_t get_time_delta();
+
+  /**
    * Set a boundary condition object. A pointer to the object is
    * stored, so don't, for the love of god and all that is holy,
    * delete the object or allow it go go out of scope before this

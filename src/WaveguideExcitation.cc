@@ -20,15 +20,17 @@
 */
 
 #include "WaveguideExcitation.hh"
+#include "Constants.hh"
+#include <math.h>
 
-WaveGuideExcitation::WaveGuideExcitation(SouceFunction *sf)
+WaveguideExcitation::WaveguideExcitation(SourceFunction *sf)
   : WindowedExcitation(sf)
 {}
 
-WaveGuideExcitation::~WaveGuideExcitation()
+WaveguideExcitation::~WaveguideExcitation()
 {}
 
-field_t WaveGuideExcitation::window(region_t r, 
+field_t WaveguideExcitation::window(region_t r, 
                                     unsigned int x, 
                                     unsigned int y, 
                                     unsigned int z)
@@ -36,19 +38,24 @@ field_t WaveGuideExcitation::window(region_t r,
   unsigned int dx, dy, dz;
   field_t ret = 1.0;
 
-  dx = r.xmax - r.xmin;
-  dy = r.ymax - r.ymin;
-  dz = r.zmax - r.zmin;
+  dx = r.xmax - r.xmin - 1;
+  dy = r.ymax - r.ymin - 1;
+  dz = r.zmax - r.zmin - 1;
 
-  if (dx > 0)
-    ret = ret * sin((dx - 1) / PI * (x - r.xmin));
+  if (dx > 0 && mode_x_ > 0)
+    ret = ret * sin(mode_x_ * PI * (x - r.xmin) / dx);
 
-  if (dy > 0)
-    ret = ret * sin((dy - 1) / PI * (y - r.ymin));
+  if (dy > 0 && mode_y_ > 0)
+    ret = ret * sin(mode_y_ * PI * (y - r.ymin) / dy);
   
-  if (dz > 0)
-    ret = ret * sin((dz - 1) / PI * (z - r.zmin));
+  if (dz > 0 && mode_z_ > 0)
+    ret = ret * sin(mode_z_ * PI * (z - r.zmin) / dz);
   
+  // if (y == 10)
+//     cerr << "Waveguide excitation at (" << x << ", " << y << ", " 
+//          << z << ") is " << ret
+//          << endl;
+
   return ret;
 }
 

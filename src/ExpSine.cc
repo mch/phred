@@ -20,12 +20,14 @@
 */
 
 #include "ExpSine.hh"
+#include "Constants.hh"
 
 ExpSine::ExpSine()
+  : ampl_(1), period_(1/1e9), omega_(1e9*2*PI)
 {}
 
 ExpSine::ExpSine(float frequency)
-  : period_(1/frequency)
+  : ampl_(1), period_(1/frequency), omega_(frequency * 2 * PI)
 {}
 
 ExpSine::~ExpSine()
@@ -33,8 +35,11 @@ ExpSine::~ExpSine()
 
 field_t ExpSine::source_function(const Grid &grid, unsigned int time_step)
 {
-  return ampl_ * (1 - exp(-1 * grid.get_deltat() * time_step / period_))
+  field_t ret = ampl_ * (1 - exp(-1 * grid.get_deltat() * time_step / period_))
     * sin(omega_ * grid.get_deltat() * time_step);
+
+  //cerr << "ExpSine value for time_step " << time_step << ": " << ret << endl;
+  return ret;
 }
 
  

@@ -10,22 +10,27 @@ print "Testing the performance of Gedney's UPML in an X band waveguide, on %s %s
 a = 0.229 # m
 b = 0.102 # m
 
-centre_f = 9e9 # Hz
+centre_f = 15e9 # Hz
 wl = 2.997925e8 / centre_f
 
 # Extent of region
-xlen = 200
-ylen = 20
-zlen = 45
+xlen = 400
+ylen = 317
+zlen = 79
 
 # Prefix for output files
-output_prefix = "wg2_" + str(MPI_SIZE) + "_"
+output_prefix = "optm_" + str(MPI_SIZE) + "_"
 
-num_time_steps = 3000
+num_time_steps = 1500
 
 fdtd = FDTD()
 fdtd.set_grid_size(xlen, ylen, zlen)
-fdtd.set_grid_deltas(0.0051, 0.0051, 0.0051)
+fdtd.set_grid_deltas(0.0001, 0.0001, 0.0001)
+print "FDTD grid initialized. Cell size is 0.1mm x 0.1mm x 0.1mm\n"
+print "Region is %ix%ix%i. Time step size is %g.\n" % (xlen, ylen,
+                                                       zlen, fdtd.get_time_delta())
+
+quit
 
 # Add boundary conditions
 front = Pml()
@@ -36,8 +41,8 @@ front.set_thickness(4)
 back.set_thickness(4)
 
 fdtd.set_boundary(FRONT, front)
-#fdtd.set_boundary(BACK, back)
-fdtd.set_boundary(BACK, others)
+fdtd.set_boundary(BACK, back)
+#fdtd.set_boundary(BACK, others)
 fdtd.set_boundary(LEFT, others)
 fdtd.set_boundary(RIGHT, others)
 fdtd.set_boundary(TOP, others)
@@ -65,18 +70,59 @@ interior = Box()
 interior.set_region(0, xlen, 0, ylen, 0, zlen)
 interior.material_id = 1
 
+wall = Box()
+wall.set_region(0, xlen, ylen/2, ylen/2, 0, zlen)
+wall.material_id = 0
+
 fdtd.add_geometry(interior)
+fdtd.add_geometry(wall)
+
+# Aperature's
+num_aperatures = 3
+ap_sizes = [70, 60] # Centre ap, Those to either side of centre
+
+ap_pos = [xlen / 2, xlen / 2 + 70, xlen / 2 - 70]
+
+# Aperatures are defined by thier position along the x-axis and thier
+# size They are all square, a cannot be smaller than one cell, and
+# larger than ylen. The aperture sizes and positions are symettric
+# about the middle one.
+
+if (1 == num_aperatures%2): # odd
+    pass
+else:
+    pass
+
+aps = [Box()]
+aps[0].set_region(ap_pos[0] - ap_sizes[0]/2,
+                  ap_pos[0] + ap_sizes[0]/2,
+                  ylen/2, ylen/2,
+                  zlen/2 - ap_sizes[0]/2,
+                  zlen/2 + ap_sizes[0]/2)
+aps[0].material_id = 1
+
+for aperture in aps:
+    fdtd.add_geometry(aperture)
+
+                  
 
 # Excitation
 gm = Gaussm()
-gm.set_parameters(1, 0.2e9, 9e9)
+gm.set_parameters(1, 3e9, 15e9)
 
-ex = Excitation(gm)
-ex.set_soft(0)
-ex.set_region(10, 10, ylen/2, ylen/2, zlen/2, zlen/2);
-ex.set_polarization(0.0, 1.0, 0.0)
+#ex = Excitation(gm)
+#ex.set_soft(0)
+#ex.set_region(10, 10, ylen/2, ylen/2, zlen/2, zlen/2);
+#ex.set_polarization(0.0, 1.0, 0.0)
 
-fdtd.add_e_excitation("modgauss", ex)
+#exps = ExpSine(centre_f)
+ex = WaveguideExcitation(gm)
+ex.set_soft(1)
+ex.set_region(15, 15, 0, ylen/2, 0, zlen)
+ex.set_mode(0, 0, 1)
+ex.set_polarization(0.0, 0.0, 1.0)
+
+fdtd.add_excitation("modgauss", ex)
 
 # Data Writers!
 mdw = MatlabDataWriter(MPI_RANK, MPI_SIZE);
@@ -96,14 +142,26 @@ p.z = zlen / 2
 
 pr2 = PlaneResult()
 #pr2.set_name("ey-xzplane")
-pr2.set_plane(p, LEFT)
+pr2.set_plane(p, TOP)
 pr2.set_field(EY)
-fdtd.add_result("ey_xzplane", pr2)
-fdtd.map_result_to_datawriter("ey_xzplane", "ncdw")
+fdtd.add_result("ey_xyplane", pr2)
+fdtd.map_result_to_datawriter("ey_xyplane", "ncdw")
+
+pr3 = PlaneResult()
+pr3.set_plane(p, TOP)
+pr3.set_field(HX)
+fdtd.add_result("hx_xyplane", pr3)
+fdtd.map_result_to_datawriter("hx_xyplane", "ncdw")
+
+pr4 = PlaneResult()
+pr4.set_plane(p, TOP)
+pr4.set_field(HZ)
+fdtd.add_result("hz_xyplane", pr4)
+fdtd.map_result_to_datawriter("hz_xyplane", "ncdw")
 
 pdft = PointDFTResult()
-pdft.freq_start = 8e9
-pdft.freq_stop = 12.5e9
+pdft.freq_start = 12e9
+pdft.freq_stop = 18e9
 pdft.num_freqs = 120
 pdft.set_point(p)
 fdtd.add_result("centre_dft", pdft)
@@ -120,8 +178,8 @@ p2.y = ylen / 2
 p2.z = zlen / 2
 
 frontdft = PointDFTResult()
-frontdft.freq_start = 8e9
-frontdft.freq_stop = 12.5e9
+frontdft.freq_start = 12e9
+frontdft.freq_stop = 18e9
 frontdft.num_freqs = 120
 frontdft.set_point(p2)
 fdtd.add_result("front_dft", frontdft)
@@ -141,7 +199,7 @@ srcoutput = SourceTimeResult(gm)
 fdtd.add_result("src", srcoutput)
 fdtd.map_result_to_datawriter("src", "mdw")
 
-srcdft = SourceDFTResult(gm, 8e9, 12.5e9, 120)
+srcdft = SourceDFTResult(gm, 12e9, 18e9, 120)
 fdtd.add_result("srcdft", srcdft)
 fdtd.map_result_to_datawriter("srcdft", "mdw")
 fdtd.map_result_to_datawriter("srcdft", "adw")

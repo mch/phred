@@ -31,11 +31,11 @@
  * \bug this class really isn't that intellegent. In fact, it's
  * downright stupid.
  */ 
-class WaveGuideExcitation : public WindowedExcitation
+class WaveguideExcitation : public WindowedExcitation
 {
 public:
-  WaveGuideExcitation(SouceFunction *sf);
-  ~WaveGuideExcitation();
+  WaveguideExcitation(SourceFunction *sf);
+  ~WaveguideExcitation();
 
   virtual field_t window(region_t r, unsigned int x, unsigned int y, 
                          unsigned int z);
@@ -111,4 +111,4 @@ protected:
 private:
 };
 
-#endif WAVEGUIDE_EXCITATION_H
+#endif // WAVEGUIDE_EXCITATION_H

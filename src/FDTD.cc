@@ -74,6 +74,11 @@ void FDTD::set_grid_deltas(field_t dx, field_t dy, field_t dz)
                 1/(pow(dz, static_cast<float>(2.0)))));
 }
 
+field_t FDTD::get_time_delta()
+{
+  return global_ginfo_.deltat_;
+}
+
 void FDTD::set_time_delta(field_t dt)
 {
   global_ginfo_.deltat_ = dt;
