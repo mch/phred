@@ -77,6 +77,8 @@ phred_SOURCES=phred.cc \
 	NetCDFDataWriter.cc \
 	HdfDataWriter.hh \
 	Hdf5DataWriter.hh \
+	VtkDataWriter.hh \
+	VtkDataWriter.cc \
 	PointDFTResult.hh \
 	PointDFTResult.cc \
 	SourceTimeResult.hh \

@@ -17,6 +17,8 @@ ISODATE=`date +%Y-%m-%d`
 AC_SUBST(ISODATE)
 
 dnl Optional programs
+AC_ARG_WITH(vtk, AC_HELP_STRING([--without-vtk], [Don't use the VTK library]))
+
 AC_ARG_WITH(netcdf, AC_HELP_STRING([--without-netcdf], [Don't use NetCDF library]))
 
 AC_ARG_WITH(hdf5, AC_HELP_STRING([--without-hdf5], [Don't use the HDF5 library]))
@@ -63,6 +65,9 @@ AC_PROG_YACC
 AM_PROG_LEX
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
+
+dnl Check for compiler things
+AC_C_INLINE
 
 dnl Use SWIG to generate python scripting support?
 AC_ARG_WITH(python, AC_HELP_STRING([--with-python], [Generate Python scripting support]))
@@ -194,6 +199,15 @@ if [[ ! "$with_popt" = "no" ]]; then
         AC_CHECK_LIB(popt, poptGetContext, [], [])
         AC_CHECK_HEADER([popt.h], [], [])
 fi
+
+if [[ ! "$with_vtk" = "no" ]]; then 
+AC_CHECK_LIB(vtkIO, init, [
+    LIBS="-lvtk $LIBS";
+    AC_CHECK_HEADER([vtk.h], [
+        USE_VTK="1"
+        AC_DEFINE([USE_VTK], [1], [Use VTK as a DataWriter])], [], 
+                  [])], [], [])
+fi 
 
 if [[ ! "$with_netcdf" = "no" ]]; then 
 AC_CHECK_LIB(netcdf, ncopen, [

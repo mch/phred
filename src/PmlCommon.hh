@@ -49,12 +49,10 @@ private:
   float *h_z_coef1_;
   float *h_z_coef2_;
 
-#ifndef NDEBUG
   // For assertions, so we know when we step out of bounds
   unsigned int dimx_;
   unsigned int dimy_;
   unsigned int dimz_;
-#endif
 
   /**
    * Setup the coefficients 

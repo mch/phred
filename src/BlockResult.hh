@@ -7,7 +7,9 @@
 #include <mpi.h>
 
 /**
- * This result produces a block of data within the grid. 
+ * This result produces a block of data within the grid. Generally it
+ * will only return data for only one field component, but it can
+ * optionally return them all. 
  */
 class BlockResult : public Result
 {

@@ -2,10 +2,9 @@
 #define NETCDF_DATA_WRITER_H
 
 #include "DataWriter.hh"
+#include "Exceptions.hh"
 
 #include "config.h"
-
-#include "Exceptions.hh"
 
 #ifdef USE_NETCDF
 #include <netcdf.h>
@@ -63,7 +62,7 @@ protected:
   /**
    * Handle a NetCDF error... throws an exception. 
    */
-  virtual void handle_error(int status);
+  void handle_error(int status);
 
   /**
    * Get a dimension id. Dimensions are named by guessing that the
@@ -133,13 +132,13 @@ public:
    * Initialize this object; open the file. If the file is already
    * open, this simply returns. 
    */
-  virtual void init();
+  void init();
 
   /**
    * Deinit; close the file. If the file is closed, this simply
    * returns. 
    */
-  virtual void deinit();
+  void deinit();
 
   /**
    * Add a result that this data writer will have to know how to
@@ -148,7 +147,7 @@ public:
    *
    * @param result describes the result
    */
-  virtual void add_variable(Result &result);
+  void add_variable(Result &result);
 };
 #else
 class NetCDFDataWriter : public DataWriter {
@@ -168,13 +167,13 @@ public:
   ~NetCDFDataWriter()
   {}
 
-  void init()
+  inline void init()
   {}
 
-  void deinit()
+  inline void deinit()
   {}
 
-  void add_variable(Result &result)
+  inline void add_variable(Result &result)
   {}
 };
 #endif

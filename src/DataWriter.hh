@@ -42,7 +42,7 @@ protected:
    */ 
   void gather_data(unsigned int time_step, Data &data);
 
-  /**
+   /**
    * Does recursive writing of packed data. This function will only
    * be called on rank 0. This does nothing by default, but is defined
    * because subclasses do not necessarially have to override it (if
@@ -60,7 +60,7 @@ protected:
   virtual unsigned int write_data(unsigned int time_step, 
                                   Data &data, MPI_Datatype t, 
                                   void *ptr, unsigned int len) = 0;
-
+ 
 public:
   DataWriter(int rank, int size) 
     : rank_(rank), size_(size)
@@ -108,7 +108,12 @@ public:
   virtual void add_variable(Result &result) = 0;
 
   /**
-   * Handle the data produced by a Result object. 
+   * Handle the data produced by a Result object. The default
+   * implementation marshalls data from all ranks to rank 0, and rank
+   * 0 alone is responsible for writing the data to disk. 
+   *
+   * DataWriters which have the ability to use Parallel I/O should
+   * override this function. 
    *
    * @param data a Data object containing the data to handle
    */

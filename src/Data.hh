@@ -2,6 +2,8 @@
 #define DATA_H
 
 #include <string>
+#include <map>
+
 #include <mpi.h>
 
 using namespace std;
@@ -10,12 +12,16 @@ using namespace std;
  * A wrapper for a MPI derived data type, a pointer, and an int
  * indicating the number of items. This breaks OO principles slightly,
  * since we are exposing pointers to member data, but oh well. 
+ *
+ * Data object can contain multiple pointers, but they must all use
+ * the same MPI datatype. An example use is for the BlockResult,
+ * which can optionally return more than one field component. 
  */
 class Data {
 private:
 protected:
   MPI_Datatype type_;
-  void *ptr_;
+  map<unsigned int, void *> ptrs_;
   unsigned int num_; /**< Number of items of type_ that can be
                         accessed by ptr_ */ 
   string var_name_; /**< The name of the variable this data belongs
@@ -72,16 +78,35 @@ public:
     return type_;
   }
 
-  /** 
-   * Get the pointer
+  /**
+   * Returns the number of pointers contained in this data
+   * block. 
    */
-  inline void *get_ptr()
+  inline unsigned int get_num_ptrs()
   {
-    return ptr_;
+    return ptrs_.size();
+  }
+
+  /** 
+   * Returns a pointer to some data. Data makes no guarantee about the
+   * state of the point, because it is set by some other object. 
+   *
+   * @param ptr_num the pointer number to return, defaults to
+   * zero. Must be less than the value returned by get_num_ptrs(). 
+   */
+  inline void *get_ptr(unsigned int ptr_num = 0)
+  {
+    map<unsigned int, void *>::iterator iter = ptrs_.find(ptr_num);
+    
+    if (iter != ptrs_.end())
+      return *iter;
+    else
+      return 0;
   }
 
   /**
-   * get the number of items
+   * Returns the number of items (MPI Datatype data blocks) contained
+   * in each pointer. 
    */
   inline unsigned int get_num()
   {
@@ -89,11 +114,15 @@ public:
   }
 
   /**
-   * Set the pointer.
+   * Sets a pointer. The optional parameter ptr_num determines which
+   * pointer number to set. 
+   *
+   * @param ptr_num optional parameter the specifies the pointer
+   * number to set. Defaults to zero. 
    */
-  inline void set_ptr(void *ptr)
+  inline void set_ptr(void *ptr, unsigned int ptr_num = 0)
   {
-    ptr_ = ptr;
+    ptrs_[ptr_num] = ptr;
   }
 
   /**
@@ -111,27 +140,30 @@ public:
  * pointers; a recieve (rx) and a transmit (tx). This is intended for
  * use when there is overlapping regions at subdomain boundaries and
  * data has to be transfered between ranks. 
+ *
+ * This is really just a convienence class. 
  */
 class RxTxData : public Data
 {
 private:
   // Hide these
-  void *get_ptr()
-  { return 0; }
+  inline void *get_ptr(unsigned int ptr_num)
+  { return Data::get_ptr(ptr_num); }
 
-  void set_ptr(void *)
-  {}
+  inline void set_ptr(void *ptr, unsigned int ptr_num)
+  { Data::set_ptr(ptr, ptr_num); }
+
+  inline unsigned int get_num_ptrs()
+  { return 0; }
   
 protected:
-  void *rx_ptr_;
-  void *tx_ptr_;
 public:
   /**
    * Set the rx pointer
    */
   inline void set_rx_ptr(void *ptr)
   {
-    rx_ptr_ = ptr;
+    set_ptr(ptr, 0);
   }
 
   /**
@@ -139,7 +171,7 @@ public:
    */
   inline void *get_rx_ptr()
   {
-    return rx_ptr_;
+    return get_ptr(0);
   }
 
   /**
@@ -147,7 +179,7 @@ public:
    */
   inline void set_tx_ptr(void *ptr)
   {
-    tx_ptr_ = ptr;
+    set_ptr(ptr, 1);
   }
 
   /**
@@ -155,7 +187,7 @@ public:
    */
   inline void *get_tx_ptr()
   {
-    return tx_ptr_;
+    return get_ptr(1);
   }
 
 };
