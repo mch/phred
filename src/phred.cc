@@ -447,13 +447,13 @@ static void pml_test(int rank, int size)
 
   // Global coordinates. 
   Box all;
-  all.set_region(0, 75, 0, 30, 0, 30);
+  all.set_region(0, 75, 0, 10, 0, 10);
   all.set_material_id(1);
 
   Box metal1;
   //metal1.set_region(45, 55, 5, 46, 5, 56); // UNSTABLE
   //metal1.set_region(45, 75, 15, 37, 14, 47); // UNSTABLE
-  metal1.set_region(30, 34, 0, 30, 0, 30); // UNSTABLE
+  metal1.set_region(30, 34, 0, 10, 0, 10); // UNSTABLE
   //metal1.set_region(45, 55, 23, 27, 28, 33); // STABLE!?!
   metal1.set_material_id(2);
 
@@ -472,7 +472,7 @@ static void pml_test(int rank, int size)
   Excitation ex(&gm);
   //BartlettExcitation ex(gm);
   ex.set_soft(true);
-  ex.set_region(15, 15, 0, 30, 0, 30);
+  ex.set_region(15, 15, 0, 10, 0, 10);
   ex.set_polarization(0.0, 1.0, 0.0);
 
   fdtd.add_excitation("modgauss", &ex);
@@ -480,8 +480,8 @@ static void pml_test(int rank, int size)
   // Results
   point_t p;
   p.x = 40;
-  p.y = 15;
-  p.z = 15;
+  p.y = 5;
+  p.z = 5;
   PointResult res1(p);
   PointDFTResult pdft(100e12, 600e12, 50);
   pdft.set_point(p);
@@ -502,8 +502,8 @@ static void pml_test(int rank, int size)
 
   point_t p2;
   p2.x = 60;
-  p2.y = 15;
-  p2.z = 15;
+  p2.y = 5;
+  p2.z = 5;
   PointResult res4(p2);
   PointDFTResult p2dft(100e12, 600e12, 50);
   p2dft.set_point(p2);
@@ -530,7 +530,7 @@ static void pml_test(int rank, int size)
 
   PlaneResult pr1;
   pr1.set_name("hx-yzplane4");
-  pr1.set_plane(point_t(4, 15, 15), FRONT);
+  pr1.set_plane(point_t(4, 5, 5), FRONT);
   pr1.set_field(FC_HX);
   
   PlaneResult pr2;
@@ -540,12 +540,12 @@ static void pml_test(int rank, int size)
 
    PlaneResult pr3;
    pr3.set_name("ey-yzplane4");
-   pr3.set_plane(point_t(4, 15, 15), FRONT);
+   pr3.set_plane(point_t(4, 5, 5), FRONT);
    pr3.set_field(FC_EY);
 
    PlaneResult pr4;
    pr4.set_name("hz-yzplane4");
-   pr4.set_plane(point_t(4, 15, 15), FRONT);
+   pr4.set_plane(point_t(4, 5, 5), FRONT);
    pr4.set_field(FC_HZ);
 
    PlaneResult pr5;
