@@ -98,6 +98,8 @@ void export_results()
                   &PowerResult::set_freq_stop)
     .add_property("num_freqs", &PowerResult::get_num_freq,
                   &PowerResult::set_num_freq)
+    .add_property("dfts", &PowerResult::exporting_dfts,
+                  &PowerResult::export_dfts)
     ;
 
   class_<SourceDFTResult, bases<Result> >("SourceDFTResult", init<SourceFunction &>())

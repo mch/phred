@@ -46,6 +46,24 @@ public:
   inline unsigned int zmax()
   { return zmax_; }
 
+  inline unsigned int xstart()
+  { return start_x_; }
+
+  inline unsigned int ystart()
+  { return start_y_; }
+
+  inline unsigned int zstart()
+  { return start_z_; }
+
+  inline unsigned int xlen()
+  { return len_x_; }
+
+  inline unsigned int ylen()
+  { return len_y_; }
+
+  inline unsigned int zlen()
+  { return len_z_; }
+
   inline bool has_data()
   { return has_data_; }
 
