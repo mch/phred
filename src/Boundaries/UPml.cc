@@ -397,6 +397,9 @@ void UPml::init(const Grid &grid, Face face)
        << grid_hz_r_.ymax
        << ", z: " << grid_hz_r_.zmin << " -> " 
        << grid_hz_r_.zmax << endl;
+
+
+  cout << endl << "br_r_: " << bc_r_ << endl;
 #endif
 
   MPI_Type_contiguous(bc_r_.zmax, GRID_MPI_TYPE, &z_vector_);
@@ -1360,6 +1363,8 @@ void UPml::add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface)
   ret.set_tx_ptr(&(dz_[s_idx]));
   sd->add_tx_rx_data(ret);
 
+  ret.set_field_type(H);
+
   ret.set_rx_ptr(&(bx_[r_idx]));
   ret.set_tx_ptr(&(bx_[s_idx]));
   sd->add_tx_rx_data(ret);
@@ -1371,6 +1376,9 @@ void UPml::add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface)
   ret.set_rx_ptr(&(bz_[r_idx]));
   ret.set_tx_ptr(&(bz_[s_idx]));
   sd->add_tx_rx_data(ret);
+
+  // All aux variables are used in the computation of the E field. 
+  ret.set_field_type(E);
 
   if (aux1_x_)
   {

@@ -24,7 +24,7 @@
 #include "Globals.hh"
 
 FDTD::FDTD()
-  : time_steps_(0), ddalg_(DDA_UNDEFINED)
+  : time_steps_(0), ddalg_(DDA_MPICART)
 {
   mlib_ = shared_ptr<MaterialLib>(new MaterialLib()); // Empty default. 
 }

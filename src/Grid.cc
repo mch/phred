@@ -1128,6 +1128,12 @@ void Grid::setup_subdomain_data(SubdomainBc *sd, Face face)
   rxtx.set_tx_ptr(get_face_start(face, FC_HZ, 1));
   rxtx.set_rx_ptr(get_face_start(face, FC_HZ, 0));
   sd->add_tx_rx_data(rxtx);
+
+#ifdef DEBUG
+  cout << "Grid::setup_subdomain_data(): subdomain bc on " 
+       << face_string(face) << " on rank " << sd->get_rank() 
+       << " talking with " << sd->get_neighbour() << endl;
+#endif
 }
 
 grid_point Grid::get_global_cell(point p) const

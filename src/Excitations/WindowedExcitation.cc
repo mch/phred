@@ -69,6 +69,9 @@ void WindowedExcitation::excite(Grid &grid, unsigned int time_step,
   if (type != BOTH && type != type_)
     return;
 
+  if (!region_->has_data())
+    return;
+
   field_t e_time = grid.get_deltat() * time_step;
   field_t h_time = grid.get_deltat() * (time_step - 0.5);
   field_t e_sf = sf_->signal_function(e_time - time_offset_);

@@ -638,52 +638,107 @@ void MetaFDTD::compute_update_regions()
   if (grid_->update_ez_r_.xmin > e_update_r_.xmin)
     e_update_r_.xmin = grid_->update_ez_r_.xmin;
 
+  if (grid_->update_ey_r_.ymin > e_update_r_.ymin)
+    e_update_r_.ymin = grid_->update_ey_r_.ymin;
+
+  if (grid_->update_ez_r_.ymin > e_update_r_.ymin)
+    e_update_r_.ymin = grid_->update_ez_r_.ymin;
+
+  if (grid_->update_ey_r_.zmin > e_update_r_.zmin)
+    e_update_r_.zmin = grid_->update_ey_r_.zmin;
+
+  if (grid_->update_ez_r_.zmin > e_update_r_.zmin)
+    e_update_r_.zmin = grid_->update_ez_r_.zmin;
+
+  // E maxs
   if (grid_->update_ey_r_.xmax < e_update_r_.xmax)
     e_update_r_.xmax = grid_->update_ey_r_.xmax;
+
+  if (grid_->update_ez_r_.xmax < e_update_r_.xmax)
+    e_update_r_.xmax = grid_->update_ez_r_.xmax;
+
+  if (grid_->update_ey_r_.ymax < e_update_r_.ymax)
+    e_update_r_.ymax = grid_->update_ey_r_.ymax;
+
+  if (grid_->update_ez_r_.ymax < e_update_r_.ymax)
+    e_update_r_.ymax = grid_->update_ez_r_.ymax;
 
   if (grid_->update_ey_r_.zmax < e_update_r_.zmax)
     e_update_r_.zmax = grid_->update_ey_r_.zmax;
 
+  if (grid_->update_ez_r_.zmax < e_update_r_.zmax)
+    e_update_r_.zmax = grid_->update_ez_r_.zmax;
+
+
+
+  // H mins
   if (grid_->update_hy_r_.xmin > h_update_r_.xmin)
     h_update_r_.xmin = grid_->update_hy_r_.xmin;
 
   if (grid_->update_hz_r_.xmin > h_update_r_.xmin)
     h_update_r_.xmin = grid_->update_hz_r_.xmin;
 
+  if (grid_->update_hy_r_.ymin > h_update_r_.ymin)
+    h_update_r_.ymin = grid_->update_hy_r_.ymin;
+
+  if (grid_->update_hz_r_.ymin > h_update_r_.ymin)
+    h_update_r_.ymin = grid_->update_hz_r_.ymin;
+
+  if (grid_->update_hy_r_.zmin > h_update_r_.zmin)
+    h_update_r_.zmin = grid_->update_hy_r_.zmin;
+
+  if (grid_->update_hz_r_.zmin > h_update_r_.zmin)
+    h_update_r_.zmin = grid_->update_hz_r_.zmin;
+
+  // H maxs
   if (grid_->update_hy_r_.xmax < h_update_r_.xmax)
     h_update_r_.xmax = grid_->update_hy_r_.xmax;
 
+  if (grid_->update_hz_r_.xmax < h_update_r_.xmax)
+    h_update_r_.xmax = grid_->update_hz_r_.xmax;
+
+  if (grid_->update_hy_r_.ymax < h_update_r_.ymax)
+    h_update_r_.ymax = grid_->update_hy_r_.ymax;
+
+  if (grid_->update_hz_r_.ymax < h_update_r_.ymax)
+    h_update_r_.ymax = grid_->update_hz_r_.ymax;
+
   if (grid_->update_hy_r_.zmax < h_update_r_.zmax)
     h_update_r_.zmax = grid_->update_hy_r_.zmax;
+
+  if (grid_->update_hz_r_.zmax < h_update_r_.zmax)
+    h_update_r_.zmax = grid_->update_hz_r_.zmax;
+
 
 #ifdef DEBUG
   cout << "E 3 update region: " << e_update_r_;
   cout << "H 3 update region: " << h_update_r_;
 
-  region_t temp_update;
-  temp_update = grid_->update_ex_r_;
-  temp_update.xmax = temp_update.xmin + 1;
-  cout << "Ex 3 correction: " << temp_update;
+  // This is handled by component correct. 
+//   region_t temp_update;
+//   temp_update = grid_->update_ex_r_;
+//   temp_update.xmax = temp_update.xmin + 1;
+//   cout << "Ex 3 correction: " << temp_update;
   
-  temp_update = grid_->update_ey_r_;
-  temp_update.ymax = temp_update.ymin + 1;
-  cout << "Ey 3 correction: " << temp_update;
+//   temp_update = grid_->update_ey_r_;
+//   temp_update.ymax = temp_update.ymin + 1;
+//   cout << "Ey 3 correction: " << temp_update;
   
-  temp_update = grid_->update_ez_r_;
-  temp_update.zmax = temp_update.zmin + 1;
-  cout << "Ez 3 correction: " << temp_update;
+//   temp_update = grid_->update_ez_r_;
+//   temp_update.zmax = temp_update.zmin + 1;
+//   cout << "Ez 3 correction: " << temp_update;
 
-  temp_update = grid_->update_hx_r_;
-  temp_update.xmin = temp_update.xmax - 1;
-  cout << "Hx 3 correction: " << temp_update;
+//   temp_update = grid_->update_hx_r_;
+//   temp_update.xmin = temp_update.xmax - 1;
+//   cout << "Hx 3 correction: " << temp_update;
 
-  temp_update = grid_->update_hy_r_;
-  temp_update.ymin = temp_update.ymax - 1;
-  cout << "Hy 3 correction: " << temp_update;
+//   temp_update = grid_->update_hy_r_;
+//   temp_update.ymin = temp_update.ymax - 1;
+//   cout << "Hy 3 correction: " << temp_update;
 
-  temp_update = grid_->update_hz_r_;
-  temp_update.zmin = temp_update.zmax - 1;
-  cout << "Hz 3 correction: " << temp_update;
+//   temp_update = grid_->update_hz_r_;
+//   temp_update.zmin = temp_update.zmax - 1;
+//   cout << "Hz 3 correction: " << temp_update;
 #endif
 
 }
