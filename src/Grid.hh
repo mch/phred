@@ -197,9 +197,19 @@ class Grid {
    *
    * @return a copy of the GridInfo object 
    */
-  inline GridInfo get_grid_info() 
+  inline GridInfo& get_grid_info() 
   {
     return info_;
+  }
+
+  /** 
+   * Returns a reference to the boundary condition object for a face. 
+   *
+   * @return ref to a BoundaryCond
+   */
+  inline BoundaryCond& get_boundary(Face face)
+  {
+    return info_.get_boundary(face);
   }
 
   /** 

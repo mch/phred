@@ -166,12 +166,3 @@ void GridInfo::apply_boundaries(Grid &grid)
   }
 }
 
-const BoundaryCond& GridInfo::get_boundary(Face face)
-{
-  return *face_bc_[face];
-}
-
-const BoundaryCondition GridInfo::get_bc_type(Face face)
-{
-  return face_bc_type_[face];
-}

@@ -30,7 +30,7 @@ class Material
   mat_prop_t sigma_;
   
   mat_prop_t mu_; /**< Magentic permeability */
-  mat_prop_t sigma_star_; /**< The other thing... */
+  mat_prop_t sigma_star_; /**< Magnetic loss */
 
   string name_; /**< Human readable material name */
 

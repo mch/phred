@@ -7,6 +7,15 @@
  * Perfectly matched layers boundary conditions. Berenger did it
  * first, and then some other guys did it a different way. 
  *
+ * if sigma/epsilon_0 = sigma_star/mu_0, then the wave impedance of
+ * the lossy free-space medium equals that of lossless vacuum -> no
+ * reflection. 
+ *
+ * This boundary condition implements three set's of update
+ * equations; one for faces, where there is only one PML, one for
+ * edges, where two PML's overlap, and one for corners, where three
+ * PML's overlap. 
+ *
  * \bug IMPLEMENT ME!
  */
 class Pml : public BoundaryCond

@@ -114,14 +114,20 @@ public:
    *
    * @return BoundaryCondition from Types.hh
    */
-  const BoundaryCondition get_bc_type(Face face);
+  inline const BoundaryCondition get_bc_type(Face face)
+  {
+    return face_bc_type_[face];
+  }
 
   /** 
    * Returns a reference to the boundary condition object for a face. 
    *
    * @return ref to a BoundaryCond
    */
-  const BoundaryCond& get_boundary(Face face);
+  inline BoundaryCond& get_boundary(Face face)
+  {
+    return *face_bc_[face];
+  }
 
   /**
    * Returns the face thickness for a boundary condition
