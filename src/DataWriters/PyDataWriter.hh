@@ -71,7 +71,7 @@ public:
   /**
    * Clean up, but don't destruct. 
    */
-  void deinit(const Grid &grid);
+  void deinit();
 
   /**
    * Add information about results. Each variable in the result will
@@ -101,7 +101,7 @@ public:
   inline void init(const Grid &grid)
   {}
 
-  inline void deinit(const Grid &grid)
+  inline void deinit()
   {}
 
   inline void add_variable(Result &result)

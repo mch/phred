@@ -39,7 +39,7 @@ VtkDataWriter::init(const Grid &grid)
 
 }
 
-VtkDataWriter::deinit(const Grid &grid)
+VtkDataWriter::deinit()
 {
 
 }

@@ -77,7 +77,7 @@ public:
   /**
    * Clean up, but don't destruct. 
    */
-  virtual void deinit(const Grid &grid);
+  virtual void deinit();
 
   /**
    * Add a result that this data writer will have to know how to

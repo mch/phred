@@ -214,7 +214,7 @@ void FarfieldResult::init(const Grid &grid)
       || !e_theta_im_ || !e_phi_re_
       || !e_phi_im_ || !jff_mom_ || !mff_mom_)
   {
-    deinit(grid);
+    deinit();
     throw MemoryException();
   }
 
@@ -231,7 +231,7 @@ void FarfieldResult::init(const Grid &grid)
     if (!e_theta_re_[i] || !e_theta_im_[i] || !e_phi_re_[i] || !e_phi_im_[i]
         || !jff_mom_[i] || !mff_mom_[i])
     {
-      deinit(grid);
+      deinit();
       throw MemoryException();
     }
 
@@ -242,7 +242,7 @@ void FarfieldResult::init(const Grid &grid)
 
       if (!jff_mom_[i][j] || !mff_mom_[i][j])
       {
-        deinit(grid);
+        deinit();
         throw MemoryException();
       }
     }
@@ -319,7 +319,7 @@ void FarfieldResult::init(const Grid &grid)
   result_ = new field_t[num_cols * num_freqs_ * num_pts_];
   if (!result_)
   {
-    deinit(grid);
+    deinit();
     throw MemoryException();
   }
   memset(result_, 0, num_cols * num_freqs_ * num_pts_);
@@ -342,7 +342,7 @@ void FarfieldResult::init(const Grid &grid)
   angles_.set_datatype(MPI_FLOAT);
 }
   
-void FarfieldResult::deinit(const Grid &grid)
+void FarfieldResult::deinit()
 {
   for (int i = 0; i < num_pts_; i++)
   {

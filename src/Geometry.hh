@@ -122,7 +122,7 @@ public:
   /**
    * Deinit the geometry against the grid
    */ 
-  virtual void deinit(const Grid &grid);
+  virtual void deinit();
 
   /**
    * Update the material indicies of the grid 

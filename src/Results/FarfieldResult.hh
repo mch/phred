@@ -267,7 +267,7 @@ public:
   /**
    * Deallocates memory. 
    */
-  void deinit(const Grid &grid);
+  void deinit();
 
 protected:
   /**

@@ -91,5 +91,5 @@ void PointResult::init(const Grid &grid)
   var_.set_ptr(field_data_);
 }
 
-void PointResult::deinit(const Grid &grid)
+void PointResult::deinit()
 {}

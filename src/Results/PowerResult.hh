@@ -51,7 +51,7 @@ public:
   /**
    * Free memory etc
    */
-  virtual void deinit(const Grid &grid);
+  virtual void deinit();
 
   /**
    * Looks at the grid and produces output

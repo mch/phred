@@ -90,7 +90,7 @@ public:
   }
   
   virtual void init(const Grid &grid);
-  virtual void deinit(const Grid &grid);
+  virtual void deinit();
 };
 
 #endif // POINT_RESULT_H

@@ -453,7 +453,7 @@ public:
   /**
    * Deinit; close the file.
    */
-  virtual void deinit(const Grid &grid);
+  virtual void deinit();
 
   /**
    * Add a variable that we should know about. 

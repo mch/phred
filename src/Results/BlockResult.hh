@@ -78,7 +78,7 @@ public:
   /**
    * Called to perform any de-initialization that may be required.
    */
-  virtual void deinit(const Grid &grid);
+  virtual void deinit();
 
   /**
    * Returns the region this result deals with. 

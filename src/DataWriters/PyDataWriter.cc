@@ -46,7 +46,7 @@ PyDataWriter::~PyDataWriter()
 void PyDataWriter::init(const Grid &grid)
 {}
 
-void PyDataWriter::deinit(const Grid &grid)
+void PyDataWriter::deinit()
 {}
 
 void PyDataWriter::add_variable(Result &result)

@@ -36,7 +36,7 @@ BlockResult::BlockResult(region_t r, FieldComponent field_comp)
 BlockResult::~BlockResult()
 {}
 
-void BlockResult::deinit(const Grid &grid)
+void BlockResult::deinit()
 {}
 
 void BlockResult::init(const Grid &grid)

@@ -219,7 +219,7 @@ void PowerResult::init(const Grid &grid)
 #endif 
 }
 
-void PowerResult::deinit(const Grid &grid)
+void PowerResult::deinit()
 {
   if (plane_)
   {

@@ -108,7 +108,7 @@ void PointDFTResult::init(const Grid &grid)
   }
 }
 
-void PointDFTResult::deinit(const Grid &grid)
+void PointDFTResult::deinit()
 {
   if (result_)
   {

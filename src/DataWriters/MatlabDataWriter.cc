@@ -598,7 +598,7 @@ void MatlabDataWriter::init(const Grid &grid)
   }
 }
 
-void MatlabDataWriter::deinit(const Grid &grid)
+void MatlabDataWriter::deinit()
 {
   // If data is buffered, and things are ready to write, write them. 
   map<string, MatlabArray *>::iterator iter;

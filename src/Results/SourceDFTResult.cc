@@ -83,7 +83,7 @@ void SourceDFTResult::init(const Grid &grid)
   var_.set_datatype(temp);
 }
 
-void SourceDFTResult::deinit(const Grid &grid)
+void SourceDFTResult::deinit()
 {
   if (result_) {
     delete[] result_;
