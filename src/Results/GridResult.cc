@@ -30,6 +30,7 @@ GridResult::~GridResult()
 
 void GridResult::init(const Grid &grid)
 {
+  material_ids_.has_time_dimension(false);
   variables_["material_ids"] = &material_ids_;
   //variables_["delta_xs"] = &deltaxs_;
   //variables_["delta_ys"] = &deltays_;

@@ -29,6 +29,7 @@ using namespace boost::python;
 #include "../CSG/CSGDifference.hh"
 #include "../CSG/CSGUnion.hh"
 #include "../CSG/CSGIntersection.hh"
+#include "../CSG/CSGArray.hh"
 
 void export_csg() 
 {

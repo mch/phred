@@ -22,7 +22,7 @@
 #include "CSGArray.hh"
 
 CSGArray::CSGArray(shared_ptr<CSGObject> obj)
-  : xspace_(0), yspace_(0), zspace_(0), lenx_(1), leny_(1), lenz_(1), 
+  : xspace_(0), yspace_(0), zspace_(0), xlen_(1), ylen_(1), zlen_(1), 
     child_(obj)
 {}
 
@@ -33,7 +33,7 @@ CSGArray::CSGArray(const CSGArray &rhs)
 
 const CSGArray &CSGArray::operator= (const CSGArray &rhs)
 {
-  child_ = (*rhs.child).copy();
+  child_ = (*rhs.child_).copy();
 
   return *this;
 }
@@ -71,8 +71,8 @@ shared_ptr<CSGObject> CSGArray::copy() const
   return shared_ptr<CSGObject> (new CSGArray(*this));
 }
 
-void set_lengths(unsigned int xlen, unsigned int ylen, 
-                 unsigned int zlen)
+void CSGArray::set_lengths(unsigned int xlen, unsigned int ylen, 
+                           unsigned int zlen)
 {
   if (xlen < 1)
     throw CSGException("The length of the array along the x dimension must be greater than or equal to 1.");
@@ -88,7 +88,7 @@ void set_lengths(unsigned int xlen, unsigned int ylen,
   zlen_ = zlen;
 }
 
-void set_spacing(float x, float y, float z)
+void CSGArray::set_spacing(float x, float y, float z)
 {
   if (x < 0)
     throw CSGException("x spacing must not be less than zero.");
