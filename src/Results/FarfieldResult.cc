@@ -529,6 +529,13 @@ public:
 
   unsigned int ff_tsteps;
 
+  // Sign change, to make this match Jan's implementation. This is due
+  // to the fact that we're approximating a time derivative across two
+  // time steps, and the fact that the currents have various signs in
+  // them.... not sure exactly where this comes from though...
+  // This should be either -1 or +1. 
+  field_t signchange;
+
   // Angle data
   Interval<field_t> *theta_data;
   Interval<field_t> *phi_data;
@@ -603,19 +610,19 @@ public:
         assert(U_a >= 0.0 && U_a <= 1.0);
         assert(W_a >= 0.0 && W_a <= 1.0);
 
-        field_t temp = data.cellsize; //  / (data.dt);
+        field_t temp = data.signchange * data.cellsize; //  / (data.dt);
 
-        data.U_t1[wuidx + U_n] += temp * (1 - U_a) * (f.et2_avg);// - data.E_t2[data.idx]);
-        data.U_t2[wuidx + U_n] -= temp * (1 - U_a) * (f.et1_avg);// - data.E_t1[data.idx]);
+        data.U_t1[wuidx + U_n] += temp * (1 - U_a) * (f.et2_avg);
+        data.U_t1[wuidx + U_n + 1] += temp * U_a * (f.et2_avg);
 
-        data.U_t1[wuidx + U_n + 1] += temp * U_a * (f.et2_avg);// - data.E_t2[data.idx]);
-        data.U_t2[wuidx + U_n + 1] -= temp * U_a * (f.et1_avg);// - data.E_t1[data.idx]);
+        data.U_t2[wuidx + U_n] -= temp * (1 - U_a) * (f.et1_avg);
+        data.U_t2[wuidx + U_n + 1] -= temp * U_a * (f.et1_avg);
         
-        data.W_t1[wuidx + W_n] -= (1 - W_a) * temp * (f.ht2_avg);// - data.H_t2[data.idx]);
-        data.W_t2[wuidx + W_n] += (1 - W_a) * temp * (f.ht1_avg);// - data.H_t1[data.idx]);
-        
-        data.W_t1[wuidx + W_n + 1] -= W_a * temp * (f.ht2_avg);// - data.H_t2[data.idx]);
-        data.W_t2[wuidx + W_n + 1] += W_a * temp * (f.ht1_avg);// - data.H_t1[data.idx]);
+        data.W_t1[wuidx + W_n] -= (1 - W_a) * temp * (f.ht2_avg);
+        data.W_t1[wuidx + W_n + 1] -= W_a * temp * (f.ht2_avg);
+
+        data.W_t2[wuidx + W_n] += (1 - W_a) * temp * (f.ht1_avg);
+        data.W_t2[wuidx + W_n + 1] += W_a * temp * (f.ht1_avg);
       }
     }
 
@@ -722,6 +729,11 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         data.zshift = 0.0;
         break;
       }            
+
+      if (face_idx == BACK || face_idx == LEFT || face_idx == BOTTOM)
+        data.signchange = -1.0;
+      else
+        data.signchange = 1.0;
 
       PlaneTiling<FFAlg, FFData>::loop(grid, *region_, 
                                        static_cast<Face>(face_idx), 
