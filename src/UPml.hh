@@ -72,6 +72,8 @@ protected:
    */
   void free_coefs();
 
+  void compute_regions(Face face, const Grid &grid);
+
 public:
   UPml();
   ~UPml();
@@ -91,7 +93,7 @@ public:
    * Boundary condition type. Subclasses may implement. Only really
    * important for PMLs.
    */
-  virtual BoundaryCondition get_type() 
+  virtual BoundaryCondition get_type() const
   {
     return UPML;
   }

@@ -199,7 +199,7 @@ public:
   /**
    * Returns a BoundayCondition type so the grid knows this is a pml.
    */
-  virtual BoundaryCondition get_type();
+  virtual BoundaryCondition get_type() const;
 
 protected: // Only called by apply().
 

@@ -165,7 +165,7 @@ public:
    *
    * @return ref to a BoundaryCond
    */
-  inline BoundaryCond& get_boundary(Face face)
+  inline BoundaryCond& get_boundary(Face face) const
   {
     return *(face_bc_[face].get());
   }

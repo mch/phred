@@ -252,7 +252,7 @@ void BoundaryCond::set_thickness(unsigned int thickness)
   thickness_ = thickness;
 }
 
-unsigned int BoundaryCond::get_thickness()
+unsigned int BoundaryCond::get_thickness() const
 {
   return thickness_;
 }

@@ -39,6 +39,210 @@ UPml::~UPml()
 
 }
 
+void UPml::compute_regions(Face face, const Grid &grid)
+{
+  const BoundaryCond *bc = 0;
+
+  grid_r_ = find_face(face, grid);
+
+  bc_r_.xmin = bc_r_.ymin = bc_r_.zmin = 0;
+
+  bc_r_.xmax = grid_r_.xmax - grid_r_.xmin;
+  bc_r_.ymax = grid_r_.ymax - grid_r_.ymin;
+  bc_r_.zmax = grid_r_.zmax - grid_r_.zmin;
+
+  grid_ex_r_ = grid_ey_r_ = grid_ez_r_ = grid_r_;
+  grid_hx_r_ = grid_hy_r_ = grid_hz_r_ = grid_r_;
+
+  grid_ex_r_.ymin++;
+  grid_ex_r_.zmin++;
+  
+  grid_ey_r_.xmin++;
+  grid_ey_r_.zmin++;
+  
+  grid_ez_r_.xmin++;
+  grid_ez_r_.ymin++;
+  
+  grid_hx_r_.ymax--;
+  grid_hx_r_.zmax--;
+  
+  grid_hy_r_.xmax--;
+  grid_hy_r_.zmax--;
+  
+  grid_hz_r_.xmax--;
+  grid_hz_r_.ymax--;
+
+  // Corrections made by comparing to Jan's FDTD
+  grid_ex_r_.xmax--;
+  grid_ey_r_.ymax--;
+  grid_ez_r_.zmax--;
+
+  // Don't allow external face E field updates (electric walls)
+  // Make sure that the PML computes all components at internal faces. 
+  if (thickness_ > 0) 
+  {
+    switch (face) {
+    case FRONT:
+      grid_ey_r_.xmin--;
+      grid_ez_r_.xmin--;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ex_r_.ymax--;
+      grid_ez_r_.ymax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+      break;
+
+    case BACK:
+      grid_ex_r_.ymax--;
+      grid_ez_r_.ymax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+
+      break;
+
+    case TOP:
+      grid_ex_r_.zmin--;
+      grid_ey_r_.zmin--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ez_r_.ymax--;
+      grid_ex_r_.ymax--;
+      break;
+
+    case BOTTOM:
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ez_r_.ymax--;
+      grid_ex_r_.ymax--;
+      break;
+
+    case LEFT:
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;     
+      break;
+
+    case RIGHT:
+      grid_ez_r_.ymin--;
+      grid_ex_r_.ymin--;
+
+      grid_ez_r_.ymax--;
+      grid_ex_r_.ymax--;
+
+      grid_ey_r_.xmax--;
+      grid_ez_r_.xmax--;
+
+      grid_ex_r_.zmax--;
+      grid_ey_r_.zmax--;
+      break;
+    }
+
+    cerr << "Re-jiggering the boundaries so that there is no overlap..."
+         << endl;
+
+    switch (face)
+    {
+    case FRONT:
+    case BACK:
+      if (grid.get_boundary(LEFT).get_type() == UPML)
+      {
+        grid_ey_r_.ymin += grid.get_boundary(LEFT).get_thickness();
+        grid_hy_r_.ymin += grid.get_boundary(LEFT).get_thickness();
+      }
+
+      if (grid.get_boundary(RIGHT).get_type() == UPML)
+      {
+        grid_ey_r_.ymax -= grid.get_boundary(LEFT).get_thickness();
+        grid_hy_r_.ymax -= grid.get_boundary(LEFT).get_thickness();
+      }
+
+      if (grid.get_boundary(TOP).get_type() == UPML)
+      {
+        grid_ez_r_.zmax -= grid.get_boundary(TOP).get_thickness();
+        grid_hz_r_.zmax -= grid.get_boundary(TOP).get_thickness();
+      }
+
+      if (grid.get_boundary(BOTTOM).get_type() == UPML)
+      {
+        grid_ez_r_.zmin += grid.get_boundary(BOTTOM).get_thickness();
+        grid_hz_r_.zmin += grid.get_boundary(BOTTOM).get_thickness();
+      }
+      cerr << "Fixed front or back..." << endl;
+      break;
+
+    case TOP:
+    case BOTTOM:
+      if (grid.get_boundary(LEFT).get_type() == UPML)
+      {
+        grid_ey_r_.ymin += grid.get_boundary(LEFT).get_thickness();
+        grid_hy_r_.ymin += grid.get_boundary(LEFT).get_thickness();
+      }
+
+      if (grid.get_boundary(RIGHT).get_type() == UPML)
+      {
+        grid_ey_r_.ymax -= grid.get_boundary(LEFT).get_thickness();
+        grid_hy_r_.ymax -= grid.get_boundary(LEFT).get_thickness();
+      }
+
+      if (grid.get_boundary(FRONT).get_type() == UPML)
+      {
+        grid_ex_r_.xmin += grid.get_boundary(FRONT).get_thickness();
+        grid_hx_r_.xmin += grid.get_boundary(FRONT).get_thickness();
+      }
+
+      if (grid.get_boundary(BACK).get_type() == UPML)
+      {
+        grid_ex_r_.xmax -= grid.get_boundary(BACK).get_thickness();
+        grid_hx_r_.xmax -= grid.get_boundary(BACK).get_thickness();
+      }
+      cerr << "Fixed top or bottom..." << endl;
+      break;
+
+    case LEFT:
+    case RIGHT:
+      if (grid.get_boundary(FRONT).get_type() == UPML)
+      {
+        grid_ex_r_.xmin += grid.get_boundary(FRONT).get_thickness();
+        grid_hx_r_.xmin += grid.get_boundary(FRONT).get_thickness();
+      }
+
+      if (grid.get_boundary(BACK).get_type() == UPML)
+      {
+        grid_ex_r_.xmax -= grid.get_boundary(BACK).get_thickness();
+        grid_hx_r_.xmax -= grid.get_boundary(BACK).get_thickness();
+      }
+
+      if (grid.get_boundary(TOP).get_type() == UPML)
+      {
+        grid_ez_r_.zmax -= grid.get_boundary(TOP).get_thickness();
+        grid_hz_r_.zmax -= grid.get_boundary(TOP).get_thickness();
+      }
+
+      if (grid.get_boundary(BOTTOM).get_type() == UPML)
+      {
+        grid_ez_r_.zmin += grid.get_boundary(BOTTOM).get_thickness();
+        grid_hz_r_.zmin += grid.get_boundary(BOTTOM).get_thickness();
+      }
+      cerr << "Fixed left or right..." << endl;
+
+      break;
+    }
+  }
+}
+
 void UPml::init(const Grid &grid, Face face)
 {
   compute_regions(face, grid);
@@ -132,6 +336,46 @@ void UPml::init(const Grid &grid, Face face)
     ++iter;
     ++index;      
   }
+
+
+  cout << "UPML Update region for face " << face << ":"
+       << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
+       << grid_ex_r_.xmax
+       << ", y: " << grid_ex_r_.ymin << " -> " 
+       << grid_ex_r_.ymax
+       << ", z: " << grid_ex_r_.zmin << " -> " 
+       << grid_ex_r_.zmax
+       << "\n\tEy, x: " << grid_ey_r_.xmin << " -> " 
+       << grid_ey_r_.xmax
+       << ", y: " << grid_ey_r_.ymin << " -> " 
+       << grid_ey_r_.ymax
+       << ", z: " << grid_ey_r_.zmin << " -> " 
+       << grid_ey_r_.zmax
+       << "\n\tEz, x: " << grid_ez_r_.xmin << " -> " 
+       << grid_ez_r_.xmax
+       << ", y: " << grid_ez_r_.ymin << " -> " 
+       << grid_ez_r_.ymax
+       << ", z: " << grid_ez_r_.zmin << " -> " 
+       << grid_ez_r_.zmax 
+       << "\n\tHx, x: " << grid_hx_r_.xmin << " -> " 
+       << grid_hx_r_.xmax
+       << ", y: " << grid_hx_r_.ymin << " -> " 
+       << grid_hx_r_.ymax
+       << ", z: " << grid_hx_r_.zmin << " -> " 
+       << grid_hx_r_.zmax
+       << "\n\tHy, x: " << grid_hy_r_.xmin << " -> " 
+       << grid_hy_r_.xmax
+       << ", y: " << grid_hy_r_.ymin << " -> " 
+       << grid_hy_r_.ymax
+       << ", z: " << grid_hy_r_.zmin << " -> " 
+       << grid_hy_r_.zmax
+       << "\n\tHz, x: " << grid_hz_r_.xmin << " -> " 
+       << grid_hz_r_.xmax
+       << ", y: " << grid_hz_r_.ymin << " -> " 
+       << grid_hz_r_.ymax
+       << ", z: " << grid_hz_r_.zmin << " -> " 
+       << grid_hz_r_.zmax << endl;
+
 }
 
 void UPml::alloc_coefs(unsigned int num_materials)
@@ -213,7 +457,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     {
     case FRONT:
     case BACK:
-      update_ex(grid, true);   
+      update_ex(grid, false);   
       update_ey(grid, false);
       update_ez(grid, false);
       break;
@@ -221,7 +465,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     case LEFT:
     case RIGHT:
       update_ex(grid, false);   
-      update_ey(grid, true);
+      update_ey(grid, false);
       update_ez(grid, false);
       break;
 
@@ -229,7 +473,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     case BOTTOM:
       update_ex(grid, false);   
       update_ey(grid, false);
-      update_ez(grid, true);
+      update_ez(grid, false);
       break;
     }
   }
@@ -239,7 +483,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     {
     case FRONT:
     case BACK:
-      update_hx(grid, true);   
+      update_hx(grid, false);   
       update_hy(grid, false);
       update_hz(grid, false);
       break;
@@ -247,7 +491,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     case LEFT:
     case RIGHT:
       update_hx(grid, false);   
-      update_hy(grid, true);
+      update_hy(grid, false);
       update_hz(grid, false);
       break;
 
@@ -255,7 +499,7 @@ void UPml::apply(Face face, Grid &grid, FieldType type)
     case BOTTOM:
       update_hx(grid, false);   
       update_hy(grid, false);
-      update_hz(grid, true);
+      update_hz(grid, false);
       break;
     }
   } 
@@ -314,10 +558,12 @@ void UPml::update_ex(Grid &grid, bool pml)
                                      
           } else {
             grid.ex_[grid_idx] = grid.Ca_[mid] * grid.ex_[grid_idx]
-              + grid.Cby_[mid] * (grid.hz_[grid.pi(it, jt, kt)] 
-                             - grid.hz_[grid.pi(it, jt-1, kt)])
-              + grid.Cbz_[mid] * (grid.hy_[grid_idx - 1] 
-                             - grid.hy_[grid_idx]);
+              + grid.Cby_[mid] 
+              * (grid.hz_[grid.pi(it, jt, kt)] 
+                 - grid.hz_[grid.pi(it, jt-1, kt)])
+              + grid.Cbz_[mid] 
+              * (grid.hy_[grid_idx - 1] 
+                 - grid.hy_[grid_idx]);
           }
         }
       }

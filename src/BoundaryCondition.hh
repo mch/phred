@@ -134,13 +134,13 @@ public:
   /**
    * Returns the thickness of the boundary condition. 
    */
-  unsigned int get_thickness();
+  unsigned int get_thickness() const;
 
   /**
    * Boundary condition type. Subclasses may implement. Only really
    * important for PMLs.
    */
-  virtual BoundaryCondition get_type() 
+  virtual BoundaryCondition get_type() const
   {
     return UNKNOWN;
   }

@@ -730,7 +730,7 @@ void Pml::add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface)
 
 }
 
-BoundaryCondition Pml::get_type()
+BoundaryCondition Pml::get_type() const
 {
   return PML;
 }

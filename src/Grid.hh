@@ -347,9 +347,9 @@ class Grid {
    *
    * @return ref to a BoundaryCond
    */
-  inline BoundaryCond& get_boundary(Face face)
+  inline const BoundaryCond& get_boundary(Face face) const
   {
-    return info_.get_boundary(face);
+    return const_cast<const BoundaryCond &>(info_.get_boundary(face));
   }
 
   /**

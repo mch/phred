@@ -215,7 +215,12 @@ main (int argc, char **argv)
         }
         else if (ext.compare("py") == 0)
         {
-          cout << "Python thingy not ready yet. " << endl;
+#ifdef USE_PY_BINDINGS
+          PyInterpreter interp;
+          interp.run_script(argv[argc - 1]);
+#else
+          cout << "Python support is not compiled into this version." << endl;
+#endif
         }
 
       } else {
@@ -464,17 +469,25 @@ static void pml_test(int rank, int size)
 //   top.set_thickness(4);
 //   bottom.set_thickness(4);
 
+  Ewall ewall;
   UPml front, back, left, right, top, bottom;
   front.set_thickness(4); back.set_thickness(4);
   left.set_thickness(4); right.set_thickness(4);
   top.set_thickness(4); bottom.set_thickness(4);
 
-  fdtd.set_boundary(FRONT, &front);
+  fdtd.set_boundary(FRONT, &ewall);
+  //fdtd.set_boundary(BACK, &ewall);
+  //fdtd.set_boundary(BOTTOM, &ewall);
+  fdtd.set_boundary(TOP, &ewall);
+  fdtd.set_boundary(LEFT, &ewall);
+  fdtd.set_boundary(RIGHT, &ewall);
+
+  //fdtd.set_boundary(FRONT, &front);
   fdtd.set_boundary(BACK, &back);
   fdtd.set_boundary(BOTTOM, &bottom);
-  fdtd.set_boundary(TOP, &top);
-  fdtd.set_boundary(LEFT, &left);
-  fdtd.set_boundary(RIGHT, &right);
+  //fdtd.set_boundary(TOP, &top);
+//   fdtd.set_boundary(LEFT, &left);
+//   fdtd.set_boundary(RIGHT, &right);
 
 
   MaterialLib mats; 
