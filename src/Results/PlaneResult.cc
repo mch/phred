@@ -203,7 +203,8 @@ ostream& PlaneResult::to_string(ostream &os) const
   //Face face = face_;
   os << "PlaneResult returning " << field_component_string(field_)
      << " data on a face parallel to the " 
-     << face_string(face_);
+     << face_string(face_) << ". In grid coordinates, this plane is "
+     << *region_ << endl;
 
   return os;
 }

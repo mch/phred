@@ -158,6 +158,12 @@ void PowerResult::init(const Grid &grid)
     ht1_ = new complex<field_t>[sz];
     ht2_ = new complex<field_t>[sz];
 
+    prev_et1_ = new field_t[sz];
+    prev_et2_ = new field_t[sz];
+
+    memset(prev_et1_, 0, sizeof(field_t) * sz);
+    memset(prev_et2_, 0, sizeof(field_t) * sz);
+
     /* Set up the frequencies */ 
     power_real_ = new field_t[frequencies_.length()];
     power_imag_ = new field_t[frequencies_.length()];
@@ -233,12 +239,22 @@ void PowerResult::deinit()
     ht1_ = 0;
     ht2_ = 0;
   }
+
+  if (prev_et1_)
+  {
+    delete[] prev_et1_;
+    prev_et1_ = 0;
+
+    delete[] prev_et2_;
+    prev_et2_ = 0;
+  }
 }
 
 ostream& PowerResult::to_string(ostream &os) const
 {
   os << "PowerResult returning power passing through the "
-     << face_string(face_) << " of a "; // << box_->get();
+     << face_string(face_) << " of a box in grid coordinates " 
+     << *region_ << endl;
 
   return os;
 }

@@ -184,7 +184,7 @@ public:
   /**
    * Run the simulation for N time steps. 
    */
-  void run();
+  virtual void run();
 
   /**
    * This is to allow for testing, so that indiviual components can be
@@ -272,6 +272,11 @@ protected:
    * added to them. 
    */
   void setup_datawriters();
+
+  /**
+   * Print out the elapsed time
+   */ 
+  void print_elapsed_time(int secs);
 
 };
 

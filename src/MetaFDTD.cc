@@ -19,181 +19,25 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-
-#include "FDTD.hh"
+#include "MetaFDTD.hh"
 #include "Globals.hh"
 
-FDTD::FDTD()
-  : time_steps_(0)
-{
-  mlib_ = shared_ptr<MaterialLib>(new MaterialLib()); // Empty default. 
-}
+// The Meta part:
+#include "GridUpdate.hh"
 
-FDTD::~FDTD()
+
+MetaFDTD::MetaFDTD()
+  : FDTD(), mt_(METAFDTD_THREE)
 {}
 
-void FDTD::set_grid_material(const char *material)
-{
-  geometry_.set_grid_material(material);
-}
+MetaFDTD::~MetaFDTD()
+{}
 
-unsigned int FDTD::get_num_x_cells()
-{
-  return global_ginfo_.global_dimx_;
-}
-
-unsigned int FDTD::get_num_y_cells()
-{
-  return global_ginfo_.global_dimy_;
-}
-
-unsigned int FDTD::get_num_z_cells()
-{
-  return global_ginfo_.global_dimz_;
-}
-
-void FDTD::set_time_steps(unsigned int t)
-{
-  time_steps_ = t;
-}
-
-void FDTD::set_time(float t)
-{
-  time_steps_ = static_cast<unsigned int>(t / global_ginfo_.deltat_);
-}
-
-void FDTD::set_grid_size(float x, float y, float z)
-{
-  geometry_.set_grid_size(x, y, z);
-
-  if (global_ginfo_.deltax_ > 0)
-    global_ginfo_.global_dimx_ = global_ginfo_.dimx_ = 
-      static_cast<unsigned int>(floor(x / global_ginfo_.deltax_));
-
-  if (global_ginfo_.deltay_ > 0)
-    global_ginfo_.global_dimy_ = global_ginfo_.dimy_ = 
-      static_cast<unsigned int>(floor(y / global_ginfo_.deltay_));
-
-  if (global_ginfo_.deltaz_ > 0)
-    global_ginfo_.global_dimz_ = global_ginfo_.dimz_ = 
-      static_cast<unsigned int>(floor(z / global_ginfo_.deltaz_));
-}
-
-void FDTD::set_grid_centre(float x, float y, float z)
-{
-  geometry_.set_grid_centre(x, y, z);
-}
-
-void FDTD::set_grid_deltas(field_t dx, field_t dy, field_t dz)
-{
-  global_ginfo_.deltax_ = dx;
-  global_ginfo_.deltay_ = dy;
-  global_ginfo_.deltaz_ = dz;
-  
-  global_ginfo_.deltat_ = 0.9 / 
-    ( C * sqrt( 1/(dx*dx) + 1/(dy*dy) + 1/(dz*dz)));
-
-  point gsize = geometry_.get_grid_size();
-
-  if (global_ginfo_.deltax_ > 0)
-    global_ginfo_.global_dimx_ = global_ginfo_.dimx_ = 
-      static_cast<unsigned int>(ceil(gsize.x / global_ginfo_.deltax_));
-
-  if (global_ginfo_.deltay_ > 0)
-    global_ginfo_.global_dimy_ = global_ginfo_.dimy_ = 
-      static_cast<unsigned int>(ceil(gsize.y / global_ginfo_.deltay_));
-
-  if (global_ginfo_.deltaz_ > 0)
-    global_ginfo_.global_dimz_ = global_ginfo_.dimz_ = 
-      static_cast<unsigned int>(ceil(gsize.z / global_ginfo_.deltaz_));
-}
-
-field_t FDTD::get_time_delta()
-{
-  return global_ginfo_.deltat_;
-}
-
-void FDTD::set_time_delta(field_t dt)
-{
-  global_ginfo_.deltat_ = dt;
-}
-
-void FDTD::set_boundary(Face face, shared_ptr<BoundaryCond> bc)
-{
-  global_ginfo_.set_boundary(face, bc);
-}
-
-void FDTD::load_materials(shared_ptr<MaterialLib> matlib)
-{
-  mlib_ = matlib;
-}
-
-void FDTD::add_excitation(const char *name, shared_ptr<Excitation> ex)
-{
-  FieldType t = ex->get_type();
-  if (t == E || t == BOTH)
-    e_excitations_[string(name)] = ex;
-
-  if (t == H || t == BOTH)
-    h_excitations_[string(name)] = ex;    
-}
-
-void FDTD::add_result(const char *name, shared_ptr<Result> r)
-{
-  results_[string(name)] = r;
-  //if (r->get_name().length() == 0)
-  r->set_name(name);
-}
-
-void FDTD::add_datawriter(const char *name, shared_ptr<DataWriter> dw)
-{
-  datawriters_[string(name)] = dw;
-}
-
-void FDTD::add_object(string material, shared_ptr<CSGObject> obj)
-{
-  geometry_.add_object(material, obj);
-}
-
-void FDTD::map_result_to_datawriter(const char *result, const char *dw)
-{
-  map<string, shared_ptr<Result> >::iterator 
-    riter = results_.find(result);
-  map<string, shared_ptr<DataWriter> >::iterator 
-    dwiter = datawriters_.find(dw);
-
-  if (riter != results_.end() && dwiter != datawriters_.end())
-  {
-    r_dw_map_.push_back(pair<string, string>(string(result), string(dw)));
-  }
-  else
-    throw FDTDException("Result and data writer must be present before mapping them together");
-}
-
-void FDTD::setup_datawriters()
-{
-  vector< pair<string, string> >::iterator iter = r_dw_map_.begin();  
-  vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();  
-
-  while (iter != iter_e)
-  {
-    map<string, shared_ptr<Result> >::iterator riter 
-      = results_.find((*iter).first);
-
-    map<string, shared_ptr<DataWriter> >::iterator dwiter
-      = datawriters_.find((*iter).second);
-
-    if (riter != results_.end() && dwiter != datawriters_.end())
-    {
-      (*dwiter).second->add_variable(*(*riter).second);
-    }
-    
-    ++iter;
-  }
-}
+// This is a straight copy from FDTD.cc. This really needs some
+// refactoring.
 
 // CHOP THIS UP; make helper functions
-void FDTD::run()
+void MetaFDTD::run()
 {
   // Check that we have every thing we need...
   // 1) Material Library
@@ -432,6 +276,47 @@ void FDTD::run()
     ++iter;
   }
 
+  // Set up the GridUpdate stuff
+  GridUpdateData gud(*grid_);
+
+  // The update region that can be visited by all field component
+  // update equations.
+  e_update_r_ = grid_->update_ex_r_;
+  e_update_r_.xmin = grid_->update_ey_r_.xmin;
+
+  h_update_r_ = grid_->update_hx_r_;
+  h_update_r_.xmax = grid_->update_hy_r_.xmax;
+
+#ifdef DEBUG
+  cout << "E 3 update region: " << e_update_r_;
+  cout << "H 3 update region: " << h_update_r_;
+
+  region_t temp_update;
+  temp_update = grid_->update_ex_r_;
+  temp_update.xmax = temp_update.xmin + 1;
+  cout << "Ex 3 correction: " << temp_update;
+  
+  temp_update = grid_->update_ey_r_;
+  temp_update.ymax = temp_update.ymin + 1;
+  cout << "Ey 3 correction: " << temp_update;
+  
+  temp_update = grid_->update_ez_r_;
+  temp_update.zmax = temp_update.zmin + 1;
+  cout << "Ez 3 correction: " << temp_update;
+
+  temp_update = grid_->update_hx_r_;
+  temp_update.xmin = temp_update.xmax - 1;
+  cout << "Hx 3 correction: " << temp_update;
+
+  temp_update = grid_->update_hy_r_;
+  temp_update.ymin = temp_update.ymax - 1;
+  cout << "Hy 3 correction: " << temp_update;
+
+  temp_update = grid_->update_hz_r_;
+  temp_update.zmin = temp_update.zmax - 1;
+  cout << "Hz 3 correction: " << temp_update;
+#endif
+
   cout << "\nStarting FDTD time stepping, running for " 
        << time_steps_ << " time steps..." << endl;
 
@@ -465,7 +350,7 @@ void FDTD::run()
       rt_start = time(NULL);
     }
 
-    grid_->update_h_field();
+    update_h(gud);
 
     // Excitations
     h_eiter = h_eiter_b;
@@ -478,7 +363,7 @@ void FDTD::run()
     // Boundary condition application
     grid_->apply_boundaries(H);
 
-    grid_->update_e_field();
+    update_e(gud);
     
     // Excitations
     e_eiter = e_eiter_b;
@@ -604,58 +489,102 @@ void FDTD::run()
 
 }
 
-void FDTD::print_elapsed_time(int secs)
+void MetaFDTD::update_e(GridUpdateData &gud)
 {
-  int mins = secs / 60;
-  secs = secs % 60;
-  int hours = mins / 60;
-  mins = mins % 60;
-  int days = hours / 24;
-  hours = hours % 24;
-  
-  if (days == 1)
-    cout << days << " day, "; 
-  else if (days > 1)
-    cout << days << " days, "; 
-  
-  if (hours == 1)
-    cout << hours << " hour, ";
-  else if (hours > 1)
-    cout << hours << " hours, ";
-  
-  if (mins == 1)
-    cout << mins << " minute, ";
-  else if (mins > 1)
-    cout << mins << " minutes, ";
-  
-  cout << secs << " seconds. " << endl;
+  region_t temp_update;
+
+  switch (mt_)
+  {
+  case METAFDTD_ONE:
+    GridUpdateTiling<ExGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(grid_->update_ex_r_, gud, *grid_);
+
+    GridUpdateTiling<EyGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(grid_->update_ey_r_, gud, *grid_);
+
+    GridUpdateTiling<EzGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(grid_->update_ez_r_, gud, *grid_);
+
+    break;
+
+  case METAFDTD_THREE:
+    // Meta programmable field update
+    GridUpdateTiling<ElectricGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(e_update_r_, gud, *grid_);
+
+    // Clean up the edges
+    temp_update = grid_->update_ex_r_;
+    temp_update.xmax = temp_update.xmin + 1;
+
+    GridUpdateTiling<ExGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, *grid_);
+
+    temp_update = grid_->update_ey_r_;
+    temp_update.ymax = temp_update.ymin + 1;
+
+    GridUpdateTiling<EyGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, *grid_);
+
+    temp_update = grid_->update_ez_r_;
+    temp_update.zmax = temp_update.zmin + 1;
+
+    GridUpdateTiling<EzGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, *grid_);
+
+    break;
+
+  case METAFDTD_SGI_ORIGIN:
+    cerr << "SGI Origin specific meta update not implemented!" << endl;
+    break;
+  }
 }
 
+void MetaFDTD::update_h(GridUpdateData &gud)
+{
+  region_t temp_update;
 
-// template<class T, class A>
-// void FDTD::init_objs()
-// {
-//   map<string, T>::iterator iter = A.begin();
-//   map<string, T>::iterator iter_e = A.end();
-  
-//   while (iter != iter_e) 
-//   {
-//     (*iter).second->init(grid_);
-//     ++iter;
-//   }
-// }
+  switch (mt_)
+  {
+  case METAFDTD_ONE:
+    GridUpdateTiling<HxGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(grid_->update_hx_r_, gud, *grid_);
 
-// template<class T, class A>
-// void FDTD::deinit_objs()
-// {
-//   map<string, T>::iterator iter = A.begin();
-//   map<string, T>::iterator iter_e = A.end();
-  
-//   while (iter != iter_e) 
-//   {
-//     (*iter).second->deinit(grid_);
-//     ++iter;
-//   }
+    GridUpdateTiling<HyGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(grid_->update_hy_r_, gud, *grid_);
 
-// }
+    GridUpdateTiling<HzGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(grid_->update_hz_r_, gud, *grid_);
 
+    break;
+
+  case METAFDTD_THREE:
+    GridUpdateTiling<MagneticGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(h_update_r_, gud, *grid_);
+
+    // Clean up the edges
+    temp_update = grid_->update_hx_r_;
+    temp_update.xmin = temp_update.xmax - 1;
+
+    GridUpdateTiling<HxGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, *grid_);
+
+    temp_update = grid_->update_hy_r_;
+    temp_update.ymin = temp_update.ymax - 1;
+
+    GridUpdateTiling<HyGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, *grid_);
+
+    temp_update = grid_->update_hz_r_;
+    temp_update.zmin = temp_update.zmax - 1;
+
+    GridUpdateTiling<HzGridUpdate, GridUpdateData, PrivateGridUpdateData>
+      ::grid_loop(temp_update, gud, *grid_);
+    
+    break;
+
+  case METAFDTD_SGI_ORIGIN:
+    cerr << "SGI Origin specific meta update not implemented!" << endl;
+    break;
+  }
+
+}

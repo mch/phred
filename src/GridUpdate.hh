@@ -31,32 +31,53 @@
 class GridUpdateData
 {
 public:
-  field_t *ex_;
-  field_t *ey_;
-  field_t *ez_;
-  field_t *hx_;
-  field_t *hy_;
-  field_t *hz_;
+  // If we are keeping a reference, it is really necessary to copy all
+  // these pointers? By adding the restrict keyword, we tell the
+  // compiler that none of these arrays overlap, and that more
+  // aggressive optimizations (and SIMD parallism) may be possible...
+  field_t * restrict ex_;
+  field_t * restrict ey_;
+  field_t * restrict ez_;
+  field_t * restrict hx_;
+  field_t * restrict hy_;
+  field_t * restrict hz_;
 
-  mat_idx_t *material_;
+  mat_idx_t * restrict material_;
 
-  mat_coef_t *Ca_;
-  mat_coef_t *Cbx_;
-  mat_coef_t *Cby_;
-  mat_coef_t *Cbz_;
+  mat_coef_t * restrict Ca_;
+  mat_coef_t * restrict Cbx_;
+  mat_coef_t * restrict Cby_;
+  mat_coef_t * restrict Cbz_;
   
-  mat_coef_t *Da_;
-  mat_coef_t *Dbx_;
-  mat_coef_t *Dby_;
-  mat_coef_t *Dbz_;
+  mat_coef_t * restrict Da_;
+  mat_coef_t * restrict Dbx_;
+  mat_coef_t * restrict Dby_;
+  mat_coef_t * restrict Dbz_;
 
-  GridUpdateData(Grid *grid)
-    : ex_(grid.get_ex_ptr(0)),
-      ey_(grid.get_ey_ptr(0)),
-      ez_(grid.get_ez_ptr(0)),
-      hx_(grid.get_hx_ptr(0)),
-      hy_(grid.get_hy_ptr(0)),
-      hz_(grid.get_hz_ptr(0)),
+  // Need to keep a references so we can call pi()
+  Grid &grid_;
+  
+  GridUpdateData(Grid &grid)
+    : ex_(grid.ex_), ey_(grid.ey_), ez_(grid.ez_),
+      hx_(grid.hx_), hy_(grid.hy_), hz_(grid.hz_),
+      material_(grid.material_), Ca_(grid.Ca_),
+      Cbx_(grid.Cbx_), Cby_(grid.Cby_), Cbz_(grid.Cbz_),
+      Da_(grid.Da_), Dbx_(grid.Dbx_), Dby_(grid.Dby_), Dbz_(grid.Dbz_),
+      grid_(grid)
+  {}
+};
+
+/**
+ * This class holds data that must be private to OpenMP threads,
+ * such as indicies into arrays.
+ * 
+ * First should be at (i,j,k), last three are plus or minus 1 along
+ * each axis, depending on the field being updated.
+ */ 
+class PrivateGridUpdateData
+{
+public:
+  int idx, idx_x, idx_y, idx_z;
 };
 
 /**
@@ -69,38 +90,334 @@ class ElectricGridUpdate
 {
 public:
   /**
-   * Set up the data block as needed... calculate pointers etc. Since
-   * pointers aren't really needed, this may go away.
+   * Set up the data block as needed... 
    */ 
-  static void pre_z_setup(loop_idx_t x, loop_idx, y
-                          loop_idx_t z, Indicies inds, 
-                          Data &data)
-  {
+  static void pre_z_setup(const loop_idx_t &i, const loop_idx_t &j,
+                          const loop_idx_t &k, GridUpdateData &data,
+                          PrivateGridUpdateData &pdata)
+  { 
+    pdata.idx = data.grid_.pi(i, j, k);
 
+    pdata.idx_x = data.grid_.pi(i-1, j, k);
+    pdata.idx_y = data.grid_.pi(i, j-1, k);
+    pdata.idx_z = pdata.idx - 1;
   }
 
   /**
    * This algorithm updates the E field components. 
    */
-  static void alg(loop_idx_t x, loop_idx, y
-                  loop_idx_t z, Indicies inds, 
-                  Data &data)
+  static void alg(const loop_idx_t &x, const loop_idx_t &y,
+                  const loop_idx_t &z, GridUpdateData &data,
+                  PrivateGridUpdateData &pdata)
   {
-    mat_idx_t mid = data.material_[inds.idx];
+    mat_idx_t mid = data.material_[pdata.idx];
     
-    data.ex_[inds.idx] = data.Ca_[mid] * data.ex_[inds.idx]
-      + data.Cby_[mid] * (data.hz_[inds.idx] - data.hz_[inds.idx_ny])
-      + data.Cbz_[mid] * (data.hy_[inds.idx_nz] - data.hy_[inds.idx]);
+    data.ex_[pdata.idx] = data.Ca_[mid] * data.ex_[pdata.idx]
+      + data.Cby_[mid] * (data.hz_[pdata.idx] - data.hz_[pdata.idx_y])
+      + data.Cbz_[mid] * (data.hy_[pdata.idx_z] - data.hy_[pdata.idx]);
 
-    data.ey_[inds.idx] = Ca_[mid] * data.ey_[inds.idx]
-      + data.Cbz_[mid] * (data.hx_[inds.idx] - data.hx_[inds.idx_ny])
-      + data.Cbx_[mid] * (data.hz_[inds.idx_nx] - data.hz_[inds.idx]);    
+    data.ey_[pdata.idx] = data.Ca_[mid] * data.ey_[pdata.idx]
+      + data.Cbz_[mid] * (data.hx_[pdata.idx] - data.hx_[pdata.idx_z])
+      + data.Cbx_[mid] * (data.hz_[pdata.idx_x] - data.hz_[pdata.idx]);    
 
-    data.ez_[inds.idx] = Ca_[mid] * data.ez_[inds.idx]
-      + data.Cbx_[mid] * (data.hy_[inds.idx] - data.hy_[inds.idx_nx])
-      + data.Cby_[mid] * (data.hx_[inds.idx_ny] - data.hx_[inds.idx]);
+    data.ez_[pdata.idx] = data.Ca_[mid] * data.ez_[pdata.idx]
+      + data.Cbx_[mid] * (data.hy_[pdata.idx] - data.hy_[pdata.idx_x])
+      + data.Cby_[mid] * (data.hx_[pdata.idx_y] - data.hx_[pdata.idx]);
+
+    pdata.idx++;
+    pdata.idx_x++;
+    pdata.idx_y++;
+    pdata.idx_z++;
   }
 
 };
+
+/**
+ * This class implements an algorithm that updates all three magnetic
+ * field components in one loop, the other three in another. This may
+ * improve cache performance over updating each component in it's own
+ * loop.
+ */ 
+class MagneticGridUpdate 
+{
+public:
+  /**
+   * Set up the data block as needed... 
+   */ 
+  static void pre_z_setup(const loop_idx_t &i, const loop_idx_t &j,
+                          const loop_idx_t &k, GridUpdateData &data,
+                          PrivateGridUpdateData &pdata)
+  { 
+    pdata.idx = data.grid_.pi(i, j, k);
+
+    pdata.idx_x = data.grid_.pi(i+1, j, k);
+    pdata.idx_y = data.grid_.pi(i, j+1, k);
+    pdata.idx_z = pdata.idx + 1;
+  }
+
+  /**
+   * This algorithm updates the H field components. 
+   */
+  static void alg(const loop_idx_t &x, const loop_idx_t &y,
+                  const loop_idx_t &z, GridUpdateData &data,
+                  PrivateGridUpdateData &pdata)
+  {
+    mat_idx_t mid = data.material_[pdata.idx];
+    
+    data.hx_[pdata.idx] = data.Da_[mid] * data.hx_[pdata.idx]
+      + data.Dby_[mid] * (data.ez_[pdata.idx] - data.ez_[pdata.idx_y])
+      + data.Dbz_[mid] * (data.ey_[pdata.idx_z] - data.ey_[pdata.idx]);
+
+    data.hy_[pdata.idx] = data.Da_[mid] * data.hy_[pdata.idx]
+      + data.Dbz_[mid] * (data.ex_[pdata.idx] - data.ex_[pdata.idx_z])
+      + data.Dbx_[mid] * (data.ez_[pdata.idx_x] - data.ez_[pdata.idx]);    
+
+    data.hz_[pdata.idx] = data.Da_[mid] * data.hz_[pdata.idx]
+      + data.Dbx_[mid] * (data.ey_[pdata.idx] - data.ey_[pdata.idx_x])
+      + data.Dby_[mid] * (data.ex_[pdata.idx_y] - data.ex_[pdata.idx]);
+
+    pdata.idx++;
+    pdata.idx_x++;
+    pdata.idx_y++;
+    pdata.idx_z++;
+  }
+
+};
+
+/**
+ * This class updates on the Ex field only. 
+ */ 
+class ExGridUpdate 
+{
+public:
+  /**
+   * Set up the data block as needed... 
+   */ 
+  static void pre_z_setup(const loop_idx_t &i, const loop_idx_t &j,
+                          const loop_idx_t &k, GridUpdateData &data,
+                          PrivateGridUpdateData &pdata)
+  { 
+    pdata.idx = data.grid_.pi(i, j, k);
+
+    pdata.idx_y = data.grid_.pi(i, j-1, k);
+    pdata.idx_z = pdata.idx - 1;
+  }
+
+  /**
+   * This algorithm updates the Ex field. 
+   */
+  static void alg(const loop_idx_t &x, const loop_idx_t &y,
+                  const loop_idx_t &z, GridUpdateData &data,
+                  PrivateGridUpdateData &pdata)
+  {
+    mat_idx_t mid = data.material_[pdata.idx];
+    
+    data.ex_[pdata.idx] = data.Ca_[mid] * data.ex_[pdata.idx]
+      + data.Cby_[mid] * (data.hz_[pdata.idx] - data.hz_[pdata.idx_y])
+      + data.Cbz_[mid] * (data.hy_[pdata.idx_z] - data.hy_[pdata.idx]);
+
+    pdata.idx++;
+    pdata.idx_y++;
+    pdata.idx_z++;
+  }
+
+};
+
+/**
+ * This class updates on the Ey field only. 
+ */ 
+class EyGridUpdate 
+{
+public:
+  /**
+   * Set up the data block as needed... 
+   */ 
+  static void pre_z_setup(const loop_idx_t &i, const loop_idx_t &j,
+                          const loop_idx_t &k, GridUpdateData &data,
+                          PrivateGridUpdateData &pdata)
+  { 
+    pdata.idx = data.grid_.pi(i, j, k);
+
+    pdata.idx_x = data.grid_.pi(i-1, j, k);
+    pdata.idx_z = pdata.idx - 1;
+  }
+
+  /**
+   * This algorithm updates the Ey field. 
+   */
+  static void alg(const loop_idx_t &x, const loop_idx_t &y,
+                  const loop_idx_t &z, GridUpdateData &data,
+                  PrivateGridUpdateData &pdata)
+  {
+    mat_idx_t mid = data.material_[pdata.idx];
+    
+    data.ey_[pdata.idx] = data.Ca_[mid] * data.ey_[pdata.idx]
+      + data.Cbz_[mid] * (data.hx_[pdata.idx] - data.hx_[pdata.idx_z])
+      + data.Cbx_[mid] * (data.hz_[pdata.idx_x] - data.hz_[pdata.idx]);    
+
+    pdata.idx++;
+    pdata.idx_x++;
+    pdata.idx_z++;
+  }
+
+};
+
+/**
+ * This class updates on the Ez field only. 
+ */ 
+class EzGridUpdate 
+{
+public:
+  /**
+   * Set up the data block as needed... 
+   */ 
+  static void pre_z_setup(const loop_idx_t &i, const loop_idx_t &j,
+                          const loop_idx_t &k, GridUpdateData &data,
+                          PrivateGridUpdateData &pdata)
+  { 
+    pdata.idx = data.grid_.pi(i, j, k);
+
+    pdata.idx_x = data.grid_.pi(i-1, j, k);
+    pdata.idx_y = data.grid_.pi(i, j-1, k);
+  }
+
+  /**
+   * This algorithm updates the Ez field. 
+   */
+  static void alg(const loop_idx_t &x, const loop_idx_t &y,
+                  const loop_idx_t &z, GridUpdateData &data,
+                  PrivateGridUpdateData &pdata)
+  {
+    mat_idx_t mid = data.material_[pdata.idx];
+
+    data.ez_[pdata.idx] = data.Ca_[mid] * data.ez_[pdata.idx]
+      + data.Cbx_[mid] * (data.hy_[pdata.idx] - data.hy_[pdata.idx_x])
+      + data.Cby_[mid] * (data.hx_[pdata.idx_y] - data.hx_[pdata.idx]);    
+
+    pdata.idx++;
+    pdata.idx_x++;
+    pdata.idx_y++;
+  }
+
+};
+
+/**
+ * This class updates on the Hx field only. 
+ */ 
+class HxGridUpdate 
+{
+public:
+  /**
+   * Set up the data block as needed... 
+   */ 
+  static void pre_z_setup(const loop_idx_t &i, const loop_idx_t &j,
+                          const loop_idx_t &k, GridUpdateData &data,
+                          PrivateGridUpdateData &pdata)
+  { 
+    pdata.idx = data.grid_.pi(i, j, k);
+
+    pdata.idx_y = data.grid_.pi(i, j+1, k);
+    pdata.idx_z = pdata.idx + 1;
+  }
+
+  /**
+   * This algorithm updates the Hx field. 
+   */
+  static void alg(const loop_idx_t &x, const loop_idx_t &y,
+                  const loop_idx_t &z, GridUpdateData &data,
+                  PrivateGridUpdateData &pdata)
+  {
+    mat_idx_t mid = data.material_[pdata.idx];
+    
+    data.hx_[pdata.idx] = data.Da_[mid] * data.hx_[pdata.idx]
+      + data.Dby_[mid] * (data.ez_[pdata.idx] - data.ez_[pdata.idx_y])
+      + data.Dbz_[mid] * (data.ey_[pdata.idx_z] - data.ey_[pdata.idx]);
+
+    pdata.idx++;
+    pdata.idx_y++;
+    pdata.idx_z++;
+  }
+
+};
+
+/**
+ * This class updates on the Hy field only. 
+ */ 
+class HyGridUpdate 
+{
+public:
+  /**
+   * Set up the data block as needed... 
+   */ 
+  static void pre_z_setup(const loop_idx_t &i, const loop_idx_t &j,
+                          const loop_idx_t &k, GridUpdateData &data,
+                          PrivateGridUpdateData &pdata)
+  { 
+    pdata.idx = data.grid_.pi(i, j, k);
+
+    pdata.idx_x = data.grid_.pi(i+1, j, k);
+    pdata.idx_z = pdata.idx + 1;
+  }
+
+  /**
+   * This algorithm updates the Hy field. 
+   */
+  static void alg(const loop_idx_t &x, const loop_idx_t &y,
+                  const loop_idx_t &z, GridUpdateData &data,
+                  PrivateGridUpdateData &pdata)
+  {
+    mat_idx_t mid = data.material_[pdata.idx];
+    
+    data.hy_[pdata.idx] = data.Da_[mid] * data.hy_[pdata.idx]
+      + data.Dbz_[mid] * (data.ex_[pdata.idx] - data.ex_[pdata.idx_z])
+      + data.Dbx_[mid] * (data.ez_[pdata.idx_x] - data.ez_[pdata.idx]);    
+
+    pdata.idx++;
+    pdata.idx_x++;
+    pdata.idx_z++;
+  }
+
+};
+
+/**
+ * This class updates on the Hz field only. 
+ */ 
+class HzGridUpdate 
+{
+public:
+  /**
+   * Set up the data block as needed... 
+   */ 
+  static void pre_z_setup(const loop_idx_t &i, const loop_idx_t &j,
+                          const loop_idx_t &k, GridUpdateData &data,
+                          PrivateGridUpdateData &pdata)
+  { 
+    pdata.idx = data.grid_.pi(i, j, k);
+
+    pdata.idx_x = data.grid_.pi(i+1, j, k);
+    pdata.idx_y = data.grid_.pi(i, j+1, k);
+  }
+
+  /**
+   * This algorithm updates the Hz field. 
+   */
+  static void alg(const loop_idx_t &x, const loop_idx_t &y,
+                  const loop_idx_t &z, GridUpdateData &data,
+                  PrivateGridUpdateData &pdata)
+  {
+    mat_idx_t mid = data.material_[pdata.idx];
+    
+
+    data.hz_[pdata.idx] = data.Da_[mid] * data.hz_[pdata.idx]
+      + data.Dbx_[mid] * (data.ey_[pdata.idx] - data.ey_[pdata.idx_x])
+      + data.Dby_[mid] * (data.ex_[pdata.idx_y] - data.ex_[pdata.idx]);
+
+    pdata.idx++;
+    pdata.idx_x++;
+    pdata.idx_y++;
+  }
+
+};
+
 
 #endif

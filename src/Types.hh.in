@@ -273,6 +273,7 @@ public:
 #include <ostream>
 std::ostream& operator<< (std::ostream& os, const point &p);
 std::ostream& operator<< (std::ostream& os, const grid_point &p);
+std::ostream& operator<< (std::ostream& os, const region_t &r);
 
 #else
 typedef struct {

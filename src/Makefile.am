@@ -63,5 +63,9 @@ phred_SOURCES=\
 	Interval.hh \
 	Tests.hh \
 	Tests.cc \
+	GridUpdate.hh \
+	GridUpdateTiling.hh \
+	MetaFDTD.hh \
+	MetaFDTD.cc \
 	phred.cc $(phred_cond)
 

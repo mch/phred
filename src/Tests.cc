@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@
 #include "CSG/CSGCylinder.hh"
 #include "CSG/CSGDifference.hh"
 #include "FDTD.hh"
+#include "MetaFDTD.hh"
 
 #ifdef USE_OPENMP
 #include <omp.h>
@@ -72,41 +73,27 @@ float deltaz = 20e-9;
 void mn_benchmark()
 {
 
-  FDTD fdtd;
+  MetaFDTD fdtd;
   fdtd.set_grid_deltas(1e-2, 1e-2, 1e-2);
   fdtd.set_grid_size(1,1,1);
 
   fdtd.set_time_steps(1000);
 
-#ifdef USE_OPENMP
-  int max_threads = omp_get_max_threads();
-
-   time_t start, now;
-   clock_t cpu_start, cpu_now;
-   for (int numthreads = 1; numthreads <= max_threads; numthreads++)
-   {
-     omp_set_num_threads(numthreads);
+  time_t start, now;
+  clock_t cpu_start, cpu_now;
        
-     cout << "100x100x100 million node 100 time step benchmark on "
-          << numthreads << " of " << max_threads << "...\n";
+  cout << "100x100x100 million node 100 time step benchmark\n";
      
-     start = time(NULL);
-     cpu_start = clock();
-     fdtd.run();
-     now = time(NULL);
-     cpu_now = clock();
-     
-     cout << numthreads << " of " 
-          << omp_get_max_threads() << " threads took " 
-          << now - start << " wall clock seconds, and "
-          << (cpu_now - cpu_start) / static_cast<double>(CLOCKS_PER_SEC)
-          << " cpu seconds." << endl;
-   }
-
-#else
-   cout << "100x100x100 million node 100 time step benchmark\n";
-   fdtd.run();
-#endif
+  start = time(NULL);
+  cpu_start = clock();
+  fdtd.run();
+  now = time(NULL);
+  cpu_now = clock();
+  
+  cout << "Execution took "
+       << now - start << " wall clock seconds, and "
+       << (cpu_now - cpu_start) / static_cast<double>(CLOCKS_PER_SEC)
+       << " cpu seconds." << endl;
 
 }
 
@@ -116,7 +103,7 @@ void mn_benchmark()
 void var_benchmark(unsigned int x_cells, unsigned int y_cells, 
                    unsigned int z_cells)
 {
-  if (x_cells < 100 || y_cells < 100 || z_cells < 100)
+  if (x_cells * y_cells * z_cells < 1000000)
   {
     cout << "Don't waste your time. Use a bigger problem for benchmarking.\n";
     return;
@@ -130,37 +117,20 @@ void var_benchmark(unsigned int x_cells, unsigned int y_cells,
 
   fdtd.set_time_steps(1000);
 
-#ifdef USE_OPENMP
-   // Test the OpenMP
-   time_t start, now;
-   clock_t cpu_start, cpu_now;
-   int max_threads = omp_get_max_threads();
+  time_t start, now;
+  clock_t cpu_start, cpu_now;
 
-   for (int numthreads = 1; numthreads <= max_threads; numthreads++)
-     {
-       omp_set_num_threads(numthreads);
-       
-       cout << "Variable size, 100 time step benchmark on "
-            << numthreads << " of " << max_threads << "...\n";
-
-       start = time(NULL);
-       cpu_start = clock();
-       fdtd.run();
-       now = time(NULL);
-       cpu_now = clock();
-       
-       cout << numthreads << " of " 
-	    << omp_get_max_threads() << " threads took " 
-	    << now - start << " wall clock seconds, and "
-	    << (cpu_now - cpu_start) / static_cast<double>(CLOCKS_PER_SEC)
-	    << " cpu seconds." << endl;
-     }
-
-#else
-   cout << "Variable size, 100 time step benchmark\n";
-   fdtd.run();
-#endif
- 
+  start = time(NULL);
+  cpu_start = clock();
+  fdtd.run();
+  now = time(NULL);
+  cpu_now = clock();
+  
+  cout << "Execution tool " 
+       << now - start << " wall clock seconds, and "
+       << (cpu_now - cpu_start) / static_cast<double>(CLOCKS_PER_SEC)
+       << " cpu seconds." << endl;
+   
 }
 
 /**

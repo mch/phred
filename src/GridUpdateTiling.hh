@@ -22,19 +22,10 @@
 #ifndef GRID_UPDATE_TILING_H
 #define GRID_UPDATE_TILING_H
 
-#include "../Block.hh"
-#include "../Types.hh"
-#include "../Grid.hh"
+#include "Block.hh"
+#include "Types.hh"
+#include "Grid.hh"
 
-/**
- * Indicies into memory arrays
- */ 
-typedef struct {
-  int idx, idx_nx, idx_ny, idx_nz;
-  int idx, idx_px, idx_py, idx_pz;
-  int mid;
-} Indicies;
-    
 /**
  * This class provides tiling methods which loop over a Block of Grid
  * cells for the purpose of applying an FDTD update equation. Each
@@ -47,7 +38,7 @@ typedef struct {
  * \bug Use Boost's preprocessor library to create a set of templates
  * that can take multiple algorithms.
  */
-template<class Alg, class Data>
+template<class Alg, class Data, class PData>
 class GridUpdateTiling {
 public:
   
@@ -55,56 +46,46 @@ public:
    * Ensure the given Block will not cause the algorithm to reach
    * outside of the memory allocated to the Grid.
    */
-  static inline void check_block(Block &block)
-  {
+//   static inline void check_block(Block &block)
+//   {
     
-  }
+//   }
 
   /**
    * Apply an algorithm to the data in the grid in the given
    * Block. The given algorithm MUST implement an update equation for
    * the Ex field component.
    */ 
-  static inline void grid_loop(Block &block, Data &data)
+  //static inline void grid_loop(Block &block, Data &data)
+  static inline void grid_loop(region_t &block, Data &data, Grid &grid)
   {
-    check_block(block);
+    //check_block(block);
 
-    // Indicies into memory arrays. 
-    Indicies indicies;
+    PData pdata;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, indicies)
+#pragma omp parallel private(pdata)
 #endif
     {
-      for (loop_idx_t i = block.xmin(); i <= block.xmax(); i++)
+#ifdef USE_OPENMP
+#pragma omp for
+#endif
+      //for (loop_idx_t i = block.xmin(); i <= block.xmax(); i++)
+      for (loop_idx_t i = block.xmin; i < block.xmax; i++)
       {
-        for (loop_idx_t j = block.ymin(); j <= block.ymax(); j++)
+        //for (loop_idx_t j = block.ymin(); j <= block.ymax(); j++)
+        for (loop_idx_t j = block.ymin; j < block.ymax; j++)
         {
-          indicies.idx = pi(i, j, block.zmin());
-          indicies.idx_nx = pi(i-1, j, block.zmin());
-          indicies.idx_ny = pi(i, j-1, block.zmin());
-          indicies.idx_nz = idx - 1;
-
-          indicies.idx_px = pi(i+1, j, block.zmin());
-          indicies.idx_py = pi(i, j+1, block.zmin());
-          indicies.idx_pz = idx + 1;
-
-          Alg::pre_z_setup(x, y, block.zmin(), indicies, data);
+          Alg::pre_z_setup(i, j, block.zmin, data, pdata);
           
-          for (loop_idx_t k = block.zmin(); k <= block.zmax(); k++)
+          //for (loop_idx_t k = block.zmin(); k <= block.zmax(); k++)
+          for (loop_idx_t k = block.zmin; k < block.zmax; k++)
           {
-            Alg::alg(x, y, z, indicies, data);
-
-            indicies.idx++; indicies.idx_nx++; 
-            indicies.idx_ny++; indicies.idx_nz++;
-            indicies.idx++; indicies.idx_px++; 
-            indicies.idx_py++; indicies.idx_pz++;
+            Alg::alg(i, j, k, data, pdata);
           }
         }
       }
-#ifdef USE_OPENMP
     }
-#endif
   }
   
 
