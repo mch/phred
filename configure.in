@@ -68,7 +68,7 @@ CPPFLAGS_SAVE="$CPPFLAGS"
 dnl Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_CC
-AC_PROG_CXX(mpic++ mpiCC, g++, CC, xlC_r)
+AC_PROG_CXX(mpic++ mpiCC, mpCC_r, mpCC, g++, CC, xlC_r)
 AC_PROG_CXXCPP
 dnl AC_PROG_YACC
 dnl AM_PROG_LEX
