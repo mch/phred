@@ -184,7 +184,7 @@ public:
    *
    * @return BoundaryCondition from Types.hh
    */
-  inline const BoundaryCondition get_bc_type(Face face) const
+  inline BoundaryCondition get_bc_type(Face face) const
   {
     return face_bc_[face].get()->get_type();
   }

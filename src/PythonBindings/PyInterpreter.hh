@@ -47,7 +47,7 @@ protected:
   int rank_;
   int size_;
 
-  char *PyInterpreter::rl();
+  char *rl();
   
 public:
   PyInterpreter(int rank, int size);

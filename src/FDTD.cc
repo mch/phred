@@ -252,9 +252,6 @@ void FDTD::run()
     miter++;
   }
 
-  if (grid_)
-    delete grid_;
-
   if (freqgrid)
     {
       grid_ = shared_ptr<Grid>(new FreqGrid());

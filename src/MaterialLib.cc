@@ -22,6 +22,7 @@
 #include "MaterialLib.hh"
 #include "Exceptions.hh"
 
+#include <math.h>
 #include <fstream>
 
 using namespace std;

@@ -75,7 +75,7 @@ public:
  */
 field_t call_window(WindowedExcitation &w, 
                     float x, float y, float z)
-{ w.window(x, y, z); }
+{ return w.window(x, y, z); }
 
 /**
  * This wrapper allows subclasses of WindowedExcitation written in Python
