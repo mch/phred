@@ -482,16 +482,16 @@ void MatlabElement::write_buffer(ostream &stream)
   if (tag.num_bytes <= 4)
   {
 #ifdef WORDS_BIGENDIAN
-    uint16_t temp = static_cast<uint16_t>(tag.num_bytes);
+    ::uint16_t temp = static_cast< ::uint16_t>(tag.num_bytes);
     stream.write(reinterpret_cast<char *>(&temp), 2);
     
-    temp = static_cast<uint16_t>(tag.datatype);
+    temp = static_cast< ::uint16_t >(tag.datatype);
     stream.write(reinterpret_cast<char *>(&temp), 2);
 #else
-    uint16_t temp = static_cast<uint16_t>(tag.datatype);
+    ::uint16_t temp = static_cast< ::uint16_t >(tag.datatype);
     stream.write(reinterpret_cast<char *>(&temp), 2);
     
-    temp = static_cast<uint16_t>(tag.num_bytes);
+    temp = static_cast< ::uint16_t >(tag.num_bytes);
     stream.write(reinterpret_cast<char *>(&temp), 2);    
 #endif
  

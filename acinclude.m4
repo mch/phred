@@ -515,6 +515,9 @@ if test "$with_python" != no ; then
 PYTHON_LDFLAGS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LINKFORSHARED')" | python -`
 PYTHON_INCLUDES=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('INCLUDEPY')" | python -`
 PYTHON_VERSION=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('VERSION')" | python -`
+PYTHON_VERSION_MINOR=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('VERSION').split('.')[[1]]" | python -`
+PYTHON_VERSION_MAJOR=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('VERSION').split('.')[[0]]" | python -`
+PYTHON_LIBS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LIBS') + ' ' + distutils.sysconfig.get_config_var('MODLIBS') + ' ' + distutils.sysconfig.get_config_var('SYSLIBS')"| python -`
 
         saveCPPFLAGS=$CPPFLAGS
         saveCXXFLAGS=$CXXFLAGS
@@ -527,6 +530,10 @@ PYTHON_VERSION=`echo "import distutils.sysconfig; print distutils.sysconfig.get_
           CPPFLAGS="$CPPFLAGS -I$with_python_includes"
         fi
 
+        if [[ ! -z "$with_python_libs" ]]; then
+          LDFLAGS="$LDFLAGS -L$with_python_libs"
+        fi
+
         AC_CHECK_HEADER([Python.h], [], [])
 
         if [[ "$target_vendor" = "apple" ]]; then       
@@ -534,6 +541,7 @@ PYTHON_VERSION=`echo "import distutils.sysconfig; print distutils.sysconfig.get_
         else
                 LIBS="$LIBS -lpython$PYTHON_VERSION"
         fi
+        LIBS="$LIBS $PYTHON_LIBS"
 
         AC_CACHE_CHECK([whether Python is installed],ac_cxx_python,
         [AC_LANG_SAVE
@@ -553,6 +561,16 @@ PYTHON_VERSION=`echo "import distutils.sysconfig; print distutils.sysconfig.get_
 
         if test "$ac_cxx_python" = "yes" ; then
                 AC_DEFINE([HAVE_PYTHON], [1], [Using Python])
+                AC_DEFINE_UNQUOTED([PYTHON_VERSION], 
+                                   $PYTHON_VERSION, 
+                                   [Python Version Number])
+                AC_DEFINE_UNQUOTED([PYTHON_VERSION_MAJOR], 
+                                   $PYTHON_VERSION_MAJOR, 
+                                   [Python Version Major Number])
+                AC_DEFINE_UNQUOTED([PYTHON_VERSION_MINOR], 
+                                   $PYTHON_VERSION_MINOR, 
+                                   [Python Version Minor Number])
+
                 LDFLAGS="$LDFLAGS $PYTHON_LDFLAGS"
                 CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDES"
 
@@ -564,7 +582,12 @@ PYTHON_VERSION=`echo "import distutils.sysconfig; print distutils.sysconfig.get_
                 else
                         LIBS="$LIBS -lpython$PYTHON_VERSION"
                 fi
+                LIBS="$LIBS $PYTHON_LIBS"
 
+
+                if [[ ! -z "$with_python_libs" ]]; then
+                        LDFLAGS="$LDFLAGS -L$with_python_libs"
+                fi
         fi
         
 fi

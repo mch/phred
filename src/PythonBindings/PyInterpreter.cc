@@ -109,10 +109,17 @@ void PyInterpreter::run_script(const char *filename)
   object main_module = extract<object>( PyImport_AddModule("__main__") );
   object main_namespace = main_module.attr("__dict__");
 
+#if PYTHON_VERSION_MAJOR >= 2 && PYTHON_VERSION_MINOR < 3
+  PyObject *result = PyRun_File(fp, const_cast<char *>(filename), 
+                                Py_file_input, 
+                                main_namespace.ptr(), 
+                                main_namespace.ptr());
+#else
   PyObject *result = PyRun_File(fp, filename, Py_file_input, 
                                 main_namespace.ptr(), 
                                 main_namespace.ptr());
-  
+#endif
+
   if (!result) {
     PyObject *err = PyErr_Occurred();
     if (err)

@@ -96,8 +96,8 @@ enum MATLAB_array_type {
  * Data tag
  */
 typedef struct {
-  uint32_t datatype;
-  uint32_t num_bytes;
+  ::uint32_t datatype;
+  ::uint32_t num_bytes;
 } data_tag_t;    
 
 /**
@@ -105,10 +105,10 @@ typedef struct {
  */
 typedef struct {
   union flags_t {
-    uint32_t flags32;
-    uint8_t flag_bytes[4];
+    ::uint32_t flags32;
+    ::uint8_t flag_bytes[4];
   } flags;
-  uint32_t undefined;
+  ::uint32_t undefined;
 } array_flags_t;
 
 /**
@@ -269,7 +269,7 @@ protected:
   bool time_dim_; /**< True if this thing has a time dimension. */ 
 
   unsigned int num_dims_; /**< Number of dimensions */ 
-  int32_t *dim_lengths_; /**< Dimension lengths */ 
+  ::int32_t *dim_lengths_; /**< Dimension lengths */ 
   unsigned int approx_tlen_; /**< Approximate number of time
                                 steps. For doing memory preallocation
                                 only. */
@@ -341,8 +341,8 @@ protected:
 
   struct {
     char text[124];
-    uint16_t version;
-    uint8_t endian[2]; 
+    ::uint16_t version;
+    ::uint8_t endian[2]; 
   } header_;
 
   map<string, MatlabArray *> vars_;

@@ -124,7 +124,13 @@ void no_memory()
 
 static void usage (int status);
 
-//#undef HAVE_LIBPOPT
+
+/****************************************************************
+ * DROPPING SUPPORT FOR POPT SOON!
+ * getopt is more common...
+ ****************************************************************/
+
+//#undef HAVE_LIBPOPT 
 #ifdef HAVE_LIBPOPT
 
 /* popt plays way nicer with MPI than getopt. Trust me. */
@@ -142,7 +148,13 @@ static struct poptOption options[] =
     {"test", 't', POPT_ARG_STRING, 0, 't'},
     {0, 0, 0, 0, 0}
   };
+
+#else /* getopt instead? */ 
+#ifdef HAVE_GETOPT
+#include <unistd.h>
 #endif
+
+#endif /* #ifdef HAVE_LIBPOPT */
 
 static int decode_switches (int argc, char **argv);
 
@@ -159,9 +171,9 @@ int MPI_RANK, MPI_SIZE, argi_g;
 static int
 decode_switches (int argc, char **argv)
 {
-#ifdef HAVE_LIBPOPT
   int c;
   char *arg = 0;
+#ifdef HAVE_LIBPOPT
   argi_g = 0;
 
   poptContext ctx = poptGetContext(0, argc, 
@@ -178,7 +190,7 @@ decode_switches (int argc, char **argv)
     switch (c)
     {
     case 'V':
-      cout << "phred " << VERSION << endl;
+      cout << "Phred " << VERSION << endl;
       exit (0);
       break;
 
@@ -235,9 +247,62 @@ decode_switches (int argc, char **argv)
 
   poptFreeContext(ctx);
 #else
-  mnps = true;
-  test_run = true;
-#endif
+
+#ifdef HAVE_GETOPT
+  opterr = 0;
+
+  while ((c = getopt (argc, argv, "+Vhif:mbqt")) != -1)
+    switch (c)
+    {
+    case 'V':
+      cout << "Phred " << VERSION << endl;
+      MPI_Finalize();
+      exit (0);
+      break;
+
+    case 'h':
+      usage (0);
+      break;
+
+    case 'i':
+      interactive = true;
+      break;
+      
+    case 'f':
+      arg = const_cast<char *>(optarg);
+
+      if (arg)
+        inputfile = arg;
+      else 
+      {
+        cout << "No filename given for the -f switch." << endl;
+        usage(0);
+      }
+      break;
+
+    case 'm':
+      estimate_memory = true; 
+      break;
+
+    case 'b':
+      mnps = true;
+      break;
+
+    case 'q':
+      quiet = true;
+      break;
+
+    case 't':
+      test_run = true;
+      break;
+
+    default:
+      cout << "WARNING: got unknown option number: " << c << endl;
+    }
+
+#endif /* #ifdef HAVE_GETOPT */ 
+
+#endif /* #ifdef HAVE_LIBPOPT */ 
 
   return 0;
 }
@@ -251,8 +316,8 @@ Phred is a parallel finite difference time domain electromagnetics simulator.\n"
 #ifdef HAVE_LIBPOPT
   printf ("Usage: %s [OPTION]... [FILE]...\n", program_name);
   printf ("\
-Options:\n\
-  -f, --filename             filename to read problem description from\n");
+Options:\n");
+  //printf("-f, --filename             filename to read problem description from\n");
 #ifdef USE_PY_BINDINGS
   printf("  -i, --interactive          start an interactive Python interpreter on\n\
                              rank zero if that process is attached to a \n\
@@ -286,6 +351,45 @@ Options:\n\
   -V, --version              output version information and exit\n\
 ");
 #else
+
+#ifdef HAVE_GETOPT
+#ifdef USE_PY_BINDINGS
+  printf("\
+  -i          start an interactive Python interpreter on\n\
+              rank zero if that process is attached to a \n\
+              terminal. Commands will be mirrored to\n\
+              interpreters running on the other ranks.\n");
+#endif
+  printf("\
+  -h          display this help and exit\n\
+  -q          Don't echo configuration information at\n\
+              start up, don't report each time step, etc.\n\
+  -m          Estimate amount of required memory and exit\n\
+  -b          Benchmark: estimate the millions of nodes \n\
+              processed per second (this does NOT include\n\
+              time spent in IO or other activities; only\n\
+              node update times are counted.\n\
+  -t          Run a hard coded test problem; select from:\n\
+              H   Single circular hole\n\
+              M   Million node benchmark\n\
+              V   Variable number of nodes benchmark; \n\
+                  follow by the number of cells\n\
+                  in the X, Y, and Z axis.\n\
+              S   Square hole in PEC, followed by the size of\n\
+                  the hole in the y dimension as\n\
+                  an integer number of nanometers.\n\
+              P   Square hole in Ag, followed by the size of\n\
+                  the hole in the y dimension as\n\
+                  an integer number of nanometers.\n\
+              T   Square hole in a 1 cell thick PEC film,\n\
+                  followed by the side of the hole in the \n\
+                  y dimension as an integer number of \n\
+                  nanometers.\n\
+              If -t is used, it must be the last option specified. \n\
+  -V          output version information and exit\n\
+");
+
+#else
   printf ("Usage: %s A [opts] or %s [filename]\n", program_name,
           program_name);
   printf("A is a letter identifying the test to run, and [opts] are any\n"
@@ -306,8 +410,11 @@ problem description is loaded from that file. If no file is specified, \n\
 the program will attempt to load the problem description from the\n\
 file 'problem.phred'.\n\
 ");
-#endif
+#endif /* HAVE_GETOPT */
 
+#endif /* HAVE_LIBPOPT */ 
+
+  MPI_Finalize();
   exit(status);
 }
 
@@ -358,7 +465,7 @@ int main (int argc, char **argv)
   // else { // rank 0 passes appropriate args
   
   cout << PACKAGE_NAME << " version " << PACKAGE_VERSION 
-       << ", Copyright (C) 2004 Matt Hughes <mch@ieee.org>\n"
+       << ", Copyright (C) 2004, 2005 Matt Hughes <mch@ieee.org>\n"
        << PACKAGE_NAME << " comes with ABSOLUTELY NO WARRANTY.\n"
        << "This is free software, and you are welcome to redistribute it\n"
        << "under certian conditions. See the COPYING file for details.\n";
@@ -369,27 +476,27 @@ int main (int argc, char **argv)
          << "For redistribution conditions type `print conditions'.\n";
   }
 
-  cout << "\nMPI information: \nThis process is rank number " << MPI_RANK
-       << ".\nThere are a total of " << MPI_SIZE
-       << " processes in this group." << endl;
+//   cout << "\nMPI information: \nThis process is rank number " << MPI_RANK
+//        << ".\nThere are a total of " << MPI_SIZE
+//        << " processes in this group." << endl;
 
-#ifdef USE_OPENMP
-  int max_threads = omp_get_max_threads();
-  omp_set_num_threads(max_threads);
+// #ifdef USE_OPENMP
+//   int max_threads = omp_get_max_threads();
+//   omp_set_num_threads(max_threads);
 
-  cout << "\nOpenMP information: \nNumber of threads in team: " 
-       << omp_get_num_threads()
-       << "\nMaximum number of threads in team: " << max_threads
-       << "\nNumber of processors: " << omp_get_num_procs()
-       << "\nCurrent thread number: " << omp_get_thread_num()
-       << "\nDynamic thread adjustment? " 
-       << (omp_get_dynamic() ? "yes" : "no")
-       << "\nIn parallel? "
-       << (omp_in_parallel() ? "yes" : "no")
-       << "\nNested parallism? "
-       << (omp_get_nested() ? "yes" : "no")
-       << "\n" << endl;
-#endif
+//   cout << "\nOpenMP information: \nNumber of threads in team: " 
+//        << omp_get_num_threads()
+//        << "\nMaximum number of threads in team: " << max_threads
+//        << "\nNumber of processors: " << omp_get_num_procs()
+//        << "\nCurrent thread number: " << omp_get_thread_num()
+//        << "\nDynamic thread adjustment? " 
+//        << (omp_get_dynamic() ? "yes" : "no")
+//        << "\nIn parallel? "
+//        << (omp_in_parallel() ? "yes" : "no")
+//        << "\nNested parallism? "
+//        << (omp_get_nested() ? "yes" : "no")
+//        << "\n" << endl;
+// #endif
 	
 
 
@@ -409,8 +516,10 @@ int main (int argc, char **argv)
 
     if (test_run) {
 #ifndef HAVE_LIBPOPT
-      // Find the exec name
+
       int argi = 0;
+#ifndef HAVE_GETOPT
+      // Find the exec name
       for (argi = 0; argi < argc; argi++)
       {
         string phred_name(argv[argi]);
@@ -420,6 +529,9 @@ int main (int argc, char **argv)
         if (phred_name.compare("phred") == 0)
           break;
       }
+#else
+      argi = optind - 1;
+#endif
 
       if (argc > (argi + 1))
       {
