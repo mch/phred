@@ -5,12 +5,12 @@ len = 149;
 
 c = 3e8;
 
-centre_f = 500e12;
-df = 200e12;
+centre_f = 5e15;
+df = 5e14;
 
-wl = c ./ centre_f;
+wl = c ./ (centre_f + 2*df);
 
-dz = wl ./ 20;
+dz = wl ./ 40;
 dt = 0.8 .* 1 ./ (c * sqrt(1/(dz*dz)));
 
 disp(sprintf('dz = %g, dt = %g', dz, dt));
