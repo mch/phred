@@ -3,6 +3,8 @@
 
 #include "BoundaryCondition.hh"
 #include "PmlCommon.hh"
+#include "Data.hh"
+#include <mpi.h>
 
 /**
  * PML Variation types. Not that I know what they mean or anything. 
@@ -71,6 +73,13 @@ protected:
                  // alloc_fields multiple times consqeunce free.
 
   region_t pml_r_; // A region
+
+  // MPI Derived data types for moving split field data across
+  // subdomain boundaries
+  MPI_Datatype xy_plane_;
+  MPI_Datatype yz_plane_;
+  MPI_Datatype xz_plane_;
+
 
   /** 
    * A helper function called by PmlCommon::init_ratios
@@ -175,6 +184,15 @@ public:
   {
     nrml_refl_ = refl;
   }
+
+  /**
+   * Returns a RxTxData object which can be used to share some PML
+   * information across ranks. 
+   * @param pmlface the face the PML is on
+   * @param sdface the face the subdmoain is on
+   * @return a RxTxData object
+   */
+  RxTxData get_rx_tx_data(Face pmlface, Face sdface);
 
 protected: // Only called by apply().
 

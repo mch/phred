@@ -148,7 +148,14 @@ void NetCDFDataWriter::add_variable(Result &result)
       handle_error(status);
     
     size_t len = 0;
-    for (unsigned int i = 0; i < dids.size(); i++)
+    unsigned int i = 0;
+    
+    // Skip the time dimension, because if it exists, it's length
+    // won't be zero anyway.
+    if (var.time_dim_)
+      i++;
+
+    for (i = i; i < dids.size(); i++)
     {
       status = nc_inq_dimlen(ncid_, dimids[i], &len);
       
@@ -357,7 +364,7 @@ int NetCDFDataWriter::get_dim(int i, int size, string basename)
       idx = 0;
       while (idx < 100) {
         name.str(basename);
-        name <<  idx;
+        name <<  idx++;
         status = nc_inq_dimid(ncid_, name.str().c_str(), &dimid);
 
         if (status == NC_NOERR) {

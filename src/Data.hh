@@ -105,4 +105,59 @@ public:
   }
 };
 
+
+/**
+ * This is an extension of the Data class which allows for two data
+ * pointers; a recieve (rx) and a transmit (tx). This is intended for
+ * use when there is overlapping regions at subdomain boundaries and
+ * data has to be transfered between ranks. 
+ */
+class RxTxData : public Data
+{
+private:
+  // Hide these
+  void *get_ptr()
+  { return 0; }
+
+  void set_ptr(void *)
+  {}
+  
+protected:
+  void *rx_ptr_;
+  void *tx_ptr_;
+public:
+  /**
+   * Set the rx pointer
+   */
+  inline void set_rx_ptr(void *ptr)
+  {
+    rx_ptr_ = ptr;
+  }
+
+  /**
+   * Get the rx pointer
+   */
+  inline void *get_rx_ptr()
+  {
+    return rx_ptr_;
+  }
+
+  /**
+   * Set the tx pointer
+   */
+  inline void set_tx_ptr(void *ptr)
+  {
+    tx_ptr_ = ptr;
+  }
+
+  /**
+   * Get the tx pointer
+   */
+  inline void *get_tx_ptr()
+  {
+    return tx_ptr_;
+  }
+
+};
+
 #endif // DATA_H

@@ -5,7 +5,7 @@ void TimeExcitation::excite(Grid &grid, unsigned int time_step,
                             FieldType type)
 {
   // Find out where we fit in this grid (convert to local coordinates)
-  if (type != BOTH && type == type_)
+  if (type != BOTH && type != type_)
     return;
 
   region_t r = grid.global_to_local(x_start_, x_end_, 
@@ -30,15 +30,15 @@ void TimeExcitation::excite(Grid &grid, unsigned int time_step,
           switch (type_) 
           {
           case E:
-            if (fld[0] > 0) grid.set_ex(i,j,k, fld[0]);
-            if (fld[1] > 0) grid.set_ey(i,j,k, fld[1]);
-            if (fld[2] > 0) grid.set_ez(i,j,k, fld[2]);
+            if (polarization_[0] != 0.0) grid.set_ex(i,j,k, fld[0]);
+            if (polarization_[1] != 0.0) grid.set_ey(i,j,k, fld[1]);
+            if (polarization_[2] != 0.0) grid.set_ez(i,j,k, fld[2]);
             break;
 
           case H:
-            if (fld[0] > 0) grid.set_hx(i,j,k, fld[0]);
-            if (fld[1] > 0) grid.set_hy(i,j,k, fld[1]);
-            if (fld[2] > 0) grid.set_hz(i,j,k, fld[2]);
+            if (polarization_[0] != 0.0) grid.set_hx(i,j,k, fld[0]);
+            if (polarization_[1] != 0.0) grid.set_hy(i,j,k, fld[1]);
+            if (polarization_[2] != 0.0) grid.set_hz(i,j,k, fld[2]);
             break;
 
           case BOTH: // Isn't meant for Excitations.

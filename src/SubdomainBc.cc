@@ -25,14 +25,13 @@ void SubdomainBc::apply(Face face, Grid &grid)
             grid.get_face_start(face, FC_HZ, 0), t);
 
   // Send and recieve and data we've be contracted to do. 
-  vector<Data>::iterator tx_iter = tx_data_.begin();
-  vector<Data>::iterator rx_iter = rx_data_.begin();
-  vector<Data>::iterator tx_iter_end = tx_data_.end();
+  vector<RxTxData>::iterator iter = rx_tx_data_.begin();
+  vector<RxTxData>::iterator iter_end = rx_tx_data_.end();
 
-  while (tx_iter != tx_iter_end) 
+  while (iter != iter_end) 
   {
-    send_recv((*tx_iter).get_ptr(), (*rx_iter).get_ptr(), 
-              (*tx_iter).get_datatype());
+    send_recv((*iter).get_tx_ptr(), (*iter).get_rx_ptr(), 
+              (*iter).get_datatype());
   }
 }
 
@@ -69,8 +68,7 @@ int SubdomainBc::get_rank()
   return rank_;
 }
 
-void SubdomainBc::add_tx_rx_pair(const Data &rx, const Data &tx)
+void SubdomainBc::add_tx_rx_data(const RxTxData &x)
 {
-  tx_data_.push_back(tx);
-  rx_data_.push_back(rx);
+  rx_tx_data_.push_back(x);
 }

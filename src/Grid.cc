@@ -116,7 +116,21 @@ void Grid::set_define_mode(bool d)
 
         // Check ajacent faces and see if there are any subdomains
         // that need to have data shared across them.
-        
+        for (int j = 0; j < 6; j++)
+        {
+          if (j != i 
+              && (j % 2 && (j-1) != i) // j is odd
+              && ( !(j % 2) && (j+1) != i)) // j is even
+          {
+            if (info_.get_bc_type(static_cast<Face>(j)) == SUBDOMAIN)
+            {
+              SubdomainBc *sd = dynamic_cast<SubdomainBc *>
+                (&info_.get_boundary(static_cast<Face>(j)));
+              sd->add_tx_rx_data(p->get_rx_tx_data(static_cast<Face>(i), 
+                                                   static_cast<Face>(j)));
+            }
+          }
+        }
       }
     }
     
@@ -248,6 +262,7 @@ void Grid::init_datatypes()
                   GRID_MPI_TYPE, &xz_plane_);
   MPI_Type_commit(&xz_plane_);
 
+  // THIS ONE DOESN'T WORK:
   MPI_Type_vector(get_ldx(), 1, get_ldz(), y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
 
@@ -492,9 +507,9 @@ void Grid::update_ex()
   // Inner part
   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
     for (j = update_r_.ymin + 1; j < update_r_.ymax; j++) {
-
-      idx = pi(i, j, 1);
-      idx2 = pi(i, j-1, 1);
+      
+      idx = pi(i, j, update_r_.zmin + 1);
+      idx2 = pi(i, j-1, update_r_.zmin + 1);
 
       for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
         mid = material_[idx];
@@ -520,10 +535,10 @@ void Grid::update_ey()
   for (i = update_r_.xmin + 1; i < update_r_.xmax; i++) {
     for (j = update_r_.ymin; j < update_r_.ymax; j++) {
 
-      idx = pi(i, j, 1);
+      idx = pi(i, j, update_r_.zmin + 1);
       ey = &(ey_[idx]);
       hx = &(hx_[idx]);
-      hz1 = &(hz_[pi(i-1, j, 1)]);
+      hz1 = &(hz_[pi(i-1, j, update_r_.zmin + 1)]);
       hz2 = &(hz_[idx]);
 
       for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
@@ -554,11 +569,11 @@ void Grid::update_ez()
   for (i = update_r_.xmin + 1; i < update_r_.xmax; i++) {
     for (j = update_r_.ymin + 1; j < update_r_.ymax; j++) {
 
-      idx = pi(i, j, 0);
+      idx = pi(i, j, update_r_.zmin);
       ez = &(ez_[idx]);
       hy1 = &(hy_[idx]);
-      hy2 = &(hy_[pi(i-1, j, 0)]);
-      hx1 = &(hx_[pi(i, j-1, 0)]);
+      hy2 = &(hy_[pi(i-1, j, update_r_.zmin)]);
+      hx1 = &(hx_[pi(i, j-1, update_r_.zmin)]);
       hx2 = &(hx_[idx]);
 
       for (k = update_r_.zmin; k < update_r_.zmax; k++) {
@@ -585,10 +600,10 @@ void Grid::update_hx()
   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
     for (j = update_r_.ymin; j < update_r_.ymax - 1; j++) {
 
-      idx = pi(i, j, 0);
+      idx = pi(i, j, update_r_.zmin);
       hx = &(hx_[idx]);
       ez1 = &(ez_[idx]);
-      ez2 = &(ez_[pi(i, j+1, 0)]);
+      ez2 = &(ez_[pi(i, j+1, update_r_.zmin)]);
       ey = &(ey_[idx]);
 
       for (k = update_r_.zmin; k < update_r_.zmax - 1; k++) {
@@ -614,10 +629,10 @@ void Grid::update_hy()
   for (i = update_r_.xmin; i < update_r_.xmax - 1; i++) {
     for (j = update_r_.ymin; j < update_r_.ymax; j++) {
 
-      idx = pi(i, j, 0);
+      idx = pi(i, j, update_r_.zmin);
       hy = &(hy_[idx]);
       ex = &(ex_[idx]);
-      ez1 = &(ez_[pi(i+1, j, 0)]);
+      ez1 = &(ez_[pi(i+1, j, update_r_.zmin)]);
       ez2 = &(ez_[idx]);
 
       for (k = update_r_.zmin; k < update_r_.zmax - 1; k++) {
@@ -643,11 +658,11 @@ void Grid::update_hz()
   for (i = update_r_.xmin; i < update_r_.xmax - 1; i++) {
     for (j = update_r_.ymin; j < update_r_.ymax - 1; j++) {
 
-      idx = pi(i, j, 0);
+      idx = pi(i, j, update_r_.zmin);
       hz1 = &(hz_[idx]);
       ey1 = &(ey_[idx]);
-      ey2 = &(ey_[pi(i+1, j, 0)]);
-      ex1 = &(ex_[pi(i, j+1, 0)]);
+      ey2 = &(ey_[pi(i+1, j, update_r_.zmin)]);
+      ex1 = &(ex_[pi(i, j+1, update_r_.zmin)]);
       ex2 = &(ex_[idx]);
 
       for (k = update_r_.zmin; k < update_r_.zmax; k++) {

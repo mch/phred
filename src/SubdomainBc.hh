@@ -23,17 +23,9 @@ protected:
   /**
    * A list of items to transmit each time the boundary condition is
    * applied. The communication is assumed to be bidirectional and
-   * non-overlapping; there must be one rx_data_ item for each
-   * tx_data_ item, and it must be possible to send or recieve in any
-   * order. No buffering is provided. 
+   * non-overlapping.
    */ 
-  vector<Data> tx_data_;
-
-  /**
-   * A list of items to recieve each time the boundary condition is
-   * applied. 
-   */ 
-  vector<Data> rx_data_;
+  vector<RxTxData> rx_tx_data_;
 
   /**
    * A helper function that sends arrays of data between two ranks. 
@@ -91,10 +83,9 @@ public:
    * condition is applied. The datatype used by both Data objects MUST
    * be the same.  
    *
-   * @param rx A Data object describing the data we will recieve.
-   * @param tx A Data object describing the data we will transmit. 
+   * @param x A RxTxData object describing the data we will recieve.
    */
-  void add_tx_rx_pair(const Data &rx, const Data &tx);
+  void add_tx_rx_data(const RxTxData &x);
 
 };
 #endif // SUBDOMAIN_BC_H

@@ -87,7 +87,7 @@ AC_ARG_VAR([DOT], [Set to YES if dot from the graphviz package is available for 
 AC_LANG(C++)
 
 dnl Use popt? 
-AC_ARG_WITH(popt, AC_HELP_STRING([--with-popt], [Use popt for handling command (not recommended right now)]))
+AC_ARG_WITH(popt, AC_HELP_STRING([--without-popt], [Don't use popt for handling command line arguments]))
 
 dnl Various MPI implementations we can use. We can usually assume that the 
 dnl compiler command script adds the right libraries and include paths, 
@@ -186,8 +186,7 @@ AC_CHECK_HEADER(mpi.h, [], [
         AC_MSG_ERROR([*** Can't find any MPI header files. ])])
 
 
-if [[ "$with_popt" = "yes" ]]; then
-        AC_MSG_WARN([The use of popt has been seen to cause mysterious seg faults! RECOMMEND --without-popt!])
+if [[ ! "$with_popt" = "no" ]]; then
         AC_DEFINE([USE_POPT], [1], [Use the popt library])
         AC_CHECK_LIB(popt, poptGetContext, [], [])
         AC_CHECK_HEADER([popt.h], [], [])

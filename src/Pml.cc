@@ -161,12 +161,12 @@ void Pml::setup(Face face, Grid &grid)
     break;
   }
 
-  cout << "Pml setup TEST results for face " << face << "\n" 
-       << "\tratio_m_ = " << ratio_m_
-       << "\n\texponent_n_ = " << exponent_n_
-       << "\n\tdelta_bndy_ = " << delta_bndy_
-       << "\n\tgeometric_delta_ = " << geometric_delta_
-       << "\n\tgeomtric_profile_ = " << geometric_profile_ << endl;
+//   cout << "Pml setup TEST results for face " << face << "\n" 
+//        << "\tratio_m_ = " << ratio_m_
+//        << "\n\texponent_n_ = " << exponent_n_
+//        << "\n\tdelta_bndy_ = " << delta_bndy_
+//        << "\n\tgeometric_delta_ = " << geometric_delta_
+//        << "\n\tgeomtric_profile_ = " << geometric_profile_ << endl;
 
   alloc_pml_fields(face, grid);
 }
@@ -256,15 +256,15 @@ void Pml::apply(Face face, Grid &grid)
     break;
   }
 
-  cout << "Pml update on face " << static_cast<int>(face) 
-       << "in grid ranges x={" << grid_r.xmin << "," 
-       << grid_r.xmax << "}, y={" << grid_r.ymin << "," 
-       << grid_r.ymax << "}, z={" << grid_r.zmin << ","
-       << grid_r.zmax << "}.\n"
-       << "pml range x={" << pml_r_.xmin << "," 
-       << pml_r_.xmax << "}, y={" << pml_r_.ymin << "," 
-       << pml_r_.ymax << "}, z={" << pml_r_.zmin << ","
-       << pml_r_.zmax << "}.\n";
+//   cout << "Pml update on face " << static_cast<int>(face) 
+//        << "in grid ranges x={" << grid_r.xmin << "," 
+//        << grid_r.xmax << "}, y={" << grid_r.ymin << "," 
+//        << grid_r.ymax << "}, z={" << grid_r.zmin << ","
+//        << grid_r.zmax << "}.\n"
+//        << "pml range x={" << pml_r_.xmin << "," 
+//        << pml_r_.xmax << "}, y={" << pml_r_.ymin << "," 
+//        << pml_r_.ymax << "}, z={" << pml_r_.zmin << ","
+//        << pml_r_.zmax << "}.\n";
 
   pml_update_hx(grid_r, grid);
   pml_update_hy(grid_r, grid);
@@ -498,5 +498,25 @@ float Pml::sigma_over_eps_int(float x)
       return ratio_m_ * delta_bndy_ 
         * (pow(g_, delta_bndy_ / geometric_delta_) - 1.0)
         / log(g_);
+  }
+}
+
+RxTxData Pml::get_rx_tx_data(Face pmlface, Face sdface)
+{
+  RxTxData ret;
+
+  switch (sdface) {
+  case BACK:
+    break;
+  case FRONT:
+    break;
+  case LEFT:
+    break;
+  case RIGHT:
+    break;
+  case BOTTOM:
+    break;
+  case TOP:
+    break;
   }
 }
