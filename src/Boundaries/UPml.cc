@@ -224,6 +224,51 @@ void UPml::compute_regions(Face face, const Grid &grid)
       }
     }
 
+    // Compensate for the commented out stuff in compute_regions
+    switch (face) {
+    case FRONT:
+    case BACK:
+      if (grid.get_boundary(RIGHT).get_type() == UPML)
+      {
+        grid_ex_r_.ymax--;
+        grid_ez_r_.ymax--;
+      
+        grid_ex_r_.zmax--;
+        grid_ey_r_.zmax--;
+      }
+      break;
+
+    case TOP:
+    case BOTTOM:
+      if (grid.get_boundary(FRONT).get_type() == UPML)
+      {
+        grid_ey_r_.xmax--;
+        grid_ez_r_.xmax--;
+      }
+
+      if (grid.get_boundary(RIGHT).get_type() == UPML)
+      {
+        grid_ez_r_.ymax--;
+        grid_ex_r_.ymax--;
+      }
+      break;
+      
+    case LEFT:
+    case RIGHT:
+      if (grid.get_boundary(FRONT).get_type() == UPML)
+      {
+        grid_ey_r_.xmax--;
+        grid_ez_r_.xmax--;
+      }
+
+      if (grid.get_boundary(TOP).get_type() == UPML)
+      {
+        grid_ex_r_.zmax--;
+        grid_ey_r_.zmax--;
+      }
+      break;
+    }
+
   }
 }
 
@@ -508,7 +553,7 @@ void UPml::update_ex(Grid &grid)
 
           // Update equations go here!
           if (common_->mtype(mid) == PERF_COND) {
-            *ex = 0.0;
+            *ex = *ex; 
           } 
           else if (common_->mtype(mid) == LOSSY) 
           {
@@ -694,7 +739,7 @@ void UPml::update_ey(Grid &grid)
 
           // Update equations go here!
           if (common_->mtype(mid) == PERF_COND) {
-            *ey = 0.0;
+            *ey = *ey;
           } 
           else if (common_->mtype(mid) == LOSSY) 
           {
@@ -882,7 +927,7 @@ void UPml::update_ez(Grid &grid)
           
           // Update equations go here!
           if (common_->mtype(mid) == PERF_COND) {
-            *ez = 0.0;
+            *ez = *ez;
           } 
           else if (common_->mtype(mid) == LOSSY) 
           {
@@ -1065,14 +1110,21 @@ void UPml::update_hx(Grid &grid)
           mid = grid.material_[grid_idx];
           
           // Update equations go here. 
-          b_temp = *bx * common_->Ay(jt)
-            + common_->By(jt) * ( idz*(*(ey + 1) - *ey) - idy*(*ez2 - *ez1) );
+          if (common_->mtype(mid) == PERF_COND) {
+            *hx = *hx; 
+          } 
+          else 
+          {
+            b_temp = *bx * common_->Ay(jt)
+              + common_->By(jt) 
+              * ( idz*(*(ey + 1) - *ey) - idy*(*ez2 - *ez1) );
 
-          *hx = *hx * common_->Az(kt)
-            + common_->Bz(kt) * common_->ur(mid) 
-            * ( b_temp * common_->Cx(it) - *bx * common_->Dx(it) );
-
-          *bx = b_temp;
+            *hx = *hx * common_->Az(kt)
+              + common_->Bz(kt) * common_->ur(mid) 
+              * ( b_temp * common_->Cx(it) - *bx * common_->Dx(it) );
+            
+            *bx = b_temp;
+          }
 
           hx++;
           ez1++;
@@ -1140,14 +1192,21 @@ void UPml::update_hy(Grid &grid)
           mid = grid.material_[grid_idx];
 
           // Update equations go here. 
-          b_temp = *by * common_->Az(kt)
-            + common_->Bz(kt) * ( idx*(*ez1 - *ez2) - idz*(*(ex + 1) - *ex) );
+          if (common_->mtype(mid) == PERF_COND) {
+            *hy = *hy; 
+          } 
+          else 
+          {
+            b_temp = *by * common_->Az(kt)
+              + common_->Bz(kt) 
+              * ( idx*(*ez1 - *ez2) - idz*(*(ex + 1) - *ex) );
 
-          *hy = *hy * common_->Ax(it) 
-            + common_->Bx(it) * common_->ur(mid)
-            * (b_temp * common_->Cy(jt) - *by * common_->Dy(jt));
+            *hy = *hy * common_->Ax(it) 
+              + common_->Bx(it) * common_->ur(mid)
+              * (b_temp * common_->Cy(jt) - *by * common_->Dy(jt));
 
-          *by = b_temp;
+            *by = b_temp;
+          }
 
           hy++;
           ex++;
@@ -1219,14 +1278,21 @@ void UPml::update_hz(Grid &grid)
           mid = grid.material_[grid_idx];
           
           // Update equations go here. 
-          b_temp = *bz * common_->Ax(it)
-            + common_->Bx(it) * ( idy*(*ex1 - *ex2) - idx*(*ey2 - *ey1) );
+          if (common_->mtype(mid) == PERF_COND) {
+            *hz = *hz; 
+          } 
+          else 
+          {
+            b_temp = *bz * common_->Ax(it)
+              + common_->Bx(it) 
+              * ( idy*(*ex1 - *ex2) - idx*(*ey2 - *ey1) );
 
-          *hz = *hz * common_->Ay(jt)
-            + common_->By(jt) * common_->ur(mid)
-            * ( b_temp * common_->Cz(kt) - *bz * common_->Dz(kt));
+            *hz = *hz * common_->Ay(jt)
+              + common_->By(jt) * common_->ur(mid)
+              * ( b_temp * common_->Cz(kt) - *bz * common_->Dz(kt));
 
-          *bz = b_temp;
+            *bz = b_temp;
+          }
 
           hz++;
           ex1++; ex2++;

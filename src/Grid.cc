@@ -718,19 +718,18 @@ void Grid::update_ex(region_t update_r)
 {
   unsigned int idx, idx2;
   mat_idx_t mid;
-  loop_idx_t i, j, k;
   field_t *ex, *hz1, *hz2, *hy;
 
   // Inner part
 #ifdef USE_OPENMP
-#pragma omp parallel  private(mid, i, j, k, idx, idx2, ex, hz1, hz2, hy)
+#pragma omp parallel  private(mid, idx, idx2, ex, hz1, hz2, hy)
 #endif
   {
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_r.xmin; i < update_r.xmax; i++) {
-      for (j = update_r.ymin; j < update_r.ymax; j++) {
+    for (loop_idx_t i = update_r.xmin; i < update_r.xmax; i++) {
+      for (loop_idx_t j = update_r.ymin; j < update_r.ymax; j++) {
         
         idx = pi(i, j, update_r.zmin);
         idx2 = pi(i, j-1, update_r.zmin);
@@ -740,7 +739,7 @@ void Grid::update_ex(region_t update_r)
         hz2 = &(hz_[idx2]);
         hy = &(hy_[idx]);
         
-        for (k = update_r.zmin; k < update_r.zmax; k++) {
+        for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *ex = Ca_[mid] * *ex
@@ -764,19 +763,18 @@ void Grid::update_ey(region_t update_r)
 {
   unsigned int idx;
   mat_idx_t mid;
-  loop_idx_t i, j, k;
   field_t *ey, *hx, *hz1, *hz2;
 
   // Inner part
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, i, j, k, idx, ey, hx, hz1, hz2)
+#pragma omp parallel private(mid, idx, ey, hx, hz1, hz2)
 #endif
   {
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_r.xmin; i < update_r.xmax; i++) {
-      for (j = update_r.ymin; j < update_r.ymax; j++) {
+    for (loop_idx_t i = update_r.xmin; i < update_r.xmax; i++) {
+      for (loop_idx_t j = update_r.ymin; j < update_r.ymax; j++) {
         
         idx = pi(i, j, update_r.zmin);
         hz1 = &(hz_[pi(i-1, j, update_r.zmin)]);
@@ -785,7 +783,7 @@ void Grid::update_ey(region_t update_r)
         ey = &(ey_[idx]);
         hx = &(hx_[idx]);
 
-        for (k = update_r.zmin; k < update_r.zmax; k++) {
+        for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *ey = Ca_[mid] * *ey
@@ -808,7 +806,6 @@ void Grid::update_ez(region_t update_r)
 {
   unsigned int idx;
   mat_idx_t mid;
-  loop_idx_t i, j, k;
   field_t *ez, *hy1, *hy2, *hx1, *hx2;
   
   // Inner part
@@ -819,8 +816,8 @@ void Grid::update_ez(region_t update_r)
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_r.xmin; i < update_r.xmax; i++) {
-      for (j = update_r.ymin; j < update_r.ymax; j++) {
+    for (loop_idx_t i = update_r.xmin; i < update_r.xmax; i++) {
+      for (loop_idx_t j = update_r.ymin; j < update_r.ymax; j++) {
 
         idx = pi(i, j, update_r.zmin);
         hy2 = &(hy_[pi(i-1, j, update_r.zmin)]);
@@ -830,7 +827,7 @@ void Grid::update_ez(region_t update_r)
         ez = &(ez_[idx]);
         hy1 = &(hy_[idx]);
 
-        for (k = update_r.zmin; k < update_r.zmax; k++) {
+        for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *ez = Ca_[mid] * *ez
@@ -851,18 +848,17 @@ void Grid::update_hx(region_t update_r)
 {
   unsigned int idx;
   mat_idx_t mid;
-  loop_idx_t i, j, k;
   field_t *hx, *ez1, *ez2, *ey;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, i, j, k, idx, hx, ez1, ez2, ey)
+#pragma omp parallel private(mid, idx, hx, ez1, ez2, ey)
 #endif
   {
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_r.xmin; i < update_r.xmax; i++) {
-      for (j = update_r.ymin; j < update_r.ymax; j++) {
+    for (loop_idx_t i = update_r.xmin; i < update_r.xmax; i++) {
+      for (loop_idx_t j = update_r.ymin; j < update_r.ymax; j++) {
         
         idx = pi(i, j, update_r.zmin);
         ez2 = &(ez_[pi(i, j+1, update_r.zmin)]);
@@ -871,7 +867,7 @@ void Grid::update_hx(region_t update_r)
         hx = &(hx_[idx]);
         ez1 = &(ez_[idx]);
 
-        for (k = update_r.zmin; k < update_r.zmax; k++) {
+        for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *hx = Da_[mid] * *hx
@@ -892,19 +888,18 @@ void Grid::update_hy(region_t update_r)
 {
   unsigned int idx;
   mat_idx_t mid;
-  loop_idx_t i, j, k;
   field_t *hy, *ex, *ez1, *ez2;
 
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, i, j, k, idx, hy, ex, ez1, ez2)
+#pragma omp parallel private(mid, idx, hy, ex, ez1, ez2)
 #endif
   {
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_r.xmin; i < update_r.xmax; i++) {
-      for (j = update_r.ymin; j < update_r.ymax; j++) {
+    for (loop_idx_t i = update_r.xmin; i < update_r.xmax; i++) {
+      for (loop_idx_t j = update_r.ymin; j < update_r.ymax; j++) {
 
         idx = pi(i, j, update_r.zmin);
         ez1 = &(ez_[pi(i+1, j, update_r.zmin)]);
@@ -913,7 +908,7 @@ void Grid::update_hy(region_t update_r)
         ex = &(ex_[idx]);
         ez2 = &(ez_[idx]);
 
-        for (k = update_r.zmin; k < update_r.zmax; k++) {
+        for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *hy = Da_[mid] * *hy
@@ -934,18 +929,17 @@ void Grid::update_hz(region_t update_r)
   unsigned int idx;
   mat_idx_t mid;
 
-  loop_idx_t i, j, k;
   field_t *hz1, *ey1, *ey2, *ex1, *ex2;
 
 #ifdef USE_OPENMP
-#pragma omp parallel private(mid, i, j, k, idx, hz1, ey1, ey2, ex1, ex2)
+#pragma omp parallel private(mid, idx, hz1, ey1, ey2, ex1, ex2)
 #endif
   {
 #ifdef USE_OPENMP
 #pragma omp for
 #endif
-    for (i = update_r.xmin; i < update_r.xmax; i++) {
-      for (j = update_r.ymin; j < update_r.ymax; j++) {
+    for (loop_idx_t i = update_r.xmin; i < update_r.xmax; i++) {
+      for (loop_idx_t j = update_r.ymin; j < update_r.ymax; j++) {
         
         idx = pi(i, j, update_r.zmin);
         ey2 = &(ey_[pi(i+1, j, update_r.zmin)]);
@@ -955,7 +949,7 @@ void Grid::update_hz(region_t update_r)
         hz1 = &(hz_[idx]);
         ey1 = &(ey_[idx]);
 
-        for (k = update_r.zmin; k < update_r.zmax; k++) {
+        for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
           *hz1 = Da_[mid] * *hz1
