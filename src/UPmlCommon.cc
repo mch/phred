@@ -59,7 +59,7 @@ void UPmlCommon::init_coeffs(Grid &grid)
   // Thickesses? 
   for (int i = 0; i < 6; i++)
   {
-    if (gi.get_bc_type(static_cast<Face>(i)) == PML) {
+    if (gi.get_bc_type(static_cast<Face>(i)) == UPML) {
       BoundaryCond &bc = gi.get_boundary(static_cast<Face>(i));
       UPml *p = dynamic_cast<UPml *>(&bc);
 
@@ -105,9 +105,8 @@ void UPmlCommon::init_sigmas()
 
   vector<Material>::const_iterator iter = mlib->get_material_iter_begin();
   vector<Material>::const_iterator iter_e = mlib->get_material_iter_end();
-  int index = 0;
+  unsigned int xoffset = 0, yoffset = 0, zoffset = 0;
   
-  ++index;
   ++iter;
 
   // Loop over the materials
@@ -130,11 +129,11 @@ void UPmlCommon::init_sigmas()
 
         if (faceidx == FRONT)
         {
-          start = thicknesses_[BACK] + thicknesses_[FRONT] - 1;
+          start = xoffset + thicknesses_[BACK] + thicknesses_[FRONT] - 1;
           thickness = thicknesses_[FRONT];
           incr = -1;
         } else {
-          start = 0;
+          start = xoffset;
           thickness = thicknesses_[BACK];
           incr = 1;
         }
@@ -147,11 +146,11 @@ void UPmlCommon::init_sigmas()
 
         if (faceidx == RIGHT)
         {
-          start = thicknesses_[RIGHT] + thicknesses_[LEFT] - 1;
+          start = yoffset + thicknesses_[RIGHT] + thicknesses_[LEFT] - 1;
           thickness = thicknesses_[RIGHT];
           incr = -1;
         } else {
-          start = 0;
+          start = yoffset;
           thickness = thicknesses_[LEFT];
           incr = 1;
         }
@@ -164,11 +163,11 @@ void UPmlCommon::init_sigmas()
 
         if (faceidx == TOP)
         {
-          start = thicknesses_[TOP] + thicknesses_[BOTTOM] - 1;
+          start = zoffset + thicknesses_[TOP] + thicknesses_[BOTTOM] - 1;
           thickness = thicknesses_[TOP];
           incr = -1;
         } else {
-          start = 0;
+          start = zoffset;
           thickness = thicknesses_[BOTTOM];
           incr = 1;
         }
@@ -176,12 +175,18 @@ void UPmlCommon::init_sigmas()
       }
       mat_coef_t sigma_max = calc_sigma_max(eps, delta);
       
-      for (int sigidx = start, idx = thickness; idx < 0; idx--, sigidx += incr)
+      for (int sigidx = start, idx = 1; idx <= thickness; 
+           idx++, sigidx += incr)
       {
+        // THIS FORMULA IS WRONG! WRONGGG!
         sigmas[sigidx] = sigma_max * pow(static_cast<float>(idx), 
                                          static_cast<float>(poly_order_));
       }      
     }
+    xoffset += thicknesses_[FRONT] + thicknesses_[BACK];
+    yoffset += thicknesses_[LEFT] + thicknesses_[RIGHT];
+    zoffset += thicknesses_[BOTTOM] + thicknesses_[TOP];
+    ++iter;
   }
 }
   

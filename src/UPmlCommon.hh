@@ -92,6 +92,52 @@ protected:
   }
 
   /**
+   * Returns a sigma value along the y axis.
+   *
+   * @param mid material id
+   * @param y y coordinate
+   */
+  inline float sigma_y(unsigned int mid, unsigned int y)
+  {
+    unsigned int ycoord = 0; 
+    float ret = 0.0;
+
+    if (y < thicknesses_[LEFT])
+      ycoord = y;
+    if (y > (grid_.get_ldy() - thicknesses_[RIGHT]))
+      ycoord = thicknesses_[LEFT]
+        + (y - (grid_.get_ldy() - thicknesses_[RIGHT]));
+
+    if (mid > 0)
+      ret = sigma_y_[ycoord + ((mid - 1) * num_materials_)];
+
+    return ret;
+  }
+
+  /**
+   * Returns a sigma value along the z axis.
+   *
+   * @param mid material id
+   * @param z z coordinate
+   */
+  inline float sigma_z(unsigned int mid, unsigned int z)
+  {
+    unsigned int zcoord = 0; 
+    float ret = 0.0;
+
+    if (z < thicknesses_[BOTTOM])
+      zcoord = z;
+    if (z > (grid_.get_ldz() - thicknesses_[TOP]))
+      zcoord = thicknesses_[BOTTOM]
+        + (z - (grid_.get_ldz() - thicknesses_[TOP]));
+
+    if (mid > 0)
+      ret = sigma_z_[zcoord + ((mid - 1) * num_materials_)];
+
+    return ret;
+  }
+
+  /**
    * This function computes the index required to retrieve the
    * correct coefficient. 
    */ 

@@ -107,6 +107,13 @@ void Grid::set_define_mode(bool d)
 
     if (get_deltat() > 1/temp)
       throw StabilityException();
+    
+    if (ok)
+      define_ = d;
+    else 
+    {
+      cerr << "The grid is not in a sane condition which can be reasonably be solved. " << endl;
+    }
 
     alloc_grid();
 
@@ -287,13 +294,6 @@ void Grid::set_define_mode(bool d)
 //        << ", z: " << update_hz_r_.zmin << " -> " 
 //        << update_hz_r_.zmax << endl;
 
-
-    if (ok)
-      define_ = d;
-    else 
-    {
-      cerr << "The grid is not in a sane condition which can be reasonably be solved. " << endl;
-    }
   } else {
     define_ = d;
   }
