@@ -202,6 +202,12 @@ void export_excitations()
 
   class_<GaussWindExcitation, bases<WindowedExcitation> >("GaussWindow", "Gaussian windowed excitation; approximates a plane wave.", init<shared_ptr<Signal> >())
     .def("excite", &GaussWindExcitation::excite)
+//     .add_property("sdev_x", &GaussWindExcitation::get_sdev_x,
+//                   &GaussWindExcitation::set_sdev_x)
+//     .add_property("sdev_y", &GaussWindExcitation::get_sdev_y,
+//                   &GaussWindExcitation::set_sdev_y)
+//     .add_property("sdev_z", &GaussWindExcitation::get_sdev_z,
+//                   &GaussWindExcitation::set_sdev_z)
     ;
 
   class_<PeriodicExcitation, bases<Excitation> >

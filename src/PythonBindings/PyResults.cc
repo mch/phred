@@ -34,6 +34,7 @@
 #include "../Results/FakeResult.hh"
 #include "../Results/GridResult.hh"
 #include "../Results/SurfaceCurrentResult.hh"
+#include "../Results/WindowedExResult.hh"
 
 using namespace boost::python;
 
@@ -166,4 +167,8 @@ void export_results()
 //     .def("set_angles", &FarfieldResult::set_angles)
 //     .def("set_axis", &FarfieldResult::set_axis)
 //     ;
+
+  class_<WindowedExResult, bases<Result> >
+    ("WindowedExResult", init<shared_ptr<WindowedExcitation> >())
+    ;
 }

@@ -40,6 +40,8 @@ public:
 
   void init(const Grid &grid);
   void deinit();
+
+  ostream& to_string(ostream &os) const;
   
 protected:
   float *wnd_;

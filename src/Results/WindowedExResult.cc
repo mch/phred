@@ -28,7 +28,7 @@ WindowedExResult::WindowedExResult(shared_ptr<WindowedExcitation> wex)
 
 void WindowedExResult::init(const Grid &grid)
 {
-  var_.has_time_dimension(false);
+  var_.reset();
   pre_vars_["WindowResult"] = &var_;
 
   shared_ptr<CSGBox> box = wex_->get_region();
@@ -42,11 +42,11 @@ void WindowedExResult::init(const Grid &grid)
 
   int sz = gregion_->xlen() * gregion_->ylen() * gregion_->zlen();
 
-  var_.set_ptr(static_cast<void *>(wnd_));
-  var_.set_num(sz);
-  var_.set_datatype(MPI_FLOAT);
-
   wnd_ = new float[sz];
+
+  var_.set_ptr(wnd_);
+  var_.set_num(sz);
+  //var_.set_element_type(MPI_FLOAT);
 }
 
 void WindowedExResult::deinit()
@@ -100,4 +100,11 @@ void WindowedExResult::calculate_pre_result(const Grid &grid)
   } else {
     var_.set_num(0);
   }
+}
+
+
+ostream& WindowedExResult::to_string(ostream &os) const
+{
+  return os << "WindowedExResult returning an evaluated windowing function..."
+            << endl;
 }
