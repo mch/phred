@@ -509,7 +509,8 @@ void Grid::update_h_field()
 void Grid::update_ex() 
 {
   unsigned int mid, idx, idx2, i, j, k;
-  
+  field_t *ex, *hz1, *hz2, *hy;
+
 #ifdef USE_OPENMP
 #pragma opt parallel 
 #endif
@@ -519,16 +520,28 @@ void Grid::update_ex()
       
       idx = pi(i, j, update_r_.zmin + 1);
       idx2 = pi(i, j-1, update_r_.zmin + 1);
+      ex = &(ex_[idx]);
+      hz1 = &(hz_[idx]);
+      hz2 = &(hz_[idx2]);
+      hy = &(hy_[idx]);
 
       for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
         mid = material_[idx];
-
-        ex_[idx] = Ca_[mid] * ex_[idx]
-          + Cby_[mid] * (hz_[idx] - hz_[idx2])
-          + Cbz_[mid] * (hy_[idx-1] - hy_[idx]);
         
-        idx++;
-        idx2++;
+        *ex = Ca_[mid] * *ex
+          + Cby_[mid] * (*hz1 - *hz2)
+          + Cbz_[mid] * (*(hy - 1) - *hy);
+
+//         ex_[idx] = Ca_[mid] * ex_[idx]
+//           + Cby_[mid] * (hz_[idx] - hz_[idx2])
+//           + Cbz_[mid] * (hy_[idx-1] - hy_[idx]);
+        
+//        idx++;
+//        idx2++;
+        ex++;
+        hz1++;
+        hz2++;
+        hy++;
       }
     }
   }

@@ -4,6 +4,23 @@
 
 using namespace boost::python;
 
+/**
+ * Since the normal C++ version of Excitation is a template class,
+ * this is instance of that template which stores a reference to
+ * SourceFunction, the base class for these things. A proxy class is
+ * exposed which takes a pointer to a subclass of SourceFunction so
+ * that it can be used from Python. 
+ */
+class PyExcitation : public Excitation<SourceFunction> 
+{
+protected:
+public:
+  PyExcitation(SourceFunction &sf)
+    : Excitation<SourceFunction>(sf)
+  {}
+  ~PyExcitation();
+};
+
 void call_excite(TimeExcitation& te, Grid &grid, 
                         unsigned int time_step, FieldType type) 
 { return te.excite(grid, time_step, type); }
@@ -34,7 +51,7 @@ public:
                            type); }
 };
 
-BOOST_PYTHON_MODULE(Excitation)
+BOOST_PYTHON_MODULE(excitation)
 {
   class_<TimeExcitation, TimeExcitationWrap, boost::noncopyable>("TimeExcitation", no_init)
     .def("call_excite", &TimeExcitation::excite, 

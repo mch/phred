@@ -41,7 +41,7 @@ protected:
    */
   bool soft_;
 
-  T sf_; /**< Source function object to apply */
+  T &sf_; /**< Source function object to apply */
 
 public:
 
@@ -53,7 +53,7 @@ public:
    *
    * @param sf SourceFunction object to use as an excitation. 
    */
-  Excitation(T sf)
+  Excitation(T &sf)
     : type_(E), soft_(false),
       sf_(sf)
   {

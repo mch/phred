@@ -43,3 +43,29 @@ GPL compadible.
 
 MPICH (Message passing), under a special license which is probably
 GPL compadible. 
+
+Python, 
+
+readline, GPL
+
+
+
+THINGS TO DO:
+There's a bunch of stuff that needs to be done, with respect to the
+code organization and with respect to the FDTD itself. 
+
+Some more though needs to go into the life cycle management of the
+objects, who creates them, who owns them, how and when they are
+destroyed, when they are considered "locked", and so on. Code clean up
+and consistency checks are required. 
+
+Parallel stuff:
+- MPI fixups
+- OpenMP
+- AltiVec
+- SSE2
+
+FDTD stuff:
+- Windowed excitations for plane waves
+- Near to far field transformation
+- Total scattered field formulation

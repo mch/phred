@@ -159,10 +159,6 @@ main (int argc, char **argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-#ifdef USE_PY_BINDINGS
-  Py_Initialize();
-#endif 
-
   if (rank == 0)
   {
     prog_name = argv[0];
@@ -175,7 +171,7 @@ main (int argc, char **argv)
   } 
 
   cout << "phread version " << PACKAGE_VERSION << " starting on " 
-       << "rank " << rank << " of " << size << "." << endl;
+       << "rank " << rank << " of " << size << " processes." << endl;
 
   // Parse the input script (each process will just load it's own file
   // for now. ) 
@@ -190,6 +186,11 @@ main (int argc, char **argv)
     } 
 #endif
     if (!interactive) {
+      // If the file extension is .py, run it in the python interpreter. 
+
+      // If there is no extension, look for files named fn.in, fn.str,
+      // and fn.out, per Jan's grammer, and load them instead. 
+
       // TESTS, TEMPORARY
       //point_test(rank, size);
       pml_test(rank, size);
@@ -199,10 +200,6 @@ main (int argc, char **argv)
   }
 
   cout << "phred is phinished." << endl;
-
-#ifdef USE_PY_BINDINGS
-  Py_Finalize();
-#endif 
 
   // Thank you and goodnight
   MPI_Barrier(MPI_COMM_WORLD);
