@@ -205,7 +205,7 @@ public:
 
 protected:
   virtual unsigned int write_data(unsigned int time_step, 
-                                  Data &data, MPI_Datatype t, 
+                                  Variable &var, MPI_Datatype t, 
                                   void *ptr, unsigned int len)
   {
     return 0;
