@@ -3,10 +3,21 @@
 #include "Exceptions.hh"
 
 PmlCommon::PmlCommon()
+  : ratio_x_(0), ratio_star_x_(0), 
+    ratio_y_(0), ratio_star_y_(0), 
+    ratio_z_(0), ratio_star_z_(0), 
+    e_x_coef1_(0), e_x_coef2_(0), 
+    e_y_coef1_(0), e_y_coef2_(0), 
+    e_z_coef1_(0), e_z_coef2_(0), 
+    h_x_coef1_(0), h_x_coef2_(0), 
+    h_y_coef1_(0), h_y_coef2_(0), 
+    h_z_coef1_(0), h_z_coef2_(0)
 {}
 
 PmlCommon::~PmlCommon()
-{}
+{
+  free_coeffs();
+}
 
 void PmlCommon::alloc_coeffs(Grid &grid)
 {
@@ -98,6 +109,12 @@ void PmlCommon::free_coeffs()
     delete[] h_z_coef1_;
   if (h_z_coef2_)
     delete[] h_z_coef2_;
+
+  ratio_x_ = ratio_star_x_ = ratio_y_ = ratio_star_y_ = 0;
+  ratio_z_ = ratio_star_z_ = 0;
+  e_x_coef1_ = e_x_coef2_ = e_y_coef1_ = e_y_coef2_ = 0;
+  e_z_coef1_ = e_z_coef2_ = h_x_coef1_ = h_x_coef2_ = 0;
+  h_y_coef1_ = h_y_coef2_ = h_z_coef1_ = h_z_coef2_ = 0;
 }
 
 

@@ -1,7 +1,10 @@
 #include "NetCDFDataWriter.hh"
 #include <sstream>
+#include "Exceptions.hh"
 
 using namespace std;
+
+/* FIX ME! This code sucks right now. Worst in all of phred. */
 
 #ifdef USE_NETCDF
 
@@ -28,19 +31,21 @@ void NetCDFDataWriter::init()
     if (status != NC_NOERR)
     {
       // REMOVE THIS LINE
-      cerr << "NetCDFDataWriter error (REMOVE THIS LINE): " 
-           << nc_strerror(status) << endl;
+      //cerr << "NetCDFDataWriter error (REMOVE THIS LINE): " << status 
+      //     << ", " << nc_strerror(status) << endl;
 
       // Maybe we couldn't open it because it DNE, try creating it. 
-      status = nc_create(filename_.c_str(), NC_SHARE, &ncid_);
+      if (status == 2)
+        status = nc_create(filename_.c_str(), NC_SHARE, &ncid_);
+
       if (status != NC_NOERR)
         handle_error(status);
-
     }
+    fopen_ = true;
   }
   else
   {
-    throw exception(); // Must specify a filename. 
+    throw DataWriterException("A filename must be set before calling init()!");
   }
 }
 
@@ -51,6 +56,8 @@ void NetCDFDataWriter::deinit()
     int status = nc_close(ncid_);
     if (status != NC_NOERR)
       handle_error(status);
+
+    fopen_ = false;
   }
 
 }
@@ -64,7 +71,7 @@ void NetCDFDataWriter::add_variable(Result &result)
     return; 
 
   if (!fopen_)
-    throw exception(); // File must be open
+    throw DataWriterException("Must call init() before adding variables!");
 
   var.dim_lens_ = result.get_dim_lengths();
   const vector<string> &dim_names = result.get_dim_names();
@@ -72,13 +79,13 @@ void NetCDFDataWriter::add_variable(Result &result)
   var.var_name_ = result.get_name();
 
   if (var.dim_lens_.size() == 0)
-    throw std::exception(); //"Result must have at least one dimension.");
+    throw DataWriterException("Result must have at least one dimension.");
 
   if (var.var_name_.length() > 0)
   {
     map<string, ncdfvar>::iterator iter = vars_.find(var.var_name_);
     if (vars_.end() != iter)
-      throw std::exception(); // Duplicates not allowed
+      throw DataWriterException("Duplicates not allowed");
   }
 
   status = nc_redef(ncid_);
@@ -89,7 +96,12 @@ void NetCDFDataWriter::add_variable(Result &result)
   vector<int> dids;
   for (unsigned int i = 0; i < var.dim_lens_.size(); i++)
   {
-    dimid = get_dim(i, var.dim_lens_[i], dim_names[i]);
+    string temp = ""; 
+
+    if (dim_names.size() > i)
+      temp = dim_names[i];
+
+    dimid = get_dim(i, var.dim_lens_[i], temp);
     dids.push_back(dimid);
   }
 
@@ -116,9 +128,18 @@ void NetCDFDataWriter::add_variable(Result &result)
   // Add variable
   int *dimids = new int[dids.size()];
 
-  for (unsigned int i = 0; i < dids.size(); i++)
-    dimids[i] = dids[i];
+  if (var.time_dim_)
+  {
+    for (unsigned int i = 1; i < dids.size(); i++)
+      dimids[i] = dids[i-1];
   
+    // Time dim has to be first
+    dimids[0] = dids[dids.size() - 1];
+  } else {
+    for (unsigned int i = 0; i < dids.size(); i++)
+      dimids[i] = dids[i];
+  }
+
   status = nc_def_var(ncid_, var.var_name_.c_str(), NC_FLOAT, 
                       dids.size(), dimids, &var.var_id_);
 
@@ -136,7 +157,7 @@ unsigned int NetCDFDataWriter::write_data(Data &data, MPI_Datatype t,
                                           void *ptr, unsigned int len)
 {
   if (!fopen_)
-    throw exception(); // File must be opened and dimensions defined. 
+    throw DataWriterException("File must be opened and dimensions defined.");
 
   string vname = data.get_var_name();
   ncdfvar &var = vars_[vname]; // may throw exception
@@ -342,7 +363,7 @@ int NetCDFDataWriter::get_dim(int i, int size, string basename)
 
 void NetCDFDataWriter::handle_error(int status)
 {
-  throw exception();
+  throw DataWriterException(nc_strerror(status));
 }
 
 #endif // USE_NETCDF

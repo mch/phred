@@ -30,7 +30,7 @@ private:
   const char *buf_; 
 public:
   DataWriterException(const char *buf) : buf_(buf) {}
-  const char *what() { return buf_; }
+  virtual const char *what() const throw() { return buf_; }
 };
 
 #endif // EXCEPTIONS_H

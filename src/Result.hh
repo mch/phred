@@ -74,7 +74,7 @@ protected:
 
 public:
   Result() 
-    : time_start_(0), time_stop_(~0),
+    : var_name_("Result"), time_start_(0), time_stop_(~0),
       time_space_(0), time_dim_(true)//, dw_(0)
   {}
 

@@ -98,7 +98,9 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "Hwall.hh"
 #include "PointResult.hh"
 #include "AsciiDataWriter.hh"
+#include "NetCDFDataWriter.hh"
 #include "PlaneResult.hh"
+#include "PointDFTResult.hh"
 #include "SourceDFTResult.hh"
 #include "SourceTimeResult.hh"
 
@@ -173,6 +175,7 @@ main (int argc, char **argv)
   // Subdomain the grid among the available processors and have each
   // processor set up its grid.
 
+  try {
   SimpleSDAlg dd; // Domain decomposition algorithm. Maybe it should
                   // be static? 
   
@@ -190,10 +193,10 @@ main (int argc, char **argv)
   info_g.deltat_ = 36e-18;
   info_g.start_x_ = info_g.start_y_ = info_g.start_z_ = 0;
 
-  Pml *pml = dynamic_cast<Pml *>(info_g.set_boundary(FRONT, PML));
-  pml->set_thickness(10);
-  pml->set_variation(VP);
-  pml->set_nrml_refl(1.0);
+   Pml *pml = dynamic_cast<Pml *>(info_g.set_boundary(FRONT, PML));
+   pml->set_thickness(10);
+   pml->set_variation(VP);
+   pml->set_nrml_refl(1.0);
 
   pml = dynamic_cast<Pml *>(info_g.set_boundary(BACK, PML));
   pml->set_thickness(10);
@@ -219,6 +222,13 @@ main (int argc, char **argv)
   pml->set_thickness(10);
   pml->set_variation(VP);
   pml->set_nrml_refl(1.0);
+
+  //info_g.set_boundary(FRONT, EWALL);
+//   info_g.set_boundary(BACK, EWALL);
+//   info_g.set_boundary(BOTTOM, EWALL);
+//   info_g.set_boundary(TOP, EWALL);
+//   info_g.set_boundary(LEFT, EWALL);
+//   info_g.set_boundary(RIGHT, EWALL);
 
   
   GridInfo info = dd.decompose_domain(rank, size, info_g);
@@ -279,11 +289,16 @@ main (int argc, char **argv)
   p2.z = 30;
  
   AsciiDataWriter adw4(rank, size);
+  //NetCDFDataWriter ncdw(rank, size);
+  //ncdw.set_filename("yz_plane.nc");
+  //ncdw.init();
   PlaneResult pr1;
+  pr1.set_name("yzplane");
   pr1.set_plane(p2, BACK);
   pr1.set_size(grid.get_ldy(), grid.get_ldz());
   adw4.set_filename("yz_plane.txt");
   adw4.add_variable(pr1);
+  //ncdw.add_variable(pr1);
 
   SourceDFTResult sdftr(ex, 100e12, 600e12, 20);
   sdftr.set_time_param(0, 11, 0);
@@ -344,10 +359,15 @@ main (int argc, char **argv)
 
     // Results
     adw4.handle_data(ts, pr1.get_result(grid, ts));
+    //ncdw.handle_data(ts, pr1.get_result(grid, ts));
     adw1.handle_data(ts, res1.get_result(grid, ts));
     adw2.handle_data(ts, res2.get_result(grid, ts));
     adw3.handle_data(ts, res3.get_result(grid, ts));
     adw5.handle_data(ts, sdftr.get_result(grid, ts));
+  }
+
+  } catch (const std::exception &e) {
+    cout << "Caught exception: " << e.what() << endl;
   }
 
   cout << "phred is phinished." << endl;

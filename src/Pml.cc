@@ -67,7 +67,11 @@ void Pml::alloc_pml_fields(Face face, Grid &grid)
     throw exception();
   
   region_t r = find_face(face, grid);
-  pml_r_ = r;
+  pml_r_.xmin = pml_r_.ymin = pml_r_.zmin = 0;
+
+  pml_r_.xmax = r.xmax - r.xmin;
+  pml_r_.ymax = r.ymax - r.ymin;
+  pml_r_.zmax = r.zmax - r.zmin;
 
   unsigned int sz = (r.xmax - r.xmin) * (r.ymax - r.ymin) 
     * (r.zmax - r.zmin);
@@ -152,7 +156,7 @@ void Pml::setup(Face face, Grid &grid)
     break;
 
   case VG:
-    ratio_m_ *= log(g_) / (pow(g_, static_cast<double>(thickness_)) - 1.0);
+    ratio_m_ *= log(g_) / (pow(g_, static_cast<float>(thickness_)) - 1.0);
     geometric_profile_ = 1;
     break;
   }
@@ -204,6 +208,9 @@ void Pml::free_pml_fields()
 
   if (hzy_) 
     delete[] hzy_;
+
+  exy_ = exz_ = eyx_ = eyz_ = ezx_ = ezy_ = hxy_ = hxz_ = 0;
+  hyx_ = hyz_ = hzx_ = hzy_ = 0;
 }
 
 void Pml::apply(Face face, Grid &grid)
@@ -268,9 +275,9 @@ void Pml::pml_update_ex(const region_t &pml_r,
 
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r.xmin, it = grid_r.xmin; it <= grid_r.xmax; i++, it++)
-    for(j = pml_r.ymin+1, jt = grid_r.ymin+1; jt <= grid_r.ymax; j++, jt++)
-      for(k = pml_r.zmin+1, kt = grid_r.zmin+1; kt <= grid_r.zmax; k++, kt++)
+  for(i = pml_r.xmin, it = grid_r.xmin; it < grid_r.xmax; i++, it++)
+    for(j = pml_r.ymin+1, jt = grid_r.ymin+1; jt < grid_r.ymax; j++, jt++)
+      for(k = pml_r.zmin+1, kt = grid_r.zmin+1; kt < grid_r.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
@@ -301,9 +308,9 @@ void Pml::pml_update_ey(const region_t &pml_r,
 
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r.xmin+1, it = grid_r.xmin+1; it <= grid_r.xmax; i++, it++)
-    for(j = pml_r.ymin, jt = grid_r.ymin; jt <= grid_r.ymax; j++, jt++)
-      for(k = pml_r.zmin+1, kt = grid_r.zmin+1; kt <= grid_r.zmax; k++, kt++)
+  for(i = pml_r.xmin+1, it = grid_r.xmin+1; it < grid_r.xmax; i++, it++)
+    for(j = pml_r.ymin, jt = grid_r.ymin; jt < grid_r.ymax; j++, jt++)
+      for(k = pml_r.zmin+1, kt = grid_r.zmin+1; kt < grid_r.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
@@ -334,9 +341,9 @@ void Pml::pml_update_ez(const region_t &pml_r,
 
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r.xmin+1, it = grid_r.xmin+1; it <= grid_r.xmax; i++, it++)
-    for(j = pml_r.ymin+1, jt = grid_r.ymin+1; jt <= grid_r.ymax; j++, jt++)
-      for(k = pml_r.zmin, kt = grid_r.zmin; kt <= grid_r.zmax; k++, kt++)
+  for(i = pml_r.xmin+1, it = grid_r.xmin+1; it < grid_r.xmax; i++, it++)
+    for(j = pml_r.ymin+1, jt = grid_r.ymin+1; jt < grid_r.ymax; j++, jt++)
+      for(k = pml_r.zmin, kt = grid_r.zmin; kt < grid_r.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
@@ -366,9 +373,9 @@ void Pml::pml_update_hx(const region_t &grid_r, Grid &grid)
 
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r_.xmin, it = grid_r.xmin; it <= grid_r.xmax; i++, it++)
-    for(j = pml_r_.ymin, jt = grid_r.ymin; jt <= grid_r.ymax-1; j++, jt++)
-      for(k = pml_r_.zmin, kt = grid_r.zmin; kt <= grid_r.zmax-1; k++, kt++)
+  for(i = pml_r_.xmin, it = grid_r.xmin; it < grid_r.xmax; i++, it++)
+    for(j = pml_r_.ymin, jt = grid_r.ymin; jt < grid_r.ymax-1; j++, jt++)
+      for(k = pml_r_.zmin, kt = grid_r.zmin; kt < grid_r.zmax-1; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
@@ -398,9 +405,9 @@ void Pml::pml_update_hy(const region_t &grid_r, Grid &grid)
 
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r_.xmin, it = grid_r.xmin; it <= grid_r.xmax - 1; i++, it++)
-    for(j = pml_r_.ymin, jt = grid_r.ymin; jt <= grid_r.ymax; j++, jt++)
-      for(k = pml_r_.zmin, kt = grid_r.zmin; kt <= grid_r.zmax-1; k++, kt++)
+  for(i = pml_r_.xmin, it = grid_r.xmin; it < grid_r.xmax - 1; i++, it++)
+    for(j = pml_r_.ymin, jt = grid_r.ymin; jt < grid_r.ymax; j++, jt++)
+      for(k = pml_r_.zmin, kt = grid_r.zmin; kt < grid_r.zmax-1; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
@@ -430,9 +437,9 @@ void Pml::pml_update_hz(const region_t &grid_r, Grid &grid)
 
   PmlCommon &com = grid.get_pml_common();
 
-  for(i = pml_r_.xmin, it = grid_r.xmin; it <= grid_r.xmax-1; i++, it++)
-    for(j = pml_r_.ymin, jt = grid_r.ymin; jt <= grid_r.ymax-1; j++, jt++)
-      for(k = pml_r_.zmin, kt = grid_r.zmin; kt <= grid_r.zmax; k++, kt++)
+  for(i = pml_r_.xmin, it = grid_r.xmin; it < grid_r.xmax-1; i++, it++)
+    for(j = pml_r_.ymin, jt = grid_r.ymin; jt < grid_r.ymax-1; j++, jt++)
+      for(k = pml_r_.zmin, kt = grid_r.zmin; kt < grid_r.zmax; k++, kt++)
       {
         grid_idx = grid.pi(it, jt, kt);
         pml_idx = pi(i, j, k);
@@ -462,7 +469,8 @@ float Pml::sigma_over_eps_int(float x)
 
     else if (x <= delta_bndy_)
       return ratio_m_ * delta_bndy_ / (exponent_n_ + 1.0) 
-        * (1.0 - pow((delta_bndy_ - x) / delta_bndy_, exponent_n_ + 1.0));
+        * (1.0 - pow(static_cast<float>((delta_bndy_ - x) / delta_bndy_), 
+                     static_cast<float>(exponent_n_ + 1.0)));
     
     else
       return ratio_m_ * delta_bndy_ / (exponent_n_ + 1.0);

@@ -27,6 +27,12 @@ using namespace std;
  *
  * \bug DANGEROUS! This should work for now, but it makes assumptions
  * that may not be all that valid for general MPI derived data types!
+ *
+ * \bug Needs to check for empty variable names, and make up names if
+ * need be. Or throw an exception or something, since they need to be
+ * unique names that can are identified in the Data object too. 
+ *
+ * \bug Need to check for existing variable names in the file. 
  */
 class NetCDFDataWriter : public DataWriter {
 private:

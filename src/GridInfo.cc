@@ -19,14 +19,15 @@ GridInfo::~GridInfo()
 {
   for (int i = 0; i < 6; i++)
   {
-    if (face_bc_[i])
+    if (face_bc_[i]) {
       delete face_bc_[i];
+      face_bc_[i] = 0;
+    }
   }
 }
 
 GridInfo& GridInfo::operator=(const GridInfo &info)
 {
-
   if (this == &info) return *this;
 
   global_dimx_ = info.global_dimx_;
@@ -67,7 +68,7 @@ Pml *GridInfo::set_pml_boundary(Face face, unsigned int thickness,
   face_bc_[face] = pml;
   face_bc_type_[face] = PML;
 
-  return face_bc_[face];
+  return pml;
 }
 
 BoundaryCond *GridInfo::set_boundary(Face face,
