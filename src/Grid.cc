@@ -1460,9 +1460,13 @@ shared_ptr<Block> Grid::get_global_region(CSGBox &box) const
   grid_point start = get_global_cell(xs, ys, zs);
   grid_point end = get_global_cell(xe, ye, ze);
   
-  ret.xmin_ = start.x; ret.xmax_ = end.x;
-  ret.ymin_ = start.y; ret.ymax_ = end.y;
-  ret.zmin_ = start.z; ret.zmax_ = end.z;
+  // The +1 at the end of these lines is due to a slightly retarded move 
+  // I made in specifying min and max ranges... all of the loops treat
+  // the minimum as inclusive, and the maximum as exclusive. 
+  // I.e. The interval is closed at the minimum and open at the maximum. 
+  ret.xmin_ = start.x; ret.xmax_ = end.x + 1;
+  ret.ymin_ = start.y; ret.ymax_ = end.y + 1;
+  ret.zmin_ = start.z; ret.zmax_ = end.z + 1;
 
   ret.start_x_ = ret.xmin_;
   ret.start_y_ = ret.ymin_;
