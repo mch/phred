@@ -65,6 +65,7 @@ AC_PROG_YACC
 AM_PROG_LEX
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
+AC_PROG_RANLIB
 
 dnl Check for compiler things
 AC_C_INLINE
@@ -318,7 +319,7 @@ AC_SUBST(CXXFLAGS, $CXXFLAGS)
 AC_SUBST(LIBS, $LIBS)
 AC_SUBST(PYTHON_LDFLAGS, $PYTHON_LDFLAGS)
 
-AC_OUTPUT(Makefile src/Makefile doc/Makefile tests/Makefile tests/high_speed_c/Makefile src/Types.hh doc/Doxyfile doc/phred.lsm phred.spec)
+AC_OUTPUT(Makefile src/Makefile src/python-bindings/Makefile doc/Makefile tests/Makefile tests/high_speed_c/Makefile src/Types.hh doc/Doxyfile doc/phred.lsm phred.spec)
 
 
 dnl Display a summary of results

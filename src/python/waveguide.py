@@ -19,7 +19,7 @@ ylen = 20
 zlen = 45
 
 # Prefix for output files
-output_prefix = "wg2_"
+output_prefix = "wg2_" + str(MPI_SIZE) + "_"
 
 num_time_steps = 3000
 
@@ -139,12 +139,12 @@ fdtd.add_datawriter("adw", adw)
 
 srcoutput = SourceTimeResult(gm)
 fdtd.add_result("src", srcoutput)
-fdtd.map_result_to_datawriter("src", "adw")
 fdtd.map_result_to_datawriter("src", "mdw")
 
 srcdft = SourceDFTResult(gm, 8e9, 12.5e9, 120)
 fdtd.add_result("srcdft", srcdft)
 fdtd.map_result_to_datawriter("srcdft", "mdw")
+fdtd.map_result_to_datawriter("srcdft", "adw")
 
 # Execute
 fdtd.set_time_steps(num_time_steps)

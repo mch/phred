@@ -28,7 +28,7 @@ SourceDFTResult::SourceDFTResult(SourceFunction &te)
   : te_(te), freq_start_(0), freq_stop_(0),
     num_freqs_(0)
 {
-  variables_["Source DFT"] = &var_;
+  variables_["Source_DFT"] = &var_;
 }
 
 SourceDFTResult::SourceDFTResult(SourceFunction &te, 
@@ -38,7 +38,7 @@ SourceDFTResult::SourceDFTResult(SourceFunction &te,
   : te_(te), freq_start_(freq_start), freq_stop_(freq_stop),
     num_freqs_(num_freqs)
 {
-  variables_["Source DFT"] = &var_;
+  variables_["Source_DFT"] = &var_;
 }
 
 SourceDFTResult::~SourceDFTResult()
@@ -57,14 +57,16 @@ void SourceDFTResult::init(const Grid &grid)
   }
 
   var_.has_time_dimension(false); // We have only one output at the end. 
-  var_.add_dimension("Freq, re, im", 3, 0);
-  var_.add_dimension("frequencies", num_freqs_, 0);
-
+  var_.add_dimension("results", 3, 0);
+  var_.add_dimension("freqs", num_freqs_, 0);
   var_.set_name(base_name_);
 
   freq_space_ = (freq_stop_ - freq_start_) / num_freqs_;
   result_ = new field_t[(num_freqs_ + 1) * 3];
 
+  if (!result_)
+    throw MemoryException();
+  
   for (unsigned int i = 0; i <= num_freqs_; i++)
   {
     result_[i * 3] = freq_start_ + freq_space_ * i;
@@ -106,7 +108,7 @@ map<string, Variable *> &SourceDFTResult::get_result(const Grid &grid,
       result_[i*3 + 2] += (-1) * sf * sin(2 * PI * result_[i*3] 
                                           * time_step * grid.get_deltat());
     }
-    var_.set_num(1); 
+    var_.set_num(num_freqs_); 
   } else {
     var_.set_num(0); 
   }

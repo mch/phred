@@ -1,3 +1,5 @@
+SUBDIRS=python-bindings
+
 bin_PROGRAMS=phred
 
 phred_cond = 
@@ -6,19 +8,7 @@ phred_LDADD=
 
 # Conditional on having Python and boost.python
 if PY_BINDINGS
-phred_cond += python-bindings/PyExcitations.hh \
-	python-bindings/PyInterpreter.hh \
-	python-bindings/PyInterpreter.cc \
-	python-bindings/PyResults.cc \
-	python-bindings/PyMaterial.cc \
-	python-bindings/PyGeometry.cc \
-	python-bindings/PyGrid.cc \
-	python-bindings/PyFDTD.cc \
-	python-bindings/PyTypes.cc \
-	python-bindings/PyDatawriters.cc \
-	python-bindings/PyBoundaries.cc \
-	python-bindings/PyExcitations.cc
-
+phred_LDADD += python-bindings/libpyphread.a
 phred_LDFLAGS += @PYTHON_LDFLAGS@
 endif
 

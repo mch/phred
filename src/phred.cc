@@ -163,6 +163,8 @@ main (int argc, char **argv)
   char *temp;
   interactive = false;
 
+  std::set_terminate (__gnu_cxx::__verbose_terminate_handler);
+
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
