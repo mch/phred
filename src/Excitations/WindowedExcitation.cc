@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -84,9 +84,6 @@ void WindowedExcitation::excite(Grid &grid, unsigned int time_step,
   field_t e_fld[3];
   field_t h_fld[3];
             
-  // Bartlett window coefficients
-  field_t w = 1;
-
   e_fld[0] = e_sf * polarization_[0];
   e_fld[1] = e_sf * polarization_[1];
   e_fld[2] = e_sf * polarization_[2];
@@ -96,92 +93,97 @@ void WindowedExcitation::excite(Grid &grid, unsigned int time_step,
   h_fld[2] = h_sf * polarization_[2];
 
   float fx, fy, fz;
+  delta_t dx, dy, dz;
 
-  //cout << "Windowing function on " << MPI_RANK 
-  //     << ": ---------------------" << endl;
+  dx = grid.get_deltax();
+  dy = grid.get_deltay();
+  dz = grid.get_deltaz();
+
   if (!soft_) 
   {
     fx = lxmin_;
-    for(unsigned int i = (*region_).xmin(); i <= (*region_).xmax(); i++, 
-          fx += grid.get_deltax())
+    for(loop_idx_t i = (*region_).xmin(); i <= (*region_).xmax(); i++, 
+          fx += dx)
     {
       fy = lymin_;
-      for (unsigned int j = (*region_).ymin(); j <= (*region_).ymax(); j++,
-             fy += grid.get_deltay())
+      for (loop_idx_t j = (*region_).ymin(); j <= (*region_).ymax(); j++,
+             fy += dy)
       {
         fz = lzmin_;
-        for (unsigned int k = (*region_).zmin(); k <= (*region_).zmax(); k++,
-               fz += grid.get_deltaz())
+        for (loop_idx_t k = (*region_).zmin(); k <= (*region_).zmax(); k++,
+               fz += dz)
         {
-          w = window(fx, fy, fz);
-          //cout << fx << " " << fy << " " << fz << " " << w << endl;
-
-          switch (type_) 
+          if (type_ == E)
           {
-          case E:
-            if (polarization_[0] != 0.0) grid.set_ex(i,j,k, e_fld[0] * w);
-            if (polarization_[1] != 0.0) grid.set_ey(i,j,k, e_fld[1] * w);
-            if (polarization_[2] != 0.0) grid.set_ez(i,j,k, e_fld[2] * w);
-            break;
+            if (polarization_[0] != 0.0) 
+              grid.set_ex(i,j,k, e_fld[0] * window(fx+dx*0.5, fy, fz));
 
-          case H:
-            if (polarization_[0] != 0.0) grid.set_hx(i,j,k, h_fld[0] * w);
-            if (polarization_[1] != 0.0) grid.set_hy(i,j,k, h_fld[1] * w);
-            if (polarization_[2] != 0.0) grid.set_hz(i,j,k, h_fld[2] * w);
-            break;
+            if (polarization_[1] != 0.0) 
+              grid.set_ey(i,j,k, e_fld[1] * window(fx, fy+dy*0.5, fz));
 
-          case BOTH: // Isn't meant for Excitations.
-            throw std::exception();
-            break; 
+            if (polarization_[2] != 0.0) 
+              grid.set_ez(i,j,k, e_fld[2] * window(fx, fy, fz+dz*0.5));
+          }
+
+          else if (type_ == H)
+          {
+            if (polarization_[0] != 0.0) 
+              grid.set_hx(i,j,k, h_fld[0] * window(fx, fy+dy*0.5, fz+dz*0.5));
+
+            if (polarization_[1] != 0.0) 
+              grid.set_hy(i,j,k, h_fld[1] * window(fx+dx*0.5, fy, fz+dz*0.5));
+
+            if (polarization_[2] != 0.0) 
+              grid.set_hz(i,j,k, h_fld[2] * window(fx+dx*0.5, fy+dy*0.5, fz));
           }
         }
       }
     }
   } else {
     fx = lxmin_;
-    for(unsigned int i = (*region_).xmin(); i <= (*region_).xmax(); i++,
-          fx += grid.get_deltax())
+    for(loop_idx_t i = (*region_).xmin(); i <= (*region_).xmax(); i++,
+          fx += dx)
     {
       fy = lymin_;
-      for (unsigned int j = (*region_).ymin(); j <= (*region_).ymax(); j++,
-             fy += grid.get_deltay())
+      for (loop_idx_t j = (*region_).ymin(); j <= (*region_).ymax(); j++,
+             fy += dy)
       {
         fz = lzmin_;
-        for (unsigned int k = (*region_).zmin(); k <= (*region_).zmax(); k++,
-               fz += grid.get_deltaz())
+        for (loop_idx_t k = (*region_).zmin(); k <= (*region_).zmax(); k++,
+               fz += dz)
         {
-          w = window(fx, fy, fz);
-          //cout << fx << " " << fy << " " << fz << " " << w << endl;
-
-          switch (type_) 
+          if (type_ == E)
           {
-          case E:
-            if (polarization_[0] != 0.0) grid.set_ex(i,j,k, 
-                                                     w * e_fld[0] 
-                                                     + grid.get_ex(i,j,k));
-            if (polarization_[1] != 0.0) grid.set_ey(i,j,k, 
-                                                     w * e_fld[1] 
-                                                     + grid.get_ey(i,j,k));
-            if (polarization_[2] != 0.0) grid.set_ez(i,j,k, 
-                                                     w * e_fld[2] 
-                                                     + grid.get_ez(i,j,k));
-            break;
+            if (polarization_[0] != 0.0) 
+              grid.set_ex(i,j,k, 
+                          window(fx+dx*0.5, fy, fz) * e_fld[0] 
+                          + grid.get_ex(i,j,k));
 
-          case H:
-            if (polarization_[0] != 0.0) grid.set_hx(i,j,k, 
-                                                     w * h_fld[0] 
-                                                     + grid.get_hx(i,j,k));
-            if (polarization_[1] != 0.0) grid.set_hy(i,j,k, 
-                                                     w * h_fld[1] 
-                                                     + grid.get_hy(i,j,k));
-            if (polarization_[2] != 0.0) grid.set_hz(i,j,k, 
-                                                     w * h_fld[2] 
-                                                     + grid.get_hz(i,j,k));
-            break;
+            if (polarization_[1] != 0.0) 
+              grid.set_ey(i,j,k, 
+                          window(fx, fy+dy*0.5, fz) * e_fld[1] 
+                          + grid.get_ey(i,j,k));
 
-          case BOTH: // Isn't meant for Excitations.
-            throw std::exception();
-            break; 
+            if (polarization_[2] != 0.0) 
+              grid.set_ez(i,j,k, 
+                          window(fx, fy, fz+dz*0.5) * e_fld[2] 
+                          + grid.get_ez(i,j,k));
+          }
+
+          else if (type_ == H)
+          {
+            if (polarization_[0] != 0.0) 
+              grid.set_hx(i,j,k, 
+                          window(fx, fy+dy*0.5, fz+dz*0.5) * h_fld[0] 
+                          + grid.get_hx(i,j,k));
+            if (polarization_[1] != 0.0) 
+              grid.set_hy(i,j,k, 
+                          window(fx+dx*0.5, fy, fz+dz*0.5) * h_fld[1] 
+                          + grid.get_hy(i,j,k));
+            if (polarization_[2] != 0.0) 
+              grid.set_hz(i,j,k, 
+                          window(fx+dx*0.5, fy+dy*0.5, fz) * h_fld[2] 
+                          + grid.get_hz(i,j,k));
           }
         }
       }

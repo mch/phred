@@ -33,8 +33,8 @@ field_t GaussWindExcitation::window(float x, float y, float z)
 {
   field_t wx = 1, wy = 1, wz = 1;
 
-  if (box_.get())
-  {
+//   if (box_.get())
+//   {
     point centre = (*box_).get_centre();
 
     // WTF is this!?
@@ -49,7 +49,7 @@ field_t GaussWindExcitation::window(float x, float y, float z)
     wx = exp((-(i*i)) / sdev_x_);
     wy = exp((-(j*j)) / sdev_y_);
     wz = exp((-(k*k)) / sdev_z_);
-  }
+    //  }
 
   return wx * wy * wz;
 }

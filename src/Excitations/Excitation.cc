@@ -101,11 +101,11 @@ void Excitation::excite(Grid &grid, unsigned int time_step,
 
   if (!soft_) 
   {
-    for(unsigned int i = (*region_).xmin(); i <= (*region_).xmax(); i++)
+    for(loop_idx_t i = (*region_).xmin(); i <= (*region_).xmax(); i++)
     {
-      for (unsigned int j = (*region_).ymin(); j <= (*region_).ymax(); j++)
+      for (loop_idx_t j = (*region_).ymin(); j <= (*region_).ymax(); j++)
       {
-        for (unsigned int k = (*region_).zmin(); k <= (*region_).zmax(); k++)
+        for (loop_idx_t k = (*region_).zmin(); k <= (*region_).zmax(); k++)
         {
           switch (type_) 
           {
@@ -121,43 +121,47 @@ void Excitation::excite(Grid &grid, unsigned int time_step,
             grid.set_hz(i,j,k, h_fld[2]);
             break;
 
-          case BOTH: // Isn't meant for Excitations.
-            throw std::exception();
-            break; 
           }
         }
       }
     }
   } else {
-    for(unsigned int i = (*region_).xmin(); i <= (*region_).xmax(); i++)
+    for(loop_idx_t i = (*region_).xmin(); i <= (*region_).xmax(); i++)
     {
-      for (unsigned int j = (*region_).ymin(); j <= (*region_).ymax(); j++)
+      for (loop_idx_t j = (*region_).ymin(); j <= (*region_).ymax(); j++)
       {
-        for (unsigned int k = (*region_).zmin(); k <= (*region_).zmax(); k++)
+        for (loop_idx_t k = (*region_).zmin(); k <= (*region_).zmax(); k++)
         {
           switch (type_) 
           {
           case E:
-            if (polarization_[0] != 0.0) grid.set_ex(i,j,k, 
-                                                     e_fld[0] + grid.get_ex(i,j,k));
-            if (polarization_[1] != 0.0) grid.set_ey(i,j,k, 
-                                                     e_fld[1] + grid.get_ey(i,j,k));
-            if (polarization_[2] != 0.0) grid.set_ez(i,j,k, 
-                                                     e_fld[2] + grid.get_ez(i,j,k));
+            if (polarization_[0] != 0.0) 
+              grid.set_ex(i,j,k, 
+                          e_fld[0] + grid.get_ex(i,j,k));
+
+            if (polarization_[1] != 0.0) 
+              grid.set_ey(i,j,k, 
+                          e_fld[1] + grid.get_ey(i,j,k));
+
+            if (polarization_[2] != 0.0) 
+              grid.set_ez(i,j,k, 
+                          e_fld[2] + grid.get_ez(i,j,k));
             break;
 
           case H:
-            if (polarization_[0] != 0.0) grid.set_hx(i,j,k, 
-                                                     h_fld[0] + grid.get_hx(i,j,k));
-            if (polarization_[1] != 0.0) grid.set_hy(i,j,k, 
-                                                     h_fld[1] + grid.get_hy(i,j,k));
-            if (polarization_[2] != 0.0) grid.set_hz(i,j,k, 
-                                                     h_fld[2] + grid.get_hz(i,j,k));
+            if (polarization_[0] != 0.0) 
+              grid.set_hx(i,j,k, 
+                          h_fld[0] + grid.get_hx(i,j,k));
+
+            if (polarization_[1] != 0.0) 
+              grid.set_hy(i,j,k, 
+                          h_fld[1] + grid.get_hy(i,j,k));
+
+            if (polarization_[2] != 0.0) 
+              grid.set_hz(i,j,k, 
+                          h_fld[2] + grid.get_hz(i,j,k));
             break;
 
-          case BOTH: // Isn't meant for Excitations.
-            throw std::exception();
-            break; 
           }
         }
       }

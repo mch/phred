@@ -26,5 +26,7 @@ libresults_a_SOURCES = 	Result.hh \
 	FarfieldResult2.hh \
 	FarfieldResult2.cc \
 	FarfieldResult.cc \
-	FarfieldResult.hh
+	FarfieldResult.hh \
+	WindowedExResult.hh \
+	WindowedExResult.cc
 

@@ -171,6 +171,13 @@ public:
   }
 
   /**
+   * Returns the CSGBox the excitation is being applied to. Mostly
+   * just for debugging.
+   */ 
+  inline shared_ptr<CSGBox> get_region()
+  { return box_; }
+
+  /**
    * Print a string representation to an ostream.
    */
   virtual ostream& to_string(ostream &os) const;
