@@ -24,6 +24,11 @@
 #include "Grid.hh"
 #include "Constants.hh"
 
+#include "config.h"
+
+/** TEMP **/
+/*#undef USE_OPENMP*/
+
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif

@@ -944,6 +944,8 @@ point_t Grid::global_to_local(point_t p) const
   r.x = (info_.start_x_ > p.x) ? 0 : p.x - info_.start_x_;
   r.y = (info_.start_y_ > p.y) ? 0 : p.y - info_.start_y_;
   r.z = (info_.start_z_ > p.z) ? 0 : p.z - info_.start_z_;
+
+  return r;
 }
 
 region_t Grid::global_to_local(region_t in) const

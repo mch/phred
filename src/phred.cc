@@ -228,6 +228,21 @@ main (int argc, char **argv)
         }
 
       } else {
+
+#ifdef USE_OPENMP
+	printf("Number of threads in team: %i\n", omp_get_num_threads());
+	printf("Maximum number of threads in team: %i\n", omp_get_max_threads());
+	printf("Number of processors: %i\n", omp_get_num_procs());
+	printf("Current thread number: %i\n", omp_get_thread_num());
+	printf("Dynamic thread adjustment? %s\n",
+	       (omp_get_dynamic() ? "yes" : "no"));
+	printf("In parallel? %s\n",
+	       (omp_in_parallel() ? "yes" : "no"));
+	printf("Nested parallism? %s\n", 
+	       (omp_get_nested() ? "yes" : "no"));
+#endif
+	
+
         // TESTS, TEMPORARY
         //point_test(rank, size);
         pml_test(rank, size);
@@ -509,7 +524,7 @@ static void pml_test(int rank, int size)
   //mat.set_plasma_freq(2 * PI * 2000e+12); // THz * 2 * pi
   mat.set_collision_freq(1.4e+14);
   mat.set_plasma_freq(2 * PI * 1.85e+15);
-  mats.add_material(mat);
+  //mats.add_material(mat);
 
   fdtd.load_materials(mats);
 
@@ -632,68 +647,68 @@ static void pml_test(int rank, int size)
   //fdtd.add_result("farfield", &farfield);
   //fdtd.map_result_to_datawriter("farfield", "mdw");
 
-  NetCDFDataWriter ncdw(rank, size);
-  ncdw.set_filename("yz_plane.nc");
+//    NetCDFDataWriter ncdw(rank, size);
+//    ncdw.set_filename("yz_plane.nc");
 
-  fdtd.add_datawriter("ncdw", &ncdw);
+//    fdtd.add_datawriter("ncdw", &ncdw);
 
-  PlaneResult pr1;
-  pr1.set_name("ex-yzplane4");
-  pr1.set_plane(point_t(4, 10, 10), FRONT);
-  pr1.set_field(FC_EX);
+//    PlaneResult pr1;
+//    pr1.set_name("ex-yzplane4");
+//    pr1.set_plane(point_t(4, 10, 10), FRONT);
+//    pr1.set_field(FC_EX);
   
-  PlaneResult pr2;
-  pr2.set_name("ey-xzplane");
-  pr2.set_plane(p, LEFT);
-  pr2.set_field(FC_EY);
+//    PlaneResult pr2;
+//    pr2.set_name("ey-xzplane");
+//    pr2.set_plane(p, LEFT);
+//    pr2.set_field(FC_EY);
 
-   PlaneResult pr3;
-   pr3.set_name("ey-yzplane4");
-   pr3.set_plane(point_t(4, 10, 10), FRONT);
-   pr3.set_field(FC_EY);
+//     PlaneResult pr3;
+//     pr3.set_name("ey-yzplane4");
+//     pr3.set_plane(point_t(4, 10, 10), FRONT);
+//     pr3.set_field(FC_EY);
 
-   PlaneResult pr4;
-   pr4.set_name("ey-yzplane15");
-   pr4.set_plane(point_t(15, 10, 10), FRONT);
-   pr4.set_field(FC_EZ);
+//     PlaneResult pr4;
+//     pr4.set_name("ey-yzplane15");
+//     pr4.set_plane(point_t(15, 10, 10), FRONT);
+//     pr4.set_field(FC_EZ);
 
-   PlaneResult pr5;
-   pr5.set_name("ey-xyplane5");
-   pr5.set_plane(p, BOTTOM);
-   pr5.set_field(FC_EY);
+//     PlaneResult pr5;
+//     pr5.set_name("ey-xyplane5");
+//     pr5.set_plane(p, BOTTOM);
+//     pr5.set_field(FC_EY);
 
-   fdtd.add_result("pr1", &pr1);
-   fdtd.add_result("pr2", &pr2);
-   fdtd.add_result("pr3", &pr3);
-   fdtd.add_result("pr4", &pr4);
-   fdtd.add_result("pr5", &pr5);
+//     fdtd.add_result("pr1", &pr1);
+//     fdtd.add_result("pr2", &pr2);
+//     fdtd.add_result("pr3", &pr3);
+//     fdtd.add_result("pr4", &pr4);
+//     fdtd.add_result("pr5", &pr5);
 
-   fdtd.map_result_to_datawriter("pr1", "ncdw");
-   fdtd.map_result_to_datawriter("pr2", "ncdw");
-   fdtd.map_result_to_datawriter("pr3", "ncdw");
-   fdtd.map_result_to_datawriter("pr4", "ncdw");
-   fdtd.map_result_to_datawriter("pr5", "ncdw");
+//     fdtd.map_result_to_datawriter("pr1", "ncdw");
+//     fdtd.map_result_to_datawriter("pr2", "ncdw");
+//     fdtd.map_result_to_datawriter("pr3", "ncdw");
+//     fdtd.map_result_to_datawriter("pr4", "ncdw");
+//     fdtd.map_result_to_datawriter("pr5", "ncdw");
 
-   SourceDFTResult sdftr(gm, 100e12, 600e12, 50);
-   sdftr.set_time_param(0, 500, 0);
-   fdtd.add_result("sdftr", &sdftr);
+//     SourceDFTResult sdftr(gm, 100e12, 600e12, 50);
+//     sdftr.set_time_param(0, 500, 0);
+//     fdtd.add_result("sdftr", &sdftr);
 
-   AsciiDataWriter adw5(rank, size);
-   adw5.set_filename("src_dft.txt");
-   fdtd.add_datawriter("adw5", &adw5);
+//     AsciiDataWriter adw5(rank, size);
+//     adw5.set_filename("src_dft.txt");
+//     fdtd.add_datawriter("adw5", &adw5);
 
-   fdtd.map_result_to_datawriter("sdftr", "adw5");
+//     fdtd.map_result_to_datawriter("sdftr", "adw5");
 
-   SourceTimeResult srctr(gm);
-   AsciiDataWriter adw8(rank, size);
-   adw8.set_filename("src.txt");
+//     SourceTimeResult srctr(gm);
+//     AsciiDataWriter adw8(rank, size);
+//     adw8.set_filename("src.txt");
 
-   fdtd.add_result("srctr", &srctr);
-   fdtd.add_datawriter("adw8", &adw8);
+//     fdtd.add_result("srctr", &srctr);
+//     fdtd.add_datawriter("adw8", &adw8);
 
-   fdtd.map_result_to_datawriter("srctr", "adw8");
+//     fdtd.map_result_to_datawriter("srctr", "adw8");
 
-   fdtd.set_time_steps(500);
+   fdtd.set_time_steps(2000);
    fdtd.run(rank, size);
 }
 
@@ -824,7 +839,7 @@ static void takakura_test(int rank, int size)
   fdtd.add_result("pr1", &pr1);
   fdtd.map_result_to_datawriter("pr1", "ncdw");
 
-  fdtd.set_time_steps(5000);
+  fdtd.set_time_steps(2000);
   fdtd.run(rank, size);
 }
 
