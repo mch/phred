@@ -37,6 +37,10 @@ AC_PROG_CXXCPP
 AC_PROG_LEX
 AC_PROG_YACC
 
+dnl Is doxygen availble to generate documentation? 
+AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [])
+AC_ARG_VAR([DOXYGEN], [Indicates if doyxgen is availble to generate documentation.])
+
 dnl Is dot from graphviz available? For doxygen class diagrams
 AC_CHECK_PROG([DOT], [dot], [YES], [NO])
 AC_ARG_VAR([DOT], [Set to YES if dot from the graphviz package is available for doxygen to use])

@@ -6,3 +6,4 @@ phred_TEXINFOS = gpl.texinfo
 
 #  install the man pages
 man_MANS=phred.1
+

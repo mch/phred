@@ -21,8 +21,8 @@ public:
   /**
    * This function is called to apply this excitation to the grid. 
    *
-   * @param the grid to operate on
-   * @param the time step we are on
+   * @param grid the grid to operate on
+   * @param time_step the time step we are on
    */
   virtual void excite(Grid &grid, unsigned int time_step);
 
@@ -30,14 +30,14 @@ public:
    * This function is defined in subclasses and produces the source
    * value for the given point in space and time. 
    *
-   * @param the grid to which the function is being applied. Only for
+   * @param grid the grid to which the function is being applied. Only for
    * things such as delta_t, the result of this function is applied in
    * the excite() function (in order to factor out the loop). 
    *
-   * @param the time at which to apply the excitation
-   * @param the x coordinate at which to apply the excitation. 
-   * @param the y coordinate at which to apply the excitation. 
-   * @param the z coordinate at which to apply the excitation. 
+   * @param time_step the time at which to apply the excitation
+   * @param x the x coordinate at which to apply the excitation. 
+   * @param y the y coordinate at which to apply the excitation. 
+   * @param z the z coordinate at which to apply the excitation. 
    */
   virtual field_t source_function(Grid &grid, unsigned int time_step, 
                                   unsigned int x, unsigned int y, 

@@ -248,6 +248,7 @@ void Grid::load_materials(MaterialLib &matlib)
     }
 
     ++iter;
+    ++index;
   }
 }
 

@@ -26,9 +26,9 @@ public:
   /**
    * Set the parameters of the modulated Gauss function.
    *
-   * @param scale factor (defaults to 1)
-   * @param the frequency width of the pulse (defaults to 50 MHz)
-   * @param the centre frequency of the pulse (defaults to 1 GHz)
+   * @param alpha scale factor (defaults to 1)
+   * @param deltaf the frequency width of the pulse (defaults to 50 MHz)
+   * @param f0 the centre frequency of the pulse (defaults to 1 GHz)
    */
   void set_parameters(field_t alpha, field_t deltaf, field_t f0);
 
@@ -56,18 +56,9 @@ public:
   /**
    * Produces a modulated gauss function. 
    *
-   * @param the grid to which the function is being applied. Only for
+   * @param grid the grid to which the function is being applied. Only for
    * things such as delta_t, the result of this function is applied in
    * the excite() function (in order to factor out the loop). 
-   *
-   * @param the grid to which the function is being applied. Only for
-   * things such as delta_t, the result of this function is applied in
-   * the excite() function (in order to factor out the loop). 
-   *
-   * @param grid the grid to which the function will be applied. The
-   * result is not actually applied by source_function; the grid
-   * reference is only used to retrieve data such as the time and
-   * space step sizes. 
    *
    * @param time_step the time at which to apply the excitation
    *
