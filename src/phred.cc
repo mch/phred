@@ -347,36 +347,42 @@ int main (int argc, char **argv)
 
     if (test_run) {
 #ifndef HAVE_LIBPOPT
-      string phred_name(argv[argc - 4]);
-      if (phred_name.length() > 5)
-        phred_name = phred_name.substr(phred_name.length() - 5, 5);
-
-      if (argc >= 4 && phred_name.compare("phred") == 0)
+      if (argc >= 4)
       {
-        unsigned int x_cells = 0;
-        unsigned int y_cells = 0;
-        unsigned int z_cells = 0;
+        string phred_name(argv[argc - 4]);
+        if (phred_name.length() > 5)
+          phred_name = phred_name.substr(phred_name.length() - 5, 5);
 
-        try
+        if (phred_name.compare("phred") == 0)
         {
-          x_cells = lexical_cast<unsigned int>(argv[argc - 3]);
-          y_cells = lexical_cast<unsigned int>(argv[argc - 2]);
-          z_cells = lexical_cast<unsigned int>(argv[argc - 1]);
-          
-          var_benchmark(x_cells, y_cells, z_cells);
-        }
-        catch(bad_lexical_cast &)
-        {
-          cout << "To use the variable size benchmark, the last 3 command "
-          "line arguments must\nbe natural numbers each greater than "
-          "100.\nRunning million node benchmark instead.\n";
-          mn_benchmark();
+          unsigned int x_cells = 0;
+          unsigned int y_cells = 0;
+          unsigned int z_cells = 0;
+
+          try
+          {
+            x_cells = lexical_cast<unsigned int>(argv[argc - 3]);
+            y_cells = lexical_cast<unsigned int>(argv[argc - 2]);
+            z_cells = lexical_cast<unsigned int>(argv[argc - 1]);
+            
+            var_benchmark(x_cells, y_cells, z_cells);
+          }
+          catch(bad_lexical_cast &)
+          {
+            cout << "To use the variable size benchmark, the last 3 command "
+              "line arguments must\nbe natural numbers each greater than "
+              "100.\nRunning million node benchmark instead.\n";
+            mn_benchmark();
+          }
+        } else {
+          hole();
         }
       } else {
-        mn_benchmark();
+        hole();
       }
 #else
-      mn_benchmark();
+      hole();
+      //mn_benchmark();
 #endif
     } else if (!interactive) {
 
