@@ -25,6 +25,17 @@
 #include <string.h> // for memset()
 #include <math.h>
 
+static print_error(char *fc_name, field_t fc, field_t d, 
+                   field_t s, field_t s1, 
+                   field_t s2, unsigned int i, unsigned int j,
+                   unsigned int k)
+{
+//   cout << "WARNING: new " << fc_name << " larger than old "
+//        << fc_name << "at " << i << ", " << j << ", " << k << "!" << endl;
+//   cout << "\t " << fc_name << " = " << fc << ", d = " << d << endl;
+//   cout << "\t s = " << s << ", s1 = " << s1 << ", s2 = " << s2 << endl;
+}
+
 FreqGrid::FreqGrid()
   : vcdt_(0), omegapsq_(0), dx_(0), sx_(0), sxm1_(0), sxm2_(0),
     dy_(0), sy_(0), sym1_(0), sym2_(0),
@@ -229,9 +240,9 @@ void FreqGrid::update_ex()
           *ex = dx_[idx] - sx_[idx];
           
           if (abs(*ex) > abs(dx_[idx]))
-            cout << "WARNING: new ex larger than old ex at "
-                 << i << ", " << j << ", " << k << "!" << endl;
-
+            print_error("ex", *ex, dx_[idx], sx_[idx], sxm1_[idx], sxm2_[idx],
+                        i, j, k);
+            
           sx_[idx] = (1 + vcdt_[mid]) * sxm1_[idx]
             - vcdt_[mid] * sxm2_[idx]
             + omegapsq_[mid] * (1 - vcdt_[mid]) * *ex;
@@ -292,8 +303,8 @@ void FreqGrid::update_ey()
           *ey = dy_[idx] - sy_[idx];
           
           if (abs(*ey) > abs(dy_[idx]))
-            cout << "WARNING: new ey larger than old ey at "
-                 << i << ", " << j << ", " << k << "!" << endl;
+            print_error("ey", *ey, dy_[idx], sy_[idx], sym1_[idx], sym2_[idx],
+                        i, j, k);
 
           sy_[idx] = (1 + vcdt_[mid]) * sym1_[idx]
             - vcdt_[mid] * sym2_[idx]
@@ -357,8 +368,8 @@ void FreqGrid::update_ez()
           *ez = dz_[idx] - sz_[idx];
           
           if (abs(*ez) > abs(dz_[idx]))
-            cout << "WARNING: new ez larger than old ez at "
-                 << i << ", " << j << ", " << k << "!" << endl;
+            print_error("ez", *ez, dz_[idx], sz_[idx], szm1_[idx], szm2_[idx],
+                        i, j, k);
 
           sz_[idx] = (1 + vcdt_[mid]) * szm1_[idx]
             - vcdt_[mid] * szm2_[idx]
