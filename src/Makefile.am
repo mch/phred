@@ -7,6 +7,7 @@ phred_LDADD=
 # Conditional on having Python and boost.python
 if PY_BINDINGS
 phred_cond += python-bindings/PyExcitations.hh \
+	python-bindings/PyResults.hh \
 	python-bindings/PyGrid.hh \
 	python-bindings/PyInterpreter.hh \
 	python-bindings/PyInterpreter.cc

@@ -437,7 +437,9 @@ static void pml_test(int rank, int size)
   all.set_material_id(1);
 
   Box metal1;
-  metal1.set_region(45, 55, 5, 46, 5, 56);
+  //metal1.set_region(45, 55, 5, 46, 5, 56); // UNSTABLE
+  metal1.set_region(45, 55, 7, 44, 7, 54);
+  //metal1.set_region(45, 55, 23, 27, 28, 33); // STABLE!?!
   metal1.set_material_id(3);
 
   //Box metal2;
@@ -512,9 +514,9 @@ static void pml_test(int rank, int size)
   fdtd.add_datawriter("ncdw", &ncdw);
 
   PlaneResult pr1;
-  pr1.set_name("hx-xzplane");
-  pr1.set_plane(p, LEFT);
-  pr1.set_field(FC_HX);
+  pr1.set_name("ey-yzplane55");
+  pr1.set_plane(point_t(55,25, 30), FRONT);
+  pr1.set_field(FC_EY);
   
   PlaneResult pr2;
   pr2.set_name("ey-xzplane");
@@ -522,14 +524,14 @@ static void pml_test(int rank, int size)
   pr2.set_field(FC_EY);
 
    PlaneResult pr3;
-   pr3.set_name("hz-xzplane");
-   pr3.set_plane(p, LEFT);
-   pr3.set_field(FC_HZ);
+   pr3.set_name("ey-yzplane54");
+   pr3.set_plane(point_t(54, 25, 30), FRONT);
+   pr3.set_field(FC_EY);
 
    PlaneResult pr4;
-   pr4.set_name("hx-yzplane4");
-   pr4.set_plane(p, FRONT);
-   pr4.set_field(FC_HX);
+   pr4.set_name("ey-yzplane56");
+   pr4.set_plane(point_t(56, 25, 30), FRONT);
+   pr4.set_field(FC_EY);
 
    PlaneResult pr5;
    pr5.set_name("ey-xyplane5");

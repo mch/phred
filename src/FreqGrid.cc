@@ -2,9 +2,6 @@
 #include "Exceptions.hh"
 
 #include <string.h> // for memset()
-#include <iostream>
-
-using namespace std;
 
 FreqGrid::FreqGrid()
   : vcdt_(0), omegapsq_(0), dx_(0), sx_(0), sxm1_(0), sxm2_(0),
@@ -19,8 +16,6 @@ FreqGrid::~FreqGrid()
 
 void FreqGrid::alloc_grid()
 {
-  cout << "Allocating grid for FreqGrid!" << endl;
-
   Grid::alloc_grid();
 
   unsigned int sz = 0;
@@ -211,6 +206,10 @@ void FreqGrid::update_ex()
 
           *ex = dx_[plasma_idx] - sx_[plasma_idx];
           
+          if (abs(*ex) > abs(dx_[plasma_idx]))
+            cout << "WARNING: new ex larger than old ex at "
+                 << i << ", " << j << ", " << k << "!" << endl;
+
           sx_[plasma_idx] = (1 + vcdt_[mid]) * sxm1_[plasma_idx]
             - vcdt_[mid] * sxm2_[plasma_idx]
             + omegapsq_[mid] * (1 - vcdt_[mid]) * *ex;
@@ -269,6 +268,10 @@ void FreqGrid::update_ey()
 
           *ey = dy_[plasma_idx] - sy_[plasma_idx];
           
+          if (abs(*ey) > abs(dy_[plasma_idx]))
+            cout << "WARNING: new ey larger than old ey at "
+                 << i << ", " << j << ", " << k << "!" << endl;
+
           sy_[plasma_idx] = (1 + vcdt_[mid]) * sym1_[plasma_idx]
             - vcdt_[mid] * sym2_[plasma_idx]
             + omegapsq_[mid] * (1 - vcdt_[mid]) * *ey;
@@ -330,6 +333,10 @@ void FreqGrid::update_ez()
 
           *ez = dz_[plasma_idx] - sz_[plasma_idx];
           
+          if (abs(*ez) > abs(dz_[plasma_idx]))
+            cout << "WARNING: new ez larger than old ez at "
+                 << i << ", " << j << ", " << k << "!" << endl;
+
           sz_[plasma_idx] = (1 + vcdt_[mid]) * szm1_[plasma_idx]
             - vcdt_[mid] * szm2_[plasma_idx]
             + omegapsq_[mid] * (1 - vcdt_[mid]) * *ez;

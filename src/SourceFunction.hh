@@ -31,7 +31,7 @@ public:
    *
    * @param time_step the time at which to apply the excitation
    */
-  virtual field_t source_function(Grid &grid, unsigned int time_step) = 0;
+  virtual field_t source_function(const Grid &grid, unsigned int time_step) = 0;
 
 };
 

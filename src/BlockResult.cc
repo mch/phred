@@ -50,7 +50,7 @@ void BlockResult::init(const Grid &grid)
   init_ = true; 
 }
 
-Data &BlockResult::get_result(Grid &grid, unsigned int time_step)
+Data &BlockResult::get_result(const Grid &grid, unsigned int time_step)
 {
   if (init_ && result_time(time_step))
   {

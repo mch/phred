@@ -1,13 +1,27 @@
 #include "PointDFTResult.hh"
 #include "Constants.hh"
+#include "Exceptions.hh"
 
 #include <math.h>
+
+PointDFTResult::PointDFTResult()
+  : freq_start_(0), freq_stop_(0), num_freqs_(0), result_(0)
+{}
 
 PointDFTResult::PointDFTResult(field_t freq_start,
                                field_t freq_stop, 
                                unsigned int num_freqs)
   : freq_start_(freq_start), freq_stop_(freq_stop),
-    num_freqs_(num_freqs)
+    num_freqs_(num_freqs), result_(0)
+{}
+
+PointDFTResult::~PointDFTResult()
+{ 
+  if (result_)
+    delete[] result_;
+}
+
+void PointDFTResult::init(const Grid &grid)
 {
   if (freq_stop_ < freq_start_)
   {
@@ -25,6 +39,9 @@ PointDFTResult::PointDFTResult(field_t freq_start,
   freq_space_ = (freq_stop_ - freq_start_) / num_freqs_;
   result_ = new field_t[(num_freqs_ + 1) * 13];
 
+  if (!result_)
+    throw MemoryException();
+
   for (unsigned int i = 0; i <= num_freqs_; i++)
   {
     result_[i * 13] = freq_start_ + freq_space_ * i;
@@ -41,12 +58,13 @@ PointDFTResult::PointDFTResult(field_t freq_start,
   data_.set_datatype(temp);
 }
 
-PointDFTResult::~PointDFTResult()
-{ 
-  delete[] result_;
+void PointDFTResult::deinit(const Grid &grid)
+{
+  if (result_)
+    delete[] result_;
 }
 
-Data &PointDFTResult::get_result(Grid &grid, unsigned int time_step)
+Data &PointDFTResult::get_result(const Grid &grid, unsigned int time_step)
 {
   delta_t dt = grid.get_deltat();
   delta_t time = dt * time_step;

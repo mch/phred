@@ -37,7 +37,7 @@ public:
    * derived data type, a planeer, and the number of items in the
    * result.
    */
-  virtual Data &get_result(Grid &grid, unsigned int time_step);
+  virtual Data &get_result(const Grid &grid, unsigned int time_step);
 
   /**
    * Set the plane position in global coordinates

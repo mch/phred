@@ -14,7 +14,7 @@ PlaneResult::PlaneResult()
 PlaneResult::~PlaneResult()
 {}
 
-Data &PlaneResult::get_result(Grid &grid, unsigned int time_step)
+Data &PlaneResult::get_result(const Grid &grid, unsigned int time_step)
 {
   if (result_time(time_step))
   {

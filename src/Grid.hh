@@ -439,7 +439,7 @@ class Grid {
    *
    * @return the x spacing in mm
    */
-  inline delta_t get_deltax()
+  inline delta_t get_deltax() const 
   {
     return info_.deltax_;
   }
@@ -449,7 +449,7 @@ class Grid {
    *
    * @return the y spacing in mm
    */
-  inline delta_t get_deltay()
+  inline delta_t get_deltay() const 
   {
     return info_.deltay_;
   }
@@ -459,7 +459,7 @@ class Grid {
    *
    * @return the z spacing in mm
    */
-  inline delta_t get_deltaz()
+  inline delta_t get_deltaz() const 
   {
     return info_.deltaz_;
   }
@@ -469,7 +469,7 @@ class Grid {
    *
    * @return the time spacing in seconds
    */
-  inline delta_t get_deltat()
+  inline delta_t get_deltat() const 
   {
     return info_.deltat_;
   }

@@ -24,7 +24,7 @@ PointResult::PointResult(point_t p)
 PointResult::~PointResult()
 { }
 
-Data &PointResult::get_result(Grid &grid, unsigned int time_step)
+Data &PointResult::get_result(const Grid &grid, unsigned int time_step)
 {
   point_t l;
   bool ours = true;

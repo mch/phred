@@ -22,7 +22,7 @@ void SourceTimeResult::set_excitation(const SourceFunction &te)
   te_ = te;
 }
 
-Data &SourceTimeResult::get_result(Grid &grid, unsigned int time_step)
+Data &SourceTimeResult::get_result(const Grid &grid, unsigned int time_step)
 {
   if (result_time(time_step)) 
   {

@@ -3,12 +3,26 @@
 
 #include <math.h>
 
+SourceDFTResult::SourceDFTResult(SourceFunction &te)
+  : te_(te), freq_start_(0), freq_stop_(0),
+    num_freqs_(0)
+{}
+
 SourceDFTResult::SourceDFTResult(SourceFunction &te, 
                                   field_t freq_start,
                                   field_t freq_stop, 
                                   unsigned int num_freqs)
   : te_(te), freq_start_(freq_start), freq_stop_(freq_stop),
     num_freqs_(num_freqs)
+{}
+
+SourceDFTResult::~SourceDFTResult()
+{ 
+  if (result_)
+    delete[] result_;
+}
+
+void SourceDFTResult::init(const Grid &grid)
 {
   if (freq_stop_ < freq_start_)
   {
@@ -42,9 +56,10 @@ SourceDFTResult::SourceDFTResult(SourceFunction &te,
   data_.set_datatype(temp);
 }
 
-SourceDFTResult::~SourceDFTResult()
-{ 
-  delete[] result_;
+void SourceDFTResult::deinit(const Grid &grid)
+{
+  if (result_)
+    delete[] result_;
 }
 
 void SourceDFTResult::set_excitation(const SourceFunction &te)
@@ -52,7 +67,7 @@ void SourceDFTResult::set_excitation(const SourceFunction &te)
   te_ = te;
 }
 
-Data &SourceDFTResult::get_result(Grid &grid, unsigned int time_step)
+Data &SourceDFTResult::get_result(const Grid &grid, unsigned int time_step)
 {
   field_t sf = te_.source_function(grid, time_step);
   for (unsigned int i = 0; i <= num_freqs_; i++)

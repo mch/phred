@@ -20,12 +20,7 @@ field_t call_source_functionf(SourceFunction& sf, Grid &grid,
 { return sf.source_function(grid, time_step); }
 
 /**
- * Since the normal C++ version of Excitation is a template class,
- * this is instance of that template which stores a reference to
- * SourceFunction, the base class for these things. A proxy class is
- * exposed which takes a pointer to a subclass of SourceFunction so
- * that it can be used from Python. This wrapper also allows for
- * derived classes built in Python. 
+ * This wrapper allows for derived classes built in Python.
  */
 class ExcitationWrap : public Excitation
 {
@@ -86,7 +81,7 @@ public:
   { return call_method<field_t>(self, "source_function"); }
 };
 
-BOOST_PYTHON_MODULE(excitation)
+BOOST_PYTHON_MODULE(excitations)
 {
   class_<Excitation, ExcitationWrap, boost::noncopyable>("Excitation")
     .def("excite", &Excitation::excite, 

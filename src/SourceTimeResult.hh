@@ -33,7 +33,7 @@ public:
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  virtual Data &get_result(Grid &grid, unsigned int time_step);
+  virtual Data &get_result(const Grid &grid, unsigned int time_step);
 
 };
 

@@ -7,7 +7,7 @@ Gaussm::Gaussm()
 Gaussm::~Gaussm()
 {}
 
-field_t Gaussm::source_function(Grid &grid, unsigned int time_step)
+field_t Gaussm::source_function(const Grid &grid, unsigned int time_step)
 {
   field_t t = time_step * grid.get_deltat();
 
