@@ -73,6 +73,39 @@ void FarfieldResult::idx_tests()
   tf.close();
 }
 
+void FarfieldResult::dump_temps()
+{
+  ofstream fp;
+
+  fp.open("cartesian_fields.txt", ofstream::out);
+  
+  int idx = 0;
+  int t_start = (ff_tsteps_ / 2) - (ff_tsteps_ / 8);
+  int t_end = (ff_tsteps_ / 2) + (ff_tsteps_ / 8);
+
+  fp << scientific;
+
+  for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
+  {
+    for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
+    {
+      for (int t = t_start; t < t_end; t++)
+      {
+        fp << phi_data_.get(phi_idx) << " " << theta_data_.get(theta_idx)
+           << " " << t << " " 
+           << Wx_[idx] << " " << Wy_[idx] << " " << Wz_[idx] << " "
+           << Ux_[idx] << " " << Uy_[idx] << " " << Uz_[idx]
+           << "\n";
+
+        idx++;
+      }
+    }
+  }
+
+  fp.close();
+
+}
+
 FarfieldResult::FarfieldResult()
   : r_(100),
     Wx_(0), Wy_(0), Wz_(0), Ux_(0), Uy_(0), Uz_(0),
@@ -417,6 +450,12 @@ public:
     // Distance to source point
     field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
 
+//     for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
+//     {
+//       for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
+//       {
+    
+
     // Time is takes this source point to influence the farfield.
 //     field_t tau = (data.obs_radius - (xt * sin(data.phi) * cos(data.theta)
 //       + yt * sin(data.phi) * sin(data.theta) + zt * cos(data.phi))) / C;
@@ -430,14 +469,14 @@ public:
     int U_n = static_cast<int>(floor(data.tstep + 0.5 + tau));
     int W_n = static_cast<int>(floor(data.tstep + tau));
 
-    assert(U_n >= 0 && (U_n + 1) < data.ff_tsteps_);
-    assert(W_n >= 0 && (W_n + 1) < data.ff_tsteps_);
+//     assert(U_n >= 0 && (U_n + 1) < data.ff_tsteps_);
+//     assert(W_n >= 0 && (W_n + 1) < data.ff_tsteps_);
 
     field_t U_a = (data.tstep + 0.5 + tau) - U_n;
     field_t W_a = (data.tstep + tau) - W_n;
 
-    assert(U_a >= 0.0 && U_a <= 1.0);
-    assert(W_a >= 0.0 && W_a <= 1.0);
+//     assert(U_a >= 0.0 && U_a <= 1.0);
+//     assert(W_a >= 0.0 && W_a <= 1.0);
 
     // The 4 * PI * r * C has been factored out and must be applied
     // when the spherical components are calculated.
@@ -450,21 +489,35 @@ public:
     data.U_t1[U_n + 1] += temp * U_a * (f.et2_avg - data.E_t2[data.idx]);
     data.U_t2[U_n + 1] -= temp * U_a * (f.et1_avg - data.E_t1[data.idx]);
 
-    data.E_t1[data.idx] = f.et1_avg;
-    data.E_t2[data.idx] = f.et2_avg;
-
     data.W_t1[W_n] -= (1 - W_a) * temp * (f.ht2_avg - data.H_t2[data.idx]);
     data.W_t2[W_n] += (1 - W_a) * temp * (f.ht1_avg - data.H_t1[data.idx]);
 
     data.W_t1[W_n + 1] -= W_a * temp * (f.ht2_avg - data.H_t2[data.idx]);
     data.W_t2[W_n + 1] += W_a * temp * (f.ht1_avg - data.H_t1[data.idx]);
 
+    data.idx++;
+  }
+
+};
+
+/**
+ * This class updates the stored E and H fields on the faces which are
+ * used to compute the derivate of the field.
+ */ 
+class TempUpdateAlg
+{
+public:
+  static inline void alg(const int &x, const int &y, const int &z,
+                         Fields_t &f, FFData &data)
+  {
+    data.E_t1[data.idx] = f.et1_avg;
+    data.E_t2[data.idx] = f.et2_avg;
+
     data.H_t1[data.idx] = f.ht1_avg;
     data.H_t2[data.idx] = f.ht2_avg;
 
     data.idx++;
   }
-
 };
 
 map<string, Variable *> & FarfieldResult::get_result(const Grid &grid, 
@@ -492,18 +545,27 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
         data.phi = phi_data_.get(phi_idx);
         data.theta = theta_data_.get(theta_idx);
         
+        int wuidx = WU_index(phi_idx, theta_idx, 0);
+#ifdef DEBUG
+//         cerr << "wuidx for phi_i = " << phi_idx << ", theta_i = "
+//              << theta_idx << " is " << wuidx << " at ts = " 
+//              << time_step << endl;
+#endif
+        
         for (int face_idx = 0; face_idx < 6; face_idx++)
         {
+          // This index is for the pointers storing the previous value
+          // of the fields on the face.
           data.idx = 0;
           
           switch (face_idx)
           {
           case FRONT:
           case BACK:
-            data.W_t1 = &Wy_[WU_index(phi_idx, theta_idx, 0)];
-            data.W_t2 = &Wz_[WU_index(phi_idx, theta_idx, 0)];
-            data.U_t1 = &Uy_[WU_index(phi_idx, theta_idx, 0)];
-            data.U_t2 = &Uz_[WU_index(phi_idx, theta_idx, 0)];
+            data.W_t1 = &Wy_[wuidx];
+            data.W_t2 = &Wz_[wuidx];
+            data.U_t1 = &Uy_[wuidx];
+            data.U_t2 = &Uz_[wuidx];
 
             data.E_t1 = &E_temp_[temp_index(face_idx, 1, 0, 0, 
                                             region_->ylen(), region_->zlen())];
@@ -520,39 +582,39 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
             
           case LEFT:
           case RIGHT:
-            data.W_t1 = &Wz_[WU_index(phi_idx, theta_idx, 0)];
-            data.W_t2 = &Wx_[WU_index(phi_idx, theta_idx, 0)];
-            data.U_t1 = &Uz_[WU_index(phi_idx, theta_idx, 0)];
-            data.U_t2 = &Ux_[WU_index(phi_idx, theta_idx, 0)];
+            data.W_t1 = &Wz_[wuidx];
+            data.W_t2 = &Wx_[wuidx];
+            data.U_t1 = &Uz_[wuidx];
+            data.U_t2 = &Ux_[wuidx];
 
             data.E_t1 = &E_temp_[temp_index(face_idx, 2, 0, 0, 
-                                          region_->ylen(), region_->zlen())];
+                                            region_->xlen(), region_->zlen())];
             data.E_t2 = &E_temp_[temp_index(face_idx, 0, 0, 0, 
-                                          region_->ylen(), region_->zlen())];
+                                            region_->xlen(), region_->zlen())];
             data.H_t1 = &H_temp_[temp_index(face_idx, 2, 0, 0, 
-                                            region_->ylen(), region_->zlen())];
+                                            region_->xlen(), region_->zlen())];
             data.H_t2 = &H_temp_[temp_index(face_idx, 0, 0, 0, 
-                                            region_->ylen(), region_->zlen())];
+                                            region_->xlen(), region_->zlen())];
 
             data.cellsize = grid.get_deltax() * grid.get_deltaz();
             break;
 
           case TOP:
           case BOTTOM:
-            data.W_t1 = &Wx_[WU_index(phi_idx, theta_idx, 0)];
-            data.W_t2 = &Wy_[WU_index(phi_idx, theta_idx, 0)];
-            data.U_t1 = &Ux_[WU_index(phi_idx, theta_idx, 0)];
-            data.U_t2 = &Uy_[WU_index(phi_idx, theta_idx, 0)];
+            data.W_t1 = &Wx_[wuidx];
+            data.W_t2 = &Wy_[wuidx];
+            data.U_t1 = &Ux_[wuidx];
+            data.U_t2 = &Uy_[wuidx];
 
             data.E_t1 = &E_temp_[temp_index(face_idx, 0, 0, 0, 
-                                          region_->ylen(), region_->zlen())];
+                                          region_->ylen(), region_->xlen())];
             data.E_t2 = &E_temp_[temp_index(face_idx, 1, 0, 0, 
-                                          region_->ylen(), region_->zlen())];
+                                          region_->ylen(), region_->xlen())];
 
             data.H_t1 = &H_temp_[temp_index(face_idx, 0, 0, 0, 
-                                            region_->ylen(), region_->zlen())];
+                                            region_->ylen(), region_->xlen())];
             data.H_t2 = &H_temp_[temp_index(face_idx, 1, 0, 0, 
-                                            region_->ylen(), region_->zlen())];
+                                            region_->ylen(), region_->xlen())];
 
             data.cellsize = grid.get_deltax() * grid.get_deltay();
             break;
@@ -561,10 +623,64 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
           PlaneTiling<FFAlg, FFData>::loop(grid, *region_, 
                                            static_cast<Face>(face_idx), 
                                            data);
-        }
+        } // for face
       } // end for theta
     } // end for phi
-  }
+
+    // Update the stored E and H fields on the faces which are used
+    // for derivatives to the current values.
+    for (int face_idx = 0; face_idx < 6; face_idx++)
+    {
+      data.idx = 0;
+
+      switch (face_idx)
+      {
+      case FRONT:
+      case BACK:
+        data.E_t1 = &E_temp_[temp_index(face_idx, 1, 0, 0, 
+                                        region_->ylen(), region_->zlen())];
+        data.E_t2 = &E_temp_[temp_index(face_idx, 2, 0, 0, 
+                                        region_->ylen(), region_->zlen())];
+        
+        data.H_t1 = &H_temp_[temp_index(face_idx, 1, 0, 0, 
+                                        region_->ylen(), region_->zlen())];
+        data.H_t2 = &H_temp_[temp_index(face_idx, 2, 0, 0, 
+                                        region_->ylen(), region_->zlen())];
+        break;
+
+      case LEFT:
+      case RIGHT:
+        data.E_t1 = &E_temp_[temp_index(face_idx, 2, 0, 0, 
+                                        region_->xlen(), region_->zlen())];
+        data.E_t2 = &E_temp_[temp_index(face_idx, 0, 0, 0, 
+                                        region_->xlen(), region_->zlen())];
+        data.H_t1 = &H_temp_[temp_index(face_idx, 2, 0, 0, 
+                                        region_->xlen(), region_->zlen())];
+        data.H_t2 = &H_temp_[temp_index(face_idx, 0, 0, 0, 
+                                        region_->xlen(), region_->zlen())];
+        break;
+
+      case TOP:
+      case BOTTOM:
+        data.E_t1 = &E_temp_[temp_index(face_idx, 0, 0, 0, 
+                                        region_->ylen(), region_->xlen())];
+        data.E_t2 = &E_temp_[temp_index(face_idx, 1, 0, 0, 
+                                        region_->ylen(), region_->xlen())];
+        
+        data.H_t1 = &H_temp_[temp_index(face_idx, 0, 0, 0, 
+                                        region_->ylen(), region_->xlen())];
+        data.H_t2 = &H_temp_[temp_index(face_idx, 1, 0, 0, 
+                                        region_->ylen(), region_->xlen())];
+        
+        break;
+      }
+
+      PlaneTiling<TempUpdateAlg, FFData>::loop(grid, *region_, 
+                                               static_cast<Face>(face_idx),
+                                               data);
+    }
+
+  } // if (result_time...)
 
   return variables_;
 }
@@ -576,8 +692,10 @@ map<string, Variable *> &FarfieldResult::get_pre_result(const Grid &grid)
 
 map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
 {
+  dump_temps();
+
   // Calculate E_theta, E_phi, rcs
-  field_t temp = 4 * PI * r_ * C;
+  field_t temp = 1 / (4 * PI * r_ * C);
   field_t W_t, W_p, U_t, U_p;
 
   int idx = 0;

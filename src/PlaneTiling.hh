@@ -133,8 +133,8 @@ private:
     if (ymax >= grid.get_ldy_sd())
       ymax--;
 
-    if (x >= grid.get_ldx_sd())
-      x--;
+    if (x <= 0)
+      x++;
 
     YZPlane plane(const_cast<Grid &>(grid));
 
@@ -190,8 +190,8 @@ private:
     if (zmax >= grid.get_ldz_sd())
       zmax--;
 
-    if (xmin <= 0)
-      xmin++;
+    if (xmax >= grid.get_ldx_sd())
+      xmax--;
 
     if (y <= 0)
       y++;
@@ -250,8 +250,8 @@ private:
     if (ymax >= grid.get_ldy_sd())
       ymax--;
 
-    if (xmin <= 0)
-      xmin++;
+    if (xmax >= grid.get_ldx_sd())
+      xmax--;
 
     if (z <= 0)
       z++;

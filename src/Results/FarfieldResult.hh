@@ -23,6 +23,7 @@
 #define FARFIELD_RESULT_H
 
 #include "DFTResult.hh"
+#include "../config.h"
 
 /**
  * Available output types
@@ -45,6 +46,9 @@ enum FfType {
  *
  * This class implements Luebbers' method, Taflove, Computational
  * Electrodynamics, 2nd ed, pg 366
+ *
+ * \bug This could save a lot of work by putting the phi, theta loop
+ * inside the algorithm function. 
  */
 class FarfieldResult : public DFTResult
 {
@@ -234,6 +238,7 @@ protected:
   }
 
   void idx_tests();
+  void dump_temps();
 
 };
 

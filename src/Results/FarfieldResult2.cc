@@ -31,6 +31,7 @@ using namespace std;
 
 void FarfieldResult2::export_dfts()
 {
+#ifdef HAVE_COMPLEX
   ofstream jt1_of, jt2_of, mt1_of, mt2_of;
 
   jt1_of.open("jt1.txt", ofstream::out);
@@ -117,6 +118,7 @@ void FarfieldResult2::export_dfts()
   jt2_of.close();
   mt1_of.close();
   mt2_of.close();
+#endif
 }
 
 FarfieldResult2::FarfieldResult2()
@@ -197,6 +199,7 @@ void FarfieldResult2::set_phi(field_t phi_start, field_t phi_stop,
 
 void FarfieldResult2::init(const Grid &grid)
 {
+#ifdef HAVE_COMPLEX
   if (box_.get())
   {
     region_ = grid.get_local_region(*(box_.get()));
@@ -214,12 +217,10 @@ void FarfieldResult2::init(const Grid &grid)
   {
     rcs_data_ = new field_t[sz];
 
-#ifdef HAVE_COMPLEX
     e_theta_data_ = new complex<field_t>[sz];
     e_phi_data_ = new complex<field_t>[sz];
     h_theta_data_ = new complex<field_t>[sz];
     h_phi_data_ = new complex<field_t>[sz];
-#endif
   }
 
   for (int i = 0; i < 6; i++)
@@ -353,10 +354,12 @@ void FarfieldResult2::init(const Grid &grid)
     //   E_theta_.set_num(0);
     rcs_.set_num(0);
   }
+#endif
 }
 
 void FarfieldResult2::deinit()
 {
+#ifdef HAVE_COMPLEX
   for (int i = 0; i < 6; i++)
   {
     if (Jt1_data_[i])
@@ -390,7 +393,6 @@ void FarfieldResult2::deinit()
     rcs_data_ = 0;
   }
 
-#ifdef HAVE_COMPLEX
   if (e_theta_data_)
   {
     delete[] e_theta_data_;
@@ -427,6 +429,8 @@ FarfieldResult2::get_pre_result(const Grid &grid)
 map<string, Variable *> &
 FarfieldResult2::get_post_result(const Grid &grid)
 {
+#ifdef HAVE_COMPLEX
+
   // Calculate the far field!
   complex<field_t> eta(ETA,0);
 
@@ -482,6 +486,8 @@ FarfieldResult2::get_post_result(const Grid &grid)
     } // end for phi
   } // end for theta
 
+#endif
+
   return post_vars_;
 }
 
@@ -491,6 +497,8 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
                                       const field_t &k, 
                                       const Grid &grid)
 {
+#ifdef HAVE_COMPLEX
+
   grid_point grid_centre = grid.get_global_cell(grid.get_centre());
 
   field_t dx = grid.get_deltax();
@@ -762,13 +770,16 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
     }
     
   } // end for (face_idx...)
-    
+#endif
+  
 }
 
 map<string, Variable *> &
 FarfieldResult2::get_result(const Grid &grid, 
                             unsigned int time_step)
 {
+#ifdef HAVE_COMPLEX
+
   // Just calculate data but return nothing until the end.
   for (int face_idx = 0; face_idx < 6; face_idx++)
   {
@@ -823,6 +834,7 @@ FarfieldResult2::get_result(const Grid &grid,
       break;
     }
   } // end for (face_idx...)
+#endif
 
   return variables_;
 }
@@ -833,6 +845,8 @@ void FarfieldResult2::calc_currents(const Grid &grid,
                                     region_t &cells,
                                     int face_idx)
 {
+#ifdef HAVE_COMPLEX
+
   field_t e_t1, e_t2, h_t1, h_t2;
 
   T p(const_cast<Grid &>(grid)); // EVIL
@@ -892,6 +906,7 @@ void FarfieldResult2::calc_currents(const Grid &grid,
       }
     }
   } // end for f_idx
+#endif
 }
 
 ostream& FarfieldResult2::to_string(ostream &os) const
@@ -903,6 +918,9 @@ ostream& FarfieldResult2::to_string(ostream &os) const
     "NOT CALCULATING FARFIELD.";
 #endif
 }
+
+
+#ifdef HAVE_COMPLEX
 
 /**
  * A data object for use in the templated potential calculation
@@ -945,6 +963,7 @@ public:
 
   complex<field_t> *Mt1;
   complex<field_t> *Mt2;
+
 };
 
 /**
@@ -963,6 +982,7 @@ public:
   static inline void alg(const int &x, const int &y, const int &z,
                          Fields_t &f, PotentialData &data)
   {
+
     field_t xt = (x - static_cast<int>(data.grid_centre.x)) * data.dx;
     field_t yt = (y - static_cast<int>(data.grid_centre.y)) * data.dy;
     field_t zt = (z - static_cast<int>(data.grid_centre.z)) * data.dz;
@@ -1004,6 +1024,7 @@ public:
 
     data.idx++;
   }
+
 };
 
 class YZPotentials
@@ -1078,3 +1099,5 @@ public:
                 + data.Mt2[data.idx] * cos_p) * temp;
   }
 };
+
+#endif
