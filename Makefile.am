@@ -1,4 +1,4 @@
-SUBDIRS=src doc
+SUBDIRS=src doc tests
 
 EXTRA_DIST=phred.spec.in 
 

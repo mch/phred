@@ -99,6 +99,8 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "PointResult.hh"
 #include "AsciiDataWriter.hh"
 #include "PlaneResult.hh"
+#include "SourceDFTResult.hh"
+#include "SourceTimeResult.hh"
 
 static void usage (int status);
 
@@ -446,6 +448,13 @@ main (int argc, char **argv)
   adw4.set_filename("yz_plane.txt");
   adw4.add_variable(pr1);
 
+  SourceDFTResult sdftr(ex, 100e12, 600e12, 20);
+  sdftr.set_time_param(0, 11, 0);
+
+  AsciiDataWriter adw5(rank, size);
+  adw5.set_filename("src_dft.txt");
+  adw5.add_variable(sdftr);
+
   grid.set_define_mode(false);
   
   // Main loop
@@ -504,6 +513,7 @@ main (int argc, char **argv)
     adw1.handle_data(ts, res1.get_result(grid, ts));
     adw2.handle_data(ts, res2.get_result(grid, ts));
     adw3.handle_data(ts, res3.get_result(grid, ts));
+    adw5.handle_data(ts, sdftr.get_result(grid, ts));
   }
 
   cout << "phred is phinished." << endl;

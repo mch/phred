@@ -1,6 +1,9 @@
-// This file defines the types used for various things. This
-// may be processed by autoconf in the future so these things 
-// can be configure switches, or dependent on machine type. 
+/* This file defines the types used for various things. This
+ * may be processed by autoconf in the future so these things 
+ * can be configure switches, or dependent on machine type. 
+ */
+
+/* Use only C comments, or the AIX C compiler with complain */ 
 
 #ifndef TYPES_H
 #define TYPES_H
@@ -16,8 +19,8 @@ enum BoundaryCondition {
   EWALL, /**< Electric wall */
   HWALL, /**< Magnetic wall */
   PML /**< Perfectly matched layers (Berenger's absorbing boundary) */
-  //MUR /**< 2nd order absorbing boundary condition */
-  //IMPEDANCE, /**< Imedance boundary */
+  /* MUR */ /**< 2nd order absorbing boundary condition */
+  /* IMPEDANCE, */ /**< Imedance boundary */
 };
 
 /** 
@@ -110,4 +113,5 @@ typedef struct point_str {
 } point_t;
 
 
-#endif // TYPES_H
+#endif
+

@@ -151,9 +151,10 @@ dnl Use OpenMP parallism? Does the compiler support it? Are the
 dnl libraries available? 
 if test "x$WANT_OPENMP" = "x1"; then
 dnl        AC_MSG_WARN([OpenMP support is not fully implemented yet. ])
+        AC_MSG_CHECKING([for OpenMP support])
         CXXFLAGS_TEMP="$CXXFLAGS"
         AC_LANG_PUSH(C++)
-        CXXFLAGS="-Wall -Werror -qSMP-omp"        
+        CXXFLAGS="-qSMP-omp"        
         AC_COMPILE_IFELSE([
 void test() {
 int i = 0, j = 0;
@@ -162,10 +163,12 @@ int i = 0, j = 0;
 for (i = 0; i < 100; i++)
   j += i;
 }], [
+        AC_MSG_RESULT([yes])
         AC_DEFINE([USE_OPENMP], [1], [Using OpenMP (-qSMP=omp on AIX)])
-        CXXFLAGS_TEMP="$CXXFLAGS_TEMP -qSMP-omp"], [
+        CXXFLAGS_TEMP="$CXXFLAGS_TEMP -qSMP=omp"], [
         AC_LANG_POP(C++)
         CXXFLAGS="$CXXFLAGS_TEMP"
+        AC_MSG_RESULT([no])
         AC_MSG_ERROR([OpenMP is not supported by the compiler.])])
 fi
 
@@ -228,7 +231,7 @@ if [[ ! -z "$with_lammpi" ]] || [[ ! -z "$with_lammpi_libs" ]] || [[ ! -z "$with
 fi
 
 if [[ ! "$with_popt" = no ]]; then
-        AC_MSG_WARN([WARNING: the use of popt has been see to cause mysterious seg faults! RECOMMEND --without-popt!])
+        AC_MSG_WARN([The use of popt has been see to cause mysterious seg faults! RECOMMEND --without-popt!])
         AC_DEFINE([USE_POPT], [1], [Use the popt library])
         AC_CHECK_LIB(popt, poptGetContext, [], [])
         AC_CHECK_HEADER([popt.h], [], [])
@@ -253,6 +256,7 @@ AC_CHECK_LIB(hdf5, H5open, [
                   [$with_hdf5_includes])], [], [$with_hdf5_libs])
 
 dnl Setup scripting
+USE_PY_BINDINGS=0
 if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with_python_includes" ]]; then
         AC_CHECK_LIB(python2.3, Py_Initialize, [], [
             AC_MSG_ERROR(*** Can't find the Python libraries.)],
@@ -268,8 +272,9 @@ if [[ ! -z "$with_python" ]] || [[ ! -z "$with_python_libs" ]] || [[ ! -z "$with
         fi
         AC_CHECK_HEADER([boost/python.hpp], [], [AC_MSG_ERROR([*** Can't find the Boost Python header files])])
 
-        AM_CONDITIONAL(PY_BINDINGS, test "1" = "1")
+        USE_PY_BINDINGS=1
 fi
+AM_CONDITIONAL(PY_BINDINGS, test "x$USE_PY_BINDINGS" = "x1")
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -290,4 +295,4 @@ AC_SUBST(CFLAGS, $CFLAGS)
 AC_SUBST(CXXFLAGS, $CXXFLAGS)
 AC_SUBST(LIBS, $LIBS)
 
-AC_OUTPUT(Makefile src/Makefile doc/Makefile doc/Doxyfile doc/phred.lsm phred.spec)
+AC_OUTPUT(Makefile src/Makefile doc/Makefile tests/Makefile tests/high_speed_c/Makefile doc/Doxyfile doc/phred.lsm phred.spec)

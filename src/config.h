@@ -39,7 +39,7 @@
 /* #undef HAVE_LIBPOPT */
 
 /* Define to 1 if you have the `python2.3' library (-lpython2.3). */
-#define HAVE_LIBPYTHON2_3 1
+/* #undef HAVE_LIBPYTHON2_3 */
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1

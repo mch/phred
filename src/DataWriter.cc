@@ -51,17 +51,18 @@ void DataWriter::gather_data(Data &data)
       if (data.get_num() > 0) {
         MPI_Sendrecv(data.get_ptr(), data.get_num(), 
                      data.get_datatype(), 0, 1, 
-                     static_cast<void *>(ptr), nums_recv[1], MPI_CHAR, 0, 1,
+                     static_cast<void *>(ptr), 
+                     nums_recv[0] * nums_recv[1], MPI_CHAR, 0, 1,
                      MPI_COMM_WORLD, &status);
-        ptr += sz;
+        ptr += nums_recv[0] * nums_recv[1];
       }
       
       for (int i = 1; i < size_; i++)
       {
         if (nums_recv[i*2] > 0) {
-          MPI_Recv(ptr, nums_recv[(i+1)*2], MPI_CHAR, 
+          MPI_Recv(ptr, nums_recv[i*2] * nums_recv[i*2+1], MPI_CHAR, 
                    i, 1, MPI_COMM_WORLD, &status);
-          ptr += nums_recv[(i+1)*2];
+          ptr += nums_recv[i*2] * nums_recv[i*2+1];
         }
       }
       

@@ -3,7 +3,7 @@
 #include <mpi.h>
 
 AsciiDataWriter::AsciiDataWriter(int rank, int size)
-  : DataWriter(rank, size)
+  : DataWriter(rank, size), time_dim_(true)
 {}
 
 AsciiDataWriter::~AsciiDataWriter()
@@ -37,10 +37,11 @@ void AsciiDataWriter::add_variable(Result &result)
   for (unsigned int i = 0; i < dim_lens.size(); i++)
     dim_len_ += dim_lens[i];
 
+  time_dim_ = result.has_time_dimension();
 }
 
-void *AsciiDataWriter::write_data(Data &data, MPI_Datatype t, 
-                                  void *ptr, unsigned int len)
+unsigned int AsciiDataWriter::write_data(Data &data, MPI_Datatype t, 
+                                         void *ptr, unsigned int len)
 {
   if (!file_.is_open()) 
   {
@@ -50,37 +51,53 @@ void *AsciiDataWriter::write_data(Data &data, MPI_Datatype t,
       throw std::exception(); // "Unable to open output file!");
   }
 
-  ptr = write_data(t, ptr, len);
+  unsigned int tbw = 0, bytes_written = 0;
+
+  while (tbw < len) {
+    bytes_written = write_data(t, ptr, len);
+    tbw += bytes_written;
+
+    // Kind of ugly, but necessary to work on AIX
+    char *byte_ptr = static_cast<char *>(ptr);
+    byte_ptr += bytes_written;
+    ptr = static_cast<void *>(byte_ptr);
+
+    if (!time_dim_)
+      file_ << endl;
+  }
+
   file_ << endl;
 
-  return ptr;
+  return tbw;
 }
 
-void *AsciiDataWriter::write_data(MPI_Datatype t, void *ptr, 
+unsigned int AsciiDataWriter::write_data(MPI_Datatype t, void *ptr, 
                                   unsigned int len)
 {
+  unsigned int bytes_written = 0; 
+
   if (t == MPI_CHAR) 
-    ptr = write_array<signed char>(ptr, len);
+    bytes_written = write_array<signed char>(ptr, len);
   else if (t == MPI_SHORT)
-    ptr = write_array<signed short int>(ptr, len);
+    bytes_written = write_array<signed short int>(ptr, len);
   else if (t == MPI_INT)
-    ptr = write_array<signed int>(ptr, len);
+    bytes_written = write_array<signed int>(ptr, len);
   else if (t == MPI_LONG)
-    ptr = write_array<signed long int>(ptr, len);
+    bytes_written = write_array<signed long int>(ptr, len);
   else if (t == MPI_UNSIGNED_CHAR)
-    ptr = write_array<unsigned char>(ptr, len);
+    bytes_written = write_array<unsigned char>(ptr, len);
   else if (t == MPI_UNSIGNED_SHORT)
-    ptr = write_array<unsigned short int>(ptr, len);
+    bytes_written = write_array<unsigned short int>(ptr, len);
   else if (t == MPI_UNSIGNED)
-    ptr = write_array<unsigned int>(ptr, len);
+    bytes_written = write_array<unsigned int>(ptr, len);
   else if (t == MPI_UNSIGNED_LONG)
-    ptr = write_array<unsigned long int>(ptr, len);
+    bytes_written = write_array<unsigned long int>(ptr, len);
   else if (t == MPI_FLOAT)
-    ptr = write_array<float>(ptr, len);
+    bytes_written = write_array<float>(ptr, len);
   else if (t == MPI_DOUBLE)
-    ptr = write_array<double>(ptr, len);
+    bytes_written = write_array<double>(ptr, len);
   else if (t == MPI_LONG_DOUBLE)
-    ptr = write_array<long double>(ptr, len);
+    bytes_written = write_array<long double>(ptr, len);
   else if (t == MPI_PACKED)
     file_ << "packed\t";
   else 
@@ -104,7 +121,16 @@ void *AsciiDataWriter::write_data(MPI_Datatype t, void *ptr,
     int i = 0;
     while (i < num_dts && dts[i] > 0)
     {
-      ptr = write_data(dts[i], ptr, ints[i]);
+      // Get the size of the data type, so we can send the right
+      // number for the third arg of write_data. 
+      int sz;
+      MPI_Type_size(dts[i], &sz);
+      bytes_written = write_data(dts[i], ptr, ints[i] * sz);
+
+      // Kind of ugly, but necessary to work on AIX
+      char *byte_ptr = static_cast<char *>(ptr);
+      byte_ptr += bytes_written;
+      ptr = static_cast<void *>(byte_ptr);
       i++;
     }
 
@@ -113,18 +139,19 @@ void *AsciiDataWriter::write_data(MPI_Datatype t, void *ptr,
     delete[] dts;
   }
   
-  return ptr;
+  return bytes_written;
 }
 
 template <class T>
-void *AsciiDataWriter::write_array(void *ptr, unsigned int len)
+unsigned int AsciiDataWriter::write_array(void *ptr, unsigned int len)
 {
+  unsigned int items_avail = items_avail = len / sizeof(T);
   T *r = static_cast<T *>(ptr);
 
-  for (unsigned int i = 0; i < len; i++)
+  for (unsigned int i = 0; i < items_avail; i++)
   {
     file_ << *(r++) << "\t";
   }
 
-  return static_cast<void *>(r);
+  return len;
 }

@@ -57,7 +57,8 @@ void NetCDFDataWriter::deinit()
 
 void NetCDFDataWriter::add_variable(Result &result)
 {
-  int status, dimid;
+  int status, dimid, tdim;
+  ncdfvar var; 
 
   if (rank_ != 0)
     return; 
@@ -65,18 +66,18 @@ void NetCDFDataWriter::add_variable(Result &result)
   if (!fopen_)
     throw exception(); // File must be open
 
-  const vector<int> &dim_lens = result.get_dim_lengths();
+  var.dim_lens_ = result.get_dim_lengths();
   const vector<string> &dim_names = result.get_dim_names();
 
-  string var_name = result.get_name();
+  var.var_name_ = result.get_name();
 
-  if (dim_lens.size() == 0)
+  if (var.dim_lens_.size() == 0)
     throw std::exception(); //"Result must have at least one dimension.");
 
-  if (var_name.length() > 0)
+  if (var.var_name_.length() > 0)
   {
-    map<string, vector<int> >::iterator iter = dim_ids_.find(var_name);
-    if (dim_ids_.end() != iter)
+    map<string, ncdfvar>::iterator iter = vars_.find(var.var_name_);
+    if (vars_.end() != iter)
       throw std::exception(); // Duplicates not allowed
   }
 
@@ -84,88 +85,149 @@ void NetCDFDataWriter::add_variable(Result &result)
   if (status != NC_NOERR)
     handle_error(status);
 
-  // Add variable
-  
-
   // Add dimension id's
   vector<int> dids;
-  for (unsigned int i = 0; i < dim_lens.size(); i++)
+  for (unsigned int i = 0; i < var.dim_lens_.size(); i++)
   {
-    dimid = get_dim(i, dim_lens[i], dim_names[i]);
+    dimid = get_dim(i, var.dim_lens_[i], dim_names[i]);
     dids.push_back(dimid);
   }
 
-  dim_ids_[var_name] = dids;
+  var.time_dim_ = result.has_time_dimension();
+  if (var.time_dim_)
+  {
+    status = nc_inq_dimid(ncid_, "t", &tdim);
+    
+    if (status != NC_NOERR) {
+      status = nc_def_dim(ncid_, "t", 
+                          NC_UNLIMITED,
+                          &tdim);
+      
+      if (status != NC_NOERR)
+        handle_error(status);
+    }
+    
+    dids.push_back(tdim);
+    var.dim_lens_.push_back(0);
+  }
+
+  var.dim_ids_ = dids;
+
+  // Add variable
+  int *dimids = new int[dids.size()];
+
+  for (unsigned int i = 0; i < dids.size(); i++)
+    dimids[i] = dids[i];
+  
+  status = nc_def_var(ncid_, var.var_name_.c_str(), NC_FLOAT, 
+                      dids.size(), dimids, &var.var_id_);
+
+  if (status != NC_NOERR)
+    handle_error(status);
+
+  delete[] dimids;
 
   status = nc_enddef(ncid_);
   if (status != NC_NOERR)
     handle_error(status);
 }
 
-void *NetCDFDataWriter::write_data(Data &data, MPI_Datatype t, 
-                                   void *ptr, unsigned int len)
+unsigned int NetCDFDataWriter::write_data(Data &data, MPI_Datatype t, 
+                                          void *ptr, unsigned int len)
 {
   if (!fopen_)
     throw exception(); // File must be opened and dimensions defined. 
 
-  vector<int> &dids = dim_ids_[data.get_var_name()];
-  int var_id = var_ids_[data.get_var_name()];
-  size_t *start, *count;
-  
-  start = new size_t[dids.size()];
-  count = new size_t[dids.size()];
+  string vname = data.get_var_name();
+  ncdfvar &var = vars_[vname]; // may throw exception
 
-  for (unsigned int i = 0; i < dids.size(); i++)
+  size_t *start, *count;
+  int sz = var.dim_ids_.size();
+
+  start = new size_t[sz];
+  count = new size_t[sz];
+
+  for (int i = 0; i < sz; i++)
   {
     start[i] = 0;
-    count[i] = dids[i]; // This should write the entire region at
-                        // once; it's a bit naieve, but it should
-                        // work for now...
+    count[i] = var.dim_lens_[i]; // This should write the entire region at
+    // once; it's a bit naieve, but it should work for now...
   }
   
-  return write_data(var_id, start, count, data.get_datatype(), 
+  if (var.time_dim_)
+  {
+    count[sz - 1] = 1;
+    start[sz - 1] = var.time_step_;
+    var.time_step_++;
+  }
+
+  return write_data(var.var_id_, start, count, data.get_datatype(), 
                     ptr, len);
 }
 
-void *NetCDFDataWriter::write_data(int var_id, size_t *start, 
-                                   size_t *count, MPI_Datatype t, 
-                                   void *ptr, unsigned int len)
+unsigned int NetCDFDataWriter::write_data(int var_id, size_t *start, 
+                                          size_t *count, MPI_Datatype t, 
+                                          void *ptr, unsigned int len)
 {
   int status = NC_NOERR;
+  unsigned int bytes_written = 0;
 
   if (t == MPI_CHAR) 
+  {
     status = nc_put_vara_schar(ncid_, var_id, start, count, 
                                static_cast<signed char *>(ptr));
+    bytes_written = 0;
+  }
   else if (t == MPI_SHORT)
+  {
     status = nc_put_vara_short(ncid_, var_id, start, count, 
                                static_cast<short *>(ptr));
+  }
   else if (t == MPI_INT)
+  {
     status = nc_put_vara_int(ncid_, var_id, start, count, 
                                static_cast<int *>(ptr));
+  }
   else if (t == MPI_LONG)
+  {
     status = nc_put_vara_long(ncid_, var_id, start, count, 
                                static_cast<long *>(ptr));
+  }
   else if (t == MPI_UNSIGNED_CHAR)
+  {
     status = nc_put_vara_uchar(ncid_, var_id, start, count, 
                                static_cast<unsigned char *>(ptr));
+  }
   else if (t == MPI_UNSIGNED_SHORT) // Not quite right
+  {
     status = nc_put_vara_short(ncid_, var_id, start, count, 
                                 static_cast<short *>(ptr));
+  }
   else if (t == MPI_UNSIGNED) // Not quite right
+  {
     status = nc_put_vara_int(ncid_, var_id, start, count, 
                              static_cast<int *>(ptr));
+  }
   else if (t == MPI_UNSIGNED_LONG) // Not quite right
+  {
     status = nc_put_vara_long(ncid_, var_id, start, count, 
                                static_cast<long *>(ptr));
+  }
   else if (t == MPI_FLOAT)
+  {
     status = nc_put_vara_float(ncid_, var_id, start, count, 
                                static_cast<float *>(ptr));
+  }
   else if (t == MPI_DOUBLE)
+  {
     status = nc_put_vara_double(ncid_, var_id, start, count, 
                                static_cast<double *>(ptr));
+  }
   else if (t == MPI_LONG_DOUBLE) // Not quite right
+  {
     status = nc_put_vara_double(ncid_, var_id, start, count, 
                                static_cast<double *>(ptr));
+  }
   //else if (t == MPI_PACKED)
     
   else 
@@ -189,8 +251,9 @@ void *NetCDFDataWriter::write_data(int var_id, size_t *start,
     int i = 0;
     while (i < num_dts && dts[i] > 0)
     {
-      ptr = write_data(var_id, start, count, 
-                       dts[i], ptr, ints[i]);
+      bytes_written = write_data(var_id, start, count, 
+                                 dts[i], ptr, ints[i]);
+      static_cast<char *>(ptr) += bytes_written;
       i++;
     }
 
@@ -202,7 +265,7 @@ void *NetCDFDataWriter::write_data(int var_id, size_t *start,
   if (status != NC_NOERR)
     handle_error(status);
 
-  return ptr;
+  return bytes_written;
 }
 
 

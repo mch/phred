@@ -43,14 +43,22 @@ protected:
   void gather_data(Data &data);
 
   /**
-   * Does recursive writing of packed data. Increments the pointer
-   * after writing each value, and returns it. This function will only
+   * Does recursive writing of packed data. This function will only
    * be called on rank 0. This does nothing by default, but is defined
    * because subclasses do not necessarially have to override it (if
    * they override handle_data() instead). 
+   *
+   * @param data The data object describing the data to write
+   * @param t The MPI datatype to write; may be different than the one
+   * in the Data object because we take the datatype apart
+   * recursivly. 
+   * @param ptr A point to the data
+   * @param len The number of bytes left to write
+   *
+   * @return the number of bytes written. 
    */
-  virtual void *write_data(Data &data, MPI_Datatype t, void *ptr, 
-                           unsigned int len) = 0;
+  virtual unsigned int write_data(Data &data, MPI_Datatype t, void *ptr, 
+                                  unsigned int len) = 0;
 
 public:
   DataWriter(int rank, int size) 

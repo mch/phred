@@ -38,10 +38,19 @@ protected:
                  NC_WRITE|NC_SHARE */
   bool fopen_;
 
-  map<string, vector<int> > dim_ids_; /**< Maps variable names to the
-                                        dimension id's in used by that
-                                        variable. */
-  map<string, int> var_ids_; /**< Variable id's accessed by variable name **/ 
+  // I should probably group all of this data into an object...
+
+  typedef struct ncdfvar {
+    string var_name_;
+    vector<int> dim_ids_;
+    vector<int> dim_lens_;
+    int var_id_;
+    unsigned int time_step_;
+    bool time_dim_;
+  } ncdfvar_t; 
+  
+  map<string, ncdfvar_t> vars_;
+
 
   /**
    * Handle a NetCDF error... throws an exception. 
@@ -62,17 +71,19 @@ protected:
    */
   int get_dim(int i, int size, string name);
 
-  virtual void *write_data(Data &data, MPI_Datatype t, 
-                           void *ptr, unsigned int len);  
+  /**
+   * Implements the function from DataWriter. This calls the function
+   * below. */
+  unsigned int write_data(Data &data, MPI_Datatype t, 
+                          void *ptr, unsigned int len);  
 
 
   /**
-   * Does recursive writing of packed data. Increments the pointer
-   * after writing each value, and returns it. This function will only
+   * Does recursive writing of packed data. This function will only
    * be called on rank 0. 
    */
-  void *write_data(int var_id, size_t *start, size_t *count, 
-                   MPI_Datatype t, void *ptr, unsigned int len);  
+  unsigned int write_data(int var_id, size_t *start, size_t *count, 
+                          MPI_Datatype t, void *ptr, unsigned int len);  
 
 public:
 

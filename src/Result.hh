@@ -26,7 +26,11 @@ using namespace std;
  *
  * The dimensions defined by the subclasses is NOT to include
  * time. Since this request gets called on once every time step, time
- * is implied. 
+ * is implied. However, some results may accumulate data at each time
+ * step and return only one chunck of data at the end, such as a
+ * DFT. Such results can exclude themselves from the implicit time
+ * dimension by setting time_dim = false in thier constructors. It's
+ * up to DataWriters to hounor this flag of course. 
  */
 class Result
 {
@@ -48,6 +52,10 @@ protected:
 
   string dw_name_; /**< DataWriter name we intend our results for */
 
+  bool time_dim_; /**< True if this result has a time dimension. If
+                     false, DataWriters except only one result from
+                     this Result, usually at time_stop_. */
+
   /** 
    * Help subclasses know if they should return any results or not
    */
@@ -63,11 +71,20 @@ protected:
 public:
   Result() 
     : time_start_(0), time_stop_(~0),
-      time_space_(0) //, dw_(0)
+      time_space_(0), time_dim_(true)//, dw_(0)
   {}
 
   virtual ~Result()
   {}
+
+  /**
+   * Returns true if this result has a time dimension, that it,
+   * returns data at more than one time step. 
+   */
+  inline bool has_time_dimension()
+  {
+    return time_dim_;
+  }
 
   /**
    * Set the time related parameters

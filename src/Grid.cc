@@ -141,14 +141,22 @@ void Grid::free_material()
 
   if (Ca_) {
     delete[] Ca_;
-    delete[] Cbx_;
-    delete[] Cby_;
-    delete[] Cbz_;
-    
     delete[] Da_;
+
+    delete[] Cbx_;
     delete[] Dbx_;
-    delete[] Dby_;
-    delete[] Dbz_;
+
+    if (get_ldx() != get_ldy())
+    {
+      delete[] Cby_;
+      delete[] Dby_;
+    }
+
+    if (get_ldz() != get_ldy() && get_ldz() != get_ldx())
+    {
+      delete[] Cbz_;
+      delete[] Dbz_;
+    }
 
     Ca_ = Da_ = Cbx_ = Cby_ = Cbz_ = Dbx_ = Dby_ = Dbz_ = 0;
   }
@@ -224,6 +232,9 @@ void Grid::alloc_grid()
     hz_ = new field_t[sz];
     
     material_ = new unsigned int[sz];
+
+    if (!ex_ || !ey_ || !ez_ || !hx_ || !hy_ || !hz_ || !material_)
+      throw exception(); // Insufficient memory
   }
 }
 
@@ -239,12 +250,12 @@ void Grid::load_materials(MaterialLib &matlib)
   // Clear up any material data that may already be loaded
   free_material();
 
-  int num_mat = matlib.num_materials();
-  Ca_ = new mat_coef_t(num_mat);
-  Da_ = new mat_coef_t(num_mat);
+  int num_mat = matlib.num_materials() + 1;
+  Ca_ = new mat_coef_t[num_mat];
+  Da_ = new mat_coef_t[num_mat];
 
-  Cbx_ = new mat_coef_t(num_mat);
-  Dbx_ = new mat_coef_t(num_mat);
+  Cbx_ = new mat_coef_t[num_mat];
+  Dbx_ = new mat_coef_t[num_mat];
 
   // Save some memory if possible. 
   if (get_deltay() == get_deltax())
@@ -252,8 +263,8 @@ void Grid::load_materials(MaterialLib &matlib)
     Cby_ = Cbx_;
     Dby_ = Dbx_;
   } else {
-    Cby_ = new mat_coef_t(num_mat);
-    Dby_ = new mat_coef_t(num_mat);
+    Cby_ = new mat_coef_t[num_mat];
+    Dby_ = new mat_coef_t[num_mat];
   }
 
   if (get_deltaz() == get_deltax())
@@ -264,8 +275,8 @@ void Grid::load_materials(MaterialLib &matlib)
     Cbz_ = Cby_;
     Dbz_ = Dby_;
   } else {
-    Cbz_ = new mat_coef_t(num_mat);
-    Dbz_ = new mat_coef_t(num_mat);
+    Cbz_ = new mat_coef_t[num_mat];
+    Dbz_ = new mat_coef_t[num_mat];
   }
 
   vector<Material>::iterator iter = matlib.get_material_iter_begin();

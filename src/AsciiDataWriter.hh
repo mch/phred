@@ -20,6 +20,7 @@ protected:
   ofstream file_;
   
   unsigned int dim_len_;
+  bool time_dim_; /**< True if this variable has a time dimension */
 
   /**
    * Write an array of data
@@ -28,18 +29,20 @@ protected:
    * @return the advanced ptr
    */
   template<class T>
-  void *write_array(void *ptr, unsigned int len);
+  unsigned int write_array(void *ptr, unsigned int len);
 
   /**
-   * Does recursive writing of packed data. Increments the pointer
-   * after writing each value, and returns it. This function will only
-   * be called on rank 0. 
+   * Does recursive writing of packed data. This function will only be
+   * called on rank 0.
    */
-  virtual void *write_data(MPI_Datatype t, void *ptr, 
-                           unsigned int len);
+  unsigned int write_data(MPI_Datatype t, void *ptr, 
+                          unsigned int len);
 
-  void *write_data(Data &data, MPI_Datatype t, void *ptr, 
-                   unsigned int len);
+  /**
+   * Called by gather_data(), calls the above function. 
+   */
+  unsigned int write_data(Data &data, MPI_Datatype t, void *ptr, 
+                          unsigned int len);
 
   /**
    * Called by gather_data() to indicate that all of the data

@@ -16,8 +16,10 @@ protected:
   field_t freq_start_; /**< First frequency in the range */
   field_t freq_stop_; /**< Last frequency in the range */
   unsigned int num_freqs_; /**< Number of frequencies in range */
+  field_t freq_space_;
 
-  field_t *result_; /**< Storage for the result. */
+  field_t *result_; /**< Storage for the result. Interlevaved data;
+                       freq, Real DFT value, Imag DFT value, etc */
 
 public:
   SourceDFTResult(TimeExcitation &te, field_t freq_start,
