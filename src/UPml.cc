@@ -41,8 +41,6 @@ UPml::~UPml()
 
 void UPml::compute_regions(Face face, const Grid &grid)
 {
-  const BoundaryCond *bc = 0;
-
   grid_r_ = find_face(face, grid);
 
   bc_r_.xmin = bc_r_.ymin = bc_r_.zmin = 0;
@@ -150,9 +148,6 @@ void UPml::compute_regions(Face face, const Grid &grid)
       break;
     }
 
-    cerr << "Re-jiggering the boundaries so that there is no overlap..."
-         << endl;
-
     switch (face)
     {
     case FRONT:
@@ -160,84 +155,105 @@ void UPml::compute_regions(Face face, const Grid &grid)
       if (grid.get_boundary(LEFT).get_type() == UPML)
       {
         grid_ey_r_.ymin += grid.get_boundary(LEFT).get_thickness();
-        grid_hy_r_.ymin += grid.get_boundary(LEFT).get_thickness();
+        grid_hy_r_.ymin += grid.get_boundary(LEFT).get_thickness() + 1;
       }
 
       if (grid.get_boundary(RIGHT).get_type() == UPML)
       {
         grid_ey_r_.ymax -= grid.get_boundary(LEFT).get_thickness();
-        grid_hy_r_.ymax -= grid.get_boundary(LEFT).get_thickness();
+        grid_hy_r_.ymax -= grid.get_boundary(LEFT).get_thickness() + 1;
       }
 
       if (grid.get_boundary(TOP).get_type() == UPML)
       {
         grid_ez_r_.zmax -= grid.get_boundary(TOP).get_thickness();
-        grid_hz_r_.zmax -= grid.get_boundary(TOP).get_thickness();
+        grid_hz_r_.zmax -= grid.get_boundary(TOP).get_thickness() + 1;
       }
 
       if (grid.get_boundary(BOTTOM).get_type() == UPML)
       {
         grid_ez_r_.zmin += grid.get_boundary(BOTTOM).get_thickness();
-        grid_hz_r_.zmin += grid.get_boundary(BOTTOM).get_thickness();
+        grid_hz_r_.zmin += grid.get_boundary(BOTTOM).get_thickness() + 1;
       }
-      cerr << "Fixed front or back..." << endl;
-      break;
-
-    case TOP:
-    case BOTTOM:
-      if (grid.get_boundary(LEFT).get_type() == UPML)
-      {
-        grid_ey_r_.ymin += grid.get_boundary(LEFT).get_thickness();
-        grid_hy_r_.ymin += grid.get_boundary(LEFT).get_thickness();
-      }
-
-      if (grid.get_boundary(RIGHT).get_type() == UPML)
-      {
-        grid_ey_r_.ymax -= grid.get_boundary(LEFT).get_thickness();
-        grid_hy_r_.ymax -= grid.get_boundary(LEFT).get_thickness();
-      }
-
-      if (grid.get_boundary(FRONT).get_type() == UPML)
-      {
-        grid_ex_r_.xmin += grid.get_boundary(FRONT).get_thickness();
-        grid_hx_r_.xmin += grid.get_boundary(FRONT).get_thickness();
-      }
-
-      if (grid.get_boundary(BACK).get_type() == UPML)
-      {
-        grid_ex_r_.xmax -= grid.get_boundary(BACK).get_thickness();
-        grid_hx_r_.xmax -= grid.get_boundary(BACK).get_thickness();
-      }
-      cerr << "Fixed top or bottom..." << endl;
       break;
 
     case LEFT:
     case RIGHT:
       if (grid.get_boundary(FRONT).get_type() == UPML)
       {
-        grid_ex_r_.xmin += grid.get_boundary(FRONT).get_thickness();
-        grid_hx_r_.xmin += grid.get_boundary(FRONT).get_thickness();
+        unsigned int thickness = grid.get_boundary(FRONT).get_thickness();
+        grid_ex_r_.xmax -= thickness;
+        grid_hx_r_.xmax -= thickness + 1;
+        grid_ez_r_.xmax -= thickness;
+        grid_hz_r_.xmax -= thickness + 1;
       }
 
       if (grid.get_boundary(BACK).get_type() == UPML)
       {
-        grid_ex_r_.xmax -= grid.get_boundary(BACK).get_thickness();
-        grid_hx_r_.xmax -= grid.get_boundary(BACK).get_thickness();
+        unsigned int thickness = grid.get_boundary(BACK).get_thickness();
+        grid_ex_r_.xmin += thickness;
+        grid_hx_r_.xmin += thickness + 1;
+        grid_ez_r_.xmin += thickness;
+        grid_hz_r_.xmin += thickness + 1;
       }
 
       if (grid.get_boundary(TOP).get_type() == UPML)
       {
-        grid_ez_r_.zmax -= grid.get_boundary(TOP).get_thickness();
-        grid_hz_r_.zmax -= grid.get_boundary(TOP).get_thickness();
+        unsigned int thickness = grid.get_boundary(TOP).get_thickness();
+        grid_ez_r_.zmax -= thickness;
+        grid_hz_r_.zmax -= thickness + 1;
+        grid_ex_r_.zmax -= thickness;
+        grid_hx_r_.zmax -= thickness + 1;
       }
 
       if (grid.get_boundary(BOTTOM).get_type() == UPML)
       {
-        grid_ez_r_.zmin += grid.get_boundary(BOTTOM).get_thickness();
-        grid_hz_r_.zmin += grid.get_boundary(BOTTOM).get_thickness();
+        unsigned int thickness = grid.get_boundary(BOTTOM).get_thickness();
+        grid_ez_r_.zmin += thickness;
+        grid_hz_r_.zmin += thickness + 1;
+        grid_ex_r_.zmin += thickness;
+        grid_hx_r_.zmin += thickness + 1;
       }
-      cerr << "Fixed left or right..." << endl;
+      break;
 
+    case TOP:
+    case BOTTOM:
+      if (grid.get_boundary(LEFT).get_type() == UPML)
+      {
+        unsigned int thickness = grid.get_boundary(LEFT).get_thickness();
+        grid_ey_r_.ymin += thickness;
+        grid_hy_r_.ymin += thickness + 1;
+        grid_ex_r_.ymin += thickness;
+        grid_hx_r_.ymin += thickness + 1;
+      }
+
+      if (grid.get_boundary(RIGHT).get_type() == UPML)
+      {
+        unsigned int thickness = grid.get_boundary(LEFT).get_thickness();
+        grid_ey_r_.ymax -= thickness;
+        grid_hy_r_.ymax -= thickness + 1;
+        grid_ex_r_.ymax -= thickness;
+        grid_hx_r_.ymax -= thickness + 1;
+      }
+
+      if (grid.get_boundary(FRONT).get_type() == UPML)
+      {
+        unsigned int thickness = grid.get_boundary(FRONT).get_thickness();
+        grid_ex_r_.xmax -= thickness;
+        grid_hx_r_.xmax -= thickness + 1;
+        grid_ey_r_.xmax -= thickness;
+        grid_hy_r_.xmax -= thickness;
+      }
+
+      if (grid.get_boundary(BACK).get_type() == UPML)
+      {
+        unsigned int thickness = grid.get_boundary(BACK).get_thickness();
+        grid_ex_r_.xmin += thickness;
+        grid_hx_r_.xmin += thickness + 1;
+        grid_ey_r_.xmin += thickness;
+        grid_hy_r_.xmin += thickness + 1;
+      }
+      cerr << "Fixed top or bottom..." << endl;
       break;
     }
   }

@@ -59,6 +59,13 @@ public:
    */
   void apply(Face face,
              Grid &grid, FieldType type);  
+
+  /**
+   * Boundary condition type. Subclasses may implement. Only really
+   * important for PMLs.
+   */
+  virtual BoundaryCondition get_type() const;
+
 };
 
 #endif // EWALL_H

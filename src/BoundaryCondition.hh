@@ -108,8 +108,8 @@ protected:
   region_t find_local_region(region_t field_r);
 
 public:
-  BoundaryCond() : thickness_(0) {}
-  virtual ~BoundaryCond() {}
+  BoundaryCond();
+  virtual ~BoundaryCond();
 
   /**
    * Applies a boundary condition to a face of the grid.
@@ -140,24 +140,19 @@ public:
    * Boundary condition type. Subclasses may implement. Only really
    * important for PMLs.
    */
-  virtual BoundaryCondition get_type() const
-  {
-    return UNKNOWN;
-  }
+  virtual BoundaryCondition get_type() const;
 
   /**
    * Our own special version of LifeCycle's init() which has an
    * additional parameter: the face number the bounary is on.
    */ 
-  virtual void init(const Grid &grid, Face face)
-  {}
+  virtual void init(const Grid &grid, Face face);
 
   /**
    * Our own special version of LifeCycle's deinit() which has an
    * additional parameter: the face number the bounary is on.
    */ 
-  virtual void deinit(const Grid &grid, Face face)
-  {}
+  virtual void deinit(const Grid &grid, Face face);
 
   /**
    * Boundaries may have to share data across subdomain
@@ -169,8 +164,7 @@ public:
    * @param bcface the face the PML is on
    * @param sdface the face the subdmoain is on
    */ 
-  virtual void add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface)
-  {}
+  virtual void add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface);
 };
 
 /**

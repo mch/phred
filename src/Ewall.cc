@@ -70,6 +70,7 @@ void Ewall::apply(Face face, Grid &grid, FieldType type)
   
 }
 
-
-
-
+BoundaryCondition Ewall::get_type() const
+{
+  return EWALL;
+}

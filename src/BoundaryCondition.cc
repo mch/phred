@@ -22,6 +22,13 @@
 #include "BoundaryCondition.hh"
 #include "Grid.hh" // Flesh out the forward declaration
 
+BoundaryCond::BoundaryCond() 
+  : thickness_(0) 
+{}
+
+BoundaryCond::~BoundaryCond() 
+{}
+
 // PML's are actually one cell thicker than advertised, and this
 // routine bears that out...
 region_t BoundaryCond::find_face(Face face, const Grid &grid)
@@ -256,3 +263,17 @@ unsigned int BoundaryCond::get_thickness() const
 {
   return thickness_;
 }
+
+BoundaryCondition BoundaryCond::get_type() const
+{
+  return UNKNOWN;
+}
+
+void BoundaryCond::init(const Grid &grid, Face face)
+{}
+
+void BoundaryCond::deinit(const Grid &grid, Face face)
+{}
+
+void BoundaryCond::add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface)
+{}

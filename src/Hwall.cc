@@ -70,6 +70,7 @@ void Hwall::apply(Face face, Grid &grid, FieldType type)
   
 }
 
-
-
-
+BoundaryCondition Hwall::get_type() const
+{
+  return HWALL;
+}
