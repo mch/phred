@@ -44,11 +44,10 @@ enum FfType {
  * collect data from other ranks using MPI communication. This might
  * be refactored later...
  *
- * This class implements Luebbers' method, Taflove, Computational
- * Electrodynamics, 2nd ed, pg 366
- *
- * \bug This could save a lot of work by putting the phi, theta loop
- * inside the algorithm function. 
+ * This class implements Luebbers' method, R. J. Luebbers,
+ * M. Scheider, "A finite-difference time-domain near zone to far zone
+ * transformation", IEEE Transactions on Antennas and Propagation, Vol
+ * 39, No 4, April 1991, 429-433.
  */
 class FarfieldResult : public DFTResult
 {
@@ -86,7 +85,7 @@ public:
   { box_ = box; }
 
   /**
-   * Set the range of theta (angle from the X axis) to calculate the
+   * Set the range of theta (angle from the Z axis) to calculate the
    * farfield data for. The range must not span more than 360 degrees. 
    *
    * @param theta_start starting angle in radians
@@ -98,7 +97,7 @@ public:
                  unsigned int num_theta);
 
   /**
-   * Set the range of phi (angle from the Z axis) to calculate the
+   * Set the range of phi (angle from the X axis) to calculate the
    * farfield data for. The range must not span more than 180 degrees. 
    *
    * @param phi_start starting angle in radians
@@ -110,7 +109,7 @@ public:
                unsigned int num_phi);
 
   /**
-   * Set the range of theta (angle from the X axis) to calculate the
+   * Set the range of theta (angle from the Z axis) to calculate the
    * farfield data for. The range must not span more than 360 degrees. 
    *
    * @param theta_start starting angle in radians
@@ -122,7 +121,7 @@ public:
                          unsigned int num_theta);
 
   /**
-   * Set the range of phi (angle from the Z axis) to calculate the
+   * Set the range of phi (angle from the X axis) to calculate the
    * farfield data for. The range must not span more than 180 degrees. 
    *
    * @param phi_start starting angle in degrees
@@ -176,10 +175,10 @@ protected:
   // Number of farfield timesteps we need to save data for
   unsigned int ff_tsteps_;
 
-  // Number of time steps it takes for a wave to progagate through
-  // freespace between the two points which are farthest from each
-  // other on the Huygen's surface.
-  unsigned int t_cross_;
+  // Time it takes for a wave to progagate through freespace between
+  // the two points which are farthest from each other on the Huygen's
+  // surface.
+  field_t t_cross_;
 
   // Field components of W and U. These are each 3 dimensional grids,
   // indexed by phi, theta, and farfield tstep. These are contiguous
@@ -199,6 +198,14 @@ protected:
   // fftimestep.
   field_t *E_theta_, *E_phi_;
 
+  // DFT'ed normalized farfield E_theta and E_phi. These are 3d,
+  // indexed by phi, theta, and finally contigouos along frequency. 
+  field_t *e_theta_real_, *e_theta_imag_;
+  field_t *e_phi_real_, *e_phi_imag_;
+
+  // DFT'ed farfield RCS, 3d, as above. 
+  field_t *rcs_;
+
   // Output variables
   Variable freqs_;
   Variable theta_;
@@ -206,6 +213,13 @@ protected:
   Variable E_theta_var_;
   Variable E_phi_var_;
 
+  // DFT'd variables
+  Variable e_tr_;
+  Variable e_ti_;
+  Variable e_pr_;
+  Variable e_pi_;
+  Variable rcs_var_;
+  
   /**
    * A helper for accessing data in the E and H temporary arrays. Data
    * is treated as contiguous along x2.
@@ -224,22 +238,37 @@ protected:
     return x2 + (x1 + (component + face * 3) * size1) * size2;
   }
 
-  /**
-   * A helper for accessing data in the W and U arrays. Data is
-   * contiguous along the time step.
-   *
-   * @param phi observation point angle with the z axis
-   * @param theta observation point angle with the x axis
-   * @param fftstep far field time step
-   */ 
-  inline int WU_index(int phi_idx, int theta_idx, int ffstep)
-  {
-    return ffstep + (theta_idx + phi_idx * theta_data_.length()) * ff_tsteps_;
-  }
-
   void idx_tests();
   void dump_temps();
 
+  /**
+   * A helper for calculating the offset into the dft arrays
+   *
+   * @param phi observation point angle with the x axis
+   * @param theta observation point angle with the z axis
+   * @param f_idx frequency index
+   */
+  inline int dft_index(int phi_idx, int theta_idx, int f_idx)
+  {
+    return f_idx + (theta_idx + phi_idx * theta_data_.length()) 
+      * frequencies_.length();
+  }
+
 };
+
+/**
+ * A helper for accessing data in the W and U arrays. Data is
+ * contiguous along the time step.
+ *
+ * @param phi observation point angle with the x axis
+ * @param theta observation point angle with the z axis
+ * @param fftstep far field time step
+ */ 
+inline static int WU_index(int phi_idx, int theta_idx, int ffstep, 
+                           int theta_length, int ff_tsteps)
+{
+  return ffstep + (theta_idx + phi_idx * theta_length) * ff_tsteps;
+}
+
 
 #endif // FARFIELD_RESULT_H

@@ -288,8 +288,12 @@ void FDTD::run()
   grid_->set_define_mode(false);
 
   if (!quiet)
+  {
+    cout << "Grid is " << get_num_x_cells() << "x" << get_num_y_cells()
+         << "x" << get_num_z_cells() << " cells in size.\n";
+    cout << "Time step size is " << get_time_delta() << ".\n\n";
     cout << "Initializing results, data writers, and excitations..." << endl;
-
+  }
   // Life cycle init
   map<string, shared_ptr<Excitation> >::iterator 
     e_eiter_b = e_excitations_.begin();
