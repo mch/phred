@@ -20,6 +20,7 @@
 */
 
 #include <boost/python.hpp>
+#include <boost/ref.hpp>
 
 #include "../Excitation.hh"
 #include "../WindowedExcitation.hh"
@@ -58,7 +59,7 @@ public:
 
   void excite(Grid &grid, unsigned int time_step,
               FieldType type) 
-  { call_method<void>(self_, "excite", grid, time_step, type); }
+  { call_method<void>(self_, "excite", boost::ref(grid), time_step, type); }
 
   void default_excite(Grid &grid, unsigned int time_step,
                       FieldType type) 

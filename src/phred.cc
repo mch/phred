@@ -167,7 +167,7 @@ main (int argc, char **argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  if (rank == 0)
+  //if (rank == 0)
   {
     prog_name = argv[0];
     len = prog_name.size();
@@ -177,6 +177,8 @@ main (int argc, char **argv)
     // args, although MPICH does.
     i = decode_switches (argc, argv);
   } 
+  // else { // rank 0 passes appropriate args
+  
 
   cout << "phread version " << PACKAGE_VERSION << " starting on " 
        << "rank " << rank << " of " << size << " processes." << endl;
