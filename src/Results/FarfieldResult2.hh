@@ -70,7 +70,7 @@ public:
 
   /**
    * Set the range of theta (angle from the X axis) to calculate the
-   * farfield data for.
+   * farfield data for. The range must not span more than 360 degrees. 
    *
    * @param theta_start starting angle in radians
    * @param theta_stop end angle in radians
@@ -82,7 +82,7 @@ public:
 
   /**
    * Set the range of phi (angle from the Z axis) to calculate the
-   * farfield data for.
+   * farfield data for. The range must not span more than 180 degrees. 
    *
    * @param phi_start starting angle in radians
    * @param phi_stop end angle in radians
@@ -91,6 +91,30 @@ public:
    */ 
   void set_phi(field_t phi_start, field_t phi_stop, 
                unsigned int num_phi);
+
+  /**
+   * Set the range of theta (angle from the X axis) to calculate the
+   * farfield data for. The range must not span more than 360 degrees. 
+   *
+   * @param theta_start starting angle in radians
+   * @param theta_stop end angle in radians
+   * @param num_theta number of points of theta to calculate FF data
+   * for. Must be greater than 0.
+   */ 
+  void set_theta_degrees(field_t theta_start, field_t theta_stop, 
+                         unsigned int num_theta);
+
+  /**
+   * Set the range of phi (angle from the Z axis) to calculate the
+   * farfield data for. The range must not span more than 180 degrees. 
+   *
+   * @param phi_start starting angle in degrees
+   * @param phi_stop end angle in degrees
+   * @param num_phi number of points of phi to calculate FF data
+   * for. Must be greater than 0.
+   */ 
+  void set_phi_degrees(field_t phi_start, field_t phi_stop, 
+                       unsigned int num_phi);
 
   /**
    * Print a string representation to an ostream.
@@ -109,11 +133,11 @@ private:
 
   // Storage space for J and M phasors on each face
 #ifdef HAVE_COMPLEX
-  complex<field_t> *J1_data_[6];
-  complex<field_t> *J2_data_[6];
+  complex<field_t> *Jt1_data_[6];
+  complex<field_t> *Jt2_data_[6];
 
-  complex<field_t> *M1_data_[6];
-  complex<field_t> *M2_data_[6];
+  complex<field_t> *Mt1_data_[6];
+  complex<field_t> *Mt2_data_[6];
 
   // Storage space for farfield E_theta data theta x phi x freq
   complex<field_t> *e_theta_data_;

@@ -41,7 +41,7 @@ protected:
   virtual field_t window(float x, float y, float z);
 
 public:
-  BartlettExcitation(shared_ptr<SourceFunction> sf);
+  BartlettExcitation(shared_ptr<Signal> sf);
   ~BartlettExcitation();
 
   /**

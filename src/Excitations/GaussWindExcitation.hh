@@ -44,7 +44,7 @@ protected:
   virtual field_t window(float x, float y, float z);
 
 public:
-  GaussWindExcitation(shared_ptr<SourceFunction> sf); 
+  GaussWindExcitation(shared_ptr<Signal> sf); 
 
   ~GaussWindExcitation();
 

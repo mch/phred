@@ -28,12 +28,12 @@
 #ifndef EXCITE_GAUSSM_H
 #define EXCITE_GAUSSM_H
 
-#include "SignalFunction.hh"
+#include "Signal.hh"
 #include "../Constants.hh"
 
 #include <math.h>
 
-class Gaussm : public SignalFunction
+class Gaussm : public Signal
 {
 protected:
   field_t alpha_;

@@ -21,7 +21,7 @@
 
 #include "TotalScattered.hh"
 
-TotalScattered::TotalScattered(shared_ptr<SourceFunction> sf)
+TotalScattered::TotalScattered(shared_ptr<Signal> sf)
   : Excitation(sf)
 {
 

@@ -41,7 +41,7 @@ field_t BartlettExcitation::window(float x, float y, float z)
   return wx * wy * wz;
 }
 
-BartlettExcitation::BartlettExcitation(shared_ptr<SourceFunction> sf) 
+BartlettExcitation::BartlettExcitation(shared_ptr<Signal> sf) 
   : WindowedExcitation(sf)
 {}
 

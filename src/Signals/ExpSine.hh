@@ -22,12 +22,12 @@
 #ifndef EXCITE_EXPSINE_H
 #define EXCITE_EXPSINE_H
 
-#include "SignalFunction.hh"
+#include "Signal.hh"
 #include "../Constants.hh"
 
 #include <math.h>
 
-class ExpSine : public SignalFunction
+class ExpSine : public Signal
 {
 public:
   /**

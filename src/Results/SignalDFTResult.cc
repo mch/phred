@@ -25,13 +25,13 @@
 
 #include <math.h>
 
-SignalDFTResult::SignalDFTResult(SignalFunction &te)
+SignalDFTResult::SignalDFTResult(Signal &te)
   : te_(te), result_(0)
 {
   variables_["Signal_DFT"] = &var_;
 }
 
-SignalDFTResult::SignalDFTResult(SignalFunction &te, 
+SignalDFTResult::SignalDFTResult(Signal &te, 
                                   field_t freq_start,
                                   field_t freq_stop, 
                                   unsigned int num_freqs)
@@ -89,7 +89,7 @@ void SignalDFTResult::deinit()
   }
 }
 
-void SignalDFTResult::set_excitation(const SignalFunction &te)
+void SignalDFTResult::set_excitation(const Signal &te)
 {
   te_ = te;
 }

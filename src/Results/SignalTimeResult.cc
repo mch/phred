@@ -22,7 +22,7 @@
 #include "SignalTimeResult.hh"
 #include "../Globals.hh"
 
-SignalTimeResult::SignalTimeResult(SignalFunction &te)
+SignalTimeResult::SignalTimeResult(Signal &te)
   : te_(te)
 {
   variables_["Signal time excitation"] = &var_;
@@ -44,7 +44,7 @@ void SignalTimeResult::init(const Grid &grid)
   var_.set_name(base_name_);
 }
 
-void SignalTimeResult::set_excitation(const SignalFunction &te)
+void SignalTimeResult::set_excitation(const Signal &te)
 {
   te_ = te;
 }

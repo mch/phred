@@ -23,7 +23,7 @@
 #define SIGNAL_DFT_RESULT_H
 
 #include "DFTResult.hh"
-#include "../Signals/SignalFunction.hh"
+#include "../Signals/Signal.hh"
 
 /**
  * Outputs the DFT of a signal function. Only really applies to
@@ -33,7 +33,7 @@ class SignalDFTResult : public DFTResult
 {
 private:
 protected:
-  SignalFunction &te_; /**< The dft excitation to save. */
+  Signal &te_; /**< The dft excitation to save. */
 
   field_t *result_; /**< Storage for the result. Interlevaved data;
                        freq, Real DFT value, Imag DFT value, etc */
@@ -41,8 +41,8 @@ protected:
   Variable var_;
 
 public:
-  SignalDFTResult(SignalFunction &te);
-  SignalDFTResult(SignalFunction &te, field_t freq_start,
+  SignalDFTResult(Signal &te);
+  SignalDFTResult(Signal &te, field_t freq_start,
                   field_t freq_stop, unsigned int num_freqs);
   ~SignalDFTResult();
 
@@ -50,7 +50,7 @@ public:
    * Set the signal or TimeExcitation to use.
    * @param a reference to a TimeExcitation object
    */ 
-  void set_excitation(const SignalFunction &te);
+  void set_excitation(const Signal &te);
 
   /**
    * Produces a running DFT from the signal, considering only the time

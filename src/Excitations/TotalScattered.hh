@@ -33,7 +33,7 @@
 class TotalScattered : public Excitation
 {
 public:
-  TotalScattered(shared_ptr<SourceFunction> sf);
+  TotalScattered(shared_ptr<Signal> sf);
   ~TotalScattered();
 
   /**

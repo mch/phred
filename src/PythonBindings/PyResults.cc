@@ -87,12 +87,12 @@ void export_results()
     ;
 
   class_<SignalDFTResult, bases<DFTResult> >
-    ("SignalDFTResult", init<SignalFunction &>())
-    .def(init<SignalFunction &, float, float, unsigned int>())
+    ("SignalDFTResult", init<Signal &>())
+    .def(init<Signal &, float, float, unsigned int>())
     ;
 
   class_<SignalTimeResult, bases<Result> >
-    ("SignalTimeResult", init<SignalFunction &>())
+    ("SignalTimeResult", init<Signal &>())
     ;
 
   class_<BlockResult, bases<Result> >

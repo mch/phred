@@ -21,7 +21,7 @@
 
 #include "Excitation.hh"
 
-Excitation::Excitation(shared_ptr<SignalFunction> sf)
+Excitation::Excitation(shared_ptr<Signal> sf)
   : type_(E), soft_(false),
     sf_(sf)
 {

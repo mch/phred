@@ -21,7 +21,7 @@
 
 #include "WindowedExcitation.hh"
 
-WindowedExcitation::WindowedExcitation(shared_ptr<SignalFunction> sf) 
+WindowedExcitation::WindowedExcitation(shared_ptr<Signal> sf) 
   : Excitation(sf), xmin_(0), xmax_(0), ymin_(0), ymax_(0),
     zmin_(0), zmax_(0)
 {}

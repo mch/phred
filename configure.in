@@ -86,6 +86,7 @@ dnl Check for compiler things
 AC_C_INLINE
 AC_C_BIGENDIAN
 AC_C_RESTRICT
+AC_CXX_HAVE_COMPLEX
 
 dnl Blitz++, required for optimization
 AC_CXX_LIB_BLITZ
@@ -336,7 +337,7 @@ AC_OUTPUT([Makefile
            src/Excitations/Makefile 
            src/DataWriters/Makefile 
            src/Boundaries/Makefile 
-           src/Sources/Makefile 
+           src/Signals/Makefile 
            src/CSG/Makefile])
 
 

@@ -34,7 +34,7 @@
 class WaveguideExcitation : public WindowedExcitation
 {
 public:
-  WaveguideExcitation(shared_ptr<SourceFunction> sf);
+  WaveguideExcitation(shared_ptr<Signal> sf);
   ~WaveguideExcitation();
 
   virtual field_t window(float x, float y, float z);

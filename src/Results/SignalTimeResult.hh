@@ -23,7 +23,7 @@
 #define SIGNAL_TIME_RESULT_H
 
 #include "Result.hh"
-#include "../Signals/SignalFunction.hh"
+#include "../Signals/Signal.hh"
 
 /**
  * Outputs a signal function at the timestep.
@@ -32,14 +32,14 @@ class SignalTimeResult : public Result
 {
 private:
 protected:
-  SignalFunction &te_; /**< The time excitation to save. */
+  Signal &te_; /**< The time excitation to save. */
 
   field_t result_[2]; /**< Storage for the result. */
   
   Variable var_;
 
 public:
-  SignalTimeResult(SignalFunction &te);
+  SignalTimeResult(Signal &te);
   ~SignalTimeResult();
 
   /**
@@ -48,10 +48,10 @@ public:
   virtual void init(const Grid &grid);
 
   /**
-   * Set the signal or SignalFunction to use.
-   * @param a reference to a SignalFunction object
+   * Set the signal or Signal to use.
+   * @param a reference to a Signal object
    */ 
-  void set_excitation(const SignalFunction &te);
+  void set_excitation(const Signal &te);
 
   /**
    * Produces output from the signal, considering only the time step. 

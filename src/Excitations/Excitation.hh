@@ -35,7 +35,7 @@
 
 #include "../Types.hh"
 #include "../Grid.hh"
-#include "../Signals/SignalFunction.hh"
+#include "../Signals/Signal.hh"
 #include "../LifeCycle.hh"
 
 class Excitation : public LifeCycle
@@ -63,7 +63,7 @@ protected:
    */
   bool soft_;
 
-  shared_ptr<SignalFunction> sf_; /**< Signal function object to apply */
+  shared_ptr<Signal> sf_; /**< Signal function object to apply */
 
   shared_ptr<CSGBox> box_; /**< The box representing the area where
                               the excitation is to be applied. */
@@ -76,9 +76,9 @@ public:
    * grid. Creates a copy of the signal function object to use, so you
    * don't have to hold onto a reference.
    *
-   * @param sf SignalFunction object to use as an excitation. 
+   * @param sf Signal object to use as an excitation. 
    */
-  Excitation(shared_ptr<SignalFunction> sf);
+  Excitation(shared_ptr<Signal> sf);
 
   virtual ~Excitation();
 
