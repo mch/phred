@@ -1,0 +1,75 @@
+% Here is the URL of the package being
+% used to process these slides:
+% http://prosper.sourceforge.net/
+
+\documentclass[pdf, nototal, slideBW]{prosper}
+% Other good style is corners, fyma
+
+\usepackage[dvips]{graphics}
+\usepackage{color}
+\usepackage{epsfig}
+
+% Automagic full screen
+%\hypersetup{pdfpagemode=FullScreen}
+
+\newcommand{\insfig}[2]{
+  \begin{center}
+    \scalebox{#1}{
+      \input{#2}
+      }
+  \end{center}
+}
+
+\newcommand{\insgraphic}[2]{
+  \begin{center}
+    \scalebox{#1}{
+      \includegraphics{#2}
+    }
+  \end{center}
+}
+
+\title{A hybrid parallized FDTD code}
+
+%\subtitle{Applications and Analysis}
+
+\author{Matt Hughes}
+\email{mhughe@uvic.ca}
+\date{July 28rd, 2004}
+\institution{University of Victoria}
+\slideCaption{\normalsize Parallel FDTD}
+
+%\Logo(10,0){\scalebox{0.4}{\includegraphics{multiheadsm.eps}}}
+
+\begin{document}
+
+\maketitle
+
+\begin{slide}{Summary}
+
+  \begin{itemize}
+    \item Architechure Overview 
+    \item Memory Organization Improvments
+    \item Minerva
+    \item Hybrid Parallization
+    \item Python Scripting
+    \item The Future
+    \item Conclusion
+  \end{itemize}
+
+\end{slide}
+
+\begin{slide}{Archetecture}
+  Object Oriented Infastruction
+
+  \begin{itemize}
+  \item 
+  \end{itemize}
+\end{slide}
+
+\begin{slide}{?}
+\huge
+\vspace{1cm}
+Questions?
+\end{slide}
+
+\end{document}
