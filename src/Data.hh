@@ -157,7 +157,13 @@ private:
   { return 0; }
   
 protected:
+  FieldType field_type_; /**< The field type of the data being exchanged */
+
 public:
+  RxTxData()
+    : field_type_(E)
+  {}
+
   /**
    * Set the rx pointer
    */
@@ -190,6 +196,22 @@ public:
     return get_ptr(1);
   }
 
+  /**
+   * Set the field type (E or H)
+   */
+  inline void set_field_type(FieldType t)
+  {
+    field_type_ = t;
+  }
+
+  /**
+   * Returns the field type of this data
+   */
+  inline FieldType get_field_type()
+  {
+    return field_type_;
+  }
+  
 };
 
 #endif // DATA_H

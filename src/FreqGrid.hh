@@ -21,27 +21,59 @@ protected:
   field_t *ey_sum_;
   field_t *ez_sum_;
 
-  /** 
-   * Allocate memory for the grid. Called by setup_grid(). Calls
-   * Grid::alloc_grid, but adds allocation for the running sums. 
-   */ 
-  virtual void alloc_grid();
-
   /**
    * Free the memory allocated for the grid. Calls Grid::free_grid(),
    * but also frees the memory allocated to keep track of the sums. 
    */ 
   virtual void free_grid();
 
+  /**
+   * Compute the update equatations for the Ex field component. 
+   */
+  virtual void update_ex();
+
+  /**
+   * Compute the update equatations for the Ey field component. 
+   */
+  virtual void update_ey();
+
+  /**
+   * Compute the update equatations for the Ez field component. 
+   */
+  virtual void update_ez();
+
+  /**
+   * Compute the update equatations for the Hx field component. 
+   */
+  virtual void update_hx();
+
+  /**
+   * Compute the update equatations for the Hy field component. 
+   */
+  virtual void update_hy();
+
+  /**
+   * Compute the update equatations for the Hz field component. 
+   */
+  virtual void update_hz();
+
 public:
   FreqGrid();
   virtual ~FreqGrid();
 
   /**
-   * Compute the next time step of the fields, taking into account the
-   * frequency dispersive materials.
+   * Copy constructor. Pretty much everything is copied, but the grid
+   * is condidered uninitialized. No memory is allocated, grid data
+   * pointers are set to zero. 
    */
-  virtual void update_fields();
+  FreqGrid(const FreqGrid &rhs);
+
+  /**
+   * Assignment operator. Pretty much everything is copied, but the
+   * grid is condidered uninitialized. No memory is allocated, grid
+   * data pointers are set to zero.
+   */
+  const FreqGrid &operator=(const FreqGrid &rhs);
 
   /**
    * Calculate the material constants from the given material
@@ -51,7 +83,18 @@ public:
    */
   virtual void load_materials(MaterialLib &matlib);
 
-  
+  /**
+   * Deallocate the memory used to store material coeffcients and so
+   * on. This function can only be used in define mode. 
+   */
+  virtual void free_material();
+ 
+  /** 
+   * Allocate memory for the grid. Called by setup_grid(). Calls
+   * Grid::alloc_grid, but adds allocation for the running sums. 
+   */ 
+  virtual void alloc_grid();
+ 
 };
 
 #endif // FREQ_GRID_H

@@ -641,24 +641,94 @@ float Pml::sigma_over_eps_int(float x)
   }
 }
 
-RxTxData Pml::get_rx_tx_data(Face pmlface, Face sdface)
+void Pml::add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface)
 {
   RxTxData ret;
+  unsigned int s_idx = 0, r_idx = 0;
 
   switch (sdface) {
   case BACK:
+    s_idx = pi(1, 0, 0);
+    r_idx = pi(0, 0, 0);
+    ret.set_datatype(xz_plane_);
     break;
   case FRONT:
+    s_idx = pi(pml_r_.xmax - 2, 0, 0);
+    r_idx = pi(pml_r_.xmax - 1, 0, 0);
+    ret.set_datatype(xz_plane_);
     break;
   case LEFT:
+    s_idx = pi(0, 1, 0);
+    r_idx = pi(0, 0, 0);
+    ret.set_datatype(yz_plane_);
     break;
   case RIGHT:
+    s_idx = pi(0, pml_r_.ymax - 2, 0);
+    r_idx = pi(0, pml_r_.ymax - 1, 0);
+    ret.set_datatype(yz_plane_);
     break;
   case BOTTOM:
+    s_idx = pi(0, 0, 0);
+    r_idx = pi(0, 0, 1);
+    ret.set_datatype(xy_plane_);
     break;
   case TOP:
+    s_idx = pi(0, 0, pml_r_.zmax - 2);
+    r_idx = pi(0, 0, pml_r_.zmax - 1);
+    ret.set_datatype(xy_plane_);
     break;
   }
 
-  return ret;
+  ret.set_field_type(E);
+
+  ret.set_rx_ptr(&(exy_[r_idx]));
+  ret.set_tx_ptr(&(exy_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(exz_[r_idx]));
+  ret.set_tx_ptr(&(exz_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(eyx_[r_idx]));
+  ret.set_tx_ptr(&(eyx_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(eyz_[r_idx]));
+  ret.set_tx_ptr(&(eyz_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(ezx_[r_idx]));
+  ret.set_tx_ptr(&(ezx_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(ezy_[r_idx]));
+  ret.set_tx_ptr(&(ezy_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_field_type(H);
+
+  ret.set_rx_ptr(&(hxy_[r_idx]));
+  ret.set_tx_ptr(&(hxy_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(hxz_[r_idx]));
+  ret.set_tx_ptr(&(hxz_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(hyx_[r_idx]));
+  ret.set_tx_ptr(&(hyx_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(hyz_[r_idx]));
+  ret.set_tx_ptr(&(hyz_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(hzx_[r_idx]));
+  ret.set_tx_ptr(&(hzx_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
+  ret.set_rx_ptr(&(hzy_[r_idx]));
+  ret.set_tx_ptr(&(hzy_[s_idx]));
+  sd->add_tx_rx_data(ret);
+
 }

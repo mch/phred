@@ -126,7 +126,7 @@ dnl        AC_MSG_WARN([OpenMP support is not fully implemented yet. ])
         AC_MSG_CHECKING([for OpenMP support])
         CXXFLAGS_TEMP="$CXXFLAGS"
         AC_LANG_PUSH(C++)
-        CXXFLAGS="-qSMP-omp"        
+        CXXFLAGS="-qSMP=omp"        
         AC_COMPILE_IFELSE([
 void test() {
 int i = 0, j = 0;
@@ -312,7 +312,10 @@ AC_STRUCT_ST_BLOCKS
 AC_FUNC_CLOSEDIR_VOID
 
 dnl Checks for typedefs, structures, and compiler characteristics.
-
+if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then
+dnl Turn on inlining, template registry, RTTI
+   CXXFLAGS="$CXXFLAGS -Q -qtemplateregistry -qrtti=all"
+fi
 dnl Checks for library functions.
 
 AC_SUBST(CFLAGS, $CFLAGS)
@@ -328,6 +331,8 @@ echo "Configured $PACKAGE_NAME $PACKAGE_VERSION"
 echo
 echo "C++ compiler: $CXX"
 echo "C compiler: $CC"
+echo "C++ compiler flags: $CXXFLAGS"
+echo "C compiler flags: $CFLAGS"
 echo
 echo -n "Using popt to parse command line arguments? "
 if test "x$HAVE_LIBPOPT" = "x1"; then echo "yes"; else echo "no"; fi

@@ -2,7 +2,7 @@
 
 Material::Material()
   : type_(NON_PERMEABLE), epsilon_(1), sigma_(0), 
-    mu_(1), sigma_star_(0), name_("Free space")
+    mu_(1), sigma_star_(0), name_("Free space"), vc_(0), fp_(0)
     // Look at me, I'm free space!
 {
   
@@ -71,4 +71,24 @@ void Material::set_sigma_star(mat_prop_t sigstar)
 void Material::set_name(string name)
 {
   name_ = name;
+}
+
+void Material::set_collision_freq(mat_prop_t vc)
+{
+  vc_ = vc;
+}
+
+void Material::set_plasma_freq(mat_prop_t fp)
+{
+  fp_ = fp;
+}
+
+mat_prop_t Material::get_collision_freq()
+{
+  return vc_;
+}
+
+mat_prop_t Material::get_plasma_freq()
+{
+  return fp_;
 }

@@ -523,6 +523,8 @@ static void pml_test(int rank, int size)
 
   // Global coordinates. 
   grid.define_box(0, 100, 0, 50, 0, 60, 1);
+  grid.define_box(45, 55, 5, 46, 0, 25, 0);
+  grid.define_box(45, 55, 5, 46, 35, 60, 0);
 
   // Excitation
   Gaussm gm;
@@ -654,7 +656,7 @@ static void pml_test(int rank, int size)
   grid.set_define_mode(false);
   
   // Main loop
-  unsigned int num_time_steps = 100;
+  unsigned int num_time_steps = 1000;
   unsigned int ts = 0;
 
   //ex.excite(grid, ts, E);

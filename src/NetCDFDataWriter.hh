@@ -160,6 +160,7 @@ public:
 
   NetCDFDataWriter(int rank, int size, const char *filename, 
                    bool clobber = false)
+    : DataWriter(rank, size)
   {
     throw NoNetCDFException(); //("NetCDF Support is not available.");
   }
@@ -175,6 +176,18 @@ public:
 
   inline void add_variable(Result &result)
   {}
+
+  inline void set_filename(string filename)
+  {}
+
+protected:
+  virtual unsigned int write_data(unsigned int time_step, 
+                                  Data &data, MPI_Datatype t, 
+                                  void *ptr, unsigned int len)
+  {
+    return 0;
+  }
+
 };
 #endif
 

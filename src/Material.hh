@@ -34,6 +34,10 @@ class Material
 
   string name_; /**< Human readable material name */
 
+  // These are used for plasma implementation
+  mat_prop_t vc_; /**< Collision frequency */
+  mat_prop_t fp_; /**< Plasma frequency */
+
  protected:
 
  public:
@@ -118,6 +122,27 @@ class Material
    * @param name
    */
   void set_name(string name);
+
+  /**
+   * Set the collision frequency for plasma materials
+   */
+  void set_collision_freq(mat_prop_t vc);
+
+  /**
+   * Set the plasma frequency
+   */
+  void set_plasma_freq(mat_prop_t fp);
+  
+  /**
+   * Get the collision frequency
+   */
+  mat_prop_t get_collision_freq();
+
+  /**
+   * Get the plasma frequency
+   */
+  mat_prop_t get_plasma_freq();
+
 };
 
 #endif // MATERIAL

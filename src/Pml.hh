@@ -2,6 +2,7 @@
 #define PML_H
 
 #include "BoundaryCondition.hh"
+#include "SubdomainBc.hh"
 #include "PmlCommon.hh"
 #include "Data.hh"
 #include <mpi.h>
@@ -196,13 +197,16 @@ public:
   }
 
   /**
-   * Returns a RxTxData object which can be used to share some PML
-   * information across ranks. 
+   * Adds RxTxData objects to the given subdomain boundary conditions
+   * so that the split E and H field components can be exchanged when
+   * necessary. 
+   *
+   * @param sd the subdomain boundary condition that has to exchange
+   * the data. 
    * @param pmlface the face the PML is on
    * @param sdface the face the subdmoain is on
-   * @return a RxTxData object
    */
-  RxTxData get_rx_tx_data(Face pmlface, Face sdface);
+  void add_sd_bcs(SubdomainBc *sd, Face pmlface, Face sdface);
 
 protected: // Only called by apply().
 

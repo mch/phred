@@ -36,12 +36,30 @@ void FreqGrid::free_grid()
   }
 }
   
-void FreqGrid::update_fields()
-{
-
-}
-
 void FreqGrid::load_materials(MaterialLib &matlib)
 {
   Grid::load_materials(matlib);
 }
+
+void FreqGrid::free_material()
+{
+
+}
+
+void FreqGrid::update_ex()
+{}
+
+void FreqGrid::update_ey()
+{}
+
+void FreqGrid::update_ez()
+{}
+
+void FreqGrid::update_hx()
+{}
+
+void FreqGrid::update_hy()
+{}
+
+void FreqGrid::update_hz()
+{}

@@ -36,7 +36,29 @@ public:
   void set_grid_deltas(field_t dx, field_t dy, field_t dz);
 
   /**
+   * Set a boundary condition object. A pointer to the object is
+   * stored, so don't, for the love of god and all that is holy,
+   * delete the object or allow it go go out of scope before this
+   * object does.
+   */
+  void set_boundary(Face face, BoundaryCond *bc);
+
+  /**
+   * Set a material library to use. A pointer is given, don't dispose
+   * of the object!
+   */
+  void set_materials(MaterialLib *matlib);
+
+  /**
+   * Let us know about an excitation. You are passing in a pointer;
+   * don't dispose of the object!
+   */
+  void add_excitation(Excitation *ex);
+
+  /**
    * 
+   */
+
 };
 
 #endif // FDTD_H

@@ -10,19 +10,21 @@ void SubdomainBc::apply(Face face, Grid &grid, FieldType type)
   t = grid.get_plane_dt(face);
 
   // Send away!
-  send_recv(grid.get_face_start(face, FC_EX, 1),
-            grid.get_face_start(face, FC_EX, 0), t);
-  send_recv(grid.get_face_start(face, FC_EY, 1),
-            grid.get_face_start(face, FC_EY, 0), t);
-  send_recv(grid.get_face_start(face, FC_EZ, 1),
-            grid.get_face_start(face, FC_EZ, 0), t);
-
-  send_recv(grid.get_face_start(face, FC_HX, 1),
-            grid.get_face_start(face, FC_HX, 0), t);
-  send_recv(grid.get_face_start(face, FC_HY, 1),
-            grid.get_face_start(face, FC_HY, 0), t);
-  send_recv(grid.get_face_start(face, FC_HZ, 1),
-            grid.get_face_start(face, FC_HZ, 0), t);
+  if (type == E) {
+    send_recv(grid.get_face_start(face, FC_EX, 1),
+              grid.get_face_start(face, FC_EX, 0), t);
+    send_recv(grid.get_face_start(face, FC_EY, 1),
+              grid.get_face_start(face, FC_EY, 0), t);
+    send_recv(grid.get_face_start(face, FC_EZ, 1),
+              grid.get_face_start(face, FC_EZ, 0), t);
+  } else if (type == H) {
+    send_recv(grid.get_face_start(face, FC_HX, 1),
+              grid.get_face_start(face, FC_HX, 0), t);
+    send_recv(grid.get_face_start(face, FC_HY, 1),
+              grid.get_face_start(face, FC_HY, 0), t);
+    send_recv(grid.get_face_start(face, FC_HZ, 1),
+              grid.get_face_start(face, FC_HZ, 0), t);
+  }
 
   // Send and recieve and data we've be contracted to do. 
   vector<RxTxData>::iterator iter = rx_tx_data_.begin();
@@ -30,8 +32,11 @@ void SubdomainBc::apply(Face face, Grid &grid, FieldType type)
 
   while (iter != iter_end) 
   {
-    send_recv((*iter).get_tx_ptr(), (*iter).get_rx_ptr(), 
-              (*iter).get_datatype());
+    if (type == (*iter).get_field_type()) 
+    {
+      send_recv((*iter).get_tx_ptr(), (*iter).get_rx_ptr(), 
+                (*iter).get_datatype());
+    }
   }
 }
 

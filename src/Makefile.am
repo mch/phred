@@ -29,6 +29,7 @@ phred_SOURCES=phred.cc \
 	system.h \
 	LifeCycle.hh \
 	LifeCycle.cc \
+	Geometry.hh \
 	Grid.cc \
 	Grid.hh \
 	GridInfo.hh \

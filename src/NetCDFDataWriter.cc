@@ -326,7 +326,9 @@ unsigned int NetCDFDataWriter::write_data(int var_id, size_t *start,
     {
       bytes_written = write_data(var_id, start, count, 
                                  dts[i], ptr, ints[i]);
-      static_cast<char *>(ptr) += bytes_written;
+      char *ptr_temp = static_cast<char *>(ptr);
+      ptr_temp += bytes_written;
+      ptr = static_cast<void *>(ptr_temp);
       i++;
     }
 

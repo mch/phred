@@ -126,8 +126,9 @@ void Grid::set_define_mode(bool d)
             {
               SubdomainBc *sd = dynamic_cast<SubdomainBc *>
                 (&info_.get_boundary(static_cast<Face>(j)));
-              sd->add_tx_rx_data(p->get_rx_tx_data(static_cast<Face>(i), 
-                                                   static_cast<Face>(j)));
+              
+              p->add_sd_bcs(sd, static_cast<Face>(i), 
+                            static_cast<Face>(j));
             }
           }
         }
@@ -487,12 +488,10 @@ void Grid::update_h_field()
 // Straight out of Taflove.
 void Grid::update_ex() 
 {
-  unsigned int mid, idx, idx2, i, j, k;
+  unsigned int mid, idx, idx2;
+  int i, j, k;
   field_t *ex, *hz1, *hz2, *hy;
 
-#ifdef USE_OPENMP
-#pragma opt parallel 
-#endif
   // Inner part
   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
     for (j = update_r_.ymin + 1; j < update_r_.ymax; j++) {
@@ -504,6 +503,9 @@ void Grid::update_ex()
       hz2 = &(hz_[idx2]);
       hy = &(hy_[idx]);
 
+#ifdef USE_OPENMP
+#pragma omp parallel for
+#endif
       for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
         mid = material_[idx];
         
@@ -529,7 +531,8 @@ void Grid::update_ex()
 // Straight out of Taflove.
 void Grid::update_ey() 
 {
-  unsigned int mid, i, j, k, idx;
+  unsigned int mid, idx;
+  int i, j, k;
   field_t *ey, *hx, *hz1, *hz2;
 
   // Inner part
@@ -542,6 +545,9 @@ void Grid::update_ey()
       hz1 = &(hz_[pi(i-1, j, update_r_.zmin + 1)]);
       hz2 = &(hz_[idx]);
 
+#ifdef USE_OPENMP
+#pragma omp parallel for
+#endif
       for (k = update_r_.zmin + 1; k < update_r_.zmax; k++) {
         mid = material_[idx];
 
@@ -563,7 +569,8 @@ void Grid::update_ey()
 // Straight out of Taflove.
 void Grid::update_ez() 
 {
-  unsigned int mid, i, j, k, idx;
+  unsigned int mid, idx;
+  int i, j, k;
   field_t *ez, *hy1, *hy2, *hx1, *hx2;
   
   // Inner part
@@ -577,6 +584,9 @@ void Grid::update_ez()
       hx1 = &(hx_[pi(i, j-1, update_r_.zmin)]);
       hx2 = &(hx_[idx]);
 
+#ifdef USE_OPENMP
+#pragma omp parallel for
+#endif
       for (k = update_r_.zmin; k < update_r_.zmax; k++) {
         mid = material_[pi(i, j, k)];
 
@@ -595,7 +605,8 @@ void Grid::update_ez()
 // Straight out of Taflove.
 void Grid::update_hx()
 {
-  unsigned int mid, i, j, k, idx;
+  unsigned int mid, idx;
+  int i, j, k;
   field_t *hx, *ez1, *ez2, *ey;
 
   for (i = update_r_.xmin; i < update_r_.xmax; i++) {
@@ -607,6 +618,9 @@ void Grid::update_hx()
       ez2 = &(ez_[pi(i, j+1, update_r_.zmin)]);
       ey = &(ey_[idx]);
 
+#ifdef USE_OPENMP
+#pragma omp parallel for
+#endif
       for (k = update_r_.zmin; k < update_r_.zmax - 1; k++) {
         mid = material_[idx];
 
@@ -624,7 +638,8 @@ void Grid::update_hx()
 // Straight out of Taflove.
 void Grid::update_hy()
 {
-  unsigned int mid, i, j, k, idx;
+  unsigned int mid, idx;
+  int i, j, k;
   field_t *hy, *ex, *ez1, *ez2;
 
   for (i = update_r_.xmin; i < update_r_.xmax - 1; i++) {
@@ -636,6 +651,9 @@ void Grid::update_hy()
       ez1 = &(ez_[pi(i+1, j, update_r_.zmin)]);
       ez2 = &(ez_[idx]);
 
+#ifdef USE_OPENMP
+#pragma omp parallel for
+#endif
       for (k = update_r_.zmin; k < update_r_.zmax - 1; k++) {
         mid = material_[idx];
 
@@ -653,7 +671,8 @@ void Grid::update_hy()
 // Straight out of Taflove.
 void Grid::update_hz()
 {
-  unsigned int mid, i, j, k, idx;
+  unsigned int mid, idx;
+  int i, j, k;
   field_t *hz1, *ey1, *ey2, *ex1, *ex2;
 
   for (i = update_r_.xmin; i < update_r_.xmax - 1; i++) {
@@ -666,6 +685,9 @@ void Grid::update_hz()
       ex1 = &(ex_[pi(i, j+1, update_r_.zmin)]);
       ex2 = &(ex_[idx]);
 
+#ifdef USE_OPENMP
+#pragma omp parallel for
+#endif
       for (k = update_r_.zmin; k < update_r_.zmax; k++) {
         mid = material_[idx];
 
