@@ -27,8 +27,8 @@
 #include "../Excitations/BartlettExcitation.hh"
 #include "../Excitations/WaveguideExcitation.hh"
 #include "../Excitations/GaussWindExcitation.hh"
-#include "../Sources/Gaussm.hh"
-#include "../Sources/ExpSine.hh"
+#include "../Signals/Gaussm.hh"
+#include "../Signals/ExpSine.hh"
 
 using namespace boost::python;
 
@@ -40,10 +40,10 @@ void call_excite(Excitation& ex, Grid &grid,
 { return ex.excite(grid, time_step, type); }
 
 /**
- * Helper function for Python classes derived from SourceFunction
+ * Helper function for Python classes derived from SignalFunction
  */
-field_t call_source_function(SourceFunction& sf, float time) 
-{ return sf.source_function(time); }
+field_t call_signal_function(SignalFunction& sf, float time) 
+{ return sf.signal_function(time); }
 
 /**
  * This wrapper allows for derived classes built in Python.
@@ -53,7 +53,7 @@ class ExcitationWrap : public Excitation
   PyObject* self_;
 
 public:
-  ExcitationWrap(PyObject* self, shared_ptr<SourceFunction> sf)
+  ExcitationWrap(PyObject* self, shared_ptr<SignalFunction> sf)
     :  Excitation(sf), self_(self) {}
 
   ExcitationWrap(PyObject *self, const Excitation &e)
@@ -85,7 +85,7 @@ private:
   PyObject *self_;
 
 public:
-  WindowedExcitationWrap(PyObject *self, shared_ptr<SourceFunction> sf)
+  WindowedExcitationWrap(PyObject *self, shared_ptr<SignalFunction> sf)
     : WindowedExcitation(sf)
   {}
 
@@ -103,30 +103,30 @@ public:
 };
 
 /**
- * This wrapper allows for subclasses of SourceFunction written in
+ * This wrapper allows for subclasses of SignalFunction written in
  * Python
  */
-class SourceFunctionWrap : public SourceFunction
+class SignalFunctionWrap : public SignalFunction
 {
 private:
   PyObject *self_;
 
 public:
-  SourceFunctionWrap(PyObject *self)
+  SignalFunctionWrap(PyObject *self)
     : self_(self)
   {}
 
-  field_t source_function(float time)
-  { return call_method<field_t>(self_, "source_function", 
+  field_t signal_function(float time)
+  { return call_method<field_t>(self_, "signal_function", 
                                 time); }
 };
 
 void export_excitations()
 {
   //def("call_excite", call_excite);
-  //def("call_source_function", call_source_function);
+  //def("call_signal_function", call_signal_function);
     
-  class_<Excitation, ExcitationWrap>("Excitation", "Excitations applied to the FDTD grid", init<shared_ptr<SourceFunction> >())
+  class_<Excitation, ExcitationWrap>("Excitation", "Excitations applied to the FDTD grid", init<shared_ptr<SignalFunction> >())
     .def("excite", &ExcitationWrap::excite)
     .def("excite", &ExcitationWrap::default_excite)
     .def("set_polarization", &Excitation::set_polarization)
@@ -139,26 +139,26 @@ void export_excitations()
   class_<WindowedExcitation, WindowedExcitationWrap, bases<Excitation>,
     boost::noncopyable>("WindowedExcitation", 
                         "Excitations that apply a windowing function to the excitation in the FDTD grid", 
-                        init<shared_ptr<SourceFunction> >())
+                        init<shared_ptr<SignalFunction> >())
     .def("excite", &WindowedExcitation::excite, 
          &WindowedExcitationWrap::default_excite)
     ;
 
-  class_<SourceFunction, SourceFunctionWrap, boost::noncopyable>("SourceFunction", "Make derived classes from this to create source functions for excitations")
-    .def("source_function", &SourceFunctionWrap::source_function)
+  class_<SignalFunction, SignalFunctionWrap, boost::noncopyable>("SignalFunction", "Make derived classes from this to create signal functions for excitations")
+    .def("signal_function", &SignalFunctionWrap::signal_function)
     ;
   //.def("call_sf", call_sf)
 
-  class_<Gaussm, bases<SourceFunction> >("Gaussm", "Gaussian modulated sine function")
+  class_<Gaussm, bases<SignalFunction> >("Gaussm", "Gaussian modulated sine function")
     .def("set_parameters", &Gaussm::set_parameters)
     .def("get_alpha", &Gaussm::get_alpha)
     .def("get_deltaf", &Gaussm::get_deltaf)
     .def("get_f0", &Gaussm::get_f0)
     .def("length", &Gaussm::length)
-    //.def("source_function", &Gaussm::source_function) // in SourceFunction
+    //.def("signal_function", &Gaussm::signal_function) // in SignalFunction
     ;
 
-  class_<ExpSine, bases<SourceFunction> >("ExpSine", "Ramping up sine function")
+  class_<ExpSine, bases<SignalFunction> >("ExpSine", "Ramping up sine function")
     .def(init<float>())
     .add_property("frequency", &ExpSine::get_frequency, 
                   &ExpSine::set_frequency)
@@ -166,16 +166,16 @@ void export_excitations()
                   &ExpSine::set_amplitude)
     ;
 
-  class_<BartlettExcitation, bases<WindowedExcitation> >("BartlettExcitation", "Bartlett windowed excitation; an attempt at a plane wave.", init<shared_ptr<SourceFunction> >())
+  class_<BartlettExcitation, bases<WindowedExcitation> >("BartlettExcitation", "Bartlett windowed excitation; an attempt at a plane wave.", init<shared_ptr<SignalFunction> >())
     .def("excite", &BartlettExcitation::excite)
     ;
 
-  class_<WaveguideExcitation, bases<WindowedExcitation> >("WaveguideExcitation", "Waveguide excitation; you know, for those pesky waveguides!", init<shared_ptr<SourceFunction> >())
+  class_<WaveguideExcitation, bases<WindowedExcitation> >("WaveguideExcitation", "Waveguide excitation; you know, for those pesky waveguides!", init<shared_ptr<SignalFunction> >())
     .def("excite", &WaveguideExcitation::excite)
     .def("set_mode", &WaveguideExcitation::set_mode)
     ;
 
-  class_<GaussWindExcitation, bases<WindowedExcitation> >("GaussWindow", "Gaussian windowed excitation; approximates a plane wave.", init<shared_ptr<SourceFunction> >())
+  class_<GaussWindExcitation, bases<WindowedExcitation> >("GaussWindow", "Gaussian windowed excitation; approximates a plane wave.", init<shared_ptr<SignalFunction> >())
     .def("excite", &GaussWindExcitation::excite)
     ;
 }

@@ -25,8 +25,8 @@
 #include "../Results/PlaneResult.hh"
 #include "../Results/PointResult.hh"
 #include "../Results/PointDFTResult.hh"
-#include "../Results/SourceDFTResult.hh"
-#include "../Results/SourceTimeResult.hh"
+#include "../Results/SignalDFTResult.hh"
+#include "../Results/SignalTimeResult.hh"
 #include "../Results/BlockResult.hh"
 //#include "../Results/FarfieldResult.hh"
 #include "../Results/PowerResult.hh"
@@ -86,13 +86,13 @@ void export_results()
                   &PowerResult::export_dfts)
     ;
 
-  class_<SourceDFTResult, bases<DFTResult> >
-    ("SourceDFTResult", init<SourceFunction &>())
-    .def(init<SourceFunction &, float, float, unsigned int>())
+  class_<SignalDFTResult, bases<DFTResult> >
+    ("SignalDFTResult", init<SignalFunction &>())
+    .def(init<SignalFunction &, float, float, unsigned int>())
     ;
 
-  class_<SourceTimeResult, bases<Result> >
-    ("SourceTimeResult", init<SourceFunction &>())
+  class_<SignalTimeResult, bases<Result> >
+    ("SignalTimeResult", init<SignalFunction &>())
     ;
 
   class_<BlockResult, bases<Result> >
