@@ -25,6 +25,7 @@
 #include "../Constants.hh"
 
 #include "../config.h"
+#include "../Types.hh"
 
 /** TEMP **/
 /*#undef USE_OPENMP*/
@@ -35,7 +36,10 @@
 
 UPml::UPml()
   : common_(0), dx_(0), dy_(0), dz_(0), 
-    bx_(0), by_(0), bz_(0)
+    bx_(0), by_(0), bz_(0), 
+    aux1_x_(0), aux1_y_(0), aux1_z_(0),
+    sigma_max_(0.0), 
+    poly_order_(4), eps_opt_(1.0), sigma_ratio_(1.0)
 {
 
 }
@@ -155,120 +159,77 @@ void UPml::compute_regions(Face face, const Grid &grid)
     }
 
     // Don't overlap compute corners and edges more than once
-    // temporarially commented out...
-//     switch (face)
-//     {
-//     case FRONT:
-//     case BACK:
-//       if (grid.get_boundary(LEFT).get_type() == UPML)
-//       {
-//         grid_ey_r_.ymin += grid.get_boundary(LEFT).get_thickness();
-//         grid_hy_r_.ymin += grid.get_boundary(LEFT).get_thickness() + 1;
-//       }
+    if (face == LEFT || face == RIGHT || face == TOP || face == BOTTOM)
+    {
+      // Don't overlap the edges with the front and the back
+      if (grid.get_boundary(BACK).get_type() == UPML)
+      {
+        unsigned int thickness = grid.get_boundary(BACK).get_thickness();
+        grid_ex_r_.xmin += thickness;
+        grid_ey_r_.xmin += thickness;
+        grid_ez_r_.xmin += thickness;
 
-//       if (grid.get_boundary(RIGHT).get_type() == UPML)
-//       {
-//         grid_ey_r_.ymax -= grid.get_boundary(LEFT).get_thickness();
-//         grid_hy_r_.ymax -= grid.get_boundary(LEFT).get_thickness() + 1;
-//       }
+        grid_hx_r_.xmin += thickness + 1;
+        grid_hy_r_.xmin += thickness;
+        grid_hz_r_.xmin += thickness;
+      }
 
-//       if (grid.get_boundary(TOP).get_type() == UPML)
-//       {
-//         grid_ez_r_.zmax -= grid.get_boundary(TOP).get_thickness();
-//         grid_hz_r_.zmax -= grid.get_boundary(TOP).get_thickness() + 1;
-//       }
+      if (grid.get_boundary(FRONT).get_type() == UPML)
+      {
+        unsigned int thickness = grid.get_boundary(FRONT).get_thickness();
+        
+        grid_ex_r_.xmax -= thickness;
+        grid_ey_r_.xmax -= thickness;
+        grid_ez_r_.xmax -= thickness;
 
-//       if (grid.get_boundary(BOTTOM).get_type() == UPML)
-//       {
-//         grid_ez_r_.zmin += grid.get_boundary(BOTTOM).get_thickness();
-//         grid_hz_r_.zmin += grid.get_boundary(BOTTOM).get_thickness() + 1;
-//       }
-//       break;
+        grid_hx_r_.xmax -= thickness + 1;
+        grid_hy_r_.xmax -= thickness;
+        grid_hz_r_.xmax -= thickness;
+      }      
+    }
 
-//     case LEFT:
-//     case RIGHT:
-//       if (grid.get_boundary(FRONT).get_type() == UPML)
-//       {
-//         unsigned int thickness = grid.get_boundary(FRONT).get_thickness();
-//         grid_ex_r_.xmax -= thickness;
-//         grid_hx_r_.xmax -= thickness + 1;
-//         grid_ez_r_.xmax -= thickness;
-//         grid_hz_r_.xmax -= thickness + 1;
-//       }
+    if (face == TOP || face == BOTTOM)
+    {
+      if (grid.get_boundary(LEFT).get_type() == UPML)
+      {
+        unsigned int thickness = grid.get_boundary(LEFT).get_thickness();
+        
+        grid_ex_r_.ymin += thickness;
+        grid_ey_r_.ymin += thickness;
+        grid_ez_r_.ymin += thickness;
 
-//       if (grid.get_boundary(BACK).get_type() == UPML)
-//       {
-//         unsigned int thickness = grid.get_boundary(BACK).get_thickness();
-//         grid_ex_r_.xmin += thickness;
-//         grid_hx_r_.xmin += thickness + 1;
-//         grid_ez_r_.xmin += thickness;
-//         grid_hz_r_.xmin += thickness + 1;
-//       }
+        grid_hx_r_.ymin += thickness;
+        grid_hy_r_.ymin += thickness + 1;
+        grid_hz_r_.ymin += thickness;
+      }
 
-//       if (grid.get_boundary(TOP).get_type() == UPML)
-//       {
-//         unsigned int thickness = grid.get_boundary(TOP).get_thickness();
-//         grid_ez_r_.zmax -= thickness;
-//         grid_hz_r_.zmax -= thickness + 1;
-//         grid_ex_r_.zmax -= thickness;
-//         grid_hx_r_.zmax -= thickness + 1;
-//       }
+      if (grid.get_boundary(RIGHT).get_type() == UPML)
+      {
+        unsigned int thickness = grid.get_boundary(RIGHT).get_thickness();
+        
+        grid_ex_r_.ymax -= thickness;
+        grid_ey_r_.ymax -= thickness;
+        grid_ez_r_.ymax -= thickness;
 
-//       if (grid.get_boundary(BOTTOM).get_type() == UPML)
-//       {
-//         unsigned int thickness = grid.get_boundary(BOTTOM).get_thickness();
-//         grid_ez_r_.zmin += thickness;
-//         grid_hz_r_.zmin += thickness + 1;
-//         grid_ex_r_.zmin += thickness;
-//         grid_hx_r_.zmin += thickness + 1;
-//       }
-//       break;
+        grid_hx_r_.ymax -= thickness;
+        grid_hy_r_.ymax -= thickness + 1;
+        grid_hz_r_.ymax -= thickness;
+      }
+    }
 
-//     case TOP:
-//     case BOTTOM:
-//       if (grid.get_boundary(LEFT).get_type() == UPML)
-//       {
-//         unsigned int thickness = grid.get_boundary(LEFT).get_thickness();
-//         grid_ey_r_.ymin += thickness;
-//         grid_hy_r_.ymin += thickness + 1;
-//         grid_ex_r_.ymin += thickness;
-//         grid_hx_r_.ymin += thickness + 1;
-//       }
-
-//       if (grid.get_boundary(RIGHT).get_type() == UPML)
-//       {
-//         unsigned int thickness = grid.get_boundary(LEFT).get_thickness();
-//         grid_ey_r_.ymax -= thickness;
-//         grid_hy_r_.ymax -= thickness + 1;
-//         grid_ex_r_.ymax -= thickness;
-//         grid_hx_r_.ymax -= thickness + 1;
-//       }
-
-//       if (grid.get_boundary(FRONT).get_type() == UPML)
-//       {
-//         unsigned int thickness = grid.get_boundary(FRONT).get_thickness();
-//         grid_ex_r_.xmax -= thickness;
-//         grid_hx_r_.xmax -= thickness + 1;
-//         grid_ey_r_.xmax -= thickness;
-//         grid_hy_r_.xmax -= thickness;
-//       }
-
-//       if (grid.get_boundary(BACK).get_type() == UPML)
-//       {
-//         unsigned int thickness = grid.get_boundary(BACK).get_thickness();
-//         grid_ex_r_.xmin += thickness;
-//         grid_hx_r_.xmin += thickness + 1;
-//         grid_ey_r_.xmin += thickness;
-//         grid_hy_r_.xmin += thickness;
-//       }
-//       break;
-//     }
   }
 }
 
 void UPml::init(const Grid &grid, Face face)
 {
   common_ = UPmlCommon::get_upml_common(const_cast<Grid &>(grid));
+
+  common_->set_sigma_max(sigma_max_);
+  common_->set_poly_order(poly_order_);
+  common_->set_eps_opt(eps_opt_);
+  common_->set_sigma_ratio(sigma_ratio_);
+
+  common_->init_coeffs();
 
   compute_regions(face, grid);
 
@@ -291,6 +252,15 @@ void UPml::init(const Grid &grid, Face face)
   memset(by_, 0, sizeof(field_t) * sz);
   memset(bz_, 0, sizeof(field_t) * sz);
 
+  // Waste!
+  aux1_x_ = new field_t[sz];
+  aux1_y_ = new field_t[sz];
+  aux1_z_ = new field_t[sz];
+
+  memset(aux1_x_, 0, sizeof(field_t) * sz);
+  memset(aux1_y_, 0, sizeof(field_t) * sz);
+  memset(aux1_z_, 0, sizeof(field_t) * sz);
+  
   cout << "UPML Update region for face " << face << ":"
        << "\n\tEx, x: " << grid_ex_r_.xmin << " -> " 
        << grid_ex_r_.xmax
@@ -389,6 +359,7 @@ void UPml::update_ex(Grid &grid)
   // Inverted delta's
   field_t idy = 1 / grid.get_deltay();
   field_t idz = 1 / grid.get_deltaz();
+  field_t idt = 1 / grid.get_deltat();
 
   // This is outside of the for() statement so that OpenMP can
   // parallelize the loop.
@@ -422,8 +393,31 @@ void UPml::update_ex(Grid &grid)
           mid = grid.material_[grid_idx];
 
           // Update equations go here!
-          d_temp = *dx * common_->Ay(jt) 
-            + common_->By(jt) * ( idy*(*hz1 - *hz2) - idz*(*(hy - 1) - *hy) );
+          if (common_->mtype(mid) == PERF_COND) {
+            d_temp = 0.0;
+          } 
+          else if (common_->mtype(mid) == LOSSY) 
+          {
+            field_t q_temp;
+            q_temp = aux1_x_[pml_idx] * common_->lossy_A(mid)
+              + common_->lossy_B(mid) 
+              * ( idy*(*hz1 - *hz2) - idz*(*hy - *(hy - 1)) );
+
+            d_temp = common_->Ay(jt) * *dx
+              + idt * common_->By(jt) * (q_temp - aux1_x_[pml_idx]);
+
+            aux1_x_[pml_idx] = q_temp;
+          } 
+          else if (common_->mtype(mid) == DEBYE) 
+          {
+            // Unmagnatized plasma update
+          }
+          else 
+          { // DIELECTRIC
+            d_temp = *dx * common_->Ay(jt) 
+              + common_->By(jt) 
+              * ( idy*(*hz1 - *hz2) - idz*(*hy - *(hy - 1)) );
+          }
 
           *ex = *ex * common_->Az(kt) 
             + common_->Bz(kt) * common_->er(mid) 
@@ -437,6 +431,7 @@ void UPml::update_ex(Grid &grid)
           hz2++;
           hy++;
           grid_idx++;
+          pml_idx++;
         }
       }
       i++;
@@ -463,6 +458,7 @@ void UPml::update_ey(Grid &grid)
   // Inverted delta's
   field_t idx = 1 / grid.get_deltax();
   field_t idz = 1 / grid.get_deltaz();
+  field_t idt = 1 / grid.get_deltat();
 
   i = pml_r.xmin;
 
@@ -492,16 +488,32 @@ void UPml::update_ey(Grid &grid)
         {
           mid = grid.material_[grid_idx];
 
-          if (jt == 9 && kt == 9)
-          {
-            cout << "Ey should have non zero hy, hz... it = " 
-                 << it << ", hy[" << it << ", " << jt << ", " 
-                 << kt << "] = " << grid.get_hy(it,jt,kt) << endl;
-          }
-                    
           // Update equations go here!
-          d_temp = *dy * common_->Az(kt) 
-            + common_->Bz(kt) * ( idz*(*hx - *(hx-1)) - idx*(*hz1 - *hz2));
+          if (common_->mtype(mid) == PERF_COND) {
+            d_temp = 0.0;
+          } 
+          else if (common_->mtype(mid) == LOSSY) 
+          {
+            field_t q_temp;
+            q_temp = aux1_y_[pml_idx] * common_->lossy_A(mid)
+              + common_->lossy_B(mid) 
+              * ( idz*(*hx - *(hx-1)) - idx*(*hz2 - *hz1));
+
+            d_temp = common_->Az(kt) * *dy
+              + idt * common_->Bz(kt) * (q_temp - aux1_y_[pml_idx]);
+
+            aux1_y_[pml_idx] = q_temp;
+          } 
+          else if (common_->mtype(mid) == DEBYE) 
+          {
+            // Unmagnatized plasma update
+          }
+          else 
+          { // DIELECTRIC
+            d_temp = *dy * common_->Az(kt) 
+              + common_->Bz(kt) 
+              * ( idz*(*hx - *(hx-1)) - idx*(*hz2 - *hz1));
+          }
 
           *ey = *ey * common_->Ax(it) 
             + common_->Bx(it) * common_->er(mid)
@@ -516,6 +528,7 @@ void UPml::update_ey(Grid &grid)
           hx++;
           dy++;
           grid_idx++;
+          pml_idx++;
         }
       }
       i++;
@@ -542,6 +555,7 @@ void UPml::update_ez(Grid &grid)
   // Inverted delta's
   field_t idx = 1 / grid.get_deltax();
   field_t idy = 1 / grid.get_deltay();
+  field_t idt = 1 / grid.get_deltat();
 
   i = pml_r.xmin;
 
@@ -574,8 +588,31 @@ void UPml::update_ez(Grid &grid)
           mid = grid.material_[grid_idx];
           
           // Update equations go here!
-          d_temp = *dz * common_->Ax(it)
-            + common_->Bx(it) * ( idx*(*hy1 - *hy2) - idy*(*hx1 - *hx2) );
+          if (common_->mtype(mid) == PERF_COND) {
+            d_temp = 0.0;
+          } 
+          else if (common_->mtype(mid) == LOSSY) 
+          {
+            field_t q_temp;
+            q_temp = aux1_z_[pml_idx] * common_->lossy_A(mid)
+              + common_->lossy_B(mid) 
+              * ( idx*(*hy1 - *hy2) - idy*(*hx2 - *hx1) );
+
+            d_temp = common_->Ax(it) * *dz
+              + idt * common_->Bx(it) * (q_temp - aux1_z_[pml_idx]);
+
+            aux1_z_[pml_idx] = q_temp;
+          } 
+          else if (common_->mtype(mid) == DEBYE) 
+          {
+            // Unmagnatized plasma update
+          }
+          else 
+          { // DIELECTRIC
+            d_temp = *dz * common_->Ax(it)
+              + common_->Bx(it) 
+              * ( idx*(*hy1 - *hy2) - idy*(*hx2 - *hx1) );
+          }
 
           *ez = *ez * common_->Ay(jt)
             + common_->By(jt) * common_->er(mid) 
@@ -590,6 +627,7 @@ void UPml::update_ez(Grid &grid)
           hx2++;
           dz++;
           grid_idx++;
+          pml_idx++;
         }
       }
       i++;
@@ -648,7 +686,7 @@ void UPml::update_hx(Grid &grid)
           
           // Update equations go here. 
           b_temp = *bx * common_->Ay(jt)
-            + common_->By(jt) * ( idz*(*ey - *(ey + 1)) - idy*(*ez2 - *ez1) );
+            + common_->By(jt) * ( idz*(*(ey + 1) - *ey) - idy*(*ez2 - *ez1) );
 
           *hx = *hx * common_->Az(kt)
             + common_->Bz(kt) * common_->ur(mid) 
@@ -720,7 +758,7 @@ void UPml::update_hy(Grid &grid)
 
           // Update equations go here. 
           b_temp = *by * common_->Az(kt)
-            + common_->Bz(kt) * ( idx*(*ez2 - *ez1) - idz*(*(ex + 1) - *ex) );
+            + common_->Bz(kt) * ( idx*(*ez1 - *ez2) - idz*(*(ex + 1) - *ex) );
 
           *hy = *hy * common_->Ax(it) 
             + common_->Bx(it) * common_->ur(mid)
@@ -795,7 +833,7 @@ void UPml::update_hz(Grid &grid)
           
           // Update equations go here. 
           b_temp = *bz * common_->Ax(it)
-            + common_->Bx(it) * ( idy*(*ex2 - *ex1) - idx*(*ey2 - *ey1) );
+            + common_->Bx(it) * ( idy*(*ex1 - *ex2) - idx*(*ey2 - *ey1) );
 
           *hz = *hz * common_->Ay(jt)
             + common_->By(jt) * common_->ur(mid)

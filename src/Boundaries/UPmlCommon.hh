@@ -36,8 +36,28 @@ private:
 protected:
   const Grid &grid_;
 
+  bool inited_; /**< Set to true once init_coeffs has been
+                   called. Prevents multiple init_coeffs calls. */ 
+
   unsigned int poly_order_; /**< Order of the polynomial used to shape
                                the conductivity */
+
+  mat_coef_t sigma_max_; /**< Sigma max; use 0 to calculate */
+
+  /**
+   * The reletive permittivity to be used for the purposes of
+   * calculating the maximum conductivity in the PML. If there are big
+   * permittivity continuities withing the PML, the best performace
+   * may be to average them.
+   */ 
+  mat_coef_t eps_opt_;
+
+  /**
+   * The ratio between sigma_opt, calculated from the polynomial order
+   * and material properties, to sigma_max, the maximum condictivity
+   * of the UPML. Defaults to 1.0. 
+   */ 
+  mat_coef_t sigma_ratio_;
 
   unsigned int thicknesses_[6]; /**< UPml thicknesses */
 
@@ -90,6 +110,12 @@ protected:
 
   // Inverse permeability, one for each material
   float *ur_;
+
+  // Material type, i.e. the dispersion to invoke
+  MaterialType *mtype_;
+
+  // Constants for the lossy dispersion, one for each material. 
+  float *lossyA_, *lossyB_;
 
 //   /**
 //    * Returns a sigma value along the x axis.
@@ -160,18 +186,19 @@ protected:
 //     return ret;
 //   }
 
-  void init_coeffs();
   void init_constants();
 
   void free_sigmas();
   void init_sigmas();
 
-  mat_coef_t calc_sigma_max(mat_prop_t eps, delta_t delta);
+  mat_coef_t calc_sigma_max(delta_t delta);
 
 public:
   ~UPmlCommon();
 
   static UPmlCommon *get_upml_common(Grid &grid);
+
+  void init_coeffs();
 
   inline const float Ax(loop_idx_t i)
   {
@@ -242,6 +269,44 @@ public:
   {
     return ur_[mid];
   }
+
+  inline float lossy_A(mat_idx_t mid)
+  { return lossyA_[mid]; }
+
+  inline float lossy_B(mat_idx_t mid)
+  { return lossyB_[mid]; }
+
+  inline MaterialType mtype(mat_idx_t mid)
+  { return mtype_[mid]; }
+
+  // Parameters set by the UPml object set by the user
+  inline unsigned int get_poly_order() const
+  { return poly_order_; }
+
+  inline void set_poly_order(unsigned int p) 
+  { poly_order_ = p; }
+
+  inline mat_coef_t get_sigma_max() const
+  { return sigma_max_; }
+
+  inline void set_sigma_max(mat_coef_t sm) 
+  { sigma_max_ = sm; }
+
+  inline mat_coef_t get_eps_opt() const
+  { return eps_opt_; }
+
+  inline void set_eps_opt(mat_coef_t eps_opt) 
+  { eps_opt_ = eps_opt; }
+
+  inline mat_coef_t set_sigma_ratio()
+  { return sigma_ratio_; } 
+
+  inline void set_sigma_ratio(mat_coef_t sr)
+  { 
+    if (sr > 0.0)
+      sigma_ratio_ = sr; 
+  }
+
 };
 
 #endif // UPML_COMMON_H

@@ -1,8 +1,8 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
 #include "Material.hh"
 
 Material::Material()
-  : type_(NON_PERMEABLE), epsilon_(1), sigma_(0), pec_(false),
-    mu_(1), sigma_star_(0), name_("Free space"), vc_(0), fp_(0)
+  : type_(DIELECTRIC), epsilon_(1), sigma_(0), pec_(false),
+    mu_(1), sigma_star_(0), name_("Free space"), vc_(0.0), fp_(0.0)
     // Look at me, I'm free space!
 {
   
@@ -117,4 +117,38 @@ mat_prop_t Material::get_plasma_freq() const
 const map<string, mat_prop_t> &Material::get_properties() const
 {
   return properties_;
+}
+
+MaterialType Material::type() const
+{
+  MaterialType ret = DIELECTRIC;
+
+  map<string, mat_prop_t>::const_iterator iter_e = properties_.end();
+
+  map<string, mat_prop_t>::const_iterator debye 
+    = properties_.find("debye_param");
+
+  map<string, mat_prop_t>::const_iterator lorentz
+    = properties_.find("lorentz_param");
+
+  map<string, mat_prop_t>::const_iterator drude
+    = properties_.find("plasma_freq");
+
+  if (pec_)
+    ret = PERF_COND;
+  
+  else if (debye != iter_e)
+    ret = DEBYE;
+
+  else if (lorentz != iter_e)
+    ret = LORENTZ;
+
+  //else if (drude != iter_e)
+  else if (fp_ != 0.0) // gah!
+    ret = DRUDE;
+
+  else if (sigma_ != 0.0) // Gah!
+    ret = LOSSY;
+
+  return ret;
 }

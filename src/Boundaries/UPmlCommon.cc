@@ -8,7 +8,9 @@
 #include <cmath>
 
 UPmlCommon::UPmlCommon(const Grid &grid)
-  : grid_(grid), poly_order_(4), 
+  : grid_(grid), inited_(false), poly_order_(4), 
+    sigma_max_(0.0), eps_opt_(1.0), 
+    sigma_ratio_(1.0),
     x_size_(0), y_size_(0), z_size_(0),
     sigma_x_(0), sigma_y_(0), sigma_z_(0), 
     kx_(0), ky_(0), kz_(0),
@@ -29,7 +31,6 @@ UPmlCommon *UPmlCommon::get_upml_common(Grid &grid)
     return (UPmlCommon *)tmp;
 
   UPmlCommon *upml_common = new UPmlCommon(grid);
-  upml_common->init_coeffs();
 
   grid.add_auxdata(UPML_COMMON, (void *)upml_common);
 
@@ -69,6 +70,9 @@ void UPmlCommon::free_sigmas()
 
 void UPmlCommon::init_coeffs()
 {
+  if (inited_)
+    return;
+  
   const GridInfo &gi = grid_.get_grid_info();
 
   // Thickesses? 
@@ -157,14 +161,21 @@ void UPmlCommon::init_coeffs()
 
   er_ = new float[nm];
   ur_ = new float[nm];
+  mtype_ = new MaterialType[nm];
+  lossyA_ = new float[nm];
+  lossyB_ = new float[nm];
 
   memset(er_, 0, sizeof(float) * nm);
   memset(ur_, 0, sizeof(float) * nm);
+  memset(mtype_, 0, sizeof(MaterialType) * nm);
+  memset(lossyA_, 0, sizeof(float) * nm);
+  memset(lossyB_, 0, sizeof(float) * nm);
 
-  // This isn't working yet... 
   init_sigmas();
 
   init_constants();
+
+  inited_ = true;
 }
 
 void UPmlCommon::init_sigmas()
@@ -177,7 +188,6 @@ void UPmlCommon::init_sigmas()
 
   map<string, Material>::const_iterator iter = mlib->materials_.begin();
   map<string, Material>::const_iterator iter_e = mlib->materials_.end();
-  unsigned int xoffset = 0, yoffset = 0, zoffset = 0;
   
   // Loop over the materials
   while (iter != iter_e) 
@@ -187,23 +197,22 @@ void UPmlCommon::init_sigmas()
     mat_prop_t mu = ((*iter).second).get_mu() * MU_0;
     //mat_prop_t sigs = (*iter).get_sigma_star();
 
+    mat_idx_t mid = (*iter).second.get_id();
 
-    er_[(*iter).second.get_id()] = 1 / (eps);
-    ur_[(*iter).second.get_id()] = 1 / (mu);
+    er_[mid] = 1 / (eps);
+    ur_[mid] = 1 / (mu);
+    mtype_[mid] = (*iter).second.type();
+
+    if (mtype_[mid] == LOSSY)
+    {
+      delta_t dt = grid_.get_deltat();
+      lossyA_[mid] = (2*eps - dt*sig) / (2*eps + dt*sig);
+      lossyB_[mid] = (2*dt) / (2*eps + dt*sig);
+    }
 
     ++iter;
   }
 
-//     if (((*iter).second).is_pec())
-//     {
-      
-//     }
-
-  // ???
-//   xoffset += thicknesses_[FRONT] + thicknesses_[BACK];
-//   yoffset += thicknesses_[LEFT] + thicknesses_[RIGHT];
-//   zoffset += thicknesses_[BOTTOM] + thicknesses_[TOP];
-    
   // Loop over the faces, for each may have it's own thickness
   for (int faceidx = 0; faceidx < 6; faceidx++)
   {
@@ -215,11 +224,11 @@ void UPmlCommon::init_sigmas()
 
       if (faceidx == FRONT)
       {
-        start = xoffset + thicknesses_[BACK] + thicknesses_[FRONT] - 1;
+        start = grid_.get_ldx_sd() - 2; 
         thickness = thicknesses_[FRONT];
         incr = -1;
       } else {
-        start = xoffset;
+        start = 0;
         thickness = thicknesses_[BACK];
         incr = 1;
       }
@@ -232,11 +241,11 @@ void UPmlCommon::init_sigmas()
 
       if (faceidx == RIGHT)
       {
-        start = yoffset + thicknesses_[RIGHT] + thicknesses_[LEFT] - 1;
+        start = grid_.get_ldy_sd() - 2;
         thickness = thicknesses_[RIGHT];
         incr = -1;
       } else {
-        start = yoffset;
+        start = 0;
         thickness = thicknesses_[LEFT];
         incr = 1;
       }
@@ -249,28 +258,47 @@ void UPmlCommon::init_sigmas()
 
       if (faceidx == TOP)
       {
-        start = zoffset + thicknesses_[TOP] + thicknesses_[BOTTOM] - 1;
+        start = grid_.get_ldz_sd() - 2;
         thickness = thicknesses_[TOP];
         incr = -1;
       } else {
-        start = zoffset;
+        start = 0;
         thickness = thicknesses_[BOTTOM];
         incr = 1;
       }
       break;
     }
 
-    //mat_coef_t sigma_max = calc_sigma_max(eps, delta);
-    //mat_coef_t k_max = calc_k_max(eps, delta);
+    mat_coef_t sigma_max = calc_sigma_max(delta);
+    //mat_coef_t k_max = calc_k_max(delta);
 
-//     for (int sigidx = start, idx = thickness; idx > 0; 
-//          idx--, sigidx += incr)
-//     {
-//       sigmas[sigidx] = sigma_max * pow(static_cast<float>(idx) 
-//                                        / static_cast<float>(thickness), 
-//                                        static_cast<float>(poly_order_));
-//     }      
+    for (int sigidx = start, idx = thickness; idx > 0; 
+         idx--, sigidx += incr)
+    {
+      sigmas[sigidx] = sigma_max * pow(static_cast<float>(idx) 
+                                       / static_cast<float>(thickness), 
+                                       static_cast<float>(poly_order_));
+    }      
   }
+
+#ifdef DEBUG
+  cout << "UPML conductivity profiles: \nx axis: ";
+
+  for (int i = 0; i < grid_.get_ldx_sd(); i++)
+    cout << sigma_x_[i] << " ";
+
+  cout << "\ny axis: ";
+
+  for (int i = 0; i < grid_.get_ldy_sd(); i++)
+    cout << sigma_y_[i] << " ";
+
+  cout << "\nz axis: ";
+
+  for (int i = 0; i < grid_.get_ldz_sd(); i++)
+    cout << sigma_z_[i] << " ";
+  
+  cout << endl;
+#endif
 
 }
 
@@ -283,8 +311,6 @@ void UPmlCommon::init_constants()
 
     Bx_[i] = 2 * EPS_0 * grid_.get_deltat()
       / ( 2 * EPS_0 * kx_[i] + grid_.get_deltat() * sigma_x_[i] )
-      //* (grid_.get_deltax() / (grid_.get_deltay() 
-      //                        * grid_.get_deltaz())) // ???????? CHECK
       ;
 
     Cx_[i] = ( 2 * EPS_0 * kx_[i] + grid_.get_deltat() * sigma_x_[i] ) 
@@ -301,8 +327,6 @@ void UPmlCommon::init_constants()
 
     By_[j] = 2 * EPS_0 * grid_.get_deltat()
       / ( 2 * EPS_0 * ky_[j] + grid_.get_deltat() * sigma_y_[j] )
-      //* (grid_.get_deltay() / (grid_.get_deltax() 
-      //                        * grid_.get_deltaz())) // ???????? CHECK
       ;
 
     Cy_[j] = ( 2 * EPS_0 * ky_[j] + grid_.get_deltat() * sigma_y_[j] ) 
@@ -319,8 +343,6 @@ void UPmlCommon::init_constants()
 
     Bz_[k] = 2 * EPS_0 * grid_.get_deltat()
       / ( 2 * EPS_0 * kz_[k] + grid_.get_deltat() * sigma_z_[k] )
-      //* (grid_.get_deltaz() / (grid_.get_deltax() 
-      //                        * grid_.get_deltay())) // ???????? CHECK
       ;
 
     Cz_[k] = ( 2 * EPS_0 * kz_[k] + grid_.get_deltat() * sigma_z_[k] ) 
@@ -333,7 +355,22 @@ void UPmlCommon::init_constants()
 
 }
 
-mat_coef_t UPmlCommon::calc_sigma_max(mat_prop_t eps, delta_t delta)
+mat_coef_t UPmlCommon::calc_sigma_max(delta_t delta)
 {
-  return (poly_order_ + 1) / (150 * PI * delta * sqrt(eps));
+  mat_coef_t ret = 0.0;
+  // Bad floating point test!
+  if (sigma_max_ == 0.0)
+  {
+    ret = sigma_ratio_ * ((poly_order_ + 1) 
+                          / (150 * PI * delta * sqrt(eps_opt_)));
+#ifdef DEBUG
+    cout << "Calculated Maximum conductivity using poly_order = " 
+         << poly_order_ << ", eps_opt = " << eps_opt_ 
+         << "\nand sigma_ratio = " << sigma_ratio_ << ": " << ret << endl;
+#endif
+  }
+  else
+    ret = sigma_max_;
+
+  return ret;
 }

@@ -129,7 +129,16 @@ void export_boundaries()
   class_<UPml, bases<BoundaryCond>, boost::noncopyable >("UPml", "Gedney's uniaxial PML")
     .def("apply", &UPml::apply)
     .def("get_type", &UPml::get_type)
-    .def("set_thickness", &UPml::set_thickness)
+    .def("set_thickness", &UPml::set_thickness,
+         "The number of cells occupied by the PML.")
+    .add_property("sigma_max", &UPml::get_sigma_max, 
+                  &UPml::set_sigma_max)
+    .add_property("poly_order", &UPml::get_poly_order, 
+                  &UPml::set_poly_order)
+    .add_property("eps_opt", &UPml::get_eps_opt,
+                  &UPml::set_eps_opt)
+    .add_property("sigma_ratio", &UPml::get_sigma_ratio, 
+                  &UPml::set_sigma_ratio)
     ;
                                      
 }

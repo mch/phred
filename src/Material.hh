@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,6 +24,11 @@
  * information.
  *
  * It's the go-between from input to grid coefficients. 
+ *
+ * The following properties are used as a tell for these dispersions:
+ * Debye: NONE YET
+ * Lorentz: NONE YET
+ * Drude: plasma_freq
  */
 
 #ifndef MATERIAL
@@ -225,6 +230,13 @@ private:
    */ 
   inline bool is_pec() const
   { return pec_; }
+
+  /**
+   * Returns the type of material this is by looking at the material
+   * properties for clues. For course, PEC and lossy dielectric are
+   * easy.
+   */ 
+  MaterialType type() const;
 
 };
 

@@ -86,23 +86,22 @@ enum BoundaryCondition {
   EWALL, /**< Electric wall */
   HWALL, /**< Magnetic wall */
   PML, /**< Perfectly matched layers (Berenger's absorbing boundary) */
-  UPML, /**< Gedney's uniaxial PML */ 
-  GPML /**< Generalized PML */ 
+  UPML /**< Gedney's uniaxial PML */ 
   /* MUR */ /**< 2nd order absorbing boundary condition */
   /* IMPEDANCE, */ /**< Imedance boundary */
 };
 
 /** 
- * Material types. Not currently used, but may be used to indicate the
- * type of grid that should be used.
+ * Material types. Used by UPML to indicate the dispersion
+ * calculation to use.
  */
 enum MaterialType {
-  PERF_COND, 
-  NON_PERMEABLE, 
-  CONDUCTIVE, 
-  DEBYE, 
-  LORENTZ, 
-  DRUDE
+  PERF_COND = 0,  /**< Perfect conductor */
+  DIELECTRIC = 2, /**< Lossless dielectric */  
+  LOSSY = 4,      /**< Lossy dielectric */ 
+  DEBYE = 8,      /**< Debye model */ 
+  LORENTZ = 16,   /**< Lorentz model */ 
+  DRUDE = 32      /**< Drude model (unmagnatized plasma) */ 
 };
 
 /**

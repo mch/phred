@@ -619,7 +619,7 @@ void Grid::load_materials(shared_ptr<MaterialLib> matlib)
       cerr << "Something is wrong with the material library:\n" 
            << " -> Material cannot have permittivities or permeabilities\n"
            << "    of zero. Perfect electric conductor can have eps=0, \n"
-           << "    but that is a special material defined by phred.\n\n"
+           << "    but that is a special material defined by Phred.\n\n"
            << "Program aborting. Check material library." << endl;
       MPI_Abort(MPI_COMM_WORLD, 1);
     }

@@ -31,6 +31,9 @@ using namespace std;
 
 /**
  * Uniaxial PML implementation, per Gedney. 
+ *
+ * Implmentation based on chapter 5 of "Advances in Engineering
+ * Electromagnetics," Allen Taflove ed., Artech House, 1998
  */ 
 class UPml : public BoundaryCond
 {
@@ -45,7 +48,39 @@ protected:
   field_t *dx_, *dy_, *dz_;
   field_t *bx_, *by_, *bz_;
 
-  // Bools are ugly
+  /**
+   * Additional auxiliary variables used by other dispersions
+   */ 
+  field_t *aux1_x_, *aux1_y_, *aux1_z_;
+
+  /**
+   * Sigma max, if the user choses to set it. When set to zero (the
+   * default), sigma max = sigma opt = (m+1)/(150pi sqrt(eps_r) dx)
+   */
+  mat_coef_t sigma_max_;
+
+  /**
+   * Polynomial order for calculating the conductivity profile of the
+   * UPML. Defaults to 4. 
+   */ 
+  unsigned int poly_order_;
+
+  /**
+   * The reletive permittivity to be used for the purposes of
+   * calculating the maximum conductivity in the PML. If there are big
+   * permittivity continuities withing the PML, the best performace
+   * may be to average them. Defaults to 1.0. 
+   */ 
+  mat_coef_t eps_opt_;
+
+  /**
+   * The ratio between sigma_opt, calculated from the polynomial order
+   * and material properties, to sigma_max, the maximum condictivity
+   * of the UPML. Defaults to 1.0. 
+   */ 
+  mat_coef_t sigma_ratio_;
+
+  // Update equations
   void update_ex(Grid &grid);
   void update_ey(Grid &grid);
   void update_ez(Grid &grid);
@@ -100,6 +135,32 @@ public:
    */ 
   virtual void add_sd_bcs(SubdomainBc *sd, Face bcface, Face sdface);
 
+  inline unsigned int get_poly_order() const
+  { return poly_order_; }
+
+  inline void set_poly_order(unsigned int p) 
+  { poly_order_ = p; }
+
+  inline mat_coef_t get_sigma_max() const
+  { return sigma_max_; }
+
+  inline void set_sigma_max(mat_coef_t sm) 
+  { sigma_max_ = sm; }
+
+  inline mat_coef_t get_eps_opt() const
+  { return eps_opt_; }
+
+  inline void set_eps_opt(mat_coef_t eps_opt) 
+  { eps_opt_ = eps_opt; }
+
+  inline mat_coef_t get_sigma_ratio()
+  { return sigma_ratio_; } 
+
+  inline void set_sigma_ratio(mat_coef_t sr)
+  { 
+    if (sr > 0.0)
+      sigma_ratio_ = sr; 
+  }
 };
 
 #endif // UPML_BC_H
