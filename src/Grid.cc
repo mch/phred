@@ -769,7 +769,7 @@ region_t Grid::global_to_local(unsigned int x_start, unsigned int x_stop,
 }
 
 field_t *Grid::get_face_start(Face face, FieldComponent comp,
-                              unsigned int offset)
+                              unsigned int offset) const
 {
   unsigned int idx = 0;
   field_t *ptr = 0;
@@ -821,7 +821,7 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp,
 }
 
 field_t *Grid::get_face_start(Face face, FieldComponent comp,
-                              point_t p) 
+                              point_t p) const
 {
   unsigned int idx = 0;
   field_t *ptr = 0;
