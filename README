@@ -23,6 +23,50 @@ Comments are welcome.
 
 	- Matt Hughes <mhughe@uvic.ca>
 
+COMPILERS:
+
+* GCC 3.3.3 is known to work well
+
+* ICC 8.1
+Getting Intel's compiler to work takes a little effort. If everything
+is installed and your environment variables are set, you just have to
+tell your mpic++ script to use it. For LAM, do this:
+
+export LAMHCP=/opt/intel_cc_80/bin/icpc
+
+You have to use icpc rather than icc because otherwise the final link
+step will not be able to find the Intel C++ symbols. 
+
+I wanted to use the Intel C++ libraries rather than the GCC ones, so
+it was necessary to add the -cxxlib-icc flag to CXXFLAGS.
+
+I also found it necessary to add an include path to CPPFLAGS:
+
+CXXFLAGS="-cxxlib-icc" CPPFLAGS="-I /opt/intel_cc_80/include/c++" ../phred/configure
+
+If you want to try vectorizing the code, add the -restrict and
+-vec_report. Use -vec_report5 for more information about what can and
+can't be vectorized and why. 
+
+
+* VisualAge 6 for AIX
+
+Aix xlC_r optimize flags (from Blitz++):
+-O3 -qstrict -Q -qansialias -qhot
+
+-Q turns on inlining
+-qstrict turns off optimizations that might alter program semantics 
+-qhot turns on high order transformations; pad arrays etc to avoid
+      cache misses, use vector library routines where possible
+-qhot=vector does as above, plus it can replace code with calls to
+             vector library routines
+-qansialias Use type-based aliasing during optimization
+-qalias=allp Tells the compiler that pointer are never aliased
+-qassert=allp Tells the compiler that pointer are never aliased
+
+
+Hmmm, array padding: -qhot=arraypad
+
 
 USING PYTHON:
 
@@ -58,7 +102,7 @@ normal upgrade cycle, so I'm stuck with a buggy version and cannot
 test it. 
 
 
-NOTE ON LICENCES:
+LICENCES:
 This program optionally depends on a number of other software
 packages which are available under a variety of licences. This affects
 what licences phred may be made availble under, which is currently
@@ -83,14 +127,11 @@ readline, GPL
 
 Boost, Boost licence, GPL compadible AFAIK
 
+
+
 THINGS TO DO:
 There's a bunch of stuff that needs to be done, with respect to the
 code organization and with respect to the FDTD itself. 
-
-Some more though needs to go into the life cycle management of the
-objects, who creates them, who owns them, how and when they are
-destroyed, when they are considered "locked", and so on. Code clean up
-and consistency checks are required. 
 
 Parallel stuff:
 - MPI fixups
@@ -104,11 +145,3 @@ FDTD stuff:
 
 
 
-Aix xlC_r optimize flags (from Blitz++):
--O3 -qstrict -Q -qansialias -qhot
-
--Q turns on inlining
--qstrict turns off optimizations that might alter program semantics 
--qhot turns on high order transformations; pad arrays etc to avoid
-      cache misses, use vector library routines where possible
--qansialias Use type-based aliasing during optimization

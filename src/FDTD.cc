@@ -349,8 +349,8 @@ void FDTD::run()
   unsigned int rt_steps = 9;
   
   for (ts = 1; ts <= time_steps_; ts++) {
-    if (!quiet)
-      cout << "Phred time step " << ts << endl;
+//     if (!quiet)
+//       cout << "Phred time step " << ts << endl;
     
     if ((ts - 10) % 100 == 0)
     {
