@@ -315,7 +315,7 @@ void Pml::free_pml_fields()
 void Pml::apply(Face face, Grid &grid, FieldType type)
 {
   if (!alloced_)
-    throw exception(); // PML must be set up before applying it. 
+    throw BoundaryConditionException("PML must be set up before applying it.");
 
 //   if (face == BOTTOM && type == E)
 //   {

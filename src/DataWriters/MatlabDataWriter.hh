@@ -28,11 +28,7 @@
 #include <map>
 #include <string>
 
-#include <sys/types.h>
-
-#ifdef __GNUC__
-#include <stdint.h> // uint32_t on linux
-#endif
+#include <boost/cstdint.hpp>
 
 #include <mpi.h>
 #include <limits.h>

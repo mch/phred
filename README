@@ -72,6 +72,11 @@ Newer versions of CC may not require the use of the boost
 compatibility headers. YMMV. 
 
 
+* Compaq C++ on HPUX
+http://h30097.www3.hp.com/cplus/ugu.htm
+
+CPPFLAGS="-I/opt/boost/include/boost-1_31/" CXXFLAGS="-D__USE_STD_IOSTREAM" ../Phred-0.1.0/configure --with-cxx=cxx
+
 
 
 USING PYTHON:

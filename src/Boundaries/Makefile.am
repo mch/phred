@@ -16,3 +16,5 @@ libboundaries_a_SOURCES = BoundaryCondition.hh \
 	UPmlCommon.cc \
 	SubdomainBc.hh \
 	SubdomainBc.cc
+
+libboundaries_a_LIBADD = $(TEMPLATE_OBJS)

@@ -279,10 +279,15 @@ Options:\n\
                              P   Square hole in Ag, followed by the size of\n\
                                  the hole in the y dimension as\n\
                                  an integer number of nanometers.\n\
+                             T   Square hole in a 1 cell thick PEC film,\n\
+                                 followed by the side of the hole in the \n\
+                                 y dimension as an integer number of \n\
+                                 nanometers.\n\
   -V, --version              output version information and exit\n\
 ");
 #else
-  printf ("Usage: %s A [opts]\n", program_name);
+  printf ("Usage: %s A [opts] or %s [filename]\n", program_name,
+          program_name);
   printf("A is a letter identifying the test to run, and [opts] are any\n"
          "options that test takes.\nTests:\n\
   H   Single circular hole\n\
@@ -293,6 +298,13 @@ Options:\n\
       dimension as an integer number of nanometers.\n\
   P   Square hole in Ag, followed by the size of the hole in the y\n\
       dimension as an integer number of nanometers.\n\
+  T   Square hole in a 1 cell thick PEC film, followed by the side of\n\
+      the hole in the y dimension as an integer number of nanometers.\n\
+\n\
+If a filename is specified rather than a one letter test code, the\n\
+problem description is loaded from that file. If no file is specified, \n\
+the program will attempt to load the problem description from the\n\
+file 'problem.phred'.\n\
 ");
 #endif
 
@@ -475,6 +487,23 @@ int main (int argc, char **argv)
             square_hole_Ag(105);
           }
         } 
+        else if (cmd.compare("T") == 0 && argi+2 < argc)
+        {
+          int ysize = 105;
+          try
+          {
+            ysize = lexical_cast<int>(argv[argc - 1]);
+
+            square_hole_thin(ysize);
+          }
+          catch(bad_lexical_cast &)
+          {
+            cout << "The size of the hole in the y dimension must "
+              "be an integer number of nanometers.\nRunning the "
+              "sim with y = 105 nm." << endl;
+            square_hole_thin(105);
+          }
+        }
         else 
         {
           cout << "Unrecognized test option." << endl;

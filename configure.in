@@ -134,10 +134,12 @@ DX_INIT_DOXYGEN([Phred], [doc/Doxyfile], [doc/generated_docs])
 
 AC_LANG(C++)
 
-dnl OpenMP support?
+dnl OpenMP support? These should really depend on the 
+dnl compiler, not the vendor...
 INTEL_OMP="-openmp"
 SGI_OMP="-mp" # -MP:open_mp=ON"
 AIX_OMP="-qSMP=omp:noauto"
+DEC_OMP="-omp"
 OMP_FLAGS=""
 if [[ "x$target_vendor" = "xpc" ]]; then
         OMP_FLAGS=$INTEL_OMP
@@ -149,6 +151,10 @@ fi
 
 if [[ "x$target_vendor" = "xibm" ]]; then
         OMP_FLAGS=$AIX_OMP
+fi
+
+if [[ "x$target_vendor" = "xdec" ]]; then
+        OMP_FLAGS=$DEC_OMP
 fi
 
 AC_CXX_OPENMP([$OMP_FLAGS])
@@ -214,6 +220,12 @@ if test "x$build_vendor" = "xsgi"; then
     CXXFLAGS="$CXXFLAGS -n32"
     CFLAGS="$CFLAGS -n32"
   fi
+fi
+
+dnl HP SC45 stuff
+if test "x$build_vendor" = "xdec"; then
+  CXXFLAGS="$CXXFLAGS -D__USE_STD_IOSTREAM -tused"
+  LIBS="$LIBS -lm -lmpi";
 fi
 
 dnl MPI header files? The mpi compiler script should take care of this

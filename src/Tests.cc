@@ -55,6 +55,12 @@
 
 using namespace std;
 
+// For testing on tapir
+float deltax = 20e-9;
+float deltay = 20e-9;
+float deltaz = 20e-9;
+
+
 /**
  * Million node benchmark
  */ 
@@ -164,10 +170,6 @@ void hole()
 
   // Time steps is recalculated based on the length of the excitation.
   unsigned int time_steps = 3000;
-
-  float deltax = 5e-9;
-  float deltay = 5e-9;
-  float deltaz = 5e-9;
 
   float gridx = 800e-9;
   float gridy = 800e-9;
@@ -366,15 +368,6 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
   // Time steps is recalculated based on the length of the excitation.
   unsigned int time_steps = 3000;
 
-//   float deltax = 5e-9;
-//   float deltay = 5e-9;
-//   float deltaz = 5e-9;
-
-  // For testing on tapir
-  float deltax = 20e-9;
-  float deltay = 20e-9;
-  float deltaz = 20e-9;
-
   float gridx = 1000e-9;
   float gridy = 1000e-9;
   float gridz = 1000e-9;
@@ -407,8 +400,8 @@ void square_hole_setup(FDTD &fdtd, int ysize, string prefix)
   gm->set_parameters(ex_ampl, ex_freq_size, ex_centre_f);
 
   time_steps = static_cast<unsigned int>
-    (ceil((4 * gm->length() + 2 * gridz / 3e8) / fdtd.get_time_delta()));
-  time_steps = time_steps * 2;
+    (ceil((2 * gm->length() + 2 * gridz / 3e8) / fdtd.get_time_delta()));
+  //time_steps = time_steps * 2;
 
   fdtd.set_time_steps(time_steps);
 
@@ -561,15 +554,6 @@ void square_hole(int ysize)
 
   string prefix = "sqhole_";
 
-//   float deltax = 5e-9;
-//   float deltay = 5e-9;
-//   float deltaz = 5e-9;
-
-  // For testing on tapir
-  float deltax = 20e-9;
-  float deltay = 20e-9;
-  float deltaz = 20e-9;
-
   float gridx = 1000e-9;
   float gridy = 1000e-9;
   float gridz = 1000e-9;
@@ -623,15 +607,6 @@ void square_hole_Ag(int ysize)
 
   string prefix = "sqhole_";
 
-//   float deltax = 5e-9;
-//   float deltay = 5e-9;
-//   float deltaz = 5e-9;
-
-  // For testing on tapir
-  float deltax = 20e-9;
-  float deltay = 20e-9;
-  float deltaz = 20e-9;
-
   float gridx = 1000e-9;
   float gridy = 1000e-9;
   float gridz = 1000e-9;
@@ -675,6 +650,230 @@ void square_hole_Ag(int ysize)
     = shared_ptr<CSGDifference>(new CSGDifference(metal, hole));
   
   fdtd.add_object("AgPlasma", plate);
+
+  fdtd.run();
+}
+
+void square_hole_thin(int ysize)
+{
+  cout << "Simulating a square hole in a thin plate of perfect conductor..."
+       << endl;
+
+  string prefix = "sqhole_";
+
+  // Time steps is recalculated based on the length of the excitation.
+  unsigned int time_steps = 3000;
+
+  float gridx = 1000e-9;
+  float gridy = 1000e-9;
+  float gridz = 1000e-9;
+
+  float plate_thickness = deltaz;
+  float hole_x = 270e-9;
+  float hole_y = ysize * 1.0e-9;
+
+  cout << "Hole is " << hole_x * 1e9 << " nm by " << ysize
+       << " nm in a PEC plate that is "
+       << plate_thickness * 1e9 << " nm thick." << endl;
+
+
+  // GRID
+  FDTD fdtd;
+
+  fdtd.set_grid_deltas(deltax, deltay, deltaz);
+  fdtd.set_grid_size(gridx, gridy, gridz);
+
+  // MATERIAL
+  shared_ptr<MaterialLib> mlib
+    = shared_ptr<MaterialLib>(new MaterialLib());
+
+  Material mat;
+  mat.set_epsilon(2.2);
+  (*mlib).add_material("dielectric", mat);
+
+  fdtd.load_materials(mlib);
+
+  // Excitation parameters
+  float ex_ampl = 10;
+  float ex_freq_size = 200e12;
+  float ex_centre_f = 500e12;
+  float ex_offset = -250e-9;
+
+  // DFT Parameters
+  float dft_low = 300e12;
+  float dft_high = 750e12;
+  unsigned int dft_num = 30;
+
+  // BOUNDARIES
+  for (int i = 0; i < 6; i++)
+  {
+    shared_ptr<Pml> bound = shared_ptr<Pml>(new Pml());
+    (*bound).set_thickness(8);
+    fdtd.set_boundary(static_cast<Face>(i), bound);
+  }
+
+  // EXCITATION
+  shared_ptr<Gaussm> gm = shared_ptr<Gaussm>(new Gaussm());
+  gm->set_parameters(ex_ampl, ex_freq_size, ex_centre_f);
+
+  time_steps = static_cast<unsigned int>
+    (ceil((2 * gm->length() + 2 * gridz / 3e8) / fdtd.get_time_delta()));
+  //time_steps = time_steps * 2;
+  fdtd.set_time_steps(time_steps);
+
+  shared_ptr<GaussWindExcitation> ex
+    = shared_ptr<GaussWindExcitation>(new GaussWindExcitation(gm));
+//  shared_ptr<Excitation> ex
+//      = shared_ptr<Excitation>(new Excitation(gm));
+  shared_ptr<CSGBox> exbox
+    = shared_ptr<CSGBox>(new CSGBox());
+  exbox->set_size(gridx - 20 * deltax, gridy - 20 * deltay, 0);
+  //exbox->set_size(gridx, gridy, 0);
+  exbox->set_centre(0, 0, ex_offset);
+  ex->set_region(exbox);
+  ex->set_soft(true);
+  ex->set_type(E);
+  ex->set_polarization(1,0,0);
+  ex->set_time_param(0, gm->length(), 0);
+
+  fdtd.add_excitation("fluffy", ex);
+
+  // DATA WRITERS
+  bool have_netcdf = false;
+  try {
+    shared_ptr<NetCDFDataWriter> ncdw 
+      = shared_ptr<NetCDFDataWriter>(new NetCDFDataWriter());
+
+    (*ncdw).set_filename(prefix + "planes.nc");
+    fdtd.add_datawriter("ncdw", ncdw);
+    have_netcdf = true;
+  } 
+  catch (NoNetCDFException &e)
+  {
+    cout << "NetCDF data writer is missing. Disabiling Plane and Grid output.\n";
+  }
+
+  shared_ptr<MatlabDataWriter> mdw
+    = shared_ptr<MatlabDataWriter>(new MatlabDataWriter());
+
+  (*mdw).set_filename(prefix + "power.mat");
+  fdtd.add_datawriter("mdw", mdw);
+
+  // GRID RESULT: Should be disabled for the full problem
+  if (have_netcdf)
+  {
+    shared_ptr<GridResult> gridr
+      = shared_ptr<GridResult>(new GridResult);
+    
+    fdtd.add_result("grid", gridr);
+    fdtd.map_result_to_datawriter("grid", "ncdw");
+
+    shared_ptr<PlaneResult> plnr1
+      = shared_ptr<PlaneResult>(new PlaneResult);
+    plnr1->set_time_param(0, time_steps, 10);
+    plnr1->set_plane(grid_point(fdtd.get_num_x_cells() / 2, \
+                                fdtd.get_num_y_cells() / 2, \
+                                fdtd.get_num_z_cells() / 2), LEFT);
+    plnr1->set_field(FC_EX);
+    fdtd.add_result("xz_ex", plnr1);
+    fdtd.map_result_to_datawriter("xz_ex", "ncdw");
+  }
+
+  // INFORMATION ABOUT EXCIATION
+  shared_ptr<SignalTimeResult> st
+    = shared_ptr<SignalTimeResult>(new SignalTimeResult(*gm));
+  fdtd.add_result("src", st);
+  fdtd.map_result_to_datawriter("src", "mdw");
+
+  shared_ptr<SignalDFTResult> sdft
+    = shared_ptr<SignalDFTResult>(new SignalDFTResult(*gm, dft_low,
+                                                      dft_high,
+                                                      dft_num));
+  fdtd.add_result("srcdft", sdft);
+  fdtd.map_result_to_datawriter("srcdft", "mdw");
+
+  // Incident side point
+  shared_ptr<PointResult> pr1
+    = shared_ptr<PointResult>(new PointResult());
+  pr1->set_point(point(0, 0, -plate_thickness));
+  fdtd.add_result("p1", pr1);
+
+  shared_ptr<PointDFTResult> pr1dft
+    =  shared_ptr<PointDFTResult>(new PointDFTResult());
+  pr1dft->set_point(point(0, 0, -plate_thickness));
+  pr1dft->set_freq(dft_low, dft_high, dft_num);
+  fdtd.add_result("p1dft", pr1dft);
+
+  fdtd.map_result_to_datawriter("p1", "mdw");
+  fdtd.map_result_to_datawriter("p1dft", "mdw");
+
+  // Transmission side point
+  shared_ptr<PointResult> pr2
+    = shared_ptr<PointResult>(new PointResult());
+  pr2->set_point(point(0, 0, plate_thickness));
+  fdtd.add_result("p2", pr2);
+
+  shared_ptr<PointDFTResult> pr2dft
+    =  shared_ptr<PointDFTResult>(new PointDFTResult());
+  pr2dft->set_point(point(0, 0, plate_thickness));
+  pr2dft->set_freq(dft_low, dft_high, dft_num);
+  fdtd.add_result("p2dft", pr2dft);
+
+  fdtd.map_result_to_datawriter("p2", "mdw");
+  fdtd.map_result_to_datawriter("p2dft", "mdw");
+
+  // Farfield measurements
+  shared_ptr<CSGBox> ffbox
+    = shared_ptr<CSGBox>(new CSGBox());
+  ffbox->set_size(gridx, gridy, plate_thickness);
+
+  // About the y axis
+  shared_ptr<FarfieldResult> ffy
+    = shared_ptr<FarfieldResult>(new FarfieldResult());
+  ffy->set_freq(dft_low, dft_high, dft_num);
+  ffy->set_region(ffbox);
+  ffy->use_face(FRONT, false);
+  ffy->use_face(BACK, false);
+  ffy->use_face(LEFT, false);
+  ffy->use_face(RIGHT, false);
+  ffy->use_face(BOTTOM, false);
+  ffy->use_face(TOP, true);
+
+  ffy->set_theta_degrees(-9, 9, 7);
+  ffy->set_phi_degrees(0, 0, 1);
+
+  // About the x axis
+  shared_ptr<FarfieldResult> ffx
+    = shared_ptr<FarfieldResult>(new FarfieldResult());
+  ffx->set_freq(dft_low, dft_high, dft_num);
+  ffx->set_region(ffbox);
+  ffx->use_face(FRONT, false);
+  ffx->use_face(BACK, false);
+  ffx->use_face(LEFT, false);
+  ffx->use_face(RIGHT, false);
+  ffx->use_face(BOTTOM, false);
+  ffx->use_face(TOP, true);
+
+  ffx->set_theta_degrees(-9, 9, 7);
+  ffx->set_phi_degrees(90, 90, 1);
+
+  fdtd.add_result("ffy", ffy);
+  fdtd.add_result("ffx", ffx);
+
+  fdtd.map_result_to_datawriter("ffy", "mdw");
+  fdtd.map_result_to_datawriter("ffx", "mdw");
+
+  shared_ptr<CSGBox> metal = shared_ptr<CSGBox>(new CSGBox());
+  metal->set_size(gridx, gridy, plate_thickness);
+
+  shared_ptr<CSGBox> hole
+    = shared_ptr<CSGBox>(new CSGBox());
+  hole->set_size(hole_x, hole_y, plate_thickness * 2);
+
+  shared_ptr<CSGDifference> plate
+    = shared_ptr<CSGDifference>(new CSGDifference(metal, hole));
+
+  fdtd.add_object("PEC", plate);
 
   fdtd.run();
 }

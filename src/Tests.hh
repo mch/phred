@@ -43,3 +43,4 @@ void grooves_both();
 
 void square_hole(int ysize);
 void square_hole_Ag(int ysize);
+void square_hole_thin(int ysize);
