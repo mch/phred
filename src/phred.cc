@@ -498,7 +498,7 @@ static void pml_test(int rank, int size)
 {
   FDTD fdtd;
   
-  fdtd.set_grid_size(600, 100, 100);
+  fdtd.set_grid_size(1000, 100, 100);
   fdtd.set_grid_deltas(18.75e-9, 18.75e-9, 18.75e-9);
   //fdtd.set_time_delta(3.1250e-17);
 
