@@ -62,6 +62,7 @@ using namespace std;
 
 class Grid {
   friend class UPml;
+  friend class UPmlCommon;
   friend class Pml; // So that PML update equations can access the
                     // field pointers quickly; and also so that they
                     // can make a giant mess of them. 
@@ -191,7 +192,7 @@ class Grid {
     if (iter == auxdata_.end())
       return 0;
     else
-      return *iter;
+      return iter->second;
   }
 
   /**

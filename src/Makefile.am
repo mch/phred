@@ -19,16 +19,6 @@ phred_cond += python-bindings/PyExcitations.hh \
 	python-bindings/PyBoundaries.cc \
 	python-bindings/PyExcitations.cc
 
-#	python-bindings/PyMaterial.cc
-#	python-bindings/PyResults.hh \
-#	python-bindings/PyMaterial.hh \
-#	python-bindings/PyGeometry.hh \
-#	python-bindings/PyGrid.hh \
-#	python-bindings/PyFDTD.hh \
-#	python-bindings/PyTypes.hh \
-#	python-bindings/PyDatawriters.hh \
-#	python-bindings/PyBoundaries.hh
-
 phred_LDADD += ../thirdparty/boost.python/src/libboost_python.la
 phred_LDFLAGS += @PYTHON_LDFLAGS@
 endif
@@ -86,6 +76,8 @@ phred_SOURCES=\
 	PmlCommon.cc \
 	UPml.hh \
 	UPml.cc \
+	UPmlCommon.hh \
+	UPmlCommon.cc \
 	SubdomainBc.hh \
 	SubdomainBc.cc \
 	Types.hh \

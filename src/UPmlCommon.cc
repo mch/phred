@@ -1,5 +1,17 @@
 
 #include "UPmlCommon.hh"
+#include "UPml.hh"
+#include "Types.hh"
+#include "Constants.hh"
+#include "Exceptions.hh"
+
+UPmlCommon::UPmlCommon(const Grid &grid)
+  : grid_(grid), poly_order_(4), sigma_x_(0), sigma_y_(0), sigma_z_(0), 
+    c1_(0), c2_(0), c3_(0), c4_(0), c5_(0), c6_(0), x_size_(0), 
+    y_size_(0), z_size_(0)
+{
+  num_materials_ = grid.get_material_lib().num_materials();
+}
 
 UPmlCommon *UPmlCommon::get_upml_common(Grid &grid)
 {
@@ -9,10 +21,10 @@ UPmlCommon *UPmlCommon::get_upml_common(Grid &grid)
   void *tmp = grid.get_auxdata(UPML_COMMON);
 
   if (tmp)
-    return (UpmlCommon *)tmp;
+    return (UPmlCommon *)tmp;
 
   UPmlCommon *upml_common = new UPmlCommon(grid);
-  upml_common->init_coeffs();
+  upml_common->init_coeffs(grid);
 
   grid.add_auxdata(UPML_COMMON, (void *)upml_common);
 
@@ -44,21 +56,7 @@ void UPmlCommon::init_coeffs(Grid &grid)
 {
   GridInfo &gi = grid.get_grid_info();
 
-  // Set up the sigma array's
-  sigma_x_ = new float[grid.get_ldx()];
-  sigma_y_ = new float[grid.get_ldy()];
-  sigma_z_ = new float[grid.get_ldz()];
-
-  if (!sigma_x_ || !sigma_y_ || !sigma_z_)
-  {
-    free_sigmas();
-    throw MemoryException();
-  }
-
-  memset(sigma_x_, 0, sizeof(float) * grid.get_ldx());
-  memset(sigma_y_, 0, sizeof(float) * grid.get_ldy());
-  memset(sigma_z_, 0, sizeof(float) * grid.get_ldz());
-
+  // Thickesses? 
   for (int i = 0; i < 6; i++)
   {
     if (gi.get_bc_type(static_cast<Face>(i)) == PML) {
@@ -66,93 +64,128 @@ void UPmlCommon::init_coeffs(Grid &grid)
       UPml *p = dynamic_cast<UPml *>(&bc);
 
       if (p) 
-      {
-        init_sigmas(static_cast<Face>(i), grid, p);
-      } // if (p)
+        thicknesses_[i] = p->get_thickness();
+      else
+        thicknesses_[i] = 0;
     }
-  } // for
+  }
 
+  // Set up the sigma array's
+  unsigned int szx, szy, szz;
+  szx = (thicknesses_[FRONT] + thicknesses_[BACK]) * num_materials_;
+  szy = (thicknesses_[LEFT] + thicknesses_[RIGHT]) * num_materials_;
+  szz = (thicknesses_[TOP] + thicknesses_[BOTTOM]) * num_materials_;
+
+  sigma_x_ = new float[szx];
+  sigma_y_ = new float[szy];
+  sigma_z_ = new float[szz];
+
+  if (!sigma_x_ || !sigma_y_ || !sigma_z_)
+  {
+    free_sigmas();
+    throw MemoryException();
+  }
+
+  memset(sigma_x_, 0, sizeof(float) * szx);
+
+  memset(sigma_y_, 0, sizeof(float) * szy);
+
+  memset(sigma_z_, 0, sizeof(float) * szz);
+
+  init_sigmas();
 }
 
-void UPmlCommon::init_sigmas(Face face, const Grid &grid, UPml *p)
+void UPmlCommon::init_sigmas()
 {
-  delta_t d_space;
-  int step; 
-  unsigned int idx1, idx2;
-  float *arr1, *arr2;
+  const MaterialLib *mlib = &(grid_.get_material_lib());
+  delta_t delta;
+  float *sigmas;
+  unsigned int start, thickness;
+  int incr;
 
-  switch (face)
+  vector<Material>::const_iterator iter = mlib->get_material_iter_begin();
+  vector<Material>::const_iterator iter_e = mlib->get_material_iter_end();
+  int index = 0;
+  
+  ++index;
+  ++iter;
+
+  // Loop over the materials
+  while (iter != iter_e) 
   {
-  case BACK:
-    d_space = grid.get_deltax();
-    step = 1;
-    idx1 = 0;
-    idx2 = 0;
-    arr1 = ratio_x_;
-    arr2 = ratio_star_x_;
-    break;
+    mat_prop_t eps = (*iter).get_epsilon() * EPS_0;
+    mat_prop_t sig = (*iter).get_sigma();
+    mat_prop_t mu = (*iter).get_mu() * MU_0;
+    //mat_prop_t sigs = (*iter).get_sigma_star();
 
-  case FRONT:
-    d_space = grid.get_deltax();
-    step = -1; 
-    idx1 = grid.get_ldx_sd() - 1;
-    idx2 = grid.get_ldx_sd() - 2;
-    arr1 = ratio_x_;
-    arr2 = ratio_star_x_;
-    break;
-
-  case LEFT:
-    d_space = grid.get_deltay();
-    step = 1;
-    idx1 = 0;
-    idx2 = 0;
-    arr1 = ratio_y_;
-    arr2 = ratio_star_y_;
-    break;
-
-  case RIGHT:
-    d_space = grid.get_deltay();
-    step = -1; 
-    idx1 = grid.get_ldy_sd() - 1;
-    idx2 = grid.get_ldy_sd() - 2;
-    arr1 = ratio_y_;
-    arr2 = ratio_star_y_;
-    break;
-
-  case BOTTOM:
-    d_space = grid.get_deltaz();
-    step = 1;
-    idx1 = 0;
-    idx2 = 0;
-    arr1 = ratio_z_;
-    arr2 = ratio_star_z_;
-    break;
-
-  case TOP:
-    d_space = grid.get_deltaz();
-    step = -1; 
-    idx1 = grid.get_ldz_sd() - 1;
-    idx2 = grid.get_ldz_sd() - 2;
-    arr1 = ratio_z_;
-    arr2 = ratio_star_z_;
-    break;
-  }
-
-  mat_coef_t sigma_max = (poly_order_ + 1) 
-    / (150 * PI * d_space * sqrt((*iter).get_epsilon()));
-
-  for (unsigned int i = 0; i <= p->get_thickness(); i++)
-  {
-    arr1[idx1] = 1.0 / d_space 
-      * ( p->sigma_over_eps_int((i+0.5)*d_space) 
-          - p->sigma_over_eps_int((i-0.5)*d_space));
     
-    arr2[idx2] = 1.0 / d_space 
-      * ( p->sigma_over_eps_int((i+1.0)*d_space) 
-          - p->sigma_over_eps_int((i)*d_space));
-    
-    idx1 += step;
-    idx2 += step;
-  }
+    // Loop over the faces, for each may have it's own thickness
+    for (int faceidx = 0; faceidx < 6; faceidx++)
+    {
+      switch (faceidx) {
+      case FRONT:
+      case BACK:
+        delta = grid_.get_deltax();
+        sigmas = sigma_x_;
 
+        if (faceidx == FRONT)
+        {
+          start = thicknesses_[BACK] + thicknesses_[FRONT] - 1;
+          thickness = thicknesses_[FRONT];
+          incr = -1;
+        } else {
+          start = 0;
+          thickness = thicknesses_[BACK];
+          incr = 1;
+        }
+        break;
+
+      case LEFT:
+      case RIGHT:
+        delta = grid_.get_deltay();
+        sigmas = sigma_y_;
+
+        if (faceidx == RIGHT)
+        {
+          start = thicknesses_[RIGHT] + thicknesses_[LEFT] - 1;
+          thickness = thicknesses_[RIGHT];
+          incr = -1;
+        } else {
+          start = 0;
+          thickness = thicknesses_[LEFT];
+          incr = 1;
+        }
+        break;
+
+      case TOP:
+      case BOTTOM:
+        delta = grid_.get_deltaz();
+        sigmas = sigma_z_;
+
+        if (faceidx == TOP)
+        {
+          start = thicknesses_[TOP] + thicknesses_[BOTTOM] - 1;
+          thickness = thicknesses_[TOP];
+          incr = -1;
+        } else {
+          start = 0;
+          thickness = thicknesses_[BOTTOM];
+          incr = 1;
+        }
+        break;
+      }
+      mat_coef_t sigma_max = calc_sigma_max(eps, delta);
+      
+      for (int sigidx = start, idx = thickness; idx < 0; idx--, sigidx += incr)
+      {
+        sigmas[sigidx] = sigma_max * pow(static_cast<float>(idx), 
+                                         static_cast<float>(poly_order_));
+      }      
+    }
+  }
+}
+  
+mat_coef_t UPmlCommon::calc_sigma_max(mat_prop_t eps, delta_t delta)
+{
+  return (poly_order_ + 1) / (150 * PI * delta * sqrt(eps));
 }

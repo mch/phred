@@ -22,6 +22,8 @@
 #ifndef UPML_COMMON_H
 #define UPML_COMMON_H
 
+#include "Grid.hh"
+
 /**
  * A class that contains data that is needed for all Uniaxial PML's on
  * a grid. This is a singleton; the assumption is that there is only
@@ -30,15 +32,21 @@
 class UPmlCommon
 {
 private:
-  UPmlCommon();
+  UPmlCommon(const Grid &grid);
 protected:
+  const Grid &grid_;
+
+  unsigned int poly_order_; /**< Order of the polynomial used to shape
+                               the conductivity */
+
+  unsigned int thicknesses_[6]; /**< UPml thicknesses */
 
   /**
    * Conductivities. 
    */
-  float **sigma_x_;
-  float **sigma_y_;
-  float **sigma_z_;
+  float *sigma_x_;
+  float *sigma_y_;
+  float *sigma_z_;
 
   /**
    * 4d coefficient matricies. Only access these using the coeff_id
@@ -61,9 +69,27 @@ protected:
   // overlap. 
 
   /**
-   * This function computes the index into the sigma arrays
+   * Returns a sigma value along the x axis.
+   *
+   * @param mid material id
+   * @param x x coordinate
    */
-  inline unsigned int sigma_id();
+  inline float sigma_x(unsigned int mid, unsigned int x)
+  {
+    unsigned int xcoord = 0; 
+    float ret = 0.0;
+
+    if (x < thicknesses_[BACK])
+      xcoord = x;
+    if (x > (grid_.get_ldx() - thicknesses_[FRONT]))
+      xcoord = thicknesses_[BACK]
+        + (x - (grid_.get_ldx() - thicknesses_[FRONT]));
+
+    if (mid > 0)
+      ret = sigma_x_[xcoord + ((mid - 1) * num_materials_)];
+
+    return ret;
+  }
 
   /**
    * This function computes the index required to retrieve the
@@ -79,7 +105,9 @@ protected:
   void init_coeffs(Grid &grid);
 
   void free_sigmas();
-  void init_sigmas(Face face, const Grid &grid, UPml *p);
+  void init_sigmas();
+
+  mat_coef_t calc_sigma_max(mat_prop_t eps, delta_t delta);
 
 public:
   ~UPmlCommon();
