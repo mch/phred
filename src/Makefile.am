@@ -1,4 +1,4 @@
-SUBDIRS=python-bindings
+SUBDIRS=python-bindings Results Excitations DataWriters Boundaries
 
 bin_PROGRAMS=phred
 

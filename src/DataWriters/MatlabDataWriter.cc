@@ -342,7 +342,7 @@ void MatlabElement::reshape_buffer(int N, int M, MPI_Datatype type)
   char *new_buf = new char[buffer_size_];
   
 #ifdef DEBUG
-  cerr << "Reshaping buffer to " << N << " by " << M << endl;
+  //cerr << "Reshaping buffer to " << N << " by " << M << endl;
 #endif
 
   if (!new_buf)
@@ -543,10 +543,6 @@ MATLAB_array_type MatlabArray::get_array_class(MATLAB_data_type type)
   else
     throw DataWriterException("Invalid MATLAB data type given.");
 
-#ifdef DEBUG
-  cerr << "MatlabArray::get_array_class, array class is " << ret << endl;
-#endif
-
   return ret;
 }
 
@@ -593,7 +589,7 @@ void MatlabDataWriter::header_setup()
 
 void MatlabDataWriter::init(const Grid &grid)
 {
-  test();
+  //test();
 
   if (filename_.length() > 0 && rank_ == 0)
   {
@@ -661,12 +657,12 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
     if (len > 0)
     {
 #ifdef DEBUG
-      cerr << "Buffering data for matlab output from " << 
-        variable.get_name() << ", " << len << " bytes. " << endl;
-      cerr << "\tMatlabDataWriter, recieved data, floats are: " 
-           << reinterpret_cast<float *>(ptr)[0] << " and " 
-           << reinterpret_cast<float *>(ptr)[1] << endl;
-      cerr << "\tPointer is " << ptr << endl;
+//       cerr << "Buffering data for matlab output from " << 
+//         variable.get_name() << ", " << len << " bytes. " << endl;
+//       cerr << "\tMatlabDataWriter, recieved data, floats are: " 
+//            << reinterpret_cast<float *>(ptr)[0] << " and " 
+//            << reinterpret_cast<float *>(ptr)[1] << endl;
+//       cerr << "\tPointer is " << ptr << endl;
 #endif
 
       vars_[variable.get_name()]->append_buffer(len, ptr);

@@ -253,19 +253,19 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
 
   field_t cos_temp, sin_temp;
 
-#ifdef DEBUG
-  if (time_step == 10 || time_step == 15)
-  {
-    cerr << "Computing power through a surface which is "
-         << region_.xmax - region_.xmin << "x"
-         << region_.ymax - region_.ymin << "x"
-         << region_.zmax - region_.zmin << " in size." << endl;
-    cerr << "Frequency range: " << freq_start_ << " to " 
-         << freq_stop_ << ", spacing: " << freq_space_ << ", number: "
-         << num_freqs_ << endl;
-    cerr << "Cell area is " << cell_area_ << endl;
-  }
-#endif 
+// #ifdef DEBUG
+//   if (time_step == 10 || time_step == 15)
+//   {
+//     cerr << "Computing power through a surface which is "
+//          << region_.xmax - region_.xmin << "x"
+//          << region_.ymax - region_.ymin << "x"
+//          << region_.zmax - region_.zmin << " in size." << endl;
+//     cerr << "Frequency range: " << freq_start_ << " to " 
+//          << freq_stop_ << ", spacing: " << freq_space_ << ", number: "
+//          << num_freqs_ << endl;
+//     cerr << "Cell area is " << cell_area_ << endl;
+//   }
+// #endif 
 
   for (unsigned int i = 0; i <= num_freqs_; i++)
   {
