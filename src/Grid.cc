@@ -7,10 +7,7 @@ Grid::Grid()
     ex_(0), ey_(0), ez_(0), hx_(0), hy_(0), hz_(0), 
     material_(0)
 {
-  for (int i = 0; i < 6; i++) {
-    face_bc_[i] = EWALL;
-    face_rank_[i] = 0;
-  }
+
 }
 
 Grid::~Grid()

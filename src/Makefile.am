@@ -22,6 +22,9 @@ phred_SOURCES=phred.cc \
 	Ewall.hh \
 	Hwall.hh \
 	Types.hh \
+	SubdomainAlg.hh \
+	SimpleSDAlg.cc \
+	SimpleSDAlg.hh \
 	jan-grammer.yy \
 	jan-grammer-flex.ff \
 	lex.yy.cc

@@ -6,12 +6,12 @@ n = 1;
 sdy = 600;
 dy = 200;
 m = 1;
-sdz = 1000;
-dz = 1000;
+sdz = 925;
+dz = 925;
 p = 1;
 
 % Number of processors
-P = 8;
+P = 2;
 i = 0;
 d = 0;
 while (i < P)
@@ -74,4 +74,7 @@ disp(sprintf(['The y axis is divided into %d pieces, each of' ...
 disp(sprintf(['The z axis is divided into %d pieces, each of' ...
               ' %d cells.'], p, sdz));
               
-
+r = 5;
+x = mod(r, n);
+y = mod((r-x)/n, m);
+z = ((r-x)/n - y)/m;

@@ -36,12 +36,12 @@ enum MaterialType {
  * Faces on the grid cube.
  */
 enum Face {
-  FRONT = 0, 
-  BACK = 1, 
-  LEFT = 2, 
-  RIGHT = 3,
-  BOTTOM = 4, 
-  TOP = 5
+  FRONT = 0, /**< x = dimx, YZ plane */
+  BACK = 1, /**< x = 0, YZ plane */
+  LEFT = 2, /**< y = 0, XZ plane */
+  RIGHT = 3, /**< y = dimy, XZ plane */
+  BOTTOM = 4, /**< z = 0, XY plane */
+  TOP = 5 /**< z = dimz, XY plane */
 };
 
 /**

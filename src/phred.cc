@@ -67,10 +67,6 @@
  * interface. 
  */
 
-/*#include <stdio.h>
-#include <sys/types.h>
-#include "system.h"*/
-
 /* MPI (rocks your socks right off) */
 #include <mpi.h>
 
@@ -90,6 +86,7 @@ using namespace std; // Too lazy to type namespaces all the time.
 // In order to actually do stuff...
 #include "MaterialLib.hh"
 #include "Grid.hh"
+#include "SimpleSDAlg.hh"
 
 #define EXIT_FAILURE 1
 
@@ -181,19 +178,30 @@ main (int argc, char **argv)
   // Subdomain the grid among the available processors and have each
   // processor set up its grid.
 
-
+  SimpleSDAlg dd; // Domain decomposition algorithm. Maybe it should
+                  // be static? 
+  
 
   // THIS STUFF HERE IS TEMPORARY
   Grid grid; 
-  GridInfo info;
+  GridInfo info_g;
   
-  info.global_dimx_ = info.dimx_ = 100;
-  info.global_dimy_ = info.dimy_ = 100;
-  info.global_dimz_ = info.dimz_ = 100;
-  info.deltax_ = info.deltay_ = info.deltaz_ = 18.75e-9;
-  info.deltat_ = 36e-18;
-  info.start_x_ = info.start_y_ = info.start_z_ = 0;
+  info_g.global_dimx_ = info_g.dimx_ = 100;
+  info_g.global_dimy_ = info_g.dimy_ = 100;
+  info_g.global_dimz_ = info_g.dimz_ = 100;
+  info_g.deltax_ = info_g.deltay_ = info_g.deltaz_ = 18.75e-9;
+  info_g.deltat_ = 36e-18;
+  info_g.start_x_ = info_g.start_y_ = info_g.start_z_ = 0;
+
+  info_g.set_boundary(FRONT, EWALL);
+  info_g.set_boundary(BACK, EWALL);
+  info_g.set_boundary(LEFT, EWALL);
+  info_g.set_boundary(RIGHT, EWALL);
+  info_g.set_boundary(BOTTOM, EWALL);
+  info_g.set_boundary(TOP, EWALL);
   
+  GridInfo info = dd.decompose_domain(rank, size, info_g);
+
   grid.setup_grid(info);
   grid.alloc_grid();
 
@@ -211,12 +219,6 @@ main (int argc, char **argv)
   // Global coordinates. 
   grid.define_box(0, 100, 0, 100, 0, 100, 1);
   grid.define_box(40, 60, 40, 60, 40, 60, 2);
-  grid.set_boundary(FRONT, EWALL);
-  grid.set_boundary(BACK, EWALL);
-  grid.set_boundary(LEFT, EWALL);
-  grid.set_boundary(RIGHT, EWALL);
-  grid.set_boundary(BOTTOM, EWALL);
-  grid.set_boundary(TOP, EWALL);
 
   // Main loop
   unsigned int num_time_steps = 100;

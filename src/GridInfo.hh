@@ -56,8 +56,8 @@ public:
   // need to be shared with other processors. These arrays tell what
   // to do with each face. 
   //
-  // 0 - Front (x = 0, YZ plane)
-  // 1 - Back (x = dimx, YZ plane)
+  // 0 - Front (x = dimx, YZ plane)
+  // 1 - Back (x = 0, YZ plane)
   // 2 - Left (y = 0, XZ plane)
   // 3 - Right (y = dimy, XZ plane)
   // 4 - Bottom (z = 0, XY plane)
@@ -72,7 +72,12 @@ public:
     : global_dimx_(0), global_dimy_(0), global_dimz_(0), 
       dimx_(0), dimy_(0), dimz_(0), 
       deltax_(0), deltay_(0), deltaz_(0), deltat_(0)
-  {}
+  {
+    for (int i = 0; i < 6; i++) {
+      face_bc_[i] = EWALL;
+      face_rank_[i] = 0;
+    }
+  }
 
   ~GridInfo() {}
 

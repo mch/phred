@@ -31,7 +31,8 @@ public:
    * @return a Grid object (class instance) which has its sizes set
    * but which has not yet allocated any memory.
    */
-  GridInfo decompose_domain(int rank, int size, const GridInfo &info) = 0;
+  virtual GridInfo decompose_domain(int rank, int size, 
+                                    const GridInfo &info) = 0;
 };
 
 #endif // SUBDOMAIN_ALG_H

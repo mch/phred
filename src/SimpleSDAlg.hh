@@ -3,8 +3,14 @@
 
 #include "SubdomainAlg.hh"
 
+#include <math.h>
+
+#include <iostream>
+
+using namespace std;
+
 /**
- *
+ * Implements a simple domain decomposition algorithm. 
  */
 class SimpleSDAlg : public SubdomainAlg
 {

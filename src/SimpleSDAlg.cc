@@ -7,7 +7,7 @@ SimpleSDAlg::~SimpleSDAlg()
 {}
 
 GridInfo SimpleSDAlg::decompose_domain(int rank, int size, 
-                                   const GridInfo &info)
+                                       const GridInfo &info)
 {
   bool divided = false;
   
@@ -72,8 +72,85 @@ GridInfo SimpleSDAlg::decompose_domain(int rank, int size,
   result.deltaz_ = info.deltaz_;
   result.deltat_ = info.deltat_;
 
-  // Calculate the starting point and length of the axis' including
-  // the overlap required between subdomains. Assign boundary
-  // conditions to the grid. 
+
+  // Find the domain this grid will be in. 
+  unsigned int x, y, z; 
+  x = rank % n;
+  y = ((rank - x)/n) % m;
+  z = ((rank - x)/n - y) / m;
+
+  // Assign sizes and starting points including overlap
+  result.dimx_ = floor(result.global_dimx_ / n);
+  result.dimy_ = floor(result.global_dimy_ / m);
+  result.dimz_ = floor(result.global_dimz_ / p);
+
+  if (x == n-1) { // in case the number of cells isn't evenly divisible
+    result.dimx_ = result.global_dimx_ - n * floor(result.global_dimx_ / n);
+  } 
   
+  if (y == m-1) {
+    result.dimy_ = result.global_dimy_ - m * floor(result.global_dimy_ / m);
+  } 
+
+  if (z == p-1) {
+    result.dimz_ = result.global_dimz_ - p * floor(result.global_dimz_ / p);
+  } 
+
+  result.start_x_ = x * result.dimx_;
+  result.start_y_ = y * result.dimx_;
+  result.start_z_ = z * result.dimx_;
+  
+  // Assign boundary conditions the ranks to talk to 
+  if (x == 0) { // BACK
+    result.face_bc_[BACK] = info.face_bc_[BACK];
+  } else {
+    result.face_bc_[BACK] = SUBDOMAIN;
+    result.face_rank_[BACK] = (z*m + y) * n + (x-1);
+    result.dimx_++;
+    result.start_x_--;
+  }
+
+  if (x == n - 1) { // FRONT
+    result.face_bc_[FRONT] = info.face_bc_[FRONT];    
+  } else {
+    result.face_bc_[FRONT] = SUBDOMAIN;
+    result.face_rank_[FRONT] = (z*m + y) * n + (x+1);
+    result.dimx_++;
+  } 
+
+  if (y == 0) { // LEFT 
+    result.face_bc_[LEFT] = info.face_bc_[LEFT];
+  } else {
+    result.face_bc_[LEFT] = SUBDOMAIN;
+    result.face_rank_[LEFT] = (z*m + (y-1)) * n + x;
+    result.dimy_++;
+    result.start_y_--;
+  } 
+
+  if (y == m - 1) { // RIGHT
+    result.face_bc_[RIGHT] = info.face_bc_[RIGHT];
+  } else {
+    result.face_bc_[RIGHT] = SUBDOMAIN;
+    result.face_rank_[RIGHT] = (z*m + (y+1)) * n + x;
+    result.dimy_++;
+  }
+
+  if (z == 0) { // BOTTOM
+    result.face_bc_[BOTTOM] = info.face_bc_[BOTTOM];
+  } else {
+    result.face_bc_[BOTTOM] = SUBDOMAIN;
+    result.face_rank_[BOTTOM] = ((z-1)*m + y) * n + x;
+    result.dimz_++;
+    result.start_z_--;
+  }
+
+  if (z == p - 1) { // TOP
+    result.face_bc_[TOP] = info.face_bc_[TOP];
+  } else {
+    result.face_bc_[TOP] = SUBDOMAIN;
+    result.face_rank_[TOP] = ((z+1)*m + y) * n + x;
+    result.dimz_++;
+  }
+
+  return result;
 }
