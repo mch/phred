@@ -46,7 +46,8 @@ CSGStatus CSGSphere::is_point_inside(float x, float y, float z) const
 
 void CSGSphere::set_radius(float radius)
 {
-  radius_ = radius;
+  if (radius > 0)
+    radius_ = radius;
 }
 
 float CSGSphere::get_radius() const

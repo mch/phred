@@ -19,43 +19,46 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef CSG_SPHERE_H
-#define CSG_SPHERE_H
+#include "CSGCylinder.hh"
 
-#include "CSGPrimitive.hh"
+CSGCylinder::CSGCylinder()
+  : radius_(0.5), height_(1)
+{}
 
-/**
- * A sphere centred at 0,0,0 with a default radius of 0.5. 
- */ 
-class CSGSphere : public CSGPrimitive 
+CSGCylinder::~CSGCylinder()
+{}
+
+CSGStatus CSGCylinder::is_point_inside(float x, float y, float z) const
 {
-public:
-  CSGSphere();
-  ~CSGSphere();
+  CSGStatus ret = OUTSIDE;
 
-  /**
-   * Tell us if a point is inside or outside the solid.
-   *
-   * @param x x coordinate of the point
-   * @param y y coordinate of the point
-   * @param z z coordinate of the point
-   * @return 1 if the point is inside the solid, 0 if the point is on
-   * the boundary, and -1 if it is outside. 
-   */
-  CSGStatus is_point_inside(float x, float y, float z) const;
+  float r = sqrt(pow(centre_[0] - x, 2) + pow(centre_[1] - y, 2));
 
-  /**
-   * Set the radius of this sphere. 
-   */ 
-  void set_radius(float radius);
+  if (r < radius_ && z > centre_[2] - height_ / 2 
+      && z < centre_[2] + height_ / 2)
+    ret = INSIDE;
 
-  /**
-   * Returns the radius of this sphere
-   */ 
-  float get_radius() const;
+  return ret; 
+}
 
-protected:
-  float radius_;
-};
+void CSGCylinder::set_radius(float radius)
+{
+  if (radius > 0)
+    radius_ = radius;
+}
 
-#endif // CSG_SPHERE_H
+float CSGCylinder::get_radius() const
+{
+  return radius_;
+}
+
+void CSGCylinder::set_height(float height)
+{
+  if (height > 0)
+    height_ = height;
+}
+  
+float CSGCylinder::get_height() const
+{
+  return height_;
+}

@@ -31,12 +31,18 @@
  */ 
 class CSGOperator : public CSGObject {
 public:
-  CSGOperator(const CSGObject &left, const CSGObject &right);
-  virtual ~CSGOperator();
+
+  CSGOperator(shared_ptr<CSGObject> left, 
+              shared_ptr<CSGObject> right)
+    : left_(left), right_(right)
+  {}
+
+  virtual ~CSGOperator()
+  {}
 
 protected:
-  const CSGObject &left_;
-  const CSGObject &right_;
+  shared_ptr<CSGObject> left_;
+  shared_ptr<CSGObject> right_;
 };
 
 #endif // CSG_OBJECT_H

@@ -19,19 +19,21 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef CSG_SPHERE_H
-#define CSG_SPHERE_H
+#ifndef CSG_UNION_H
+#define CSG_UNION_H
 
-#include "CSGPrimitive.hh"
+#include "CSGOperator.hh"
 
 /**
- * A sphere centred at 0,0,0 with a default radius of 0.5. 
- */ 
-class CSGSphere : public CSGPrimitive 
+ * This is a CSG union operator. It subtracts one object from
+ * another.
+ */
+class CSGUnion : public CSGOperator 
 {
 public:
-  CSGSphere();
-  ~CSGSphere();
+  CSGUnion(shared_ptr<CSGObject> left, 
+           shared_ptr<CSGObject> right);
+  ~CSGUnion();
 
   /**
    * Tell us if a point is inside or outside the solid.
@@ -39,23 +41,12 @@ public:
    * @param x x coordinate of the point
    * @param y y coordinate of the point
    * @param z z coordinate of the point
-   * @return 1 if the point is inside the solid, 0 if the point is on
-   * the boundary, and -1 if it is outside. 
+   * @return the status of the point, inside, outside, or on the surface.
    */
-  CSGStatus is_point_inside(float x, float y, float z) const;
-
-  /**
-   * Set the radius of this sphere. 
-   */ 
-  void set_radius(float radius);
-
-  /**
-   * Returns the radius of this sphere
-   */ 
-  float get_radius() const;
+  virtual CSGStatus is_point_inside(float x, float y, float z) const;
 
 protected:
-  float radius_;
+  
 };
 
-#endif // CSG_SPHERE_H
+#endif
