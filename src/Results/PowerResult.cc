@@ -415,6 +415,8 @@ void PowerResult::deinit()
 map<string, Variable *> &PowerResult::get_result(const Grid &grid, 
                                                  unsigned int time_step)
 {
+  return get_result_test(grid, time_step);
+
   field_t et1, et2, ht1, ht2;
   field_t et1_real, et1_imag;
   field_t et2_real, et2_imag;
@@ -560,9 +562,9 @@ public:
     Data(field_t area)
       : area_(area), tp_(0)
     {}
-  }
+  };
 
-  static inline alg(Fields_t &f, Data &data)
+  static inline void alg(Fields_t &f, Data &data)
   {
     data.tp_ += (f.et1_avg * f.ht2_avg - f.et2_avg * f.ht1_avg) 
       * data.area_;
@@ -653,6 +655,16 @@ map<string, Variable *> &PowerResult::get_result_test(const Grid &grid,
   delta_t dt = grid.get_deltat();
   delta_t e_time = dt * time_step;
   delta_t h_time = dt * (static_cast<delta_t>(time_step) - 0.5);
+
+  dftdata.et1r_ = et1r_;
+  dftdata.et2r_ = et2r_;
+  dftdata.et1i_ = et1i_;
+  dftdata.et2i_ = et2i_;
+
+  dftdata.ht1r_ = ht1r_;
+  dftdata.ht2r_ = ht2r_;
+  dftdata.ht1i_ = ht1i_;
+  dftdata.ht2i_ = ht2i_;
 
   for (unsigned int i = 0; i < frequencies_.length(); i++)
   {
