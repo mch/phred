@@ -39,8 +39,12 @@
 
 Grid::Grid() 
   : num_materials_(0),
+#ifdef OLD_MATERIAL_DATA
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
     Da_(0), Dbx_(0), Dby_(0), Dbz_(0),
+#else
+    C_(0), D_(0)
+#endif
     ex_(0), ey_(0), ez_(0), hx_(0), hy_(0), hz_(0), 
     material_(0), types_alloced_(false), define_(true)
     //geometries_(0), num_geoms_(0)
@@ -66,7 +70,13 @@ const Grid &Grid::operator=(const Grid &rhs)
   update_hz_r_ = rhs.update_hz_r_;
 
   num_materials_ = rhs.num_materials_;
+
+#ifdef OLD_MATERIAL_DATA
   Ca_ = Cbx_ = Cby_ = Cbz_ = Da_ = Dbx_ = Dby_ = Dbz_ = 0;
+#else
+  C_ = D_ = 0;
+#endif
+
   ex_ = ey_ = ez_ = hx_ = hy_ = hz_ = 0;
   material_lib_ = rhs.material_lib_;
   material_ = 0;
@@ -391,6 +401,7 @@ void Grid::free_material()
     return;
   }
 
+#ifdef OLD_MATERIAL_DATA
   if (Ca_) 
     delete[] Ca_;
 
@@ -422,6 +433,15 @@ void Grid::free_material()
   }
   
   Ca_ = Da_ = Cbx_ = Cby_ = Cbz_ = Dbx_ = Dby_ = Dbz_ = 0;
+#else
+  if (C_)
+    delete[] C_;
+
+  if (D_)
+    delete[] D_;
+  
+  C_ = D_ = 0;
+#endif
 }
 
 void Grid::free_datatypes()
@@ -541,6 +561,8 @@ void Grid::load_materials(shared_ptr<MaterialLib> matlib)
   free_material();
 
   int num_mat = (*matlib).num_materials() + 1;
+
+#ifdef OLD_MATERIAL_DATA
   Ca_ = new mat_coef_t[num_mat];
   Da_ = new mat_coef_t[num_mat];
 
@@ -582,7 +604,13 @@ void Grid::load_materials(shared_ptr<MaterialLib> matlib)
   memset(Dbx_, 0, sizeof(mat_coef_t) * num_mat);
   memset(Dby_, 0, sizeof(mat_coef_t) * num_mat);
   memset(Dbz_, 0, sizeof(mat_coef_t) * num_mat);
+#else
+  C_ = new mat_coef_t[num_mat * 4];
+  D_ = new mat_coef_t[num_mat * 4];
 
+  memset(C_, 0, sizeof(mat_coef_t) * num_mat * 4);
+  memset(D_, 0, sizeof(mat_coef_t) * num_mat * 4);
+#endif
   map<string, Material>::iterator iter = (*matlib).materials_.begin();
   map<string, Material>::iterator iter_e = (*matlib).materials_.end();
 
@@ -608,12 +636,23 @@ void Grid::load_materials(shared_ptr<MaterialLib> matlib)
 
     if (((*iter).second).is_pec())
     {
+#ifdef OLD_MATERIAL_DATA
       Ca_[index] = 1;
       Cbx_[index] = Cby_[index] = Cbz_[index] = 0;
 
       Da_[index] = 1;
       Dbx_[index] = Dby_[index] = Dbz_[index] = 0;
-  
+#else
+      C_[index * 4] = 1;
+      C_[index * 4 + 1] = 0;
+      C_[index * 4 + 2] = 0;
+      C_[index * 4 + 3] = 0;
+
+      D_[index * 4] = 1;
+      D_[index * 4 + 1] = 0;
+      D_[index * 4 + 2] = 0;
+      D_[index * 4 + 3] = 0;
+#endif
     } 
     else if (eps == 0 || mu == 0)
     {
@@ -626,6 +665,7 @@ void Grid::load_materials(shared_ptr<MaterialLib> matlib)
     }
     else 
     {
+#ifdef OLD_MATERIAL_DATA
       Ca_[index] = (1 - (sig * get_deltat() * 0.5)/eps) / 
                    (1 + (sig * get_deltat() * 0.5)/eps);
       
@@ -656,6 +696,31 @@ void Grid::load_materials(shared_ptr<MaterialLib> matlib)
         Dbz_[index] = (get_deltat() / (mu * get_deltaz())) / 
                       (1 + (sigs * get_deltat() * 0.5)/mu);
       }
+#else
+      C_[index * 4] = (1 - (sig * get_deltat() * 0.5)/eps) / 
+                      (1 + (sig * get_deltat() * 0.5)/eps);
+
+      D_[index * 4] = (1 - (sigs * get_deltat() * 0.5)/mu) / 
+                      (1 + (sigs * get_deltat() * 0.5)/mu);
+
+      C_[index * 4 + 1] = (get_deltat() / (eps * get_deltax())) / 
+                          (1 + (sig * get_deltat() * 0.5)/eps);
+
+      D_[index * 4 + 1] = (get_deltat() / (mu * get_deltax())) / 
+                          (1 + (sigs * get_deltat() * 0.5)/mu);
+
+      C_[index * 4 + 2] = (get_deltat() / (eps * get_deltay())) / 
+                          (1 + (sig * get_deltat() * 0.5)/eps);
+
+      D_[index * 4 + 2] = (get_deltat() / (mu * get_deltay())) / 
+                          (1 + (sigs * get_deltat() * 0.5)/mu);
+
+      C_[index * 4 + 3] = (get_deltat() / (eps * get_deltaz())) / 
+                          (1 + (sig * get_deltat() * 0.5)/eps);
+
+      D_[index * 4 + 3] = (get_deltat() / (mu * get_deltaz())) / 
+                          (1 + (sigs * get_deltat() * 0.5)/mu);      
+#endif
     }
 
 #ifdef DEBUG
@@ -743,9 +808,9 @@ void Grid::update_ex(region_t update_r)
         for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
-          *ex = Ca_[mid] * *ex
-            + Cby_[mid] * (*hz1 - *hz2)
-            + Cbz_[mid] * (*(hy - 1) - *hy);
+          *ex = get_Ca(mid) * *ex
+            + get_Cby(mid) * (*hz1 - *hz2)
+            + get_Cbz(mid) * (*(hy - 1) - *hy);
           
           ex++;
           hz1++;
@@ -787,9 +852,9 @@ void Grid::update_ey(region_t update_r)
         for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
-          *ey = Ca_[mid] * *ey
-            + Cbz_[mid] * (*hx - *(hx-1))
-            + Cbx_[mid] * (*hz1 - *hz2);
+          *ey = get_Ca(mid) * *ey
+            + get_Cbz(mid) * (*hx - *(hx-1))
+            + get_Cbx(mid) * (*hz1 - *hz2);
           
           ey++;
           hx++;
@@ -831,9 +896,9 @@ void Grid::update_ez(region_t update_r)
         for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
-          *ez = Ca_[mid] * *ez
-            + Cbx_[mid] * (*hy1 - *hy2)
-            + Cby_[mid] * (*hx1 - *hx2);
+          *ez = get_Ca(mid) * *ez
+            + get_Cbx(mid) * (*hy1 - *hy2)
+            + get_Cby(mid) * (*hx1 - *hx2);
 
           ez++;
           hy1++; hy2++; hx1++; hx2++;
@@ -871,9 +936,9 @@ void Grid::update_hx(region_t update_r)
         for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
-          *hx = Da_[mid] * *hx
-            + Dby_[mid] * (*ez1 - *ez2)
-            + Dbz_[mid] * (*(ey+1) - *ey);
+          *hx = get_Da(mid) * *hx
+            + get_Dby(mid) * (*ez1 - *ez2)
+            + get_Dbz(mid) * (*(ey+1) - *ey);
           
           hx++; idx++;
           ez1++; ez2++; ey++;
@@ -912,9 +977,9 @@ void Grid::update_hy(region_t update_r)
         for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
-          *hy = Da_[mid] * *hy
-            + Dbz_[mid] * (*ex - *(ex + 1))
-            + Dbx_[mid] * (*ez1 - *ez2);        
+          *hy = get_Da(mid) * *hy
+            + get_Dbz(mid) * (*ex - *(ex + 1))
+            + get_Dbx(mid) * (*ez1 - *ez2);        
           
           hy++; idx++;
           ex++; ez1++; ez2++;
@@ -953,9 +1018,9 @@ void Grid::update_hz(region_t update_r)
         for (loop_idx_t k = update_r.zmin; k < update_r.zmax; k++) {
           mid = material_[idx];
           
-          *hz1 = Da_[mid] * *hz1
-            + Dbx_[mid] * (*ey1 - *ey2)
-            + Dby_[mid] * (*ex1 - *ex2);
+          *hz1 = get_Da(mid) * *hz1
+            + get_Dbx(mid) * (*ey1 - *ey2)
+            + get_Dby(mid) * (*ex1 - *ex2);
           
           hz1++; idx++;
           ey1++; ey2++;

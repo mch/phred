@@ -116,6 +116,11 @@ class Grid {
   // Number of materials we know about (0 is PEC)
   unsigned int num_materials_;
 
+
+  /* The new scheme will waste memory when the grid deltas are all the same */ 
+#define OLD_MATERIAL_DATA 1
+
+#ifdef OLD_MATERIAL_DATA
   // E Field Material Coefficients
   mat_coef_t *Ca_;
   mat_coef_t *Cbx_;
@@ -127,6 +132,15 @@ class Grid {
   mat_coef_t *Dbx_;
   mat_coef_t *Dby_;
   mat_coef_t *Dbz_;
+#else
+
+  // Increase cache efficency by exploting locality of
+  // reference... Ca_, Cbx_, Cby_, and Cbz_ will be used together, so
+  // make them contigouos in memory. This data should be aligned to
+  // fit in one cache line (32 bytes for L1 on MIPS)
+  mat_coef_t *C_;
+  mat_coef_t *D_;
+#endif
 
   // Material library
   shared_ptr<MaterialLib> material_lib_;
@@ -981,6 +995,104 @@ class Grid {
    * Returns the centre of the grid in real coordinates. 
    */ 
   point get_centre() const;
+
+#ifdef OLD_MATERIAL_DATA
+  /** 
+   * Returns the value of the Ca constant for a given material index
+   */ 
+  inline mat_coef_t get_Ca(mat_idx_t idx)
+  { return Ca_[idx]; }
+
+  /**
+   * Returns the value of the Cbx constant for a given material index
+   */ 
+  inline mat_coef_t get_Cbx(mat_idx_t idx)
+  { return Cbx_[idx]; }
+
+  /**
+   * Returns the value of the Cby constant for a given material index
+   */ 
+  inline mat_coef_t get_Cby(mat_idx_t idx)
+  { return Cby_[idx]; }
+  
+  /**
+   * Returns the value of the Cbz constant for a given material index
+   */ 
+  inline mat_coef_t get_Cbz(mat_idx_t idx)
+  { return Cbz_[idx]; }
+  
+  /** 
+   * Returns the value of the Da constant for a given material index
+   */ 
+  inline mat_coef_t get_Da(mat_idx_t idx)
+  { return Da_[idx]; }
+
+  /**
+   * Returns the value of the Dbx constant for a given material index
+   */ 
+  inline mat_coef_t get_Dbx(mat_idx_t idx)
+  { return Dbx_[idx]; }
+
+  /**
+   * Returns the value of the Dby constant for a given material index
+   */ 
+  inline mat_coef_t get_Dby(mat_idx_t idx)
+  { return Dby_[idx]; }
+  
+  /**
+   * Returns the value of the Dbz constant for a given material index
+   */ 
+  inline mat_coef_t get_Dbz(mat_idx_t idx)
+  { return Dbz_[idx]; }
+#else
+  /** 
+   * Returns the value of the Ca constant for a given material index
+   */ 
+  inline mat_coef_t get_Ca(mat_idx_t idx)
+  { return C_[idx * 4]; }
+
+  /**
+   * Returns the value of the Cbx constant for a given material index
+   */ 
+  inline mat_coef_t get_Cbx(mat_idx_t idx)
+  { return C_[idx * 4 + 1]; }
+
+  /**
+   * Returns the value of the Cby constant for a given material index
+   */ 
+  inline mat_coef_t get_Cby(mat_idx_t idx)
+  { return C_[idx * 4 + 2]; }
+  
+  /**
+   * Returns the value of the Cbz constant for a given material index
+   */ 
+  inline mat_coef_t get_Cbz(mat_idx_t idx)
+  { return C_[idx * 4 + 3]; }
+  
+  /** 
+   * Returns the value of the Da constant for a given material index
+   */ 
+  inline mat_coef_t get_Da(mat_idx_t idx)
+  { return D_[idx * 4]; }
+
+  /**
+   * Returns the value of the Dbx constant for a given material index
+   */ 
+  inline mat_coef_t get_Dbx(mat_idx_t idx)
+  { return D_[idx * 4 + 1]; }
+
+  /**
+   * Returns the value of the Dby constant for a given material index
+   */ 
+  inline mat_coef_t get_Dby(mat_idx_t idx)
+  { return D_[idx * 4 + 2]; }
+  
+  /**
+   * Returns the value of the Dbz constant for a given material index
+   */ 
+  inline mat_coef_t get_Dbz(mat_idx_t idx)
+  { return D_[idx * 4 + 3]; }
+#endif
 
 };
 
