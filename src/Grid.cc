@@ -265,14 +265,14 @@ void Grid::define_box(unsigned int x_start, unsigned int x_stop,
   ys = (get_lsy() > y_start) ? get_lsy() : y_start - get_lsy();
   zs = (get_lsz() > z_start) ? get_lsz() : z_start - get_lsz();
 
-  xe = (get_lsx() + get_ldx() > x_stop) 
-    ? get_lsx() + get_ldx() : x_stop - get_lsx();
+  xe = (x_stop > get_lsx() + get_ldx()) 
+    ? get_ldx() : x_stop - get_lsx();
 
-  ye = (get_lsy() + get_ldy() > y_stop) 
-    ? get_lsy() + get_ldy() : y_stop - get_lsy();
+  ye = (y_stop > get_lsy() + get_ldy()) 
+    ? get_ldy() : y_stop - get_lsy();
 
-  ze = (get_lsz() + get_ldz() > z_stop) 
-    ? get_lsz() + get_ldz() : z_stop - get_lsz();
+  ze = (z_stop > get_lsz() + get_ldz()) 
+    ? get_ldz() : z_stop - get_lsz();
 
   for (unsigned int i = xs; i < xe; i++)
   {
