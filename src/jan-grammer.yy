@@ -31,6 +31,7 @@ using namespace std;
 #define YYERROR_VERBOSE = 1
 
 JanFDTD *janfdtd;
+extern FILE *yyin; 
 
 int yylex();
 void yyerror(const char *s);
@@ -121,8 +122,8 @@ line: JAN_NEWLINE
       | exprm JAN_NEWLINE { cout << "Material Line: " << $1 << endl; }
       ;
 
-exprm: exprd exprd exprd exprd exprd {
-       $$ = $1; janfdtd->add_material($2, $3, $4, $5, $6); }
+exprm: expri exprd exprd exprd exprd {
+       $$ = $1; janfdtd->add_material($1, $2, $3, $4, $5); }
        ;
 
 exprs: JAN_STR { $$ = $1; }
@@ -140,8 +141,8 @@ exprd: JAN_NUM
        | JAN_DIMX exprd { $$ = $2; janfdtd->set_dimx($2); }
        | JAN_DIMY exprd { $$ = $2; janfdtd->set_dimy($2); }
        | JAN_DIMZ exprd { $$ = $2; janfdtd->set_dimz($2); }
-       | JAN_TIME_MODULO exprd { $$ = $2; janfdtd->set_tim_modulo($2); }
-       | JAN_RUNTIME exprd { $$ = $2; janfdtd->set_runtime($2); }
+       | JAN_TIME_MODULO expri { $$ = $2; janfdtd->set_time_modulo($2); }
+       | JAN_RUNTIME expri { $$ = $2; janfdtd->set_runtime($2); }
        | JAN_NR_OF_MATERIALS exprd { $$ = $2; janfdtd->set_num_materials($2); }
        ;
 
@@ -156,8 +157,8 @@ void parse_jan_grammer(const char *filename, JanFDTD *jfdtd)
 
   janfdtd = jfdtd;
   FILE *fp = fopen(filename, "r");
-  yyset_in(fp);
- 
+  /*yyset_in(fp);*/
+ yyin = fp;
   yyparse();
 }
 

@@ -46,3 +46,90 @@ void JanFDTD::parse_file(string filename)
 {
   parse_jan_grammer(filename.c_str(), this);
 }
+
+void JanFDTD::set_program_mode(const char *m)
+{
+
+}
+
+void JanFDTD::set_structure_mode(const char *m)
+{
+
+}
+
+void JanFDTD::set_timestep_mode(const char *m)
+{
+
+}
+
+void JanFDTD::set_runtime(unsigned int rt)
+{
+
+}
+
+void JanFDTD::set_time_modulo(unsigned int rt)
+{
+
+}
+
+void JanFDTD::set_dimx(unsigned int dx)
+{
+
+}
+
+void JanFDTD::set_dimy(unsigned int dy)
+{
+
+}
+
+void JanFDTD::set_dimz(unsigned int dz)
+{
+
+}
+
+
+void JanFDTD::set_deltax(double dx)
+{
+
+}
+
+void JanFDTD::set_deltay(double dy)
+{
+
+}
+
+void JanFDTD::set_deltaz(double dz)
+{
+
+}
+
+void JanFDTD::set_deltat(double dt)
+{
+
+}
+
+
+void JanFDTD::set_num_materials(unsigned int nm)
+{
+
+}
+
+void JanFDTD::add_material(unsigned int id, float eps, float sigma, 
+                  float mu, float sigma_star)
+{
+
+}
+
+
+void JanFDTD::set_pml_boundary(Face face, unsigned int thickness, 
+                      char p, unsigned int nrml_refl)
+{
+
+}
+
+
+void JanFDTD::set_boundary(Face face, BoundaryCondition bc)
+{
+
+}
+

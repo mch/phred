@@ -50,9 +50,9 @@ public:
 
   virtual void parse_file(string filename);
 
-  void set_program_mode(char m);
-  void set_structure_mode(char m);
-  void set_timestep_mode(char m);
+  void set_program_mode(const char *m);
+  void set_structure_mode(const char *m);
+  void set_timestep_mode(const char *m);
   void set_runtime(unsigned int rt);
   void set_time_modulo(unsigned int rt);
 
