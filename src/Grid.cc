@@ -13,6 +13,28 @@ Grid::Grid()
 
 }
 
+Grid::Grid(const Grid &rhs)
+{
+  *this = rhs;
+}
+
+const Grid &operator=(const Grid &rhs)
+{
+  info_ = rhs.info_;
+  update_r_ = rhs.update_r_;
+  num_materials_;
+  Ca_ = Cbx_ = Cby_ = Cbz_ = Da_ = Dbx_ = Dby_ = Dbz_ = 0;
+  ex_ = ey_ = ez_ = hx_ = hy_ = hz_ = 0;
+  material_ = 0;
+  xy_plane_ = rhs.xy_plane_;
+  yz_plane_ = rhs.yz_plane_;
+  xz_plane_ = rhs.xz_plane_;
+  x_vector_ = rhs.x_vector_;
+  y_vector_ = rhs.y_vector_;
+  z_vector_ = rhs.z_vector_;
+  define_ = rhs.define_;
+}
+
 Grid::~Grid()
 {
   define_ = true;

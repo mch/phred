@@ -145,6 +145,20 @@ class Grid {
   virtual ~Grid();
 
   /**
+   * Copy constructor. Pretty much everything is copied, but the grid
+   * is condidered uninitialized. No memory is allocated, grid data
+   * pointers are set to zero. 
+   */
+  Grid(const Grid &rhs);
+
+  /**
+   * Assignment operator. Pretty much everything is copied, but the
+   * grid is condidered uninitialized. No memory is allocated, grid
+   * data pointers are set to zero.
+   */
+  const Grid &operator=(const Grid &rhs);
+
+  /**
    * Turn define mode on or off. If you are turning off define mode,
    * a number of sanity checks and stability checks are made to
    * ensure that the settings make sense and can be solved. 

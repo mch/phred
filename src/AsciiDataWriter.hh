@@ -2,9 +2,9 @@
 #define ACSII_DATA_WRITER_H
 
 #include "DataWriter.hh"
+#include <ofstream>
 
-/**
- * Implements a
+using namespace std;
 
 /**
  * Writes data to a text file that can be loaded by MATLAB. 
@@ -14,18 +14,14 @@ class AsciiDataWriter : public DataWriter {
 private:
 protected:
   string filename_;
-
+  string var_name_; /**< For future comparison. */
   bool open_;
 
+  ofstream file_;
+
 public:
-  class Variable_4d : public DataWriter::Variable_4d {
-    void write_point(unsigned int x, unsigned int y,
-                     unsigned int z, field_t val);
-  };
-  
-  AsciiDataWriter(int rank, int size)
-    : DataWriter(rank, size), open_(false)
-  {}
+  AsciiDataWriter(int rank, int size);
+  ~AsciiDataWriter();
 
   /**
    * Set the filename
@@ -56,6 +52,22 @@ public:
    * Deinit; close the file.
    */
   void deinit();
+
+  /**
+   * Add a variable that we should know about. Throws an exception if
+   * you try to add more than one. This call currently only supports
+   * one dimensional data as well. 
+   *
+   * @param result describes the variable
+   */
+  void add_variable(const Result &result);
+
+  /**
+   * Write the Data produced by the Result object to a file. 
+   *
+   * @param data a Data object containing the data to handle
+   */
+  void handle_data(Data &data);
 
 };
 

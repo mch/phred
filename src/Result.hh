@@ -14,20 +14,40 @@ using namespace std;
  */
 class Data {
 private:
+  Data();
 protected:
   MPI_Datatype type_;
   void *ptr_;
   unsigned int num_;
+  string var_name_; /**< The name of the variable this data belongs
+                       to. */ 
 
 public:
-  Data() 
+  Data(string var_name) 
   {
     // A single field_t by default. 
     MPI_Type_contiguous(1, GRID_MPI_TYPE, &type_);
     MPI_Type_commit(&type_);
+    var_name_ = var_name;
   }
 
   ~Data();
+
+  /**
+   * Get the variable name for this data. 
+   */
+  inline string &get_var_name()
+  {
+    return var_name_;
+  }
+
+  /**
+   * Set the variable name for this data.
+   */
+  inline void set_var_name(const string &var_name)
+  {
+    var_name_ = var_name;
+  }
 
   /**
    * Used to set the data type.
@@ -41,7 +61,7 @@ public:
   /**
    * Get the data type
    */
-  inline MPI_Datatype get_datatype()
+  inline MPI_Datatype &get_datatype()
   {
     return type_;
   }
@@ -92,17 +112,49 @@ public:
  * datatype describing the data, a pointer to the data, and the number
  * of elements in the result. If there is no data to be written, then
  * the number of elements is zero. 
+ *
+ * The dimensions defined by the subclasses is NOT to include
+ * time. Since this request gets called on once every time step, time
+ * is implied. 
  */
 class Result
 {
 private:
+  Result(const Result &rhs);
+  const Result &operator=(const Result &rhs);
+
 protected:
   string var_name_; /**< Variable name */
   Data data_;
 
+  unsigned int num_dims_; /**< Number of dimensions */
+  unsigned int *dim_lens_; /**< Dimension lengths */
+
+  string dw_name_;
+  DataWriter *dw_;
 public:
-  Result() {}
+  Result() 
+    : num_dims_(0), dim_lens_(0), dw_(0)
+  {}
+
   virtual ~Result() = 0;
+
+  /**
+   * Set the data writer name (intended where we read that from a
+   * config file and set the actual data writer later). 
+   */
+  inline void set_dw_name(const string &dw)
+  {
+    dw_name_ = dw;
+  }
+
+  /**
+   * Get the data writer name
+   */
+  inline const string &get_dw_name()
+  {
+    return dw_name_;
+  }
 
   /**
    * Looks at the grid and produces output
@@ -118,16 +170,17 @@ public:
    * Set the name of the variable. 
    * @param name a string with the name
    */
-  void set_name(string name)
+  inline void set_name(const string &name)
   {
     name_ = name;
+    data_.set_var_name(name);
   }
 
   /**
    * Return the name of the variable. 
    * @return a string with the name in it. 
    */
-  string get_name()
+  inline const string &get_name()
   {
     return var_name_;
   }
@@ -138,7 +191,25 @@ public:
    */
   virtual void init()
   {}
-  
+
+  /** 
+   * Returns the number of dimensions
+   * @return unsigned int, num dims
+   */
+  inline unsigned int get_num_dims()
+  {
+    return num_dims_;
+  }
+
+  /**
+   * Returns the lengths of the dimensions
+   * @return a pointer to the lengths of the dimensions, with the 
+   * length returned by get_num_dims()
+   */
+  inline unsigned int *get_dim_lengths()
+  {
+    return dim_lens_;
+  }
 };
 
 #endif // RESULT_H
