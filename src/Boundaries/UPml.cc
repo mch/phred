@@ -261,12 +261,14 @@ void UPml::init(const Grid &grid, Face face)
   by_ = new field_t[sz];
   bz_ = new field_t[sz];
 
+#ifdef DEBUG
   cout << "UPml::init(). sz = " << sz << " field_t's. \ndx_ = " 
        << dx_ << " -> " << dx_ + sz << "\ndy_ = " << dy_ 
        << " -> " << dy_ + sz << "\ndz_ = " << dz_ << " -> " 
        << dz_ + sz << "\nbx_ = " 
        << bx_ << " -> " << bx_ + sz << "\nby_ = " << by_ << " -> " 
        << by_ + sz << "\nbz_ = " << bz_ << " -> " << bz_ + sz << endl;
+#endif 
 
   memset(dx_, 0, sizeof(field_t) * sz);
   memset(dy_, 0, sizeof(field_t) * sz);
@@ -377,35 +379,19 @@ void UPml::init(const Grid &grid, Face face)
   MPI_Type_contiguous(bc_r_.zmax, GRID_MPI_TYPE, &z_vector_);
   MPI_Type_commit(&z_vector_);
 
-  cout << "UPml::init(): z vector is " << bc_r_.zmax << " long. " << endl;
-
   MPI_Type_vector(bc_r_.ymax, 1, bc_r_.zmax, GRID_MPI_TYPE, &y_vector_);
   MPI_Type_commit(&y_vector_);
-
-  cout << "UPml::init(): y vector is " << bc_r_.ymax 
-       << " long, stride is " << bc_r_.zmax << endl;
   
   MPI_Type_vector(bc_r_.xmax, 1, bc_r_.ymax * bc_r_.zmax, 
                   GRID_MPI_TYPE, &x_vector_);
   MPI_Type_commit(&x_vector_);
 
-  cout << "UPml::init(): x vector is " << bc_r_.xmax 
-       << " long, stride is " << bc_r_.ymax * bc_r_.zmax << endl;
-
   MPI_Type_contiguous(bc_r_.zmax * bc_r_.ymax, GRID_MPI_TYPE, &yz_plane_);
   MPI_Type_commit(&yz_plane_);
-
-  cout << "UPml::init(): yz plane is a contiguous chunk of memory, " 
-       << bc_r_.zmax * bc_r_.ymax << " total cells, " << bc_r_.zmax 
-       << " by " << bc_r_.ymax << endl;
 
   MPI_Type_vector(bc_r_.xmax, bc_r_.zmax, bc_r_.ymax * bc_r_.zmax, 
                   GRID_MPI_TYPE, &xz_plane_);
   MPI_Type_commit(&xz_plane_);
-
-  cout << "UPml::init(): xz plane is " << bc_r_.xmax << " by " << bc_r_.zmax 
-       << ", stride is " << bc_r_.ymax * bc_r_.zmax << endl;
-
 
   // SUSPECT!
   MPI_Type_hvector(bc_r_.xmax, 1, sizeof(field_t) * bc_r_.zmax * bc_r_.ymax, 
@@ -414,9 +400,22 @@ void UPml::init(const Grid &grid, Face face)
 //                   y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
 
+#ifdef DEBUG
+  cout << "UPml::init(): z vector is " << bc_r_.zmax << " long. " << endl;
+  cout << "UPml::init(): y vector is " << bc_r_.ymax 
+       << " long, stride is " << bc_r_.zmax << endl;
+  cout << "UPml::init(): x vector is " << bc_r_.xmax 
+       << " long, stride is " << bc_r_.ymax * bc_r_.zmax << endl;
+  cout << "UPml::init(): yz plane is a contiguous chunk of memory, " 
+       << bc_r_.zmax * bc_r_.ymax << " total cells, " << bc_r_.zmax 
+       << " by " << bc_r_.ymax << endl;
+
+  cout << "UPml::init(): xz plane is " << bc_r_.xmax << " by " << bc_r_.zmax 
+       << ", stride is " << bc_r_.ymax * bc_r_.zmax << endl;
+
   cout << "UPml::init(): xy plane is " << bc_r_.xmax << " by " << bc_r_.ymax 
        << ", stride is " << bc_r_.ymax * bc_r_.zmax << endl;
-  
+#endif
 }
 
 void UPml::deinit(const Grid &grid, Face face)

@@ -44,6 +44,7 @@ public:
 
   mat_idx_t * restrict material_;
 
+#ifdef OLD_MATERIAL_DATA
   mat_coef_t * restrict Ca_;
   mat_coef_t * restrict Cbx_;
   mat_coef_t * restrict Cby_;
@@ -53,6 +54,10 @@ public:
   mat_coef_t * restrict Dbx_;
   mat_coef_t * restrict Dby_;
   mat_coef_t * restrict Dbz_;
+#else
+  mat_coef_t * restrict C_;
+  mat_coef_t * restrict D_;
+#endif
 
   // Need to keep a references so we can call pi()
   Grid &grid_;
@@ -60,11 +65,114 @@ public:
   GridUpdateData(Grid &grid)
     : ex_(grid.ex_), ey_(grid.ey_), ez_(grid.ez_),
       hx_(grid.hx_), hy_(grid.hy_), hz_(grid.hz_),
-      material_(grid.material_), Ca_(grid.Ca_),
+      material_(grid.material_), 
+#ifdef OLD_MATERIAL_DATA
+      Ca_(grid.Ca_),
       Cbx_(grid.Cbx_), Cby_(grid.Cby_), Cbz_(grid.Cbz_),
       Da_(grid.Da_), Dbx_(grid.Dbx_), Dby_(grid.Dby_), Dbz_(grid.Dbz_),
+#else
+      C_(grid.C_), D_(grid.D_),
+#endif    
       grid_(grid)
   {}
+
+#ifdef OLD_MATERIAL_DATA
+  /** 
+   * Returns the value of the Ca constant for a given material index
+   */ 
+  inline mat_coef_t get_Ca(mat_idx_t idx)
+  { return Ca_[idx]; }
+
+  /**
+   * Returns the value of the Cbx constant for a given material index
+   */ 
+  inline mat_coef_t get_Cbx(mat_idx_t idx)
+  { return Cbx_[idx]; }
+
+  /**
+   * Returns the value of the Cby constant for a given material index
+   */ 
+  inline mat_coef_t get_Cby(mat_idx_t idx)
+  { return Cby_[idx]; }
+  
+  /**
+   * Returns the value of the Cbz constant for a given material index
+   */ 
+  inline mat_coef_t get_Cbz(mat_idx_t idx)
+  { return Cbz_[idx]; }
+  
+  /** 
+   * Returns the value of the Da constant for a given material index
+   */ 
+  inline mat_coef_t get_Da(mat_idx_t idx)
+  { return Da_[idx]; }
+
+  /**
+   * Returns the value of the Dbx constant for a given material index
+   */ 
+  inline mat_coef_t get_Dbx(mat_idx_t idx)
+  { return Dbx_[idx]; }
+
+  /**
+   * Returns the value of the Dby constant for a given material index
+   */ 
+  inline mat_coef_t get_Dby(mat_idx_t idx)
+  { return Dby_[idx]; }
+  
+  /**
+   * Returns the value of the Dbz constant for a given material index
+   */ 
+  inline mat_coef_t get_Dbz(mat_idx_t idx)
+  { return Dbz_[idx]; }
+#else
+  /** 
+   * Returns the value of the Ca constant for a given material index
+   */ 
+  inline mat_coef_t get_Ca(mat_idx_t idx)
+  { return C_[idx * 4]; }
+
+  /**
+   * Returns the value of the Cbx constant for a given material index
+   */ 
+  inline mat_coef_t get_Cbx(mat_idx_t idx)
+  { return C_[idx * 4 + 1]; }
+
+  /**
+   * Returns the value of the Cby constant for a given material index
+   */ 
+  inline mat_coef_t get_Cby(mat_idx_t idx)
+  { return C_[idx * 4 + 2]; }
+  
+  /**
+   * Returns the value of the Cbz constant for a given material index
+   */ 
+  inline mat_coef_t get_Cbz(mat_idx_t idx)
+  { return C_[idx * 4 + 3]; }
+  
+  /** 
+   * Returns the value of the Da constant for a given material index
+   */ 
+  inline mat_coef_t get_Da(mat_idx_t idx)
+  { return D_[idx * 4]; }
+
+  /**
+   * Returns the value of the Dbx constant for a given material index
+   */ 
+  inline mat_coef_t get_Dbx(mat_idx_t idx)
+  { return D_[idx * 4 + 1]; }
+
+  /**
+   * Returns the value of the Dby constant for a given material index
+   */ 
+  inline mat_coef_t get_Dby(mat_idx_t idx)
+  { return D_[idx * 4 + 2]; }
+  
+  /**
+   * Returns the value of the Dbz constant for a given material index
+   */ 
+  inline mat_coef_t get_Dbz(mat_idx_t idx)
+  { return D_[idx * 4 + 3]; }
+#endif
 };
 
 /**
@@ -112,17 +220,17 @@ public:
   {
     mat_idx_t mid = data.material_[pdata.idx];
     
-    data.ex_[pdata.idx] = data.Ca_[mid] * data.ex_[pdata.idx]
-      + data.Cby_[mid] * (data.hz_[pdata.idx] - data.hz_[pdata.idx_y])
-      + data.Cbz_[mid] * (data.hy_[pdata.idx_z] - data.hy_[pdata.idx]);
+    data.ex_[pdata.idx] = data.get_Ca(mid) * data.ex_[pdata.idx]
+      + data.get_Cby(mid) * (data.hz_[pdata.idx] - data.hz_[pdata.idx_y])
+      + data.get_Cbz(mid) * (data.hy_[pdata.idx_z] - data.hy_[pdata.idx]);
 
-    data.ey_[pdata.idx] = data.Ca_[mid] * data.ey_[pdata.idx]
-      + data.Cbz_[mid] * (data.hx_[pdata.idx] - data.hx_[pdata.idx_z])
-      + data.Cbx_[mid] * (data.hz_[pdata.idx_x] - data.hz_[pdata.idx]);    
+    data.ey_[pdata.idx] = data.get_Ca(mid) * data.ey_[pdata.idx]
+      + data.get_Cbz(mid) * (data.hx_[pdata.idx] - data.hx_[pdata.idx_z])
+      + data.get_Cbx(mid) * (data.hz_[pdata.idx_x] - data.hz_[pdata.idx]);    
 
-    data.ez_[pdata.idx] = data.Ca_[mid] * data.ez_[pdata.idx]
-      + data.Cbx_[mid] * (data.hy_[pdata.idx] - data.hy_[pdata.idx_x])
-      + data.Cby_[mid] * (data.hx_[pdata.idx_y] - data.hx_[pdata.idx]);
+    data.ez_[pdata.idx] = data.get_Ca(mid) * data.ez_[pdata.idx]
+      + data.get_Cbx(mid) * (data.hy_[pdata.idx] - data.hy_[pdata.idx_x])
+      + data.get_Cby(mid) * (data.hx_[pdata.idx_y] - data.hx_[pdata.idx]);
 
     pdata.idx++;
     pdata.idx_x++;
@@ -164,17 +272,17 @@ public:
   {
     mat_idx_t mid = data.material_[pdata.idx];
     
-    data.hx_[pdata.idx] = data.Da_[mid] * data.hx_[pdata.idx]
-      + data.Dby_[mid] * (data.ez_[pdata.idx] - data.ez_[pdata.idx_y])
-      + data.Dbz_[mid] * (data.ey_[pdata.idx_z] - data.ey_[pdata.idx]);
+    data.hx_[pdata.idx] = data.get_Da(mid) * data.hx_[pdata.idx]
+      + data.get_Dby(mid) * (data.ez_[pdata.idx] - data.ez_[pdata.idx_y])
+      + data.get_Dbz(mid) * (data.ey_[pdata.idx_z] - data.ey_[pdata.idx]);
 
-    data.hy_[pdata.idx] = data.Da_[mid] * data.hy_[pdata.idx]
-      + data.Dbz_[mid] * (data.ex_[pdata.idx] - data.ex_[pdata.idx_z])
-      + data.Dbx_[mid] * (data.ez_[pdata.idx_x] - data.ez_[pdata.idx]);    
+    data.hy_[pdata.idx] = data.get_Da(mid) * data.hy_[pdata.idx]
+      + data.get_Dbz(mid) * (data.ex_[pdata.idx] - data.ex_[pdata.idx_z])
+      + data.get_Dbx(mid) * (data.ez_[pdata.idx_x] - data.ez_[pdata.idx]);    
 
-    data.hz_[pdata.idx] = data.Da_[mid] * data.hz_[pdata.idx]
-      + data.Dbx_[mid] * (data.ey_[pdata.idx] - data.ey_[pdata.idx_x])
-      + data.Dby_[mid] * (data.ex_[pdata.idx_y] - data.ex_[pdata.idx]);
+    data.hz_[pdata.idx] = data.get_Da(mid) * data.hz_[pdata.idx]
+      + data.get_Dbx(mid) * (data.ey_[pdata.idx] - data.ey_[pdata.idx_x])
+      + data.get_Dby(mid) * (data.ex_[pdata.idx_y] - data.ex_[pdata.idx]);
 
     pdata.idx++;
     pdata.idx_x++;
@@ -212,9 +320,9 @@ public:
   {
     mat_idx_t mid = data.material_[pdata.idx];
     
-    data.ex_[pdata.idx] = data.Ca_[mid] * data.ex_[pdata.idx]
-      + data.Cby_[mid] * (data.hz_[pdata.idx] - data.hz_[pdata.idx_y])
-      + data.Cbz_[mid] * (data.hy_[pdata.idx_z] - data.hy_[pdata.idx]);
+    data.ex_[pdata.idx] = data.get_Ca(mid) * data.ex_[pdata.idx]
+      + data.get_Cby(mid) * (data.hz_[pdata.idx] - data.hz_[pdata.idx_y])
+      + data.get_Cbz(mid) * (data.hy_[pdata.idx_z] - data.hy_[pdata.idx]);
 
     pdata.idx++;
     pdata.idx_y++;
@@ -251,9 +359,9 @@ public:
   {
     mat_idx_t mid = data.material_[pdata.idx];
     
-    data.ey_[pdata.idx] = data.Ca_[mid] * data.ey_[pdata.idx]
-      + data.Cbz_[mid] * (data.hx_[pdata.idx] - data.hx_[pdata.idx_z])
-      + data.Cbx_[mid] * (data.hz_[pdata.idx_x] - data.hz_[pdata.idx]);    
+    data.ey_[pdata.idx] = data.get_Ca(mid) * data.ey_[pdata.idx]
+      + data.get_Cbz(mid) * (data.hx_[pdata.idx] - data.hx_[pdata.idx_z])
+      + data.get_Cbx(mid) * (data.hz_[pdata.idx_x] - data.hz_[pdata.idx]);    
 
     pdata.idx++;
     pdata.idx_x++;
@@ -290,9 +398,9 @@ public:
   {
     mat_idx_t mid = data.material_[pdata.idx];
 
-    data.ez_[pdata.idx] = data.Ca_[mid] * data.ez_[pdata.idx]
-      + data.Cbx_[mid] * (data.hy_[pdata.idx] - data.hy_[pdata.idx_x])
-      + data.Cby_[mid] * (data.hx_[pdata.idx_y] - data.hx_[pdata.idx]);    
+    data.ez_[pdata.idx] = data.get_Ca(mid) * data.ez_[pdata.idx]
+      + data.get_Cbx(mid) * (data.hy_[pdata.idx] - data.hy_[pdata.idx_x])
+      + data.get_Cby(mid) * (data.hx_[pdata.idx_y] - data.hx_[pdata.idx]);    
 
     pdata.idx++;
     pdata.idx_x++;
@@ -329,9 +437,9 @@ public:
   {
     mat_idx_t mid = data.material_[pdata.idx];
     
-    data.hx_[pdata.idx] = data.Da_[mid] * data.hx_[pdata.idx]
-      + data.Dby_[mid] * (data.ez_[pdata.idx] - data.ez_[pdata.idx_y])
-      + data.Dbz_[mid] * (data.ey_[pdata.idx_z] - data.ey_[pdata.idx]);
+    data.hx_[pdata.idx] = data.get_Da(mid) * data.hx_[pdata.idx]
+      + data.get_Dby(mid) * (data.ez_[pdata.idx] - data.ez_[pdata.idx_y])
+      + data.get_Dbz(mid) * (data.ey_[pdata.idx_z] - data.ey_[pdata.idx]);
 
     pdata.idx++;
     pdata.idx_y++;
@@ -368,9 +476,9 @@ public:
   {
     mat_idx_t mid = data.material_[pdata.idx];
     
-    data.hy_[pdata.idx] = data.Da_[mid] * data.hy_[pdata.idx]
-      + data.Dbz_[mid] * (data.ex_[pdata.idx] - data.ex_[pdata.idx_z])
-      + data.Dbx_[mid] * (data.ez_[pdata.idx_x] - data.ez_[pdata.idx]);    
+    data.hy_[pdata.idx] = data.get_Da(mid) * data.hy_[pdata.idx]
+      + data.get_Dbz(mid) * (data.ex_[pdata.idx] - data.ex_[pdata.idx_z])
+      + data.get_Dbx(mid) * (data.ez_[pdata.idx_x] - data.ez_[pdata.idx]);    
 
     pdata.idx++;
     pdata.idx_x++;
@@ -408,9 +516,9 @@ public:
     mat_idx_t mid = data.material_[pdata.idx];
     
 
-    data.hz_[pdata.idx] = data.Da_[mid] * data.hz_[pdata.idx]
-      + data.Dbx_[mid] * (data.ey_[pdata.idx] - data.ey_[pdata.idx_x])
-      + data.Dby_[mid] * (data.ex_[pdata.idx_y] - data.ex_[pdata.idx]);
+    data.hz_[pdata.idx] = data.get_Da(mid) * data.hz_[pdata.idx]
+      + data.get_Dbx(mid) * (data.ey_[pdata.idx] - data.ey_[pdata.idx_x])
+      + data.get_Dby(mid) * (data.ex_[pdata.idx_y] - data.ex_[pdata.idx]);
 
     pdata.idx++;
     pdata.idx_x++;

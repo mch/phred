@@ -265,9 +265,9 @@ void FreqGrid::update_ex(region_t update_r)
           // Is this a plasma?
           if (mtype_[mid] == DRUDE)
           {        
-            *ex = Ca_[mid] * dx_[idx]
-              + Cby_[mid] * (*hz1 - *hz2)
-              + Cbz_[mid] * (*(hy - 1) - *hy);
+            *ex = get_Ca(mid) * dx_[idx]
+              + get_Cby(mid) * (*hz1 - *hz2)
+              + get_Cbz(mid) * (*(hy - 1) - *hy);
             
             dx_[idx] = *ex;
             
@@ -284,9 +284,9 @@ void FreqGrid::update_ex(region_t update_r)
           }
           else if (mtype_[mid] == DEBYE)
           {
-            field_t d_temp = Ca_[mid] * dx_[idx]
-              + Cby_[mid] * (*hz1 - *hz2)
-              + Cbz_[mid] * (*(hy-1) - *hy);
+            field_t d_temp = get_Ca(mid) * dx_[idx]
+              + get_Cby(mid) * (*hz1 - *hz2)
+              + get_Cbz(mid) * (*(hy-1) - *hy);
 
             *ex = *ex * debyeA_[mid] + d_temp * debyeB_[mid]
               - dx_[idx] * debyeC_[mid];
@@ -295,9 +295,9 @@ void FreqGrid::update_ex(region_t update_r)
           }
           else
           {
-            *ex = Ca_[mid] * *ex
-              + Cby_[mid] * (*hz1 - *hz2)
-              + Cbz_[mid] * (*(hy - 1) - *hy);
+            *ex = get_Ca(mid) * *ex
+              + get_Cby(mid) * (*hz1 - *hz2)
+              + get_Cbz(mid) * (*(hy - 1) - *hy);
           }
           
           ex++;
@@ -340,9 +340,9 @@ void FreqGrid::update_ey(region_t update_r)
           // Is this a plasma?
           if (mtype_[mid] == DRUDE)
           {
-            *ey = Ca_[mid] * dy_[idx]
-              + Cbz_[mid] * (*hx - *(hx-1))
-              + Cbx_[mid] * (*hz1 - *hz2);
+            *ey = get_Ca(mid) * dy_[idx]
+              + get_Cbz(mid) * (*hx - *(hx-1))
+              + get_Cbx(mid) * (*hz1 - *hz2);
             
             dy_[idx] = *ey;
             
@@ -359,9 +359,9 @@ void FreqGrid::update_ey(region_t update_r)
           }
           else if (mtype_[mid] == DEBYE)
           {
-            field_t d_temp = Ca_[mid] * dy_[idx]
-              + Cbz_[mid] * (*hx - *(hx-1))
-              + Cbx_[mid] * (*hz1 - *hz2);
+            field_t d_temp = get_Ca(mid) * dy_[idx]
+              + get_Cbz(mid) * (*hx - *(hx-1))
+              + get_Cbx(mid) * (*hz1 - *hz2);
 
             *ey = *ey * debyeA_[mid] + d_temp * debyeB_[mid]
               - dy_[idx] * debyeC_[mid];
@@ -370,9 +370,9 @@ void FreqGrid::update_ey(region_t update_r)
           }
           else
           {
-            *ey = Ca_[mid] * *ey
-              + Cbz_[mid] * (*hx - *(hx-1))
-              + Cbx_[mid] * (*hz1 - *hz2);
+            *ey = get_Ca(mid) * *ey
+              + get_Cbz(mid) * (*hx - *(hx-1))
+              + get_Cbx(mid) * (*hz1 - *hz2);
           }
           
           ey++;
@@ -416,9 +416,9 @@ void FreqGrid::update_ez(region_t update_r)
           // Is this a plasma?
           if (mtype_[mid] == DRUDE) 
           {
-            *ez = Ca_[mid] * dz_[idx]
-              + Cbx_[mid] * (*hy1 - *hy2)
-              + Cby_[mid] * (*hx1 - *hx2);
+            *ez = get_Ca(mid) * dz_[idx]
+              + get_Cbx(mid) * (*hy1 - *hy2)
+              + get_Cby(mid) * (*hx1 - *hx2);
             
             dz_[idx] = *ez;
             
@@ -435,9 +435,9 @@ void FreqGrid::update_ez(region_t update_r)
           }
           else if (mtype_[mid] == DEBYE)
           {
-            field_t d_temp = Ca_[mid] * dz_[idx]
-              + Cbx_[mid] * (*hy1 - *hy2)
-              + Cby_[mid] * (*hx1 - *hx2);
+            field_t d_temp = get_Ca(mid) * dz_[idx]
+              + get_Cbx(mid) * (*hy1 - *hy2)
+              + get_Cby(mid) * (*hx1 - *hx2);
 
             *ez = *ez * debyeA_[mid] + d_temp * debyeB_[mid]
               - dz_[idx] * debyeC_[mid];
@@ -446,9 +446,9 @@ void FreqGrid::update_ez(region_t update_r)
           }
           else
           {
-            *ez = Ca_[mid] * *ez
-              + Cbx_[mid] * (*hy1 - *hy2)
-              + Cby_[mid] * (*hx1 - *hx2);
+            *ez = get_Ca(mid) * *ez
+              + get_Cbx(mid) * (*hy1 - *hy2)
+              + get_Cby(mid) * (*hx1 - *hx2);
           }
           
           ez++;

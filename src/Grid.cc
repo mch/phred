@@ -43,7 +43,7 @@ Grid::Grid()
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
     Da_(0), Dbx_(0), Dby_(0), Dbz_(0),
 #else
-    C_(0), D_(0)
+    C_(0), D_(0),
 #endif
     ex_(0), ey_(0), ez_(0), hx_(0), hy_(0), hz_(0), 
     material_(0), types_alloced_(false), define_(true)

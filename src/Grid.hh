@@ -118,7 +118,7 @@ class Grid {
 
 
   /* The new scheme will waste memory when the grid deltas are all the same */ 
-#define OLD_MATERIAL_DATA 1
+  //#define OLD_MATERIAL_DATA 1
 
 #ifdef OLD_MATERIAL_DATA
   // E Field Material Coefficients
