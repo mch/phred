@@ -28,6 +28,7 @@
 #include "../SourceDFTResult.hh"
 #include "../SourceTimeResult.hh"
 #include "../BlockResult.hh"
+#include "../FarfieldResult.hh"
 
 using namespace boost::python;
 
@@ -35,7 +36,9 @@ using namespace boost::python;
  * Free function to facilitate ResultWrap; calling get_result on a
  * Python object derived from Result.
  */
-Data &call_get_result(Result &r, const Grid &grid, unsigned int time_step)
+map<string, Variable *> &call_get_result(Result &r, 
+                                         const Grid &grid, 
+                                         unsigned int time_step)
 { return r.get_result(grid, time_step); }
 
 /**
@@ -50,8 +53,8 @@ public:
   ResultWrap(PyObject *self)
     : self_(self) {}
 
-  Data &get_result(const Grid &grid, unsigned int time_step)
-  { return call_method<Data &>(self_, "get_result"); }
+  map<string, Variable *> &get_result(const Grid &grid, unsigned int time_step)
+  { return call_method<map<string, Variable *> &>(self_, "get_result"); }
 
 };
 
@@ -111,5 +114,13 @@ BOOST_PYTHON_MODULE(results)
     .def("get_region", &BlockResult::get_region)
     .def("set_field_component", &BlockResult::set_field_component)
     .def("get_field_component", &BlockResult::get_field_component)
+    ;
+
+  class_<FarfieldResult, bases<Result> >("FarfieldResult")
+    .def("set_huygens", &FarfieldResult::set_huygens)
+    .def("set_output_type", &FarfieldResult::set_output_type)
+    .def("set_frequencies", &FarfieldResult::set_frequencies)
+    .def("set_angles", &FarfieldResult::set_angles)
+    .def("set_axis", &FarfieldResult::set_axis)
     ;
 }

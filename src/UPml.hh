@@ -38,6 +38,21 @@ protected:
   field_t *d_;
   field_t *h_;
 
+  // This a "shadow library" of material constants. These are
+  // modified versions of the grid material library which add
+  // conductivity, a little on the inner surface to quite a bit on
+  // the outer surface. The 
+  mat_coef_t **Ca_;
+  mat_coef_t **Cbx_;
+  mat_coef_t **Cby_;
+  mat_coef_t **Cbz_;
+
+  mat_coef_t **Da_;
+  mat_coef_t **Dbx_;
+  mat_coef_t **Dby_;
+  mat_coef_t **Dbz_;
+
+
 //   template<region_t region, field_t component, field_t curl1, field_t curl2>
 //   void normal_update(Grid &grid);
 

@@ -147,6 +147,21 @@ public:
   }
 
   /**
+   * Set the frequency parameters
+   *
+   * @param fstart frequency start
+   * @param fstop frequency stop
+   * @param numf number of frequencies in range
+   */
+  inline void set_frequencies(field_t fstart, field_t fstop,
+                             unsigned int numf)
+  {
+    freq_start_ = fstart;
+    freq_stop_ = fstop;
+    num_freqs_ = numf;
+  }
+
+  /**
    * Set the start frequency of the range
    */
   inline void set_freq_start(field_t fs)
