@@ -28,12 +28,12 @@
 #ifndef EXCITE_GAUSSM_H
 #define EXCITE_GAUSSM_H
 
-#include "SourceFunction.hh"
+#include "SignalFunction.hh"
 #include "../Constants.hh"
 
 #include <math.h>
 
-class Gaussm : public SourceFunction
+class Gaussm : public SignalFunction
 {
 protected:
   field_t alpha_;
@@ -81,7 +81,7 @@ public:
    *
    * @return the value of the excitation
    */
-  field_t source_function(float time);
+  field_t signal_function(float time);
 
   /**
    * Returns the amount of time it will take for the Gaussian to rise

@@ -33,7 +33,7 @@ ExpSine::ExpSine(float frequency)
 ExpSine::~ExpSine()
 {}
 
-field_t ExpSine::source_function(float time)
+field_t ExpSine::signal_function(float time)
 {
   field_t ret = ampl_ * (1 - exp(-1 * time / period_))
     * sin(omega_ * time);

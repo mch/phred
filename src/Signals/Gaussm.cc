@@ -28,7 +28,7 @@ Gaussm::Gaussm()
 Gaussm::~Gaussm()
 {}
 
-field_t Gaussm::source_function(float time)
+field_t Gaussm::signal_function(float time)
 {
   field_t temp = (time - 4. / (PI * deltaf_)) * deltaf_ * PI;
 

@@ -22,12 +22,12 @@
 #ifndef EXCITE_EXPSINE_H
 #define EXCITE_EXPSINE_H
 
-#include "SourceFunction.hh"
+#include "SignalFunction.hh"
 #include "../Constants.hh"
 
 #include <math.h>
 
-class ExpSine : public SourceFunction
+class ExpSine : public SignalFunction
 {
 public:
   /**
@@ -38,7 +38,7 @@ public:
    *
    * @return the value of the excitation
    */
-  field_t source_function(float time);
+  field_t signal_function(float time);
 
   ExpSine();
   ExpSine(float frequency);

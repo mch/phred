@@ -35,14 +35,14 @@
 
 #include "../Types.hh"
 #include "../Grid.hh"
-#include "../Sources/SourceFunction.hh"
+#include "../Signals/SignalFunction.hh"
 #include "../LifeCycle.hh"
 
 class Excitation : public LifeCycle
 {
 protected:
   /**
-   * Region to apply the source to (in the local grid)
+   * Region to apply the signal to (in the local grid)
    */
   shared_ptr<Block> region_;
 
@@ -57,13 +57,13 @@ protected:
   FieldType type_;
 
   /**
-   * True if this is a soft source (defaults to false). Source
-   * sources are added to the field rather than the field being set
+   * True if this is a soft signal (defaults to false). Signal
+   * signals are added to the field rather than the field being set
    * to them.
    */
   bool soft_;
 
-  shared_ptr<SourceFunction> sf_; /**< Source function object to apply */
+  shared_ptr<SignalFunction> sf_; /**< Signal function object to apply */
 
   shared_ptr<CSGBox> box_; /**< The box representing the area where
                               the excitation is to be applied. */
@@ -71,14 +71,14 @@ protected:
 public:
 
   /**
-   * Constructs a Excitation object which can apply a source
+   * Constructs a Excitation object which can apply a signal
    * function which depends only on time to a region of a
-   * grid. Creates a copy of the source function object to use, so you
+   * grid. Creates a copy of the signal function object to use, so you
    * don't have to hold onto a reference.
    *
-   * @param sf SourceFunction object to use as an excitation. 
+   * @param sf SignalFunction object to use as an excitation. 
    */
-  Excitation(shared_ptr<SourceFunction> sf);
+  Excitation(shared_ptr<SignalFunction> sf);
 
   virtual ~Excitation();
 

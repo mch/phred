@@ -19,50 +19,50 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#ifndef SOURCE_FUNCTION_H
-#define SOURCE_FUNCTION_H
+#ifndef SIGNAL_FUNCTION_H
+#define SIGNAL_FUNCTION_H
 
 #include "../Types.hh"
 #include "../Grid.hh"
 
 /**
- * This class defines a source_function which can be computed at some
+ * This class defines a signal_function which can be computed at some
  * timestep on some grid.
  *
  * Subclassess of this are intended to be template parameters to
  * TimeExcitation and SpaceTimeExcitation. 
  */
-class SourceFunction
+class SignalFunction
 {
 private:
 protected:
 public:
-  SourceFunction() 
+  SignalFunction() 
   {}
-  virtual ~SourceFunction() 
+  virtual ~SignalFunction() 
   {}
 
   /**
-   * This function is defined in subclasses and produces the source
+   * This function is defined in subclasses and produces the signal
    * value to be applied to every point which is excited.
    *
    * @param time the time at which to apply the excitation. Usually
    * just grid.deltat() * time_step.
    */
-  virtual field_t source_function(float time) = 0;
+  virtual field_t signal_function(float time) = 0;
 
   /**
    * Print a string representation to an ostream.
    */
   virtual ostream& to_string(ostream &os) const
-  { return os << "SourceFunction of indeterminate type."; }
+  { return os << "SignalFunction of indeterminate type."; }
 
-  friend ostream& operator<< (ostream& os, const SourceFunction &sf);
+  friend ostream& operator<< (ostream& os, const SignalFunction &sf);
 };
 
-inline ostream& operator<< (ostream& os, const SourceFunction &sf)
+inline ostream& operator<< (ostream& os, const SignalFunction &sf)
 {
   return sf.to_string(os);
 }
 
-#endif // SOURCE_FUNCTION_H
+#endif // SIGNAL_FUNCTION_H

@@ -42,7 +42,7 @@ protected:
   float lxmin_, lymin_, lzmin_;
 
 public:
-  WindowedExcitation(shared_ptr<SourceFunction> sf);
+  WindowedExcitation(shared_ptr<SignalFunction> sf);
 
   virtual ~WindowedExcitation();
 
