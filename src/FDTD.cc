@@ -333,12 +333,31 @@ void FDTD::run()
   unsigned int ts = 0;
 
   // For optionally tracking millions of nodes per second. 
-  time_t start, now, time_total = 0;
-  clock_t start_cpu, now_cpu, time_total_cpu = 0;
+  time_t start, now;
+  clock_t start_cpu, now_cpu;
 
+  double time_total = 0;
+  double time_total_cpu = 0;
+
+  // For estimating run time
+  time_t rt_start = time(NULL);
+  time_t rt_now;
+  unsigned int rt_steps = 9;
+  
   for (ts = 1; ts <= time_steps_; ts++) {
-    cout << "phred time step " << ts << endl;
+    cout << "Phred time step " << ts << endl;
     
+    if ((ts - 10) % 100 == 0)
+    {
+      rt_now = time(NULL);
+      cout << "Estimated time remaining: " 
+           << (static_cast<double>(rt_now - rt_start) / rt_steps) 
+        * (time_steps_ - ts)
+           << " seconds. " << endl;
+      rt_steps = 100;
+      rt_start = time(NULL);
+    }
+
     // Fields update
     if (mnps) 
     {
@@ -352,8 +371,9 @@ void FDTD::run()
     {
       now = time(NULL);
       now_cpu = clock();
-      time_total += now - start;
-      time_total_cpu += now_cpu - start_cpu;
+      time_total += static_cast<double>(now) - static_cast<double>(start);
+      time_total_cpu += static_cast<double>(now_cpu)
+        - static_cast<double>(start_cpu);
     }
 
     // Excitations
@@ -380,8 +400,9 @@ void FDTD::run()
     {
       now = time(NULL);
       now_cpu = clock();
-      time_total += now - start;
-      time_total_cpu += now_cpu - start_cpu;
+      time_total += static_cast<double>(now) - static_cast<double>(start);
+      time_total_cpu += static_cast<double>(now_cpu)
+        - static_cast<double>(start_cpu);
     }
 
     // Excitations
@@ -416,10 +437,9 @@ void FDTD::run()
 
   if (mnps)
   {
-    double avg_time = static_cast<double>(time_total) 
-      / static_cast<double>(time_steps_);
+    double avg_time = time_total / static_cast<double>(time_steps_);
 
-    clock_t avg_cpu_time = time_total_cpu / time_steps_;
+    double avg_cpu_time = time_total_cpu / time_steps_;
     double num_mnodes = static_cast<double>(grid_->get_num_updated_nodes()) 
       / 1.0e6;
 
