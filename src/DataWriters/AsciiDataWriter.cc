@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -21,6 +21,7 @@
 
 #include "AsciiDataWriter.hh"
 #include "../Exceptions.hh"
+#include "../Globals.hh"
 
 #include <string.h>
 #include <mpi.h>
@@ -43,7 +44,7 @@ AsciiDataWriter::~AsciiDataWriter()
 
 void AsciiDataWriter::init(const Grid &grid)
 {
-  if (filename_.length() > 0 && rank_ == 0)
+  if (filename_.length() > 0 && MPI_RANK == rank_)
   {
     file_.open(filename_.c_str(), ofstream::out);
     file_.flags(ios_base::scientific);
@@ -52,7 +53,7 @@ void AsciiDataWriter::init(const Grid &grid)
 
 void AsciiDataWriter::deinit()
 {
-  if (rank_ == 0 && file_.is_open())
+  if (MPI_RANK == rank_ && file_.is_open())
     file_.close();
 }
 

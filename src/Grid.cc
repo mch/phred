@@ -487,7 +487,7 @@ void Grid::alloc_grid()
     hy_ = new field_t[sz];
     hz_ = new field_t[sz];
     
-    material_ = new unsigned int[sz];
+    material_ = new mat_idx_t[sz];
 
     if (!ex_ || !ey_ || !ez_ || !hx_ || !hy_ || !hz_ || !material_) 
     {
@@ -503,7 +503,7 @@ void Grid::alloc_grid()
     memset(hy_, 0, sizeof(field_t) * sz);
     memset(hz_, 0, sizeof(field_t) * sz);
 
-    memset(material_, 0, sizeof(unsigned int) * sz);
+    memset(material_, 0, sizeof(mat_idx_t) * sz);
 
 #ifdef DEBUG
     cout << "Sucessfully allocated " 
@@ -742,8 +742,9 @@ void Grid::update_h_field()
 // Straight out of Taflove.
 void Grid::update_ex(region_t update_r) 
 {
-  unsigned int mid, idx, idx2;
-  int i, j, k;
+  unsigned int idx, idx2;
+  mat_idx_t mid;
+  loop_idx_t i, j, k;
   field_t *ex, *hz1, *hz2, *hy;
 
   // Inner part
@@ -787,8 +788,9 @@ void Grid::update_ex(region_t update_r)
 // Straight out of Taflove.
 void Grid::update_ey(region_t update_r) 
 {
-  unsigned int mid, idx;
-  int i, j, k;
+  unsigned int idx;
+  mat_idx_t mid;
+  loop_idx_t i, j, k;
   field_t *ey, *hx, *hz1, *hz2;
 
   // Inner part
@@ -830,8 +832,9 @@ void Grid::update_ey(region_t update_r)
 // Straight out of Taflove.
 void Grid::update_ez(region_t update_r) 
 {
-  unsigned int mid, idx;
-  int i, j, k;
+  unsigned int idx;
+  mat_idx_t mid;
+  loop_idx_t i, j, k;
   field_t *ez, *hy1, *hy2, *hx1, *hx2;
   
   // Inner part
@@ -872,8 +875,9 @@ void Grid::update_ez(region_t update_r)
 // Straight out of Taflove.
 void Grid::update_hx(region_t update_r)
 {
-  unsigned int mid, idx;
-  int i, j, k;
+  unsigned int idx;
+  mat_idx_t mid;
+  loop_idx_t i, j, k;
   field_t *hx, *ez1, *ez2, *ey;
 
 #ifdef USE_OPENMP
@@ -912,8 +916,9 @@ void Grid::update_hx(region_t update_r)
 // Straight out of Taflove.
 void Grid::update_hy(region_t update_r)
 {
-  unsigned int mid, idx;
-  int i, j, k;
+  unsigned int idx;
+  mat_idx_t mid;
+  loop_idx_t i, j, k;
   field_t *hy, *ex, *ez1, *ez2;
 
 
@@ -952,8 +957,10 @@ void Grid::update_hy(region_t update_r)
 // Straight out of Taflove.
 void Grid::update_hz(region_t update_r)
 {
-  unsigned int mid, idx;
-  int i, j, k;
+  unsigned int idx;
+  mat_idx_t mid;
+
+  loop_idx_t i, j, k;
   field_t *hz1, *ey1, *ey2, *ex1, *ex2;
 
 #ifdef USE_OPENMP
@@ -1281,7 +1288,7 @@ MPI_Datatype Grid::get_plane_dt(Face face) const
   return t;
 }
 
-const unsigned int *Grid::get_material_ptr(grid_point point) const
+const mat_idx_t *Grid::get_material_ptr(grid_point point) const
 {
   return &(material_[pi(point.x, point.y, point.z)]);
 }

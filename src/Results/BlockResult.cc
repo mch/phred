@@ -143,6 +143,8 @@ void BlockResult::init(const Grid &grid)
     } else {
       cerr << "BlockResult error: number of displacements is zero. ";
     }
+
+    delete[] displacements;
   }
 
   var_.add_dimension("x", grid.get_ldx(), grid.get_gdx(), grid.get_lsx());

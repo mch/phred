@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -23,6 +23,7 @@
 
 #include "../config.h"
 #include "../Exceptions.hh"
+#include "../Globals.hh"
 
 #include <string.h>
 #include <mpi.h>
@@ -602,7 +603,7 @@ void MatlabDataWriter::init(const Grid &grid)
 {
   test();
 
-  if (filename_.length() > 0 && rank_ == 0)
+  if (filename_.length() > 0 && MPI_RANK == rank_)
   {
     file_.open(filename_.c_str(), ofstream::out | ofstream::binary
                | ofstream::trunc);
@@ -615,7 +616,7 @@ void MatlabDataWriter::deinit()
   map<string, MatlabArray *>::iterator iter;
   map<string, MatlabArray *>::iterator iter_e = vars_.end();
 
-  if (rank_ == 0 && file_.is_open())
+  if (MPI_RANK == rank_ && file_.is_open())
   {
     file_.write((char *)(&header_), 128);
 
@@ -690,7 +691,7 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
       vars_[variable.get_name()]->append_buffer(len, ptr);
     }
   } catch (MemoryException e) {
-    if (rank_ == 0 && file_.is_open())
+    if (MPI_RANK == rank_ && file_.is_open())
     {
       file_.write(reinterpret_cast<char *>(&header_), 128);
       

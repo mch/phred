@@ -24,6 +24,7 @@
 #include <sstream>
 
 #include "../Exceptions.hh"
+#include "../Globals.hh"
 
 using namespace std;
 
@@ -51,7 +52,7 @@ NetCDFDataWriter::~NetCDFDataWriter()
 
 void NetCDFDataWriter::init()
 {
-  if (rank_ != 0 || fopen_)
+  if (MPI_RANK != rank_ || fopen_)
     return;
   
   int status;
@@ -88,7 +89,7 @@ void NetCDFDataWriter::init()
 
 void NetCDFDataWriter::deinit()
 {
-  if (rank_ == 0 && fopen_)
+  if (MPI_RANK == rank_ && fopen_)
   {
     int status = nc_close(ncid_);
     if (status != NC_NOERR)
@@ -104,7 +105,7 @@ void NetCDFDataWriter::add_variable(Result &result)
   int status, dimid, tdim;
   ncdfvar var; 
 
-  if (rank_ != 0)
+  if (MPI_RANK != rank_)
     return; 
 
   if (!fopen_)

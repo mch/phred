@@ -137,6 +137,22 @@ enum FieldType {
 };
 
 /**
+ * This is the type used to iterate across loops. Strictly speaking, 
+ * this should be unsigned, but some architectures need to have
+ * it signed for vectorization to work. OpenMP on an RS/6000 SP
+ * also required an signed int. 
+ */ 
+typedef signed int loop_idx_t;
+
+/**
+ * The type used to index material coefficients. Using a unsigned 
+ * char reduces the amount of memory required, but limits the
+ * number of materials to 256 (probably not a problem). 
+ */ 
+typedef unsigned char mat_idx_t;
+#define MAT_IDX_MPI_TYPE MPI_BYTE
+
+/**
  * The type used for material coefficients
  */
 typedef float mat_coef_t; 

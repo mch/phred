@@ -139,7 +139,7 @@ class Grid {
 
   // The material for each point in the grid. This is an index into
   // the material arrays, Ca, Cbx, etc. 
-  unsigned int *material_;
+  mat_idx_t *material_;
 
   // Derived MPI data types for sending data around. These are for
   // Grid internal use ONLY. Results MUST create thier own data types,
@@ -901,7 +901,7 @@ class Grid {
    *
    * @param point the point to get the material pointer
    */
-  const unsigned int *get_material_ptr(grid_point point) const;
+  const mat_idx_t *get_material_ptr(grid_point point) const;
 
   /**
    * Assign a material index a some point in space
@@ -912,7 +912,7 @@ class Grid {
    * @param mid the material id to assign
    */
   inline void set_material(unsigned int x, unsigned int y, 
-                           unsigned int z, unsigned int mid)
+                           unsigned int z, mat_idx_t mid)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     material_[pi(x, y, z)] = mid;
@@ -926,8 +926,8 @@ class Grid {
    * @param z the z coordinate
    * @return the material id
    */
-  inline unsigned int get_material(unsigned int x, unsigned int y, 
-                                   unsigned int z)
+  inline mat_idx_t get_material(unsigned int x, unsigned int y, 
+                                unsigned int z)
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     return material_[pi(x, y, z)];
