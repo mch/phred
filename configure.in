@@ -184,8 +184,10 @@ if [[ ! -z $MPI_LIBS ]]; then
    MPI_LIBS="-L$MPI_LIBS"
 fi
 
-AC_CHECK_LIB(mpi, MPI_Init, [], [
-        AC_MSG_ERROR([*** Can't find an MPI library.  ])],
+dnl If AC_CHECK_LIB suceeds, it must not be allowed to prepend -lmpi because
+dnl the compiler script takes care of that. 
+AC_CHECK_LIB(mpi, MPI_Init, [false], [
+        AC_MSG_ERROR([*** Can't find an MPI library. Specify correct compiler scipt. ])],
         ["$MPI_LIBS"])
 
 if [[ ! -z $MPI_INCLUDES ]]; then

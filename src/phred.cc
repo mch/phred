@@ -2,7 +2,7 @@
    phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes
+   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -438,8 +438,8 @@ static void pml_test(int rank, int size)
 
   Box metal1;
   //metal1.set_region(45, 55, 5, 46, 5, 56); // UNSTABLE
-  metal1.set_region(45, 55, 14, 37, 14, 47);
-  //metal1.set_region(45, 55, 23, 27, 28, 33); // STABLE!?!
+  //metal1.set_region(45, 55, 14, 37, 14, 47); // UNSTABLE
+  metal1.set_region(45, 55, 23, 27, 28, 33); // STABLE!?!
   metal1.set_material_id(3);
 
   //Box metal2;
