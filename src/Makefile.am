@@ -31,6 +31,7 @@ phred_SOURCES=phred.cc \
 	SubdomainBc.hh \
 	SubdomainBc.cc \
 	Types.hh \
+	Data.hh \
 	SubdomainAlg.hh \
 	SimpleSDAlg.cc \
 	SimpleSDAlg.hh \

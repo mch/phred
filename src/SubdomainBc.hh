@@ -2,6 +2,7 @@
 #define SUBDOMAIN_BC_H
 
 #include "BoundaryCondition.hh"
+#include "Data.hh"
 
 /**
  * This boundary condition talks to another rank and exchanges
@@ -14,6 +15,7 @@ class SubdomainBc : public BoundaryCond
 private:
 protected:
   int neighbour_;
+  int rank_;
 
 public:
   SubdomainBc() 
@@ -44,5 +46,18 @@ public:
    */
   int get_neighbour();
 
+  /**
+   * Set our own rank.
+   *
+   * @param rank our own rank
+   */
+  void set_rank(int rank);
+
+  /**
+   * Returns out rank. 
+   *
+   * @return our rank
+   */
+  int get_rank();
 };
 #endif // SUBDOMAIN_BC_H

@@ -131,7 +131,7 @@
 #define PACKAGE_VERSION "0.1.0"
 
 /* Using profiling (-pg) */
-/* #undef PROFILE */
+#define PROFILE 1
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be

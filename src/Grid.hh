@@ -594,6 +594,60 @@ class Grid {
     return hz_[x][y][z];
   }
 
+  /**
+   * Return the MPI derived data type for the xy plane. 
+   * @return MPI_Datatype
+   */
+  inline MPI_Datatype get_xy_plane_dt()
+  {
+    return xy_plane_;
+  }
+
+  /**
+   * Return the MPI derived data type for the yz plane. 
+   * @return MPI_Datatype
+   */
+  inline MPI_Datatype get_yz_plane_dt()
+  {
+    return yz_plane_;
+  }
+
+  /**
+   * Return the MPI derived data type for the xz plane. 
+   * @return MPI_Datatype
+   */
+  inline MPI_Datatype get_xz_plane_dt()
+  {
+    return xz_plane_;
+  }
+
+  /**
+   * Return the MPI Derived data type for an X vector
+   * @return MPI_Datatype
+   */
+  inline MPI_Datatype get_x_vector_dt()
+  {
+    return x_vector_;
+  }
+
+  /**
+   * Return the MPI Derived data type for an Y vector
+   * @return MPI_Datatype
+   */
+  inline MPI_Datatype get_y_vector_dt()
+  {
+    return y_vector_;
+  }
+
+  /**
+   * Return the MPI Derived data type for an Z vector
+   * @return MPI_Datatype
+   */
+  inline MPI_Datatype get_z_vector_dt()
+  {
+    return z_vector_;
+  }
+
 };
 
 #endif // GRID_H

@@ -26,9 +26,9 @@ AC_ARG_WITH(cxx, AC_HELP_STRING([--with-cxx=CXX], [c++ compiler to use]),
 
 AC_ARG_ENABLE(profile, AC_HELP_STRING([--enable-profile], [Compile with -pg flag for gprof support.]), [WANT_PROFILE=1])
 
-AC_ARG_ENABLE(pythonbuild, AC_HELP_STRING([--enable-python-build], [Built 3rd party Python]), [WANT_BP=1]);
+AC_ARG_ENABLE(pythonbuild, AC_HELP_STRING([--enable-python-build], [Built 3rd party Python]), [WANT_BP=1])
 
-AC_ARG_ENABLE(boostpythonbuild, AC_HELP_STRING([--enable-boost-python-build], [Built 3rd party Boost Python interface]), [WANT_BPB=1]);
+AC_ARG_ENABLE(boostpythonbuild, AC_HELP_STRING([--enable-boost-python-build], [Built 3rd party Boost Python interface]), [WANT_BPB=1])
 
 # Stolen in part from the LAM MPI configure.in file
 if test "$with_cxx" = yes; then

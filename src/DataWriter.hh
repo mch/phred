@@ -3,6 +3,7 @@
 
 #include "Types.hh"
 #include <mpi.h>
+#include "Data.hh"
 
 #include <map>
 #include <vector>

@@ -54,6 +54,9 @@ void Grid::set_define_mode(bool d)
     
     // Stability check
     
+    // Initialize the MPI Derived data types
+    init_datatypes();
+
     // Calculate update region_t by considering the thickness of the PML's. 
     update_r_.xmin = 0;
     update_r_.xmax = info_.dimx_;
