@@ -316,8 +316,8 @@ AC_FUNC_CLOSEDIR_VOID
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then
-dnl Turn on inlining, template registry, RTTI
-   CXXFLAGS="$CXXFLAGS -Q -qtemplateregistry -qrtti=all"
+dnl Turn on inlining, template registry, RTTI, 2 GB memory access
+   CXXFLAGS="$CXXFLAGS -Q -qtemplateregistry -qrtti=all -bmaxdata:0x80000000"
 fi
 dnl Checks for library functions.
 

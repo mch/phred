@@ -733,6 +733,9 @@ static void takakura_test(int rank, int size)
   pr1.set_name("ex-yzplane4");
   pr1.set_plane(point_t(24, 159, 75), FRONT);
   pr1.set_field(FC_EY);
-  
+
+  fdtd.add_result("pr1", &pr1);
+  fdtd.map_result_to_datawriter("pr1", "ncdw");
+
   fdtd.run(rank, size, 1000);
 }
