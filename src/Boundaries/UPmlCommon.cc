@@ -106,8 +106,6 @@ void UPmlCommon::init_sigmas()
   map<string, Material>::const_iterator iter_e = mlib->materials_.end();
   unsigned int xoffset = 0, yoffset = 0, zoffset = 0;
   
-  ++iter; // skip pec
-
   // Loop over the materials
   while (iter != iter_e) 
   {
@@ -116,6 +114,11 @@ void UPmlCommon::init_sigmas()
     mat_prop_t mu = ((*iter).second).get_mu() * MU_0;
     //mat_prop_t sigs = (*iter).get_sigma_star();
 
+    if (sig == INFINITY)
+    {
+      cerr << "UPmlCommon::init_sigmas(): Warning; material is perfect conductor." << endl;
+      
+    }
     
     // Loop over the faces, for each may have it's own thickness
     for (int faceidx = 0; faceidx < 6; faceidx++)
