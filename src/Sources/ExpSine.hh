@@ -34,15 +34,11 @@ public:
    * Produces a sine function that is windows by an exponential
    * function so that the initial discontinuity is not so bad. 
    *
-   * @param grid the grid to which the function is being applied. Only for
-   * things such as delta_t, the result of this function is applied in
-   * the excite() function (in order to factor out the loop). 
-   *
-   * @param time_step the time at which to apply the excitation
+   * @param time the time at which to apply the excitation
    *
    * @return the value of the excitation
    */
-  field_t source_function(const Grid &grid, float time_step);
+  field_t source_function(float time);
 
   ExpSine();
   ExpSine(float frequency);

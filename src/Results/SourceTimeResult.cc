@@ -55,7 +55,7 @@ map<string, Variable *> &SourceTimeResult::get_result(const Grid &grid,
   if (result_time(time_step) && MPI_RANK == 0) 
   {
     result_[0] = grid.get_deltat() * time_step; 
-    result_[1] = te_.source_function(grid, time_step);
+    result_[1] = te_.source_function(result_[0]);
     var_.set_num(1); 
 
 //     cerr << "SourceTimeResult, data is " << result_[0] 

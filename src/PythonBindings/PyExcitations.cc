@@ -42,9 +42,8 @@ void call_excite(Excitation& ex, Grid &grid,
 /**
  * Helper function for Python classes derived from SourceFunction
  */
-field_t call_source_function(SourceFunction& sf, Grid &grid, 
-                             float time_step) 
-{ return sf.source_function(grid, time_step); }
+field_t call_source_function(SourceFunction& sf, float time) 
+{ return sf.source_function(time); }
 
 /**
  * This wrapper allows for derived classes built in Python.
@@ -117,9 +116,9 @@ public:
     : self_(self)
   {}
 
-  field_t source_function(const Grid &grid, float time_step)
+  field_t source_function(float time)
   { return call_method<field_t>(self_, "source_function", 
-                                boost::ref(grid), time_step); }
+                                time); }
 };
 
 void export_excitations()

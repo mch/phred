@@ -28,13 +28,12 @@ Gaussm::Gaussm()
 Gaussm::~Gaussm()
 {}
 
-field_t Gaussm::source_function(const Grid &grid, float time_step)
+field_t Gaussm::source_function(float time)
 {
-  field_t t = time_step * grid.get_deltat();
-  field_t temp = (t - 4. / (PI * deltaf_)) * deltaf_ * PI;
+  field_t temp = (time - 4. / (PI * deltaf_)) * deltaf_ * PI;
 
   return alpha_ * exp((-1) * temp * temp)
-    * sin(2. * PI * f0_ * (t - 4. / (PI * deltaf_)));
+    * sin(2. * PI * f0_ * (time - 4. / (PI * deltaf_)));
 }
 
 void Gaussm::set_parameters(field_t alpha, field_t deltaf, field_t f0)

@@ -46,13 +46,10 @@ public:
    * This function is defined in subclasses and produces the source
    * value to be applied to every point which is excited.
    *
-   * @param grid the grid to which the function is being applied. Only for
-   * things such as delta_t, the result of this function is applied in
-   * the excite() function (in order to factor out the loop). 
-   *
-   * @param time_step the time at which to apply the excitation
+   * @param time the time at which to apply the excitation. Usually
+   * just grid.deltat() * time_step.
    */
-  virtual field_t source_function(const Grid &grid, float time_step) = 0;
+  virtual field_t source_function(float time) = 0;
 
 };
 

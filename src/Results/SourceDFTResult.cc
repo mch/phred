@@ -102,14 +102,15 @@ map<string, Variable *> &SourceDFTResult::get_result(const Grid &grid,
 {
   if (result_time(time_step) && MPI_RANK == 0) 
   {
-    field_t sf = te_.source_function(grid, time_step);
+    float time = time_step * grid.get_deltat();
+    field_t sf = te_.source_function(time);
     for (unsigned int i = 0; i <= num_freqs_; i++)
     {
       result_[i*3 + 1] += sf * cos(-2 * PI * result_[i*3] 
-                                   * time_step * grid.get_deltat());
+                                   * time);
     
       result_[i*3 + 2] += (-1) * sf * sin(-2 * PI * result_[i*3] 
-                                          * time_step * grid.get_deltat());
+                                          * time);
     }
     var_.set_num(num_freqs_); 
   } else {

@@ -91,6 +91,7 @@ void export_csg()
                                           "A CSG object representing a sphere.")
     .def("set_radius", &CSGSphere::set_radius)
     .def("get_radius", &CSGSphere::get_radius)
+    .add_property("radius", &CSGSphere::get_radius, &CSGSphere::set_radius)
     ;
 
   class_<CSGCylinder, bases<CSGPrimitive> >("CSGCylinder", 
@@ -99,6 +100,10 @@ void export_csg()
     .def("get_radius", &CSGCylinder::get_radius)
     .def("set_height", &CSGCylinder::set_height)
     .def("get_height", &CSGCylinder::get_height)
+    .add_property("radius", &CSGCylinder::get_radius, 
+                  &CSGCylinder::set_radius)
+    .add_property("height", &CSGCylinder::get_height, 
+                  &CSGCylinder::set_height)
     ;
 
   class_<CSGTransform, bases<CSGObject> >("CSGTransform",
