@@ -129,17 +129,15 @@ DX_INIT_DOXYGEN([Phred], [doc/Doxyfile], [doc/generated_docs])
 AC_LANG(C++)
 
 dnl Debug?
-dnl CFLAGS=
-dnl CXXFLAGS=
 if test "x$WANT_DEBUG" = "x1"; then
         AC_DEFINE([DEBUG], [1], [Turn on debugging messages])
 dnl        AC_LANG_WERROR
-        CXXFLAGS="-g"
-        CFLAGS="-g"
+        CXXFLAGS="$CXXFLAGS -g"
+        CFLAGS="$CFLAGS -g"
 else
         AC_DEFINE([NDEBUG], [1], [Turn off assertions])
-        CXXFLAGS="-O3"
-        CFLAGS="-O3"
+        CXXFLAGS="$CXXFLAGS -O3"
+        CFLAGS="$CFLAGS -O3"
 
         if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then        
                CXXFLAGS="$CXXFLAGS -qstrict -Q -qansialias -qhot"
@@ -308,8 +306,6 @@ AC_STRUCT_TM
 AC_STRUCT_ST_BLOCKS
 AC_FUNC_CLOSEDIR_VOID
 
-AC_SUBST(CFLAGS, $CFLAGS)
-AC_SUBST(CXXFLAGS, $CXXFLAGS)
 AC_SUBST(LIBS, $LIBS)
 AC_SUBST(PYTHON_LDFLAGS, $PYTHON_LDFLAGS)
 
