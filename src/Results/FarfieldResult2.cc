@@ -885,7 +885,9 @@ void FarfieldResult2::calc_currents(const Grid &grid,
 
           Mt2[idx] += complex<field_t>((-1) * e_t1 * e_cos_temp,
                                        e_t1 * e_sin_temp);
-          
+
+          // Above eqns verified, 2004-11-25 23:17 mch
+
           h_t2++; h_t1++; e_t1++; e_t2++;
         }
       }

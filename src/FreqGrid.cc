@@ -24,7 +24,7 @@
 #include "FreqGrid.hh"
 #include "Exceptions.hh"
 
-#include <string.h> // for memset()
+#include <cstring> // for memset()
 #include <cmath>
 
 #ifdef USE_OPENMP

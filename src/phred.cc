@@ -88,7 +88,7 @@
 
 #ifdef USE_RUSAGE
 /* rusage() */ 
-#include <sys/time.h>
+#include <sys/ctime>
 #include <sys/resource.h>
 #endif
 

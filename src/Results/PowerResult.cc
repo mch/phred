@@ -24,7 +24,7 @@
 #include "../Globals.hh"
 #include "../PlaneTiling.hh"
 
-#include <string.h> // for memset
+#include <cstring>
 #include <cmath>
 
 PowerResult::PowerResult()
@@ -390,9 +390,6 @@ public:
     field_t h_cos_temp;
     field_t h_sin_temp;
 
-    // field_t *et1r_, *et2r_, *et1i_, *et2i_;
-//     field_t *ht1r_, *ht2r_, *ht1i_, *ht2i_;
-    
     complex<field_t> *et1_, *et2_, *ht1_, *ht2_;
 
     field_t p_real;
@@ -403,30 +400,6 @@ public:
 
   static inline void alg(Fields_t &f, Data &data)
   {
-//     data.et1r_[data.idx] += f.et1_avg * data.e_cos_temp;
-//     data.et1i_[data.idx] += -1 * f.et1_avg * data.e_sin_temp;
-
-//     data.et2r_[data.idx] += f.et2_avg * data.e_cos_temp;
-//     data.et2i_[data.idx] += -1 * f.et2_avg * data.e_sin_temp;
-
-//     data.ht1r_[data.idx] += f.ht1_avg * data.h_cos_temp;
-//     data.ht1i_[data.idx] += -1 * f.ht1_avg * data.h_sin_temp;
-
-//     data.ht2r_[data.idx] += f.ht2_avg * data.h_cos_temp;
-//     data.ht2i_[data.idx] += -1 * f.ht2_avg * data.h_sin_temp;
-
-//     data.p_real += ((data.et1r_[data.idx] * data.ht2r_[data.idx] 
-//                      + data.et1i_[data.idx] * data.ht2i_[data.idx])
-//                 - (data.et2r_[data.idx] * data.ht1r_[data.idx] 
-//                    + data.et2i_[data.idx] * data.ht1i_[data.idx])) 
-//       * data.cell_area;
-
-//     data.p_imag += ((data.et1i_[data.idx] * data.ht2r_[data.idx] 
-//                      - data.ht2i_[data.idx] * data.et1r_[data.idx]) 
-//                 + (data.ht1i_[data.idx] * data.et2r_[data.idx] 
-//                    - data.et2i_[data.idx] * data.ht1r_[data.idx]))
-//       * data.cell_area;
-
     data.et1_[data.idx] += complex<field_t>(f.et1_avg * data.e_cos_temp, 
                                             -1 * f.et1_avg * data.e_sin_temp);
     data.et2_[data.idx] += complex<field_t>(f.et2_avg * data.e_cos_temp, 
@@ -456,9 +429,6 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
 
   if (has_data_)
   {
-    // Make this a templated function taking the GridPlane as a template
-    // parameter for speed, so we can avoid virtual function calls. 
-
     TimePowerAlg::Data data(cell_area_);
     
     PlaneTiling<TimePowerAlg, TimePowerAlg::Data>::loop(grid, (*region_),
@@ -476,16 +446,6 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
   delta_t dt = grid.get_deltat();
   delta_t e_time = dt * time_step;
   delta_t h_time = dt * (static_cast<delta_t>(time_step) - 0.5);
-
-//   dftdata.et1r_ = et1r_;
-//   dftdata.et2r_ = et2r_;
-//   dftdata.et1i_ = et1i_;
-//   dftdata.et2i_ = et2i_;
-
-//   dftdata.ht1r_ = ht1r_;
-//   dftdata.ht2r_ = ht2r_;
-//   dftdata.ht1i_ = ht1i_;
-//   dftdata.ht2i_ = ht2i_;
 
   dftdata.et1_ = et1_;
   dftdata.et2_ = et2_;

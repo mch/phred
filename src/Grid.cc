@@ -30,7 +30,7 @@
 
 #include <mpi.h>
 #include <cmath>
-#include <string.h> // for memset
+#include <cstring> // for memset
 
 #ifdef USE_OPENMP
 #include <omp.h>

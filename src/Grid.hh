@@ -48,7 +48,7 @@
 
 #include <mpi.h>
 
-#include <time.h>
+#include <ctime>
 #include <assert.h>
 
 #include "Types.hh"
