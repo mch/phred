@@ -22,6 +22,7 @@
 #include "MPISubdomainAlg.hh"
 #include "Globals.hh"
 
+#include <cmath>
 #include <iostream>
 using namespace std;
 

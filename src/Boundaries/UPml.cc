@@ -34,6 +34,9 @@
 #include <omp.h>
 #endif
 
+// For some reason, hz is #defined to be 100 on the RS/6000!
+#undef hz
+
 UPml::UPml()
   : common_(0), dx_(0), dy_(0), dz_(0), 
     bx_(0), by_(0), bz_(0), 

@@ -23,6 +23,7 @@
 #define META_FDTD_H
 
 #include "FDTD.hh"
+#include "GridUpdate.hh"
 
 enum MetaType {
   METAFDTD_ONE, /**< One field component at a time */ 
