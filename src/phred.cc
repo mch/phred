@@ -279,9 +279,21 @@ int main (int argc, char **argv)
   } 
   // else { // rank 0 passes appropriate args
   
+  cout << PACKAGE_NAME << " version " << PACKAGE_VERSION 
+       << ", Copyright (C) 2004 Matt Hughes <mch@ieee.org>\n"
+       << PACKAGE_NAME << " comes with ABSOLUTELY NO WARRANTY.\n"
+       << "This is free software, and you are welcome to redistribute it\n"
+       << "under certian conditions. See the COPYING file for details.\n";
 
-  cout << PACKAGE_NAME << " version " << PACKAGE_VERSION << " starting on " 
-       << "rank " << MPI_RANK << " of " << MPI_SIZE << " processes." << endl;
+  if (interactive)
+  {
+    cout << "For warranty information type `print warranty'.\n"
+         << "For redistribution conditions type `print conditions'.\n";
+  }
+
+  cout << "\nMPI information: \n\tThis process is rank number " << MPI_RANK
+       << ".\n\tThere are a total of " << MPI_SIZE
+       << " processes in this group. \n\n";
 
   // Parse the input script (each process will just load it's own file
   // for now. ) 

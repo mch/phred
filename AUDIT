@@ -1,0 +1,23 @@
+CODE AUDIT PLAN
+---------------
+
+Phred needs an audit to check for a number of important issues that
+may have been overlooked or missed during initial development. This
+is a list of things to look for when auditing. 
+
+Some kind of design document should be constructed to detail the
+overall layout of Phred and how it operates (or is supposed to
+operate). That can also serve as the specification to build unit
+tests from, so that the code can be verified as working correctly. 
+
+* MPI Problems and cavets
+
+
+* OpenMP
+
+
+* Results
+
+
+* DataWriters
+
