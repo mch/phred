@@ -28,6 +28,8 @@
 #include "../Excitations/WaveguideExcitation.hh"
 #include "../Excitations/GaussWindExcitation.hh"
 #include "../Signals/Gaussm.hh"
+#include "../Signals/GaussPulse.hh"
+#include "../Signals/DiffGaussPulse.hh"
 #include "../Signals/ExpSine.hh"
 
 using namespace boost::python;
@@ -150,12 +152,32 @@ void export_excitations()
   //.def("call_sf", call_sf)
 
   class_<Gaussm, bases<Signal> >("Gaussm", "Gaussian modulated sine function")
+    .def("signal_function", &Gaussm::signal_function)
     .def("set_parameters", &Gaussm::set_parameters)
     .def("get_alpha", &Gaussm::get_alpha)
     .def("get_deltaf", &Gaussm::get_deltaf)
     .def("get_f0", &Gaussm::get_f0)
     .def("length", &Gaussm::length)
     .def("signal_function", &Gaussm::signal_function) // in Signal
+    ;
+
+  class_<GaussPulse, bases<Signal> >("GaussPulse", "Gaussian pulse function")
+    .def("signal_function", &GaussPulse::signal_function)
+    .def("set_parameters", &GaussPulse::set_parameters)
+    .def("get_alpha", &GaussPulse::get_alpha)
+    .def("get_taup", &GaussPulse::get_taup)
+    .def("length", &GaussPulse::length)
+    ;
+
+  class_<DiffGaussPulse, bases<Signal> >("DiffGaussPulse", 
+                                         "Differentiated Gaussian "
+                                         "pulse function which peaks at 1/"
+                                         "taup")
+    .def("signal_function", &DiffGaussPulse::signal_function)
+    .def("set_parameters", &DiffGaussPulse::set_parameters)
+    .def("get_alpha", &DiffGaussPulse::get_alpha)
+    .def("get_taup", &DiffGaussPulse::get_taup)
+    .def("length", &DiffGaussPulse::length)
     ;
 
   class_<ExpSine, bases<Signal> >("ExpSine", "Ramping up sine function")

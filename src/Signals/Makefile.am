@@ -4,4 +4,9 @@ libsignals_a_SOURCES = Signal.hh \
 	Gaussm.hh \
 	Gaussm.cc \
 	ExpSine.hh \
-	ExpSine.cc 
+	ExpSine.cc \
+	GaussPulse.hh \
+	GaussPulse.cc \
+	DiffGaussPulse.hh \
+	DiffGaussPulse.cc
+

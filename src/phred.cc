@@ -282,14 +282,12 @@ string get_extension(string filename)
 int main (int argc, char **argv)
 {
   time_t start, now;
-  clock_t start_cpu, now_cpu;
   double time_total_cpu = 0.0;
   
   // Install a handler for low memory conditions. 
   std::set_new_handler(no_memory);
 
   start=time(NULL);
-  start_cpu = clock();
 
   string prog_name;
 
@@ -446,11 +444,6 @@ int main (int argc, char **argv)
   }
 
   now = time(NULL);
-  now_cpu = clock();
-
-  time_total_cpu = (static_cast<double>(now_cpu) 
-    - static_cast<double>(start_cpu)) 
-    / static_cast<double>(CLOCKS_PER_SEC);
 
   int secs = static_cast<int>(now - start);
   int mins = secs / 60;
@@ -478,7 +471,6 @@ int main (int argc, char **argv)
     cout << mins << " minutes, ";
   
   cout << secs << " seconds." << endl;
-  cout << time_total_cpu << " seconds of CPU time was used." << endl;
   
 #ifdef USE_RUSAGE
   struct rusage ru; 

@@ -37,9 +37,14 @@ field_t GaussWindExcitation::window(float x, float y, float z)
   {
     point centre = (*box_).get_centre();
 
-    float i = (x - xmin_) - centre.x;
-    float j = (y - ymin_) - centre.y;
-    float k = (z - zmin_) - centre.z;
+    // WTF is this!?
+//     float i = (x - xmin_) - centre.x;
+//     float j = (y - ymin_) - centre.y;
+//     float k = (z - zmin_) - centre.z;
+
+    float i = x - centre.x;
+    float j = y - centre.y;
+    float k = z - centre.z;
 
     wx = exp((-(i*i)) / sdev_x_);
     wy = exp((-(j*j)) / sdev_y_);
@@ -53,9 +58,18 @@ void GaussWindExcitation::init(const Grid &grid)
 {
   WindowedExcitation::init(grid);
 
-  sdev_x_ = (xmax_ - xmin_) * 0.1;
-  sdev_y_ = (ymax_ - ymin_) * 0.1;
-  sdev_z_ = (zmax_ - zmin_) * 0.1;
+  sdev_x_ = (xmax_ - xmin_) * 0.04;
+  sdev_y_ = (ymax_ - ymin_) * 0.04;
+  sdev_z_ = (zmax_ - zmin_) * 0.04;
+
+  if (sdev_x_ == 0.0)
+    sdev_x_ = 1.0;
+
+  if (sdev_y_ == 0.0)
+    sdev_y_ = 1.0;
+
+  if (sdev_z_ == 0.0)
+    sdev_z_ = 1.0;
 }
 
 ostream& GaussWindExcitation::to_string(ostream &os) const

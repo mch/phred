@@ -176,7 +176,7 @@ void hole()
 
   // Excitation parameters
   float ex_ampl = 1.0;
-  float ex_freq_size = 100e12;
+  float ex_freq_size = 200e12;
   float ex_centre_f = 500e12;
   float ex_offset = -250e-9;
 
@@ -214,7 +214,7 @@ void hole()
   gm->set_parameters(ex_ampl, ex_freq_size, ex_centre_f);
 
   time_steps = static_cast<unsigned int>
-    (ceil(gm->length() / fdtd.get_time_delta()));
+    (ceil((gm->length() + 2 * gridz / 3e8) / fdtd.get_time_delta()));
   
   shared_ptr<GaussWindExcitation> ex 
     = shared_ptr<GaussWindExcitation>(new GaussWindExcitation(gm));
@@ -358,6 +358,11 @@ void grooves_bottom()
 
 void grooves_both()
 {}
+
+void square_hole(int argc, char **argv)
+{
+
+}
 
 // Test runs
 // void point_test(int rank, int size)
