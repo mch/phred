@@ -1,7 +1,7 @@
 if PY_BINDINGS
 noinst_LIBRARIES=libpyphread.a
 
-libpyphread_a_SOURCES = PyExcitations.hh \
+libpyphread_a_SOURCES = \
 	PyInterpreter.hh \
 	PyInterpreter.cc \
 	PyResults.cc \

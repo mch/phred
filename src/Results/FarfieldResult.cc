@@ -29,6 +29,50 @@
 #include <cstring>
 #include <cassert>
 
+#include <fstream>
+
+using namespace std;
+
+void FarfieldResult::idx_tests()
+{
+  ofstream wuf;
+
+  wuf.open("wutest.txt", ofstream::out);
+  wuf << "# phis: " << phi_data_.length() << "\n";
+  wuf << "# thetas: " << theta_data_.length() << "\n";
+  wuf << "# fftsteps: " << ff_tsteps_ << "\n";
+
+  wuf << "phi_idx phi theta_idx theta WU_index\n";
+
+  for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
+  {
+    for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
+    {
+      wuf << phi_idx << "\t" << phi_data_.get(phi_idx) << "\t"
+          << theta_idx << "\t" << theta_data_.get(theta_idx) << "\t"
+          << WU_index(phi_idx, theta_idx, 0) << "\n";
+    }
+  }
+
+  wuf.close();
+
+  ofstream tf;
+  tf.open("tempidxtest.txt", ofstream::out);
+
+  tf << "faceidx comp temp_idx(0,0,10,10)\n";
+
+  for (int faceidx = 0; faceidx < 6; faceidx++)
+  {
+    for (int comp = 0; comp < 3; comp++)
+    {
+      tf << faceidx << "\t" << comp << "\t" 
+         << temp_index(faceidx, comp, 0,0, 10, 10) << "\n";
+    }
+  }
+
+  tf.close();
+}
+
 FarfieldResult::FarfieldResult()
   : r_(100),
     Wx_(0), Wy_(0), Wz_(0), Ux_(0), Uy_(0), Uz_(0),
@@ -227,6 +271,10 @@ void FarfieldResult::init(const Grid &grid)
     E_theta_var_.set_num(0);
     E_phi_var_.set_num(0);
   }
+
+  // TESTING ONLY!!!
+  idx_tests();
+
 }
   
 void FarfieldResult::deinit()

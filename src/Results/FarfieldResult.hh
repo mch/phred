@@ -233,6 +233,8 @@ protected:
     return ffstep + (theta_idx + phi_idx * theta_data_.length()) * ff_tsteps_;
   }
 
+  void idx_tests();
+
 };
 
 #endif // FARFIELD_RESULT_H
