@@ -46,32 +46,32 @@ void PmlCommon::alloc_coeffs(Grid &grid)
 {
   free_coeffs();
 
-  ratio_x_ = new float[grid.get_ldx()];
-  ratio_star_x_ = new float[grid.get_ldx()];
+  ratio_x_ = new float[grid.get_ldx_sd()];
+  ratio_star_x_ = new float[grid.get_ldx_sd()];
   
-  ratio_y_ = new float[grid.get_ldy()];
-  ratio_star_y_ = new float[grid.get_ldy()];
+  ratio_y_ = new float[grid.get_ldy_sd()];
+  ratio_star_y_ = new float[grid.get_ldy_sd()];
   
-  ratio_z_ = new float[grid.get_ldz()];
-  ratio_star_z_ = new float[grid.get_ldz()];
+  ratio_z_ = new float[grid.get_ldz_sd()];
+  ratio_star_z_ = new float[grid.get_ldz_sd()];
   
-  e_x_coef1_ = new float[grid.get_ldx()];
-  e_x_coef2_ = new float[grid.get_ldx()];
+  e_x_coef1_ = new float[grid.get_ldx_sd()];
+  e_x_coef2_ = new float[grid.get_ldx_sd()];
   
-  e_y_coef1_ = new float[grid.get_ldy()];
-  e_y_coef2_ = new float[grid.get_ldy()];
+  e_y_coef1_ = new float[grid.get_ldy_sd()];
+  e_y_coef2_ = new float[grid.get_ldy_sd()];
   
-  e_z_coef1_ = new float[grid.get_ldz()];
-  e_z_coef2_ = new float[grid.get_ldz()];
+  e_z_coef1_ = new float[grid.get_ldz_sd()];
+  e_z_coef2_ = new float[grid.get_ldz_sd()];
   
-  h_x_coef1_ = new float[grid.get_ldx()];
-  h_x_coef2_ = new float[grid.get_ldx()];
+  h_x_coef1_ = new float[grid.get_ldx_sd()];
+  h_x_coef2_ = new float[grid.get_ldx_sd()];
   
-  h_y_coef1_ = new float[grid.get_ldy()];
-  h_y_coef2_ = new float[grid.get_ldy()];
+  h_y_coef1_ = new float[grid.get_ldy_sd()];
+  h_y_coef2_ = new float[grid.get_ldy_sd()];
   
-  h_z_coef1_ = new float[grid.get_ldz()];
-  h_z_coef2_ = new float[grid.get_ldz()];  
+  h_z_coef1_ = new float[grid.get_ldz_sd()];
+  h_z_coef2_ = new float[grid.get_ldz_sd()];  
 
   if (!ratio_x_ || !ratio_star_x_ || !ratio_y_ || !ratio_star_y_ || 
       !ratio_z_ || !ratio_star_z_ || !e_x_coef1_ || !e_x_coef2_ ||
@@ -83,37 +83,37 @@ void PmlCommon::alloc_coeffs(Grid &grid)
     throw MemoryException();
   }
 
-  memset(ratio_x_, 0, sizeof(float) * grid.get_ldx());
-  memset(ratio_star_x_, 0, sizeof(float) * grid.get_ldx());
+  memset(ratio_x_, 0, sizeof(float) * grid.get_ldx_sd());
+  memset(ratio_star_x_, 0, sizeof(float) * grid.get_ldx_sd());
 
-  memset(ratio_y_, 0, sizeof(float) * grid.get_ldy());
-  memset(ratio_star_y_, 0, sizeof(float) * grid.get_ldy());
+  memset(ratio_y_, 0, sizeof(float) * grid.get_ldy_sd());
+  memset(ratio_star_y_, 0, sizeof(float) * grid.get_ldy_sd());
 
-  memset(ratio_z_, 0, sizeof(float) * grid.get_ldz());
-  memset(ratio_star_z_, 0, sizeof(float) * grid.get_ldz());
+  memset(ratio_z_, 0, sizeof(float) * grid.get_ldz_sd());
+  memset(ratio_star_z_, 0, sizeof(float) * grid.get_ldz_sd());
 
-  memset(e_x_coef1_, 0, sizeof(float) * grid.get_ldx());
-  memset(e_x_coef2_, 0, sizeof(float) * grid.get_ldx());
+  memset(e_x_coef1_, 0, sizeof(float) * grid.get_ldx_sd());
+  memset(e_x_coef2_, 0, sizeof(float) * grid.get_ldx_sd());
 
-  memset(e_y_coef1_, 0, sizeof(float) * grid.get_ldy());
-  memset(e_y_coef2_, 0, sizeof(float) * grid.get_ldy());
+  memset(e_y_coef1_, 0, sizeof(float) * grid.get_ldy_sd());
+  memset(e_y_coef2_, 0, sizeof(float) * grid.get_ldy_sd());
 
-  memset(e_z_coef1_, 0, sizeof(float) * grid.get_ldz());
-  memset(e_z_coef2_, 0, sizeof(float) * grid.get_ldz());
+  memset(e_z_coef1_, 0, sizeof(float) * grid.get_ldz_sd());
+  memset(e_z_coef2_, 0, sizeof(float) * grid.get_ldz_sd());
 
-  memset(h_x_coef1_, 0, sizeof(float) * grid.get_ldx());
-  memset(h_x_coef2_, 0, sizeof(float) * grid.get_ldx());
+  memset(h_x_coef1_, 0, sizeof(float) * grid.get_ldx_sd());
+  memset(h_x_coef2_, 0, sizeof(float) * grid.get_ldx_sd());
 
-  memset(h_y_coef1_, 0, sizeof(float) * grid.get_ldy());
-  memset(h_y_coef2_, 0, sizeof(float) * grid.get_ldy());
+  memset(h_y_coef1_, 0, sizeof(float) * grid.get_ldy_sd());
+  memset(h_y_coef2_, 0, sizeof(float) * grid.get_ldy_sd());
 
-  memset(h_z_coef1_, 0, sizeof(float) * grid.get_ldz());
-  memset(h_z_coef2_, 0, sizeof(float) * grid.get_ldz());
+  memset(h_z_coef1_, 0, sizeof(float) * grid.get_ldz_sd());
+  memset(h_z_coef2_, 0, sizeof(float) * grid.get_ldz_sd());
 
 #ifndef NDEBUG
-  dimx_ = grid.get_ldx();
-  dimy_ = grid.get_ldy();
-  dimz_ = grid.get_ldz();
+  dimx_ = grid.get_ldx_sd();
+  dimy_ = grid.get_ldy_sd();
+  dimz_ = grid.get_ldz_sd();
 #endif
 }
 
@@ -210,7 +210,7 @@ void PmlCommon::init_coeffs(Grid &grid)
   // And finally, init coefficients
   delta_t dt = grid.get_deltat();
 
-  for(unsigned int i = 0; i < grid.get_ldx(); i++)
+  for(unsigned int i = 0; i < grid.get_ldx_sd(); i++)
   {
     e_x_coef1_[i] = (ratio_x_[i] == 0.0 ? 1.0
                      : exp(-ratio_x_[i] * dt));
@@ -228,7 +228,7 @@ void PmlCommon::init_coeffs(Grid &grid)
   }
                 
 
-  for(unsigned int j = 0; j < grid.get_ldy(); j++)
+  for(unsigned int j = 0; j < grid.get_ldy_sd(); j++)
   {
     e_y_coef1_[j] = (ratio_y_[j] == 0.0 ? 1.0 
                      : exp(-ratio_y_[j] * dt));
@@ -245,7 +245,7 @@ void PmlCommon::init_coeffs(Grid &grid)
                      / (ratio_star_y_[j] * dt));
   }
 
-  for(unsigned int k = 0; k < grid.get_ldz(); k++)
+  for(unsigned int k = 0; k < grid.get_ldz_sd(); k++)
   {
     e_z_coef1_[k] = (ratio_z_[k] == 0.0 ? 1.0
                      : exp(-ratio_z_[k] * dt));
@@ -263,17 +263,17 @@ void PmlCommon::init_coeffs(Grid &grid)
   }
                   
 //   cout << endl << "item\te_x_coef1\t\te_x_coef2\t\th_x_coef1\t\th_x_coef2 " << endl;
-//   for (int j = 0; j < grid.get_ldx(); j++)
+//   for (int j = 0; j < grid.get_ldx_sd(); j++)
 //     cout << j << "\t" << e_x_coef1_[j] << "\t\t" << e_x_coef2_[j]
 //          << "\t\t" << h_x_coef1_[j] << "\t\t" << h_x_coef2_[j] << endl;
 
 //   cout << endl << "item\te_y_coef1\t\te_y_coef2\t\th_y_coef1\t\th_y_coef2 " << endl;
-//   for (int j = 0; j < grid.get_ldy(); j++)
+//   for (int j = 0; j < grid.get_ldy_sd(); j++)
 //     cout << j << "\t" << e_y_coef1_[j] << "\t\t" << e_y_coef2_[j]
 //          << "\t\t" << h_y_coef1_[j] << "\t\t" << h_y_coef2_[j] << endl;
 
 //   cout << endl << "item\te_z_coef1\t\te_z_coef2\t\th_z_coef1\t\th_z_coef2 " << endl;
-//   for (int j = 0; j < grid.get_ldz(); j++)
+//   for (int j = 0; j < grid.get_ldz_sd(); j++)
 //     cout << j << "\t" << e_z_coef1_[j] << "\t\t" << e_z_coef2_[j]
 //          << "\t\t" << h_z_coef1_[j] << "\t\t" << h_z_coef2_[j] << endl;
   
@@ -300,8 +300,8 @@ void PmlCommon::init_ratios(Face face, Grid &grid, Pml *p)
   case FRONT:
     d_space = grid.get_deltax();
     step = -1; 
-    idx1 = grid.get_ldx() - 1;
-    idx2 = grid.get_ldx() - 2;
+    idx1 = grid.get_ldx_sd() - 1;
+    idx2 = grid.get_ldx_sd() - 2;
     arr1 = ratio_x_;
     arr2 = ratio_star_x_;
     break;
@@ -318,8 +318,8 @@ void PmlCommon::init_ratios(Face face, Grid &grid, Pml *p)
   case RIGHT:
     d_space = grid.get_deltay();
     step = -1; 
-    idx1 = grid.get_ldy() - 1;
-    idx2 = grid.get_ldy() - 2;
+    idx1 = grid.get_ldy_sd() - 1;
+    idx2 = grid.get_ldy_sd() - 2;
     arr1 = ratio_y_;
     arr2 = ratio_star_y_;
     break;
@@ -336,8 +336,8 @@ void PmlCommon::init_ratios(Face face, Grid &grid, Pml *p)
   case TOP:
     d_space = grid.get_deltaz();
     step = -1; 
-    idx1 = grid.get_ldz() - 1;
-    idx2 = grid.get_ldz() - 2;
+    idx1 = grid.get_ldz_sd() - 1;
+    idx2 = grid.get_ldz_sd() - 2;
     arr1 = ratio_z_;
     arr2 = ratio_star_z_;
     break;

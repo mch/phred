@@ -31,12 +31,12 @@ region_t BoundaryCond::find_face(Face face, Grid &grid)
   switch (face) 
   {
   case FRONT:
-    r.xmax = grid.get_ldx();
+    r.xmax = grid.get_ldx_sd();
     r.xmin = r.xmax - 1 - thickness_;
     //r.xmin = r.xmax - thickness_;
     r.ymin = r.zmin = 0;
-    r.ymax = grid.get_ldy();
-    r.zmax = grid.get_ldz();
+    r.ymax = grid.get_ldy_sd();
+    r.zmax = grid.get_ldz_sd();
     break;
 
   case BACK:
@@ -44,17 +44,17 @@ region_t BoundaryCond::find_face(Face face, Grid &grid)
     //r.xmax = thickness_;
     r.xmin = 0;
     r.ymin = r.zmin = 0;
-    r.ymax = grid.get_ldy();
-    r.zmax = grid.get_ldz();
+    r.ymax = grid.get_ldy_sd();
+    r.zmax = grid.get_ldz_sd();
     break;
 
   case TOP:
-    r.zmin = grid.get_ldz() - 1 - thickness_;
+    r.zmin = grid.get_ldz_sd() - 1 - thickness_;
     //r.zmin = grid.get_ldz() - thickness_;
-    r.zmax = grid.get_ldz();
+    r.zmax = grid.get_ldz_sd();
     r.ymin = r.xmin = 0;
-    r.xmax = grid.get_ldx();
-    r.ymax = grid.get_ldy();
+    r.xmax = grid.get_ldx_sd();
+    r.ymax = grid.get_ldy_sd();
     break;
 
   case BOTTOM:
@@ -62,8 +62,8 @@ region_t BoundaryCond::find_face(Face face, Grid &grid)
     r.zmax = 1 + thickness_;
     //r.zmax = thickness_;
     r.ymin = r.xmin = 0;
-    r.xmax = grid.get_ldx();
-    r.ymax = grid.get_ldy();
+    r.xmax = grid.get_ldx_sd();
+    r.ymax = grid.get_ldy_sd();
     break;
 
   case LEFT:
@@ -71,17 +71,17 @@ region_t BoundaryCond::find_face(Face face, Grid &grid)
     r.ymax = 1 + thickness_;
     //r.ymax = thickness_;
     r.zmin = r.xmin = 0;
-    r.xmax = grid.get_ldx();
-    r.zmax = grid.get_ldz();
+    r.xmax = grid.get_ldx_sd();
+    r.zmax = grid.get_ldz_sd();
     break;
 
   case RIGHT:
-    r.ymin = grid.get_ldy() - 1 - thickness_;
+    r.ymin = grid.get_ldy_sd() - 1 - thickness_;
     //r.ymin = grid.get_ldy() - thickness_;
-    r.ymax = grid.get_ldy();
+    r.ymax = grid.get_ldy_sd();
     r.zmin = r.xmin = 0;
-    r.xmax = grid.get_ldx();
-    r.zmax = grid.get_ldz();
+    r.xmax = grid.get_ldx_sd();
+    r.zmax = grid.get_ldz_sd();
     break;
   }
 

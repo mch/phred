@@ -472,6 +472,38 @@ class Grid {
     return info_.dimz_no_sd_;
   }
 
+  /**
+   * Returns the local size of the x dimension, including any
+   * subdomain overlap, if it exists.
+   *
+   * @return local grid x size
+   */
+  inline unsigned int get_ldx_sd() const 
+  {
+    return info_.dimx_;
+  }
+
+  /**
+   * Returns the local size of the y dimension, including any
+   * subdomain overlap, if it exists.
+   *
+   * @return local grid y size
+   */
+  inline unsigned int get_ldy_sd() const 
+  {
+    return info_.dimy_;
+  }
+
+  /**
+   * Returns the local size of the z dimension, including any
+   * subdomain overlap, if it exists.
+   *
+   * @return local grid z size
+   */
+  inline unsigned int get_ldz_sd() const
+  {
+    return info_.dimz_;
+  }
 
   /**
    * Returns the spacing in the x direction (mm)

@@ -196,8 +196,8 @@ main (int argc, char **argv)
       // and fn.out, per Jan's grammer, and load them instead. 
 
       // TESTS, TEMPORARY
-      point_test(rank, size);
-      //pml_test(rank, size);
+      //point_test(rank, size);
+      pml_test(rank, size);
       //takakura_test(rank, size);
     }
   } catch (const std::exception &e) {
@@ -328,6 +328,14 @@ static void point_test(int rank, int size)
   mat.set_name("Substrate");
   mats.add_material(mat);
 
+  mat.set_epsilon(1);
+  mat.set_name("Silver");
+  //mat.set_collision_freq(57e12); // THz
+  //mat.set_plasma_freq(2 * PI * 2000e+12); // THz * 2 * pi
+  mat.set_collision_freq(1.4e+14);
+  mat.set_plasma_freq(2 * PI * 1.85e+15);
+  mats.add_material(mat);
+
   fdtd.load_materials(mats);
 
   // Global coordinates. 
@@ -337,7 +345,7 @@ static void point_test(int rank, int size)
 
   Box diel;
   diel.set_region(40, 60, 40, 60, 40, 60);
-  diel.set_material_id(2);
+  diel.set_material_id(3);
 
   fdtd.add_geometry(&all);
   fdtd.add_geometry(&diel);
@@ -420,18 +428,18 @@ static void pml_test(int rank, int size)
 
   Ewall ewall;
   Hwall hwall;
-  fdtd.set_boundary(FRONT, &front);
+  //fdtd.set_boundary(FRONT, &front);
   fdtd.set_boundary(BACK, &back);
-  //fdtd.set_boundary(FRONT, &ewall);
+  fdtd.set_boundary(FRONT, &ewall);
   //fdtd.set_boundary(BACK, &ewall);
-  fdtd.set_boundary(BOTTOM, &bottom);
-  fdtd.set_boundary(TOP, &top);
-  //fdtd.set_boundary(BOTTOM, &ewall);
-  //fdtd.set_boundary(TOP, &ewall);
-  fdtd.set_boundary(LEFT, &left);
-  fdtd.set_boundary(RIGHT, &right);
-  //fdtd.set_boundary(LEFT, &ewall);
-  //fdtd.set_boundary(RIGHT, &ewall);
+  //fdtd.set_boundary(BOTTOM, &bottom);
+  //fdtd.set_boundary(TOP, &top);
+  fdtd.set_boundary(BOTTOM, &ewall);
+  fdtd.set_boundary(TOP, &ewall);
+  //fdtd.set_boundary(LEFT, &left);
+  //fdtd.set_boundary(RIGHT, &right);
+  fdtd.set_boundary(LEFT, &ewall);
+  fdtd.set_boundary(RIGHT, &ewall);
 
   MaterialLib mats; 
   Material mat; // defaults to free space
@@ -448,7 +456,7 @@ static void pml_test(int rank, int size)
   //mat.set_plasma_freq(2 * PI * 2000e+12); // THz * 2 * pi
   mat.set_collision_freq(1.4e+14);
   mat.set_plasma_freq(2 * PI * 1.85e+15);
-  //mats.add_material(mat);
+  mats.add_material(mat);
 
   fdtd.load_materials(mats);
 
@@ -464,7 +472,7 @@ static void pml_test(int rank, int size)
   //metal1.set_region(45, 55, 7, 12, 7, 12); // STABLE
   metal1.set_region(40, 65, 5, 14, 5, 14); // UNSTABLE
   //metal1.set_region(40, 52, 7, 12, 7, 12); // UNSTABLE, but low intensity at 500
-  metal1.set_material_id(2);
+  metal1.set_material_id(3);
 
   //Box metal2;
   //metal2.set_region(45, 50, 5, 46, 35, 60);
@@ -647,7 +655,7 @@ static void pml_test(int rank, int size)
      cout << "j[" << i << "] = " << j[i] << endl;
 #endif
 
-   fdtd.run(rank, size, 100);
+   fdtd.run(rank, size, 200);
 }
 
 static void takakura_test(int rank, int size)
