@@ -45,7 +45,6 @@ using namespace std;
  * simulation. It is primarily intended to be used from python. It
  * holds lists of results, excitations, data writers, etc, manages
  * thier memory and life cycles, etc. 
- *
  */
 class FDTD
 {

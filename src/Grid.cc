@@ -249,43 +249,43 @@ void Grid::set_define_mode(bool d)
       }
     }
     
-//   cout << "Grid Update region:"
-//        << "\n\tEx, x: " << update_ex_r_.xmin << " -> " 
-//        << update_ex_r_.xmax
-//        << ", y: " << update_ex_r_.ymin << " -> " 
-//        << update_ex_r_.ymax
-//        << ", z: " << update_ex_r_.zmin << " -> " 
-//        << update_ex_r_.zmax
-//        << "\n\tEy, x: " << update_ey_r_.xmin << " -> " 
-//        << update_ey_r_.xmax
-//        << ", y: " << update_ey_r_.ymin << " -> " 
-//        << update_ey_r_.ymax
-//        << ", z: " << update_ey_r_.zmin << " -> " 
-//        << update_ey_r_.zmax
-//        << "\n\tEz, x: " << update_ez_r_.xmin << " -> " 
-//        << update_ez_r_.xmax
-//        << ", y: " << update_ez_r_.ymin << " -> " 
-//        << update_ez_r_.ymax
-//        << ", z: " << update_ez_r_.zmin << " -> " 
-//        << update_ez_r_.zmax 
-//        << "\n\tHx, x: " << update_hx_r_.xmin << " -> " 
-//        << update_hx_r_.xmax
-//        << ", y: " << update_hx_r_.ymin << " -> " 
-//        << update_hx_r_.ymax
-//        << ", z: " << update_hx_r_.zmin << " -> " 
-//        << update_hx_r_.zmax
-//        << "\n\tHy, x: " << update_hy_r_.xmin << " -> " 
-//        << update_hy_r_.xmax
-//        << ", y: " << update_hy_r_.ymin << " -> " 
-//        << update_hy_r_.ymax
-//        << ", z: " << update_hy_r_.zmin << " -> " 
-//        << update_hy_r_.zmax
-//        << "\n\tHz, x: " << update_hz_r_.xmin << " -> " 
-//        << update_hz_r_.xmax
-//        << ", y: " << update_hz_r_.ymin << " -> " 
-//        << update_hz_r_.ymax
-//        << ", z: " << update_hz_r_.zmin << " -> " 
-//        << update_hz_r_.zmax << endl;
+  cout << "Grid Update region:"
+       << "\n\tEx, x: " << update_ex_r_.xmin << " -> " 
+       << update_ex_r_.xmax
+       << ", y: " << update_ex_r_.ymin << " -> " 
+       << update_ex_r_.ymax
+       << ", z: " << update_ex_r_.zmin << " -> " 
+       << update_ex_r_.zmax
+       << "\n\tEy, x: " << update_ey_r_.xmin << " -> " 
+       << update_ey_r_.xmax
+       << ", y: " << update_ey_r_.ymin << " -> " 
+       << update_ey_r_.ymax
+       << ", z: " << update_ey_r_.zmin << " -> " 
+       << update_ey_r_.zmax
+       << "\n\tEz, x: " << update_ez_r_.xmin << " -> " 
+       << update_ez_r_.xmax
+       << ", y: " << update_ez_r_.ymin << " -> " 
+       << update_ez_r_.ymax
+       << ", z: " << update_ez_r_.zmin << " -> " 
+       << update_ez_r_.zmax 
+       << "\n\tHx, x: " << update_hx_r_.xmin << " -> " 
+       << update_hx_r_.xmax
+       << ", y: " << update_hx_r_.ymin << " -> " 
+       << update_hx_r_.ymax
+       << ", z: " << update_hx_r_.zmin << " -> " 
+       << update_hx_r_.zmax
+       << "\n\tHy, x: " << update_hy_r_.xmin << " -> " 
+       << update_hy_r_.xmax
+       << ", y: " << update_hy_r_.ymin << " -> " 
+       << update_hy_r_.ymax
+       << ", z: " << update_hy_r_.zmin << " -> " 
+       << update_hy_r_.zmax
+       << "\n\tHz, x: " << update_hz_r_.xmin << " -> " 
+       << update_hz_r_.xmax
+       << ", y: " << update_hz_r_.ymin << " -> " 
+       << update_hz_r_.ymax
+       << ", z: " << update_hz_r_.zmin << " -> " 
+       << update_hz_r_.zmax << endl;
 
     if (ok)
       define_ = d;

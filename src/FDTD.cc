@@ -164,6 +164,29 @@ void FDTD::run(int rank, int size)
 
   local_ginfo_ = dd.decompose_domain(rank, size, global_ginfo_);
 
+  /*#ifdef DEBUG*/
+  cerr << "Local grid on rank " << rank << " is "
+       << local_ginfo_.dimx_ << " x " 
+       << local_ginfo_.dimy_ << " x " 
+       << local_ginfo_.dimz_ << ".\n"
+       << "Global grid as far as this rank is concerened: " 
+       << local_ginfo_.global_dimx_ << " x " 
+       << local_ginfo_.global_dimy_ << " x " 
+       << local_ginfo_.global_dimz_ << ".\n"
+       << "Local grid with no subdomain overlaps: "
+       << local_ginfo_.dimx_no_sd_ << " x " 
+       << local_ginfo_.dimy_no_sd_ << " x " 
+       << local_ginfo_.dimz_no_sd_ << ".\n"
+       << "Local grid starts at: "
+       << local_ginfo_.start_x_no_sd_ << " x " 
+       << local_ginfo_.start_y_no_sd_ << " x " 
+       << local_ginfo_.start_z_no_sd_ << ".\n"
+       << "Global grid starts at: "
+       << local_ginfo_.start_x_ << " x " 
+       << local_ginfo_.start_y_ << " x " 
+       << local_ginfo_.start_z_ << ".\n";
+    /*#endif*/
+
   // Decide what grid to used from materials
   bool freqgrid = false;
   vector<Material>::const_iterator miter = mlib_->get_material_iter_begin();
@@ -186,11 +209,15 @@ void FDTD::run(int rank, int size)
   if (freqgrid)
     {
       grid_ = new FreqGrid();
+#ifdef DEBUG
       cout << "Using freq grid. " << endl;
+#endif
     }
   else
     {
+#ifdef DEBUG
       cout << "Using simple grid. " << endl;
+#endif
       grid_ = new Grid();
     }
 
@@ -281,6 +308,9 @@ void FDTD::run(int rank, int size)
       time_total_cpu += now_cpu - start_cpu;
     }
 
+    // Boundary condition application
+    grid_->apply_boundaries(H);
+
     // Excitations
     h_eiter = h_eiter_b;
     while (h_eiter != h_eiter_e)
@@ -288,9 +318,6 @@ void FDTD::run(int rank, int size)
       (*h_eiter).second->excite(*grid_, ts, H);
       ++h_eiter;
     }
-
-    // Boundary condition application
-    grid_->apply_boundaries(H);
 
     // Fields update
     if (mnps) 
@@ -309,6 +336,9 @@ void FDTD::run(int rank, int size)
       time_total_cpu += now_cpu - start_cpu;
     }
 
+    // Boundary condition application
+    grid_->apply_boundaries(E);
+
     // Excitations
     e_eiter = e_eiter_b;
     while (e_eiter != e_eiter_e)
@@ -317,9 +347,6 @@ void FDTD::run(int rank, int size)
       ++e_eiter;
     }
     
-    // Boundary condition application
-    grid_->apply_boundaries(E);
-
     // Results
     vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
     vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();
