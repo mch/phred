@@ -48,6 +48,8 @@ phred_SOURCES=\
 	Constants.hh \
 	Gaussm.cc \
 	Gaussm.hh \
+	ExpSine.hh \
+	ExpSine.cc \
 	SourceFunction.hh \
 	AltiVec.hh \
 	Excitation.hh \
