@@ -68,13 +68,22 @@ main (int argc, char **argv)
 {
   int i, rank, size;
 
-  program_name = argv[0];
-
-  i = decode_switches (argc, const_cast<const char **>(argv));
-
   MPI_Init(&argc, &args);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+  if (rank == 0)
+    {
+      program_name = argv[0];
+      
+      // MPI implementations are not required to distribute command line
+      // args, although MPICH does.
+      i = decode_switches (argc, const_cast<const char **>(argv));
+    } 
+  else 
+    {
+      program_name = 0;
+    }
 
   /* do the work */
   

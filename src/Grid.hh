@@ -1,0 +1,105 @@
+// Base class for the grid. Data for the grid is defined here.
+// The basic update equations are defined by this class, but
+// they can be subclassed to take advantage of certian things
+// only available on certian arches (SSE2, AltiVec), or to 
+// provide different types of materials, such as Debye, Lorentz, 
+// etc.
+
+// Since this is an MPI program, and each processor only deals with
+// part of domain. This Grid class is owned by the processor, and we
+// assume that there is only one grid per processor. If that's not
+// the case, well, something is probably broken. 
+
+#ifndef GRID
+#define GRID
+
+#include "Types.hh"
+#include "MaterialLib.hh"
+
+class Grid {
+ private:
+
+ protected:
+
+  // Global grid size (i.e. all domains)
+  unsigned int global_dimx_;
+  unsigned int global_dimy_;
+  unsigned int global_dimz_;
+
+  // Local grid size (this sub domain only)
+  // If a face must be communicated to a processor, then the
+  // dimention will increase by one. If both the top and bottom must
+  // be sent to other processors, dimz_ = actual subdomain size +
+  // 2. This is overlap which allows us to calculate the interior of
+  // the subdomain without having to stop and ask the other
+  // processors for data. 
+  unsigned int dimx_;
+  unsigned int dimy_;
+  unsigned int dimz_;
+
+  // E Field Coefficients
+  mat_coef_t *Ca_;
+  mat_coef_t *Cb1_;
+  mat_coef_t *Cb2_;
+  
+  // H Field Coefficients
+  mat_coef_t *Da_;
+  mat_coef_t *Db1_;
+  mat_coef_t *Db2_;
+
+  // Field data, {x,y,z}
+  field_t ***ex_;
+  field_t ***ey_;
+  field_t ***ez_;
+  field_t ***hx_;
+  field_t ***hy_;
+  field_t ***hz_;
+
+  // Running sums of field data, for dispersive material. These aren't
+  // allocated if they aren't needed. Most materials of interest are
+  // non-magnetic, so we won't bother with the H components for now. 
+  field_t ***ex_sum_;
+  field_t ***ey_sum_;
+  field_t ***ez_sum_;
+
+  // A grid is a cube with six faces. Those faces either need to have
+  // boundary conditions, or they are subdomain boundaries and they
+  // need to be shared with other processors. This array tells what
+  // to do with each face. If the number is negative, then it's a
+  // conventional boundary condition. If it is positive, it is a
+  // processor rank to talk to. 
+  //
+  // 0 - Front (x = 0, YZ plane)
+  // 1 - Back (x = dimx, YZ plane)
+  // 2 - Left (y = 0, XZ plane)
+  // 3 - Right (y = dimy, XZ plane)
+  // 4 - Bottom (z = 0, XY plane)
+  // 5 - Top (z = dimz, XY plane)
+  //
+  signed int faces_[6];
+
+  // Derived MPI data types for sending data around. 
+  MPI_Datatype xy_plane_;
+  MPI_Datatype yz_plane_;
+  MPI_Datatype xz_plane_;
+
+ public:
+  Grid();
+  virtual ~Grid();
+
+  // These can be overridden; perhaps for AltiVec or SSE2, or for
+  // something simple and fast. 
+  virtual void update_e();
+  virtual void update_h();
+
+  // Calculate the material constants from the given material library
+  void load_material(MaterialLib &matlib);
+  void free_material();
+
+  // Grid actions
+  void alloc_grid();
+  void free_grid();
+};
+
+#endif // GRID
+
