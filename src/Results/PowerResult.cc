@@ -27,7 +27,10 @@
 #include <math.h>
 
 PowerResult::PowerResult()
-  : power_real_(0), power_imag_(0), step_x_(0), step_y_(0), step_z_(0), 
+  : freqs_(0), power_real_(0), power_imag_(0), time_power_(0),
+    has_data_(false), xmin_(0), ymin_(0), zmin_(0), 
+    xmax_(0), ymax_(0), zmax_(0),
+    step_x_(0), step_y_(0), step_z_(0), 
     plane_(0), normal_(X_AXIS)
 {
   real_var_.has_time_dimension(false);
@@ -44,7 +47,8 @@ PowerResult::PowerResult()
 PowerResult::PowerResult(field_t freq_start, field_t freq_stop, 
                          unsigned int num_freqs)
   : DFTResult(freq_start, freq_stop, num_freqs), 
-    power_real_(0), power_imag_(0), step_x_(0), step_y_(0), step_z_(0), 
+    freqs_(0), power_real_(0), power_imag_(0), time_power_(0),
+    has_data_(false), step_x_(0), step_y_(0), step_z_(0), 
     plane_(0), normal_(X_AXIS)
 {
   real_var_.has_time_dimension(false);
@@ -100,150 +104,186 @@ void PowerResult::init(const Grid &grid)
 {
   const GridInfo &gi = grid.get_grid_info();
 
-//   region2_.set_x(region_.xmin, region_.xmax);
-//   region2_.set_y(region_.ymin, region_.ymax);
-//   region2_.set_z(region_.zmin, region_.zmax);
-
-//   cerr << "PowerResult global region is x: " << region2_.get_global_xmin()
-//        << " to " << region2_.get_global_xmax() << " y: "
-//        << region2_.get_global_ymin() << " to " 
-//        << region2_.get_global_ymax() << " z: " 
-//        << region2_.get_global_zmin() << " to " 
-//        << region2_.get_global_zmax() << endl;
-
   /* Region must be in out local sub-domain */ 
-  region_ = grid.global_to_local(region_, true);
-  x_size_ = region_.xmax - region_.xmin;
-  y_size_ = region_.ymax - region_.ymin;
-  z_size_ = region_.zmax - region_.zmin;
+  region_ = grid.get_local_region(*box_);
 
-//   x_size_ = region2_.get_xmax(gi) - region2_.get_xmin(gi) + 1;
-//   y_size_ = region2_.get_ymax(gi) - region2_.get_ymin(gi) + 1;
-//   z_size_ = region2_.get_zmax(gi) - region2_.get_zmin(gi) + 1;
+  x_size_ = (*region_).xmax() - (*region_).xmin();
+  y_size_ = (*region_).ymax() - (*region_).ymin();
+  z_size_ = (*region_).zmax() - (*region_).zmin();
 
-  cerr << "PowerResult local region is " << x_size_ << " x "
-       << y_size_ << " x " << z_size_ << endl;
+  xmin_ = (*region_).xmin();
+  ymin_ = (*region_).ymin();
+  zmin_ = (*region_).zmin();
 
-//   cerr << "PowerResult local region is x: " << region2_.get_xmin(gi)
-//        << " to " << region2_.get_xmax(gi) << " y: "
-//        << region2_.get_ymin(gi) << " to " 
-//        << region2_.get_ymax(gi) << " z: " 
-//        << region2_.get_zmin(gi) << " to " 
-//        << region2_.get_zmax(gi) << endl;
+  xmax_ = (*region_).xmax();
+  ymax_ = (*region_).ymax();
+  zmax_ = (*region_).zmax();
 
   /* Region must be a plane; set up grid plane */
-  if (x_size_ == 1)
+  if (face_ == FRONT || face_ == BACK)
   {
     normal_ = X_AXIS;
     plane_ = new YZPlane(const_cast<Grid&>(grid));
     step_x_ = 1;
+    x_size_ = 1;
     cell_area_ = grid.get_deltay() * grid.get_deltaz();
 
-  } else if (y_size_ == 1) {
+    if (face_ == FRONT && (*region_).has_face_data(FRONT))
+    {
+      has_data_ = true;
+      xmin_ = xmax_ - 1;
+    }
+
+    if (face_ == BACK && (*region_).has_face_data(BACK))
+    {
+      has_data_ = true;
+      xmax_ = xmin_ + 1;
+    }
+  } 
+  else if (face_ == LEFT || face_ == RIGHT) 
+  {
     normal_ = Y_AXIS;
     plane_ = new XZPlane(const_cast<Grid&>(grid));
     step_y_ = -1;
+    y_size_ = 1;
     cell_area_ = grid.get_deltax() * grid.get_deltaz();
 
-  } else if (z_size_ == 1) {
+    if (face_ == RIGHT && (*region_).has_face_data(RIGHT))
+    {
+      has_data_ = true;
+      ymin_ = ymax_ - 1;
+    }
+
+    if (face_ == LEFT && (*region_).has_face_data(LEFT))
+    {
+      has_data_ = true;
+      ymax_ = ymin_ + 1;
+    }
+  } 
+  else if (face_ == TOP || face_ == BOTTOM)
+  {
     normal_ = Z_AXIS;
     plane_ = new XYPlane(const_cast<Grid&>(grid));
     step_z_ = -1;
+    z_size_ = 1;
     cell_area_ = grid.get_deltax() * grid.get_deltay();
 
+    if (face_ == TOP && (*region_).has_face_data(TOP))
+    {
+      has_data_ = true;
+      zmin_ = zmax_ - 1;
+    }
+
+    if (face_ == BOTTOM && (*region_).has_face_data(BOTTOM))
+    {
+      has_data_ = true;
+      zmax_ = zmin_ + 1;
+    }
   } else {
     throw ResultException("Region must be limited to a plane for a PowerResult.");
   }
 
-  /* GRR, ARGH! */
-  unsigned int sz = x_size_ * y_size_ * z_size_;
-
-  et1r_ = new field_t[sz];
-  et1i_ = new field_t[sz];
-  ht1r_ = new field_t[sz];
-  ht1i_ = new field_t[sz];
-
-  et2r_ = new field_t[sz];
-  et2i_ = new field_t[sz];
-  ht2r_ = new field_t[sz];
-  ht2i_ = new field_t[sz];
-
-  if (!et1r_ || !et1i_ || !ht1r_ || !ht1i_
-      || !et2r_ || !et2i_ || !ht2r_ || !ht2i_)
-    throw MemoryException();
-
-  memset(et1r_, 0, sizeof(field_t) * sz);
-  memset(et1i_, 0, sizeof(field_t) * sz);
-  memset(et2r_, 0, sizeof(field_t) * sz);
-  memset(et2i_, 0, sizeof(field_t) * sz);
-
-  memset(ht1r_, 0, sizeof(field_t) * sz);
-  memset(ht1i_, 0, sizeof(field_t) * sz);
-  memset(ht2r_, 0, sizeof(field_t) * sz);
-  memset(ht2i_, 0, sizeof(field_t) * sz);
-
-  /* Region must not be right up against the side of the domain
-     because we need to average the H field with the next cell. */
- 
-  /* Set up the frequencies */ 
-  freqs_ = new field_t[num_freqs_ + 1];
-  power_real_ = new field_t[num_freqs_ + 1];
-  power_imag_ = new field_t[num_freqs_ + 1];
-
-  if (!freqs_ || !power_real_ || !power_imag_)
-    throw MemoryException();
-
-  memset(power_imag_, 0, sizeof(field_t) * (num_freqs_ + 1));
-  memset(power_real_, 0, sizeof(field_t) * (num_freqs_ + 1));
-
-  freq_space_ = (freq_stop_ - freq_start_) / num_freqs_;
-
-  for (int idx = 0; idx <= num_freqs_; idx++)
-    freqs_[idx] = freq_start_ + idx * freq_space_;
-
-  /* Set up output variables. */
-  real_var_.reset();
-  imag_var_.reset();
-  freq_var_.reset();
-  power_var_.reset();
-
-  real_var_.set_name(base_name_ + "_power_real");
-  imag_var_.set_name(base_name_ + "_power_imag");
-  freq_var_.set_name(base_name_ + "_freqs");
-  power_var_.set_name(base_name_ + "_time_power");
-
-  real_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
-  imag_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
-  freq_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
-  power_var_.add_dimension("Power", 1, 1, 0);
-
-  imag_var_.set_ptr(power_imag_);
-  real_var_.set_ptr(power_real_);  
-  freq_var_.set_ptr(freqs_);
-  power_var_.set_ptr(&time_power_);
-
-  if (MPI_RANK == 0)
+  if (has_data_)
   {
-    power_var_.set_num(1);
-    real_var_.set_num(num_freqs_);
-    imag_var_.set_num(num_freqs_);
-    freq_var_.set_num(num_freqs_);
+    /* GRR, ARGH! */
+    unsigned int sz = x_size_ * y_size_ * z_size_;
+
+    et1r_ = new field_t[sz];
+    et1i_ = new field_t[sz];
+    ht1r_ = new field_t[sz];
+    ht1i_ = new field_t[sz];
+
+    et2r_ = new field_t[sz];
+    et2i_ = new field_t[sz];
+    ht2r_ = new field_t[sz];
+    ht2i_ = new field_t[sz];
+
+    if (!et1r_ || !et1i_ || !ht1r_ || !ht1i_
+        || !et2r_ || !et2i_ || !ht2r_ || !ht2i_)
+      throw MemoryException();
+
+    memset(et1r_, 0, sizeof(field_t) * sz);
+    memset(et1i_, 0, sizeof(field_t) * sz);
+    memset(et2r_, 0, sizeof(field_t) * sz);
+    memset(et2i_, 0, sizeof(field_t) * sz);
+
+    memset(ht1r_, 0, sizeof(field_t) * sz);
+    memset(ht1i_, 0, sizeof(field_t) * sz);
+    memset(ht2r_, 0, sizeof(field_t) * sz);
+    memset(ht2i_, 0, sizeof(field_t) * sz);
+
+    /* Region must not be right up against the side of the domain
+       because we need to average the H field with the next cell. */
+ 
+    /* Set up the frequencies */ 
+    freqs_ = new field_t[num_freqs_ + 1];
+    power_real_ = new field_t[num_freqs_ + 1];
+    power_imag_ = new field_t[num_freqs_ + 1];
+
+    if (!freqs_ || !power_real_ || !power_imag_)
+      throw MemoryException();
+
+    memset(power_imag_, 0, sizeof(field_t) * (num_freqs_ + 1));
+    memset(power_real_, 0, sizeof(field_t) * (num_freqs_ + 1));
+
+    freq_space_ = (freq_stop_ - freq_start_) / num_freqs_;
+
+    for (int idx = 0; idx <= num_freqs_; idx++)
+      freqs_[idx] = freq_start_ + idx * freq_space_;
+
+    /* Set up output variables. */
+    real_var_.reset();
+    imag_var_.reset();
+    freq_var_.reset();
+    power_var_.reset();
+
+    real_var_.set_name(base_name_ + "_power_real");
+    imag_var_.set_name(base_name_ + "_power_imag");
+    freq_var_.set_name(base_name_ + "_freqs");
+    power_var_.set_name(base_name_ + "_time_power");
+
+    real_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
+    imag_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
+    freq_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
+    power_var_.add_dimension("Power", 1, 1, 0);
+
+    imag_var_.set_ptr(power_imag_);
+    real_var_.set_ptr(power_real_);  
+    freq_var_.set_ptr(freqs_);
+    power_var_.set_ptr(&time_power_);
+
+    if (MPI_RANK == 0)
+    {
+      power_var_.set_num(1);
+      real_var_.set_num(num_freqs_);
+      imag_var_.set_num(num_freqs_);
+      freq_var_.set_num(num_freqs_);
+    } else {
+      power_var_.set_num(0);
+      real_var_.set_num(0);
+      imag_var_.set_num(0);
+      freq_var_.set_num(0);
+    }
+
+#ifdef DEBUG
+    cerr << "PowerResult::init(), computing power through a surface which is "
+         << x_size_ << " x " << y_size_ << " x " << z_size_ 
+         << " in size." << endl;
+    cerr << "Frequency range: " << freq_start_ << " to " 
+         << freq_stop_ << ", spacing: " << freq_space_ << ", number: "
+         << num_freqs_ << endl;
+    cerr << "Cell area is " << cell_area_ << endl;
+#endif 
   } else {
+#ifdef DEBUG
+    cerr << "PowerResult::init(), rank " << MPI_RANK << " has no data to " 
+         << "contribute. " << endl;
+#endif
     power_var_.set_num(0);
     real_var_.set_num(0);
     imag_var_.set_num(0);
     freq_var_.set_num(0);
   }
-
-#ifdef DEBUG
-  cerr << "PowerResult::init(), computing power through a surface which is "
-       << x_size_ << " x " << y_size_ << " x " << z_size_ 
-       << " in size." << endl;
-  cerr << "Frequency range: " << freq_start_ << " to " 
-       << freq_stop_ << ", spacing: " << freq_space_ << ", number: "
-       << num_freqs_ << endl;
-  cerr << "Cell area is " << cell_area_ << endl;
-#endif 
 }
 
 void PowerResult::deinit()
@@ -320,68 +360,32 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
   unsigned int idx = 0;
   time_power_ = 0;
 
-  for (unsigned int x = region_.xmin; x < region_.xmax; x++) 
+  if (has_data_)
   {
-    for (unsigned int y = region_.ymin; y < region_.ymax; y++) 
+    for (unsigned int x = xmin_; x < xmax_; x++) 
     {
-      for (unsigned int z = region_.zmin; z < region_.zmax; z++) 
+      for (unsigned int y = ymin_; y < ymax_; y++) 
       {
-        et1 = plane_->get_e_t1(x, y, z);
-        et2 = plane_->get_e_t2(x, y, z);
+        for (unsigned int z = zmin_; z < zmax_; z++) 
+        {
+          et1 = plane_->get_e_t1(x, y, z);
+          et2 = plane_->get_e_t2(x, y, z);
         
-        ht1 = (plane_->get_h_t1(x, y, z) 
-               + plane_->get_h_t1(x + step_x_, y + step_y_, 
-                                  z + step_z_)) / 2;
-        ht2 = (plane_->get_h_t2(x, y, z) 
-               + plane_->get_h_t2(x + step_x_, y + step_y_, 
-                                  z + step_z_)) / 2;
+          ht1 = (plane_->get_h_t1(x, y, z) 
+                 + plane_->get_h_t1(x + step_x_, y + step_y_, 
+                                    z + step_z_)) / 2;
+          ht2 = (plane_->get_h_t2(x, y, z) 
+                 + plane_->get_h_t2(x + step_x_, y + step_y_, 
+                                    z + step_z_)) / 2;
 
-        time_power_ += et1 * ht2 - et2 * ht1;
+          time_power_ += et1 * ht2 - et2 * ht1;
+        }
       }
     }
   }
 
-//   if (MPI_SIZE > 1)
-//   {
-
-//     field_t *recv_buf = 0;
-
-//     if (0 == MPI_RANK)
-//       recv_buf = new field_t[MPI_SIZE];
-    
-//     //int MPI_Gather(void* sendbuf, int sendcount, 
-//     //               MPI_Datatype sendtype, void* recvbuf, 
-//     //               int recvcount, MPI_Datatype recvtype, 
-//     //               int root, MPI_Comm comm) 
-
-//     MPI_Gather(&time_power_, 1, GRID_MPI_TYPE, recv_buf, 1, 
-//                GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
-
-//     if (0 == MPI_RANK)
-//     {
-//       time_power_ = 0;
-//       for (unsigned int idx = 0; idx < MPI_SIZE; idx++)
-//       {
-//         // cerr << "Gathered data item " << idx << " is " << recv_buf[idx]
-//         //              << endl;
-//         time_power_ += recv_buf[idx];
-//       }
-
-// //       cerr << "After gathering data to rank 0, time_power_ is " 
-// //            << time_power_ << endl << endl;
-    
-//       delete[] recv_buf;
-//     }
-//   }
-
-//   cerr << "PowerResult, time_power_ = " << time_power_
-//        << " on rank " << MPI_RANK << endl;
-
   MPI_Reduce(&time_power_, &time_power_, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
              MPI_COMM_WORLD);
-
-//   cerr << "After reduce, time_power_ = " << time_power_
-//        << " on rank " << MPI_RANK << endl;
 
   // Compute the power throught the surface in the frequency domain
   for (unsigned int i = 0; i <= num_freqs_; i++)
@@ -394,88 +398,63 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
 
     unsigned int idx = 0;
 
-    for (unsigned int x = region_.xmin; x < region_.xmax; x++) 
+    if (has_data_)
     {
-      for (unsigned int y = region_.ymin; y < region_.ymax; y++) 
+      for (unsigned int x = xmin_; x < xmax_; x++) 
       {
-        for (unsigned int z = region_.zmin; z < region_.zmax; z++) 
+        for (unsigned int y = ymin_; y < ymax_; y++) 
         {
-          et1 = plane_->get_e_t1(x, y, z);
-          et2 = plane_->get_e_t2(x, y, z);
+          for (unsigned int z = zmin_; z < zmax_; z++) 
+          {
+            et1 = plane_->get_e_t1(x, y, z);
+            et2 = plane_->get_e_t2(x, y, z);
 
-          ht1 = (plane_->get_h_t1(x, y, z) 
-                 + plane_->get_h_t1(x + step_x_, y + step_y_, 
-                                    z + step_z_)) / 2;
-          ht2 = (plane_->get_h_t2(x, y, z) 
-                 + plane_->get_h_t2(x + step_x_, y + step_y_, 
-                                    z + step_z_)) / 2;
+            ht1 = (plane_->get_h_t1(x, y, z) 
+                   + plane_->get_h_t1(x + step_x_, y + step_y_, 
+                                      z + step_z_)) / 2;
+            ht2 = (plane_->get_h_t2(x, y, z) 
+                   + plane_->get_h_t2(x + step_x_, y + step_y_, 
+                                      z + step_z_)) / 2;
           
-          et1_real = et1 * cos_temp;
-          et1_imag = (-1) * et1 * sin_temp;
+            et1_real = et1 * cos_temp;
+            et1_imag = (-1) * et1 * sin_temp;
           
-          et2_real = et2 * cos_temp;
-          et2_imag = (-1) * et2 * sin_temp;
+            et2_real = et2 * cos_temp;
+            et2_imag = (-1) * et2 * sin_temp;
           
-          ht1_real = ht1 * cos_temp;
-          ht1_imag = (-1) * ht1 * sin_temp;
+            ht1_real = ht1 * cos_temp;
+            ht1_imag = (-1) * ht1 * sin_temp;
           
-          ht2_real = ht2 * cos_temp;
-          ht2_imag = (-1) * ht2 * sin_temp;
+            ht2_real = ht2 * cos_temp;
+            ht2_imag = (-1) * ht2 * sin_temp;
           
-          et1r_[idx] += et1_real;
-          et2r_[idx] += et2_real;
-          et1i_[idx] += et1_imag;
-          et2i_[idx] += et2_imag;
+            et1r_[idx] += et1_real;
+            et2r_[idx] += et2_real;
+            et1i_[idx] += et1_imag;
+            et2i_[idx] += et2_imag;
 
-          ht1r_[idx] += ht1_real;
-          ht2r_[idx] += ht2_real;
-          ht1i_[idx] += ht1_imag;
-          ht2i_[idx] += ht2_imag;
+            ht1r_[idx] += ht1_real;
+            ht2r_[idx] += ht2_real;
+            ht1i_[idx] += ht1_imag;
+            ht2i_[idx] += ht2_imag;
 
-          p_real2 += (et1r_[idx] * ht2r_[idx] + et1i_[idx] * ht2i_[idx])
-            - (et2r_[idx] * ht1r_[idx] + et2i_[idx] * ht1i_[idx]);
+            p_real2 += (et1r_[idx] * ht2r_[idx] + et1i_[idx] * ht2i_[idx])
+              - (et2r_[idx] * ht1r_[idx] + et2i_[idx] * ht1i_[idx]);
 
-          p_imag2 += et1i_[idx] * ht2r_[idx] - ht2i_[idx] * et1r_[idx] 
-            + ht1i_[idx] * et2r_[idx] - et2i_[idx] * ht1r_[idx];
+            p_imag2 += et1i_[idx] * ht2r_[idx] - ht2i_[idx] * et1r_[idx] 
+              + ht1i_[idx] * et2r_[idx] - et2i_[idx] * ht1r_[idx];
 
-          ++idx;
+            ++idx;
+          }
         }
       }
-    }
-    //int MPI_Reduce(void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
+    } 
 
     MPI_Reduce(&p_real2, &p_real2, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
                MPI_COMM_WORLD);
 
     MPI_Reduce(&p_imag2, &p_imag2, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
                MPI_COMM_WORLD);
-
-//     if (0 == MPI_RANK) 
-//     {
-//       field_t *recv_buf1 = new field_t[MPI_SIZE];
-//       field_t *recv_buf2 = new field_t[MPI_SIZE];
-    
-//       MPI_Gather(&power_real_, 1, GRID_MPI_TYPE, recv_buf1, 1, 
-//                  GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
-
-//       MPI_Gather(&power_imag_, 1, GRID_MPI_TYPE, recv_buf2, 1, 
-//                  GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
-      
-//       for (unsigned int idx = 1; idx < MPI_SIZE; idx++)
-//       {
-//         p_real2 += recv_buf1[idx];
-//         p_imag2 += recv_buf2[idx];
-//       }
-
-//       delete[] recv_buf1;
-//       delete[] recv_buf2;
-//     } else {
-//       MPI_Gather(&power_real_, 1, GRID_MPI_TYPE, 0, 0, 
-//                  GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
-
-//       MPI_Gather(&power_imag_, 1, GRID_MPI_TYPE, 0, 0, 
-//                  GRID_MPI_TYPE, 0, MPI_COMM_WORLD);
-//     }
     
     power_real_[i] = 0.5 * p_real2 * cell_area_;
     power_imag_[i] = 0.5 * p_imag2 * cell_area_;

@@ -44,7 +44,7 @@ protected:
   /**
    * Region to apply the source to (in the local grid)
    */
-  region_t region_;
+  shared_ptr<Block> region_;
 
   /**
    * Field polarization to excite, x, y, z
@@ -82,8 +82,6 @@ public:
     : type_(E), soft_(false),
       sf_(sf)
   {
-    region_.xmin = region_.ymin = region_.zmin = 0;
-    region_.xmax = region_.ymax = region_.zmax = 0;
     polarization_[0] = 1;
     polarization_[1] = 0;
     polarization_[2] = 0;
@@ -115,11 +113,11 @@ public:
 
     if (!soft_) 
     {
-      for(unsigned int i = region_.xmin; i < region_.xmax; i++)
+      for(unsigned int i = (*region_).xmin(); i < (*region_).xmax(); i++)
       {
-        for (unsigned int j = region_.ymin; j < region_.ymax; j++)
+        for (unsigned int j = (*region_).ymin(); j < (*region_).ymax(); j++)
         {
-          for (unsigned int k = region_.zmin; k < region_.zmax; k++)
+          for (unsigned int k = (*region_).zmin(); k < (*region_).zmax(); k++)
           {
             switch (type_) 
             {
@@ -143,11 +141,11 @@ public:
         }
       }
     } else {
-      for(unsigned int i = region_.xmin; i < region_.xmax; i++)
+      for(unsigned int i = (*region_).xmin(); i < (*region_).xmax(); i++)
       {
-        for (unsigned int j = region_.ymin; j < region_.ymax; j++)
+        for (unsigned int j = (*region_).ymin(); j < (*region_).ymax(); j++)
         {
-          for (unsigned int k = region_.zmin; k < region_.zmax; k++)
+          for (unsigned int k = (*region_).zmin(); k < (*region_).zmax(); k++)
           {
             switch (type_) 
             {

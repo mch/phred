@@ -429,7 +429,8 @@ class Grid {
    *
    * @return region in local coordinate. 
    */
-  Block global_to_local(Block r, bool no_ol = false) const;
+  shared_ptr<Block> global_to_local(shared_ptr<Block> r, 
+                                    bool no_ol = false) const;
 
   /**
    * Convert a global point to local coordinates.
@@ -455,10 +456,10 @@ class Grid {
    *
    * @return region_t in local coordinate. 
    */
-  Block global_to_local(unsigned int xmin, unsigned int x_stop, 
-                        unsigned int ymin, unsigned int y_stop, 
-                        unsigned int zmin, unsigned int z_stop,
-                        bool no_ol = false) const;
+  shared_ptr<Block> global_to_local(unsigned int xmin, unsigned int x_stop, 
+                                    unsigned int ymin, unsigned int y_stop, 
+                                    unsigned int zmin, unsigned int z_stop,
+                                    bool no_ol = false) const;
 
   /**
    * Define geometry in the grid (i.e. assign material indicies to
@@ -961,7 +962,7 @@ class Grid {
    * Returned region is in local coordinates, suitable for iterating
    * over.
    */ 
-  Block get_local_region(CSGBox &box) const;
+  shared_ptr<Block> get_local_region(CSGBox &box) const;
 
   /**
    * Returns a region of cells contained inside a given non-rotated
@@ -970,7 +971,7 @@ class Grid {
    * Returned region is in GLOBAL coordinates, suitable only for setting
    * up dimensions in Results. 
    */ 
-  Block get_global_region(CSGBox &box) const;
+  shared_ptr<Block> get_global_region(CSGBox &box) const;
 
   /**
    * Returns the grid cell point containing the given real point. If

@@ -29,11 +29,6 @@
 /**
  * Calculates the power flowing through a surface at specific
  * frequencies. 
- *
- * \bug Only rectangular surfaces are currently supported.... results
- * should have tighter intergration with geometry objects so that it
- * would be possible to collect data on a specific face of a geometry
- * object.... geometries in general need to be re-thought. 
  */
 class PowerResult : public DFTResult
 {
@@ -68,9 +63,10 @@ public:
   /**
    * Set the plane to do the calculation on
    */
-  inline void set_region(region_t r)
+  inline void set_region(shared_ptr<CSGBox> box, Face face)
   {
-    region_ = r;
+    face_ = face;
+    box_ = box;
   }
 
   
@@ -81,9 +77,16 @@ protected:
   field_t *power_imag_; /**< Power at each frequency */ 
   field_t time_power_; /**< Power at the current instant in time domain */ 
 
-  region_t region_; /**< The region to get the power through, should
-                       be a plane, so the min and max on one axis
-                       should be the same. */
+  shared_ptr<CSGBox> box_; 
+  Face face_;
+  shared_ptr<Block> region_;
+  bool has_data_; // True if this local region generates data. 
+
+  unsigned int xmin_, ymin_, zmin_, xmax_, ymax_, zmax_;
+
+  //region_t region_; /**< The region to get the power through, should
+  //                     be a plane, so the min and max on one axis
+  //                     should be the same. */
 
   //  Region region2_; /**< The REAL region! */ 
 

@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -1007,7 +1007,8 @@ grid_point Grid::global_to_local(grid_point p) const
   return r;
 }
 
-Block Grid::global_to_local(Block in, bool no_ol) const
+shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in, 
+                                        bool no_ol) const
 {
   Block r;
   unsigned int dx = info_.dimx_, dy = info_.dimy_, dz = info_.dimz_;
@@ -1024,35 +1025,71 @@ Block Grid::global_to_local(Block in, bool no_ol) const
     dz = info_.dimz_no_sd_;
   }
 
-  r.xmin_ = (info_.start_x_ > in.xmin_) ? 0
-    : in.xmin_ - info_.start_x_;
-  r.ymin_ = (info_.start_y_ > in.ymin_) ? 0
-    : in.ymin_ - info_.start_y_;
-  r.zmin_ = (info_.start_z_ > in.zmin_) ? 0
-    : in.zmin_ - info_.start_z_;
 
-  r.xmax_ = (in.xmax_ >= info_.start_x_) ? 
-    ((in.xmax_ >= info_.start_x_ + info_.dimx_) 
-     ? info_.dimx_ : in.xmax_ - info_.start_x_ + 1)
+  if (info_.start_x_ > (*in).xmin_) {
+    r.faces_[BACK] = false;
+    r.xmin_ = 0;
+  } else {
+    r.faces_[BACK] = true;
+    r.xmin_ = (*in).xmin_ - info_.start_x_;
+  }
+
+  if (info_.start_y_ > (*in).ymin_) {
+    r.ymin_ = 0;
+    r.faces_[LEFT] = false;
+  } else {
+    r.ymin_ = (*in).ymin_ - info_.start_y_;
+    r.faces_[LEFT] = true;
+  }
+
+  if (info_.start_z_ > (*in).zmin_) {
+    r.faces_[BOTTOM] = false;
+    r.zmin_ = 0;
+  } else {
+    r.faces_[BOTTOM] = true;
+    r.zmin_ = (*in).zmin_ - info_.start_z_;
+  }
+
+  // r.xmin_ = (info_.start_x_ > (*in).xmin_) ? 0
+//     : (*in).xmin_ - info_.start_x_;
+//   r.ymin_ = (info_.start_y_ > (*in).ymin_) ? 0
+//     : (*in).ymin_ - info_.start_y_;
+//   r.zmin_ = (info_.start_z_ > (*in).zmin_) ? 0
+//     : (*in).zmin_ - info_.start_z_;
+
+  r.xmax_ = ((*in).xmax_ >= info_.start_x_) ? 
+    (((*in).xmax_ >= info_.start_x_ + info_.dimx_) 
+     ? info_.dimx_ : (*in).xmax_ - info_.start_x_ + 1)
     : 0;
 
-  r.ymax_ = (in.ymax_ >= info_.start_y_) ? 
-    ((in.ymax_ >= info_.start_y_ + info_.dimy_) 
-     ? info_.dimy_ : in.ymax_ - info_.start_y_ + 1)
+  r.ymax_ = ((*in).ymax_ >= info_.start_y_) ? 
+    (((*in).ymax_ >= info_.start_y_ + info_.dimy_) 
+     ? info_.dimy_ : (*in).ymax_ - info_.start_y_ + 1)
     : 0;
 
-  r.zmax_ = (in.zmax_ >= info_.start_z_) ? 
-    ((in.zmax_ >= info_.start_z_ + info_.dimz_) 
-     ? info_.dimz_ : in.zmax_ - info_.start_z_ + 1)
+  r.zmax_ = ((*in).zmax_ >= info_.start_z_) ? 
+    (((*in).zmax_ >= info_.start_z_ + info_.dimz_) 
+     ? info_.dimz_ : (*in).zmax_ - info_.start_z_ + 1)
     : 0;
 
-  return r;
+
+  for (int i = 0; i < 6; i++)
+  {
+    if (r.faces_[i])
+    {
+      r.has_data_ = true;
+      break;
+    }      
+  }
+
+  return shared_ptr<Block> (new Block(r));
 }
 
-Block Grid::global_to_local(unsigned int xmin, unsigned int x_stop, 
-                            unsigned int ymin, unsigned int y_stop, 
-                            unsigned int zmin, unsigned int z_stop,
-                            bool no_ol) const
+shared_ptr<Block> 
+Grid::global_to_local(unsigned int xmin, unsigned int x_stop, 
+                      unsigned int ymin, unsigned int y_stop, 
+                      unsigned int zmin, unsigned int z_stop,
+                      bool no_ol) const
 {
   Block result;
   
@@ -1063,7 +1100,7 @@ Block Grid::global_to_local(unsigned int xmin, unsigned int x_stop,
   result.zmin_ = zmin;
   result.zmax_ = z_stop;
 
-  return global_to_local(result, no_ol);
+  return global_to_local(shared_ptr<Block> (new Block(result)), no_ol);
 }
 
 field_t *Grid::get_face_start(Face face, FieldComponent comp,
@@ -1326,25 +1363,27 @@ grid_point Grid::get_global_cell(float x, float y, float z) const
   return ret;
 }
 
-Block Grid::get_local_region(CSGBox &box) const
+shared_ptr<Block> Grid::get_local_region(CSGBox &box) const
 {
-  Block hmm = get_global_region(box);
-  Block ret = global_to_local(hmm, true);
+  shared_ptr<Block> hmm = get_global_region(box);
+  shared_ptr<Block> ret = global_to_local(hmm, true);
 
   point sz = box.get_size();
   point c = box.get_centre();
 
+#ifdef DEBUG
   cerr << "Box with centre at " << c.x << ", " << c.y << ", "
        << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
-       << " is a local region (" << ret.xmin_ << ", " << ret.ymin_
-       << ", " << ret.zmin_ << ") -> (" << ret.xmax_ << ", " 
-       << ret.ymax_ << ", " << ret.zmax_ << ")"
+       << " is a local region (" << (*ret).xmin_ << ", " << (*ret).ymin_
+       << ", " << (*ret).zmin_ << ") -> (" << (*ret).xmax_ << ", " 
+       << (*ret).ymax_ << ", " << (*ret).zmax_ << ")"
        << endl;
+#endif
 
   return ret;
 }
 
-Block Grid::get_global_region(CSGBox &box) const
+shared_ptr<Block> Grid::get_global_region(CSGBox &box) const
 {
   point centre = box.get_centre();
   point size = box.get_size();
@@ -1376,13 +1415,15 @@ Block Grid::get_global_region(CSGBox &box) const
   point sz = box.get_size();
   point c = box.get_centre();
 
+#ifdef DEBUG
   cerr << "Box with centre at " << c.x << ", " << c.y << ", "
        << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
        << " is a global region (" << ret.xmin_ << ", " << ret.ymin_
        << ", " << ret.zmin_ << ") -> (" << ret.xmax_ << ", " 
        << ret.ymax_ << ", " << ret.zmax_ << ")"
        << endl;
+#endif
 
-  return ret;
+  return shared_ptr<Block> (new Block(ret));
 }
 

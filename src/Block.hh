@@ -32,18 +32,18 @@ class Block {
   friend class Grid;
 public:
 
-  inline unsigned int get_xmin()
+  inline unsigned int xmin()
   { return xmin_; }
-  inline unsigned int get_ymin()
+  inline unsigned int ymin()
   { return ymin_; }
-  inline unsigned int get_zmin()
+  inline unsigned int zmin()
   { return zmin_; }
 
-  inline unsigned int get_xmax()
+  inline unsigned int xmax()
   { return xmax_; }
-  inline unsigned int get_ymax()
+  inline unsigned int ymax()
   { return ymax_; }
-  inline unsigned int get_zmax()
+  inline unsigned int zmax()
   { return zmax_; }
 
   inline bool has_data()
@@ -59,7 +59,7 @@ private:
 
   Block() // Only Grid can make me!
     : xmin_(0), ymin_(0), zmin_(0), xmax_(0), ymax_(0), zmax_(0),
-      start_x_(0), start_y_(0), start_z_(0), len_x(0), len_y_(0),
+      start_x_(0), start_y_(0), start_z_(0), len_x_(0), len_y_(0),
       len_z_(0), has_data_(true), is_global_(true)
   {
     for (int i = 0; i < 6; i++)

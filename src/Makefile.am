@@ -44,8 +44,7 @@ phred_SOURCES=\
 	LifeCycle.cc \
 	FDTD.hh \
 	FDTD.cc \
-	Geometry.hh \
-	Geometry.cc \
+	Block.hh \
 	Grid.cc \
 	Grid.hh \
 	GridInfo.hh \
