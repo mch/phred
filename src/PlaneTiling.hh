@@ -26,6 +26,9 @@
 #include "../Types.hh"
 #include "../GridPlane.hh"
 
+// int's are used as loop counters because that what OpenMP and
+// Intel's compiler prefer for vectorization.
+
 typedef struct {
   const field_t *et1, *et2;
   const field_t *ht1, *ht2;
@@ -90,7 +93,8 @@ public:
    * to access the E and H tangential and normal field component
    * averages at the given point. 
    */ 
-  static inline void alg(Fields_t &f, Data &data)
+  static inline void alg(const int &x, const int &y, const int &z, 
+                         Fields_t &f, Data &data)
   {
     data.real[data.index] = f.et1_avg * 2.0; //data.cosf;
     data.imag[data.index] = f.et1_avg * 2.0; //data.sinf;
@@ -153,7 +157,7 @@ private:
         f.ht1_avg = plane.get_avg_h_t1(x, yidx, zidx);
         f.ht2_avg = plane.get_avg_h_t2(x, yidx, zidx);
 
-        Alg::alg(f, data);
+        Alg::alg(x, yidx, zidx, f, data);
 
         f.et1++; f.et2++; f.ht1++; f.ht2++;
       }
@@ -213,7 +217,7 @@ private:
         f.ht1_avg = plane.get_avg_h_t1(xidx, y, zidx);
         f.ht2_avg = plane.get_avg_h_t2(xidx, y, zidx);
 
-        Alg::alg(f, data);
+        Alg::alg(xidx, y, zidx, f, data);
 
         f.et1++; f.et2++; f.ht1++; f.ht2++;
       }
@@ -274,7 +278,7 @@ private:
         f.ht1_avg = plane.get_avg_h_t1(xidx, yidx, z);
         f.ht2_avg = plane.get_avg_h_t2(xidx, yidx, z);
 
-        Alg::alg(f, data);
+        Alg::alg(xidx, yidx, z, f, data);
       }
     } // end outer
   }

@@ -61,47 +61,7 @@ PowerResult::PowerResult(field_t freq_start, field_t freq_stop,
 
 PowerResult::~PowerResult()
 {
-  if (power_real_)
-    delete[] power_real_;
-
-  if (power_imag_)
-    delete[] power_imag_;
-
-//   if (et1r_)
-//   {
-//     delete[] et1r_;
-//     delete[] et1i_;
-//     delete[] et2r_;
-//     delete[] et2i_;
-//     delete[] ht1r_;
-//     delete[] ht1i_;
-//     delete[] ht2r_;
-//     delete[] ht2i_;
-
-//     et1r_ = 0;
-//     et1i_ = 0;
-//     et2r_ = 0;
-//     et2i_ = 0;
-
-//     ht1r_ = 0;
-//     ht1i_ = 0;
-//     ht2r_ = 0;
-//     ht2i_ = 0;
-//   }
-
-  if (et1_)
-  {
-    delete[] et1_;
-    delete[] et2_;
-    delete[] ht1_;
-    delete[] ht2_;
-
-    et1_ = 0;
-    et2_ = 0;
-    ht1_ = 0;
-    ht2_ = 0;
-  }
-
+  deinit();
 }
 
 void PowerResult::init(const Grid &grid)
@@ -222,26 +182,6 @@ void PowerResult::init(const Grid &grid)
     /* GRR, ARGH! */
     unsigned int sz = frequencies_.length() * x_size_ * y_size_ * z_size_;
 
-//     et1r_ = new field_t[sz];
-//     et1i_ = new field_t[sz];
-//     ht1r_ = new field_t[sz];
-//     ht1i_ = new field_t[sz];
-
-//     et2r_ = new field_t[sz];
-//     et2i_ = new field_t[sz];
-//     ht2r_ = new field_t[sz];
-//     ht2i_ = new field_t[sz];
-
-//     memset(et1r_, 0, sizeof(field_t) * sz);
-//     memset(et1i_, 0, sizeof(field_t) * sz);
-//     memset(et2r_, 0, sizeof(field_t) * sz);
-//     memset(et2i_, 0, sizeof(field_t) * sz);
-
-//     memset(ht1r_, 0, sizeof(field_t) * sz);
-//     memset(ht1i_, 0, sizeof(field_t) * sz);
-//     memset(ht2r_, 0, sizeof(field_t) * sz);
-//     memset(ht2i_, 0, sizeof(field_t) * sz);
-
     et1_ = new complex<field_t>[sz];
     et2_ = new complex<field_t>[sz];
 
@@ -311,28 +251,6 @@ void PowerResult::deinit()
     power_imag_ = 0;
   }
 
-//   if (et1r_)
-//   {
-//     delete[] et1r_;
-//     delete[] et1i_;
-//     delete[] et2r_;
-//     delete[] et2i_;
-//     delete[] ht1r_;
-//     delete[] ht1i_;
-//     delete[] ht2r_;
-//     delete[] ht2i_;
-
-//     et1r_ = 0;
-//     et1i_ = 0;
-//     et2r_ = 0;
-//     et2i_ = 0;
-
-//     ht1r_ = 0;
-//     ht1i_ = 0;
-//     ht2r_ = 0;
-//     ht2i_ = 0;
-//   }
-
   if (et1_)
   {
     delete[] et1_;
@@ -369,7 +287,8 @@ public:
     {}
   };
 
-  static inline void alg(Fields_t &f, Data &data)
+  static inline void alg(const int &x, const int &y, const int &z, 
+                         Fields_t &f, Data &data)
   {
     data.tp_ += (f.et1_avg * f.ht2_avg - f.et2_avg * f.ht1_avg) 
       * data.area_;
@@ -398,7 +317,8 @@ public:
     field_t cell_area;
   };
 
-  static inline void alg(Fields_t &f, Data &data)
+  static inline void alg(const int &x, const int &y, const int &z, 
+                         Fields_t &f, Data &data)
   {
     data.et1_[data.idx] += complex<field_t>(f.et1_avg * data.e_cos_temp, 
                                             -1 * f.et1_avg * data.e_sin_temp);
