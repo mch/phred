@@ -303,15 +303,15 @@ void Grid::alloc_grid()
       throw MemoryException(); // Insufficient memory
     }
     
-//     memset(ex_, 0, sizeof(field_t) * sz);
-//     memset(ey_, 0, sizeof(field_t) * sz);
-//     memset(ez_, 0, sizeof(field_t) * sz);
+    memset(ex_, 0, sizeof(field_t) * sz);
+    memset(ey_, 0, sizeof(field_t) * sz);
+    memset(ez_, 0, sizeof(field_t) * sz);
 
-//     memset(hx_, 0, sizeof(field_t) * sz);
-//     memset(hy_, 0, sizeof(field_t) * sz);
-//     memset(hz_, 0, sizeof(field_t) * sz);
+    memset(hx_, 0, sizeof(field_t) * sz);
+    memset(hy_, 0, sizeof(field_t) * sz);
+    memset(hz_, 0, sizeof(field_t) * sz);
 
-//     memset(material_, 0, sizeof(unsigned int) * sz);
+    memset(material_, 0, sizeof(unsigned int) * sz);
   }
 }
 

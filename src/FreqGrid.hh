@@ -33,7 +33,7 @@ protected:
    * materials, indexed in the same was as Ca_ etc.
    */
 
-  mat_coef_t *vcdt_; /**< e ^ (Electron collision frequency times deltat_) */
+  mat_coef_t *vcdt_; /**< e ^ (-Electron collision frequency times deltat_) */
   mat_coef_t *omegapsq_; /**< Plamsa frequency in rad/sec squared
                             times delta over vc */
 

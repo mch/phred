@@ -21,6 +21,10 @@ void Box::set_region(unsigned int xstart, unsigned int xstop,
 
 void Box::init(const Grid &grid)
 {
+
+}
+void Box::set_material(Grid &grid)
+{
   region_t r = grid.global_to_local(r_);
 
   for (unsigned int i = r.xmin; i < r.xmax; i++)

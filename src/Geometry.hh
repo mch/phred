@@ -67,9 +67,14 @@ public:
 
   /**
    * Init the geometry against the grid; check that the geometry is
-   * inside the grid and fill in the material values of the grid. 
+   * inside the grid
    */ 
   virtual void init(const Grid &grid) = 0;
+
+  /**
+   * Update the material indicies of the grid 
+   */
+  virtual void set_material(Grid &grid) = 0;
 };
 
 #endif // GEOMETRY_H

@@ -17,6 +17,7 @@ using namespace std;
 #include "Exceptions.hh"
 #include "SimpleSDAlg.hh"
 #include "Geometry.hh"
+#include "FreqGrid.hh"
 
 /**
  * This is a sort of convience wrapper object that runs the
@@ -30,9 +31,10 @@ class FDTD
 private:
 protected:
   /**
-   * The grid to operate on
+   * The grid to operate on; what kind of grid specifically is decided
+   * at run time from material properties.
    */
-  Grid grid_;
+  Grid *grid_;
 
   /**
    * Global grid information

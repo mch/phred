@@ -423,6 +423,12 @@ static void pml_test(int rank, int size)
   mat.set_name("Substrate");
   mats.add_material(mat);
 
+  mat.set_epsilon(1);
+  mat.set_name("Silver");
+  mat.set_collision_freq(1.4e+14);
+  mat.set_plasma_freq(2 * PI * 1.85e+15);
+  mats.add_material(mat);
+
   fdtd.load_materials(mats);
 
   // Global coordinates. 
@@ -431,16 +437,16 @@ static void pml_test(int rank, int size)
   all.set_material_id(1);
 
   Box metal1;
-  metal1.set_region(45, 55, 5, 46, 0, 25);
-  metal1.set_material_id(0);
+  metal1.set_region(45, 55, 5, 46, 5, 56);
+  metal1.set_material_id(3);
 
-  Box metal2;
-  metal2.set_region(45, 55, 5, 46, 35, 60);
-  metal2.set_material_id(0);
+  //Box metal2;
+  //metal2.set_region(45, 50, 5, 46, 35, 60);
+  //metal2.set_material_id(3);
 
   fdtd.add_geometry(&all);
   fdtd.add_geometry(&metal1);
-  fdtd.add_geometry(&metal2);
+  // fdtd.add_geometry(&metal2);
 
   // Excitation
   Gaussm gm;
@@ -456,7 +462,7 @@ static void pml_test(int rank, int size)
 
   // Results
   point_t p;
-  p.x = 20;
+  p.x = 40;
   p.y = 25;
   p.z = 30;
   PointResult res1(p);
@@ -476,6 +482,29 @@ static void pml_test(int rank, int size)
   fdtd.add_datawriter("adw2", &adw2);
   fdtd.map_result_to_datawriter("res1", "adw1");
   fdtd.map_result_to_datawriter("pdft", "adw2");
+
+  point_t p2;
+  p2.x = 60;
+  p2.y = 25;
+  p2.z = 30;
+  PointResult res4(p2);
+  PointDFTResult p2dft(100e12, 600e12, 50);
+  p2dft.set_point(p2);
+
+  fdtd.add_result("res4", &res4);
+  fdtd.add_result("p2dft", &p2dft);
+  
+  AsciiDataWriter adw12(rank, size);
+  adw12.set_filename("t_field_60.txt");
+
+  AsciiDataWriter adw13(rank, size);
+  adw13.set_filename("t_field_dft_60.txt");
+
+  fdtd.add_datawriter("adw12", &adw12);
+  fdtd.add_datawriter("adw13", &adw13);
+  fdtd.map_result_to_datawriter("res4", "adw12");
+  fdtd.map_result_to_datawriter("p2dft", "adw13");
+
 
   NetCDFDataWriter ncdw(rank, size);
   ncdw.set_filename("yz_plane.nc");
@@ -538,6 +567,6 @@ static void pml_test(int rank, int size)
 
    fdtd.map_result_to_datawriter("srctr", "adw8");
 
-   fdtd.run(rank, size, 100);
+   fdtd.run(rank, size, 1000);
 }
 

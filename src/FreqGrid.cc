@@ -30,11 +30,15 @@ void FreqGrid::alloc_grid()
   // UGLY!
   unsigned int num_plasma = 0;
 
-  for (unsigned int i = 0; i < sz; i++)
-  {
-    if (vcdt_[material_[i]] != 0)
-      num_plasma++;
-  }
+  // CAN'T do this because material_ hasn't been set to actual material numbers yet!
+//   for (unsigned int i = 0; i < sz; i++)
+//   {
+//     if (vcdt_[material_[i]] != 0.0)
+//       num_plasma++;
+//   }
+
+  // TEMPORARY
+  num_plasma = sz;
 
   if (num_plasma > 0)
   {
@@ -61,20 +65,20 @@ void FreqGrid::alloc_grid()
       throw MemoryException();
     }
 
-//     memset(dx_, 0, sizeof(field_t) * num_plasma);
-//     memset(sx_, 0, sizeof(field_t) * num_plasma);
-//     memset(sxm1_, 0, sizeof(field_t) * num_plasma);
-//     memset(sxm2_, 0, sizeof(field_t) * num_plasma);
+    memset(dx_, 0, sizeof(field_t) * num_plasma);
+    memset(sx_, 0, sizeof(field_t) * num_plasma);
+    memset(sxm1_, 0, sizeof(field_t) * num_plasma);
+    memset(sxm2_, 0, sizeof(field_t) * num_plasma);
 
-//     memset(dy_, 0, sizeof(field_t) * num_plasma);
-//     memset(sy_, 0, sizeof(field_t) * num_plasma);
-//     memset(sym1_, 0, sizeof(field_t) * num_plasma);
-//     memset(sym2_, 0, sizeof(field_t) * num_plasma);
+    memset(dy_, 0, sizeof(field_t) * num_plasma);
+    memset(sy_, 0, sizeof(field_t) * num_plasma);
+    memset(sym1_, 0, sizeof(field_t) * num_plasma);
+    memset(sym2_, 0, sizeof(field_t) * num_plasma);
 
-//     memset(dz_, 0, sizeof(field_t) * num_plasma);
-//     memset(sz_, 0, sizeof(field_t) * num_plasma);
-//     memset(szm1_, 0, sizeof(field_t) * num_plasma);
-//     memset(szm2_, 0, sizeof(field_t) * num_plasma);
+    memset(dz_, 0, sizeof(field_t) * num_plasma);
+    memset(sz_, 0, sizeof(field_t) * num_plasma);
+    memset(szm1_, 0, sizeof(field_t) * num_plasma);
+    memset(szm2_, 0, sizeof(field_t) * num_plasma);
   }
 }
 
@@ -144,10 +148,15 @@ void FreqGrid::load_materials(MaterialLib &matlib)
 
   while(iter != iter_e)
   {
-    vcdt_[index] = (*iter).get_collision_freq() * get_deltat();
-    omegapsq_[index] = pow((*iter).get_plasma_freq(), 
-                           static_cast<float>(2.0))
-      * (get_deltat() / (*iter).get_collision_freq());
+    if ((*iter).get_collision_freq() > 0)
+    {
+      vcdt_[index] = exp(-1.0 * (*iter).get_collision_freq() * get_deltat());
+      omegapsq_[index] = pow((*iter).get_plasma_freq(), 
+                             static_cast<float>(2.0))
+        * (get_deltat() / (*iter).get_collision_freq());
+    }
+    ++index;
+    ++iter;
   }
 }
 

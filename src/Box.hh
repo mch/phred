@@ -38,6 +38,11 @@ public:
    */
   virtual void init(const Grid &grid);
   
+  /**
+   * Update the material indicies of the grid 
+   */
+  virtual void set_material(Grid &grid);
+
 };
 
 #endif

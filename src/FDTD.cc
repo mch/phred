@@ -2,6 +2,7 @@
 #include "FDTD.hh"
 
 FDTD::FDTD()
+  : grid_(0), mlib_(0)
 {}
 
 FDTD::~FDTD()
@@ -25,6 +26,9 @@ void FDTD::set_grid_deltas(field_t dx, field_t dy, field_t dz)
     ( C * sqrt( 1/(pow(dx, static_cast<float>(2.0))) + 
                 1/(pow(dy, static_cast<float>(2.0))) + 
                 1/(pow(dz, static_cast<float>(2.0)))));
+
+  global_ginfo_.deltat_ = global_ginfo_.deltat_ 
+    - 0.01 * global_ginfo_.deltat_;
 }
 
 void FDTD::set_boundary(Face face, BoundaryCond *bc)
@@ -92,6 +96,7 @@ void FDTD::setup_datawriters()
   }
 }
 
+// CHOP THIS UP; make helper functions
 void FDTD::run(int rank, int size, unsigned int steps)
 {
   // Grid setup
@@ -99,11 +104,32 @@ void FDTD::run(int rank, int size, unsigned int steps)
 
   local_ginfo_ = dd.decompose_domain(rank, size, global_ginfo_);
 
-  grid_.setup_grid(local_ginfo_);
+  // Decide what grid to used from materials
+  bool freqgrid = false;
+  vector<Material>::iterator miter = mlib_->get_material_iter_begin();
+  vector<Material>::iterator miter_e = mlib_->get_material_iter_end();
+  
+  while(miter != miter_e)
+  {
+    if ((*miter).get_collision_freq() != 0.0 ||
+        (*miter).get_plasma_freq() != 0.0)
+    {
+      freqgrid = true; 
+      break;
+    }
+    miter++;
+  }
 
-  grid_.load_materials(*mlib_);
+  if (freqgrid)
+    grid_ = new FreqGrid();
+  else
+    grid_ = new Grid();
 
-  grid_.set_define_mode(false);
+  grid_->setup_grid(local_ginfo_);
+
+  grid_->load_materials(*mlib_);
+
+  grid_->set_define_mode(false);
 
   // Life cycle init
   map<string, Excitation *>::iterator eiter_b = excitations_.begin();
@@ -112,7 +138,7 @@ void FDTD::run(int rank, int size, unsigned int steps)
   
   while (eiter != eiter_e) 
   {
-    (*eiter).second->init(grid_);
+    (*eiter).second->init(*grid_);
     ++eiter;
   }
 
@@ -122,7 +148,7 @@ void FDTD::run(int rank, int size, unsigned int steps)
   
   while (riter != riter_e) 
   {
-    (*riter).second->init(grid_);
+    (*riter).second->init(*grid_);
     ++riter;
   }
 
@@ -132,7 +158,7 @@ void FDTD::run(int rank, int size, unsigned int steps)
   
   while (dwiter != dwiter_e) 
   {
-    (*dwiter).second->init(grid_);
+    (*dwiter).second->init(*grid_);
     ++dwiter;
   }
 
@@ -141,7 +167,8 @@ void FDTD::run(int rank, int size, unsigned int steps)
   
   while(giter != giter_e)
   {
-    (*giter)->init(grid_);
+    (*giter)->init(*grid_);
+    (*giter)->set_material(*grid_);
     ++giter;
   }
   
@@ -154,30 +181,30 @@ void FDTD::run(int rank, int size, unsigned int steps)
     cout << "phred time step " << ts << endl;
 
     // Fields update
-    grid_.update_h_field();
+    grid_->update_h_field();
 
     // Boundary condition application
-    grid_.apply_boundaries(H);
+    grid_->apply_boundaries(H);
 
     // Excitations
     eiter = eiter_b;
     while (eiter != eiter_e)
     {
-      (*eiter).second->excite(grid_, ts, H);
+      (*eiter).second->excite(*grid_, ts, H);
       ++eiter;
     }
 
     // Fields update
-    grid_.update_e_field();
+    grid_->update_e_field();
     
     // Boundary condition application
-    grid_.apply_boundaries(E);
+    grid_->apply_boundaries(E);
 
     // Excitations
     eiter = eiter_b;
     while (eiter != eiter_e)
     {
-      (*eiter).second->excite(grid_, ts, E);
+      (*eiter).second->excite(*grid_, ts, E);
       ++eiter;
     }
     
@@ -192,7 +219,7 @@ void FDTD::run(int rank, int size, unsigned int steps)
       
       if (riter != riter_e && dwiter != dwiter_e)
         (*dwiter).second->handle_data(ts, 
-                                      (*riter).second->get_result(grid_, ts));
+                                      (*riter).second->get_result(*grid_, ts));
 
       ++iter;
     }
@@ -202,21 +229,21 @@ void FDTD::run(int rank, int size, unsigned int steps)
   eiter = eiter_b;
   while (eiter != eiter_e) 
   {
-    (*eiter).second->deinit(grid_);
+    (*eiter).second->deinit(*grid_);
     ++eiter;
   }
 
   riter = riter_b;
   while (riter != riter_e) 
   {
-    (*riter).second->deinit(grid_);
+    (*riter).second->deinit(*grid_);
     ++riter;
   }
 
   dwiter = dwiter_b;
   while (dwiter != dwiter_e) 
   {
-    (*dwiter).second->deinit(grid_);
+    (*dwiter).second->deinit(*grid_);
     ++dwiter;
   }
 
