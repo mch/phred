@@ -169,7 +169,7 @@ protected:
    */ 
   void calc_items()
   {
-    if (end_ < start_ || num_pts_ < 1)
+    if (num_pts_ < 1)
     {
       num_pts_ = 0;
       return;

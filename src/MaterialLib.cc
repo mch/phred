@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -31,7 +31,7 @@ MaterialLib::MaterialLib()
 {
   Material temp, temp2;
   temp.set_epsilon(0);
-  temp.set_sigma(INFINITY);
+  temp.set_sigma(1.0 / 0.0);
   temp.set_mu(0);
   add_material("PEC", temp);
 

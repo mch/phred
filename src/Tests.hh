@@ -34,3 +34,4 @@
 
 
 void hole();
+void mn_benchmark();

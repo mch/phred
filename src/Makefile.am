@@ -59,6 +59,7 @@ phred_SOURCES=\
 	Material.hh \
 	MaterialLib.hh \
 	Constants.hh \
+	Globals.hh \
 	AltiVec.hh \
 	Types.hh \
 	Types.cc \

@@ -291,7 +291,8 @@ void FDTD::run()
   {
     cout << "Grid is " << get_num_x_cells() << "x" << get_num_y_cells()
          << "x" << get_num_z_cells() << " cells in size.\n";
-    cout << "Time step size is " << get_time_delta() << ".\n\n";
+    cout << "Time step size is " << get_time_delta() 
+         << ". Executing for " << time_steps_ << " time steps.\n\n";
     cout << "Initializing results, data writers, and excitations..." << endl;
   }
   // Life cycle init

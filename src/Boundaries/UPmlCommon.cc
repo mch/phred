@@ -115,7 +115,6 @@ void UPmlCommon::init_sigmas()
     //mat_prop_t sigs = (*iter).get_sigma_star();
 
     if (isinf(sig)) 
-      //if (sig == __infinity)
     {
       cerr << "UPmlCommon::init_sigmas(): Warning; material is perfect conductor." << endl;
       

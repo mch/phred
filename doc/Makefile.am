@@ -4,7 +4,7 @@ EXTRA_DIST=phred.lsm.in phred.texinfo
 #EXTRA_DIST += html latex
 #endif
 
-EXTRA_DIST += @DX_OUT_FILES@ @DX_OUT_DIRS@
+#EXTRA_DIST += @DX_OUT_FILES@ @DX_OUT_DIRS@
 
 #  build and install the .info pages
 info_TEXINFOS = phred.texinfo

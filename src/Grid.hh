@@ -54,7 +54,6 @@
 #include "Types.hh"
 #include "MaterialLib.hh"
 #include "GridInfo.hh"
-#include "Geometry.hh"
 #include "ProblemGeometry.hh"
 #include "Block.hh"
 
@@ -172,7 +171,7 @@ class Grid {
    * on. Hopefully the virtual function calls won't be too much of a
    * problem. 
    */ 
-  Geometry **geometries_;
+  //Geometry **geometries_;
   unsigned int num_geoms_;
 
   /** 

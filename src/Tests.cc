@@ -52,6 +52,21 @@
 using namespace std;
 
 /**
+ * Million node benchmark
+ */ 
+void mn_benchmark()
+{
+  cout << "100x100x100 million node 100 time step benchmark\n";
+
+  FDTD fdtd;
+  fdtd.set_grid_deltas(1e-2, 1e-2, 1e-2);
+  fdtd.set_grid_size(1,1,1);
+
+  fdtd.set_time_steps(100);
+  fdtd.run();
+}
+
+/**
  * Simulates a single hole in a plate of perfect conductor
  */ 
 void hole()

@@ -30,11 +30,12 @@
 #include <stdio.h>
 #include <time.h>
 
+#include <cmath>
+#include <math.h>
+
 template<class T>
 void MatlabElement::compress_helper()
 {
-  char *ptr = buffer_;
-  T temp = 0;
   unsigned int size = tag_.num_bytes / sizeof(T);
   bool is_int = true;
   T *tptr = reinterpret_cast<T *>(buffer_);
@@ -55,8 +56,11 @@ void MatlabElement::compress_helper()
     if (dtemp < min)
       min = dtemp;
 
-    double i = nearbyint(dtemp);
-    if (dtemp != i)
+    //double i = nearbyint(dtemp);
+    double i1 = floor(dtemp);
+    double i2 = ceil(dtemp);
+    //if (dtemp != i)
+    if (dtemp != i1 && dtemp != i2)
     {
       is_int = false;
       break;
@@ -872,7 +876,7 @@ void MatlabDataWriter::test()
   if (!ma || !ma3 || !ma2)
     throw MemoryException();
 
-  double data[] = {2.2, 3.6, 4.34, 5.354};
+  //double data[] = {2.2, 3.6, 4.34, 5.354};
   ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data2));
   ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data2 + 2));
   ma->append_buffer(2 * sizeof(double), reinterpret_cast<void *>(data2));

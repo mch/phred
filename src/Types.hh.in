@@ -270,7 +270,7 @@ typedef struct {
 /**
  * Kludge for missing isinf
  */
-#define isinf(x) (x == __infinity)
+#define isinf(x) (isnan(x - x))
 #endif
 
 #endif // TYPES_HH

@@ -95,7 +95,10 @@ FarfieldResult::FarfieldResult()
   : r_(100),
     Wx_(0), Wy_(0), Wz_(0), Ux_(0), Uy_(0), Uz_(0),
     E_theta_(0), E_phi_(0)
-{}
+{
+  for (int i = 0; i < 6; i++)
+    use_face_[i] = true;
+}
 
 FarfieldResult::~FarfieldResult()
 {
@@ -516,9 +519,9 @@ public:
   {
     field_t xt = (x - static_cast<int>(data.grid_centre.x)) * data.dx
       + (data.xshift * data.dx);
-    field_t yt = (y - static_cast<int>(data.grid_centre.y)) * data.dy;
+    field_t yt = (y - static_cast<int>(data.grid_centre.y)) * data.dy
       + (data.yshift * data.dy);
-    field_t zt = (z - static_cast<int>(data.grid_centre.z)) * data.dz;
+    field_t zt = (z - static_cast<int>(data.grid_centre.z)) * data.dz
       + (data.zshift * data.dz);
 
     // Distance to source point
@@ -610,6 +613,9 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
     // Calculate W and U for each observation point of interest. 
     for (int face_idx = 0; face_idx < 6; face_idx++)
     {
+      if (!use_face_[face_idx])
+        continue;
+
       // This index is for the pointers storing the previous value
       // of the fields on the face.
       data.idx = 0;
@@ -658,9 +664,9 @@ map<string, Variable *> & FarfieldResult::get_result(const Grid &grid,
       else
         data.signchange = 1.0;
 
+      Face face = static_cast<Face>(face_idx);
       PlaneTiling<FFAlg, FFData>::loop(grid, *region_, 
-                                       static_cast<Face>(face_idx), 
-                                       data);
+                                       face, data);
     } // for face
 
   } // if (result_time...)

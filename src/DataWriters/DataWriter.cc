@@ -54,7 +54,6 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 {
   // Is the data on the right rank? 
   char *ptr, *ptr_head; 
-  int buffer_size, sz; 
   const Data &data = var.get_data();
 
   MPI_Status status;
@@ -221,7 +220,6 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
 vector<unsigned int> DataWriter::get_recieve_sizes(const Data &data)
 {
   unsigned int nums_snd[2], *nums_recv;
-  unsigned int total = 0;
   vector<unsigned int> ret;
   int sz;
 

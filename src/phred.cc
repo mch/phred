@@ -155,10 +155,10 @@ int MPI_RANK, MPI_SIZE;
 static int
 decode_switches (int argc, char **argv)
 {
+#ifdef HAVE_LIBPOPT
   int c;
   char *arg = 0;
 
-#ifdef HAVE_LIBPOPT
   poptContext ctx = poptGetContext(0, argc, 
                                    const_cast<const char **>(argv), 
                                    options, 0);
@@ -283,7 +283,7 @@ int main (int argc, char **argv)
   double time_total_cpu = 0.0;
   
   // Install a handler for low memory conditions. 
-  set_new_handler(no_memory);
+  std::set_new_handler(no_memory);
 
   start=time(NULL);
   start_cpu = clock();
@@ -345,7 +345,7 @@ int main (int argc, char **argv)
 #endif
 
     if (test_run) {
-      hole();
+      mn_benchmark();
 
     } else if (!interactive) {
 
@@ -372,10 +372,11 @@ int main (int argc, char **argv)
           cout << "Python support is not compiled into this version." << endl;
 #endif
         } else {
-          cout << "Unknown input file given.\n\n";
-          usage(0);
+          //cout << "Unknown input file given.\n\n";
+          //usage(0);
 	  //pml_test(rank, size);
           //coupler_test(rank,size);
+          mn_benchmark();
 	}
 
       } else {

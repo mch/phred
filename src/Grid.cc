@@ -41,8 +41,8 @@ Grid::Grid()
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
     Da_(0), Dbx_(0), Dby_(0), Dbz_(0),
     ex_(0), ey_(0), ez_(0), hx_(0), hy_(0), hz_(0), 
-    material_(0), types_alloced_(false), define_(true),
-    geometries_(0), num_geoms_(0)
+    material_(0), types_alloced_(false), define_(true)
+    //geometries_(0), num_geoms_(0)
 {
 
 }
@@ -77,8 +77,8 @@ const Grid &Grid::operator=(const Grid &rhs)
   z_vector_ = rhs.z_vector_;
   define_ = rhs.define_;
 
-  geometries_ = 0;
-  num_geoms_ = 0;
+//   geometries_ = 0;
+//   num_geoms_ = 0;
 
   return *this;
 }
@@ -602,7 +602,7 @@ void Grid::load_materials(shared_ptr<MaterialLib> matlib)
     mat_prop_t mu = ((*iter).second).get_mu() * MU_0;
     mat_prop_t sigs = ((*iter).second).get_sigma_star();
 
-    if (sig == INFINITY)
+    if (isinf(sig))
     {
       Ca_[index] = 1;
       Cbx_[index] = Cby_[index] = Cbz_[index] = 0;
