@@ -90,6 +90,11 @@ public:
    */
   virtual void add_variable(Result &result);
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 };
 
 #else
@@ -113,6 +118,13 @@ public:
   void add_variable(Result &result)
   {}
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const
+  { 
+    return os << "HdfDataWriter: HDF 4 support is not included in this build."; 
+  }
 };
 
 #endif // USE_HDF4

@@ -81,4 +81,10 @@ unsigned int PyDataWriter::write_data(unsigned int time_step,
 
 }
 
+ostream& PyDataWriter::to_string(ostream &os) const
+{
+  return os << "PyDataWriter, delivering data to a Python script on rank "
+            << rank_;
+}
+
 #endif

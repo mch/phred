@@ -471,4 +471,10 @@ void NetCDFDataWriter::handle_error(int status)
   throw DataWriterException(nc_strerror(status));
 }
 
+ostream& NetCDFDataWriter::to_string(ostream &os) const
+{
+  return os << "NetCDFDataWriter, writing to '"
+            << filename_ << "' on rank " << rank_;
+}
+
 #endif // USE_NETCDF

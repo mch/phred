@@ -424,6 +424,10 @@ public:
    */ 
   void test();
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
 };
 
 #endif // ACSII_DATA_WRITER_H

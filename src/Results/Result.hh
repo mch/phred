@@ -463,21 +463,15 @@ public:
   /**
    * Print a string representation to an ostream.
    */
-  virtual ostream& to_string(ostream &os) const
-  {
-    return os << "A Result of indeterminate type.";
-  }
+  virtual ostream& to_string(ostream &os) const = 0;
+//   {
+//     return os << "A Result of indeterminate type.";
+//   }
 
   friend ostream& operator<< (ostream& os, const Result &r);
-  friend ostream& operator<< (ostream& os, Result &r);
 };
 
 inline ostream& operator<< (ostream& os, const Result &r)
-{
-  return r.to_string(os);
-}
-
-inline ostream& operator<< (ostream& os, Result &r)
 {
   return r.to_string(os);
 }

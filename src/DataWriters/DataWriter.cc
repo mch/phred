@@ -387,3 +387,8 @@ vector<MPI_Datatype> DataWriter::gather_types(const Variable &var)
   return ret;
 }
 
+ostream& DataWriter::to_string(ostream &os) const
+{
+  return os << "A DataWriter of indeterminate type, writing to '"
+            << filename_ << "' on rank " << rank_;
+}

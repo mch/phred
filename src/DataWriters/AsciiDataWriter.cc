@@ -207,3 +207,9 @@ unsigned int AsciiDataWriter::write_array(void *ptr, unsigned int len)
 
   return len;
 }
+
+ostream& AsciiDataWriter::to_string(ostream &os) const
+{
+  return os << "AsciiDataWriter writing to '"
+            << filename_ << "' on rank " << rank_;
+}

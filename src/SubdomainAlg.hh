@@ -28,6 +28,10 @@
  * This is an abstract base class which defines an interface for any
  * algorithm that produces a grid for a particular node. All
  * processors are intended to run this algorithm. 
+ *
+ * This ABC and it's subclasses implement the Strategy pattern from pg
+ * 315 of gof1995. The GridInfo object is the Context the individual
+ * strategies work with.
  */
 class SubdomainAlg
 {

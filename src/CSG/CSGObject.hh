@@ -84,18 +84,11 @@ public:
   }
 
   friend std::ostream& operator<< (std::ostream& os, const CSGObject &c);
-  friend std::ostream& operator<< (std::ostream& os, CSGObject &c);
 };
 
 inline std::ostream& operator<< (std::ostream& os, const CSGObject &c)
 {
   return c.to_string(os);
 }
-
-inline std::ostream& operator<< (std::ostream& os, CSGObject &c)
-{
-  return c.to_string(os);
-}
-
 
 #endif // CSG_OBJECT_H

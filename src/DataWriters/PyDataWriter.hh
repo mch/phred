@@ -100,6 +100,12 @@ public:
   unsigned int write_data(unsigned int time_step, 
                           Variable &var, MPI_Datatype t, 
                           void *ptr, unsigned int len);
+
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 #else
   inline void init(const Grid &grid)
   {}
@@ -116,6 +122,15 @@ public:
   {
     return 0;
   }
+
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const
+  {
+    return os << "PyDataWriter: Python support is not included in this build.";
+  }
+
 #endif  
 };
 

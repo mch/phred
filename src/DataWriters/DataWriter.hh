@@ -154,6 +154,17 @@ public:
   virtual void handle_data(unsigned int time_step, 
                            map<string, Variable *> &data);
 
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
+  friend ostream& operator<< (ostream& os, const DataWriter &dw);
 };
+
+inline ostream& operator<< (ostream& os, const DataWriter &dw)
+{
+  return dw.to_string(os);
+}
 
 #endif // DATA_WRITER_H

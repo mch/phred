@@ -895,3 +895,9 @@ void MatlabDataWriter::test()
 
   tf.close();
 }
+
+ostream& MatlabDataWriter::to_string(ostream &os) const
+{
+  return os << "MatlabDataWriter writing to '"
+            << filename_ << "' on rank " << rank_;
+}

@@ -167,6 +167,12 @@ public:
    * @param result describes the result
    */
   void add_variable(Result &result);
+
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const;
+
 };
 #else
 class NetCDFDataWriter : public DataWriter {
@@ -198,6 +204,14 @@ public:
 
   inline void set_filename(string filename)
   {}
+
+  /**
+   * Print a string representation to an ostream.
+   */
+  virtual ostream& to_string(ostream &os) const
+  {
+    return os << "NetCDFDataWriter: NetCDF support is not included in this build.";
+  }
 
 protected:
   virtual unsigned int write_data(unsigned int time_step, 
