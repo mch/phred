@@ -451,7 +451,7 @@ MatlabArray::MatlabArray(const char *name,
     dim_lengths_[num_dims_ - 1] = 0;
   }
 
-  i = 0;
+  //i = 0;
   for(iter = dim_lens.begin(); iter != iter_e; ++iter, ++i)
   {
     sz += *iter;
@@ -495,7 +495,8 @@ void MatlabArray::append_buffer(unsigned int num_bytes, const void *ptr)
     me_data_.append_buffer(num_bytes, ptr);
     tag_.num_bytes += num_bytes;
 
-    dim_lengths_[0] += 1;
+    //dim_lengths_[0] += 1;
+    dim_lengths_[num_dims_ - 1] += 1;
 
     me_dim_lens_.overwrite_buffer(sizeof(int32_t) * num_dims_,
                                   static_cast<const void *>(dim_lengths_));
@@ -518,7 +519,7 @@ void MatlabArray::write_buffer(ostream &stream)
   me_dim_lens_.write_buffer(stream);
   me_name_.write_buffer(stream);
 
-  // This is busted yo
+  // This be busted yo
 //   if (time_dim_)
 //   {
 //     unsigned int cols = 0;
@@ -722,7 +723,7 @@ void MatlabDataWriter::test()
 
   MatlabArray *ma = new MatlabArray("test2", dims, true, MPI_DOUBLE, false);
   MatlabArray *ma2 = new MatlabArray("abc", dims2, false, MPI_FLOAT, false);
-  MatlabArray *ma3 = new MatlabArray("shortdata", dims, true, MPI_SHORT, false);
+  MatlabArray *ma3 = new MatlabArray("shortdata", dims, false, MPI_SHORT, false);
   if (!ma || !ma3 || !ma2)
     throw MemoryException();
 
@@ -735,8 +736,8 @@ void MatlabDataWriter::test()
   ma2->append_buffer(16 * sizeof(float), reinterpret_cast<void *>(data2));
   
   ma3->append_buffer(2 *sizeof(short), reinterpret_cast<void *>(data3));
-  ma3->append_buffer(2 *sizeof(short), reinterpret_cast<void *>(data3 + 2));
-  ma3->append_buffer(2 *sizeof(short), reinterpret_cast<void *>(data3));
+  //ma3->append_buffer(2 *sizeof(short), reinterpret_cast<void *>(data3 + 2));
+  //ma3->append_buffer(2 *sizeof(short), reinterpret_cast<void *>(data3));
 
   ofstream tf("a.mat",  ofstream::out | ofstream::binary
              | ofstream::trunc);

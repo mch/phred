@@ -307,6 +307,12 @@ public:
  * file. Knows how to write it's data tag and data to an ofstream, and
  * can append data to the end of the variable once it has been written
  * to the file.
+ *
+ * MATLAB format data files have the data varying fastest along the
+ * first dimension, opposite to our adopted convention of data
+ * changing fastest along the last dimension. This means that until
+ * this class is fixed, users will have to transpose the resulting
+ * data themselves. 
  */ 
 class MatlabArray : public MatlabElement {
   friend class MatlabDataWriter; 

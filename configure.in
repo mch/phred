@@ -65,6 +65,9 @@ if test "$with_cxx" = yes; then
    AC_MSG_ERROR(--with-cxx requires the C++ compiler name)
 fi
 
+CFLAGS_SAVE="$CFLAGS"
+CXXFLAGS_SAVE="$CXXFLAGS"
+CPPFLAGS_SAVE="$CPPFLAGS"
 dnl Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_CC
@@ -75,9 +78,14 @@ dnl AM_PROG_LEX
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 
+CFLAGS="$CFLAGS_SAVE"
+CXXFLAGS="$CXXFLAGS_SAVE"
+CPPFLAGS="$CPPFLAGS_SAVE"
+
 dnl Check for compiler things
 AC_C_INLINE
 AC_C_BIGENDIAN
+AC_C_RESTRICT
 
 dnl Blitz++, required for optimization
 AC_CXX_LIB_BLITZ
@@ -336,39 +344,41 @@ echo "C++ compiler: $CXX"
 echo "C compiler: $CC"
 echo "C++ compiler flags: $CXXFLAGS"
 echo "C compiler flags: $CFLAGS"
+echo "Preprocessor flags: $CPPFLAGS"
+echo "Linker flags: $LDFLAGS"
 echo
-echo -n "Using popt to parse command line arguments? "
-if test "x$HAVE_LIBPOPT" = "x1"; then echo "yes"; else echo "no"; fi
+echo $ECHO_N "Using popt to parse command line arguments? $ECHO_C"
+if test "x$HAVE_LIBPOPT" = "x1"; then echo "${ECHO_T}yes"; else echo "${ECHO_T}no"; fi
 echo
 echo "DataWriters: " 
-echo -n " - NetCDF? " 
-if test "x$USE_NETCDF" = "x1"; then echo "yes"; else echo "no"; fi
-echo -n " - HDF 4? " 
-if [[ "x$USE_HDF4" = "x1" ]]; then echo "yes"; else echo "no"; fi
-echo -n " - HDF 5? " 
-if [[ "x$USE_HDF5" = "x1" ]]; then echo "yes"; else echo "no"; fi
+echo $ECHO_N " - NetCDF? $ECHO_C" 
+if test "x$USE_NETCDF" = "x1"; then echo "${ECHO_T}yes"; else echo "${ECHO_T}no"; fi
+echo $ECHO_N " - HDF 4? $ECHO_C" 
+if [[ "x$USE_HDF4" = "x1" ]]; then echo "${ECHO_T}yes"; else echo "${ECHO_T}no"; fi
+echo $ECHO_N " - HDF 5? $ECHO_C" 
+if [[ "x$USE_HDF5" = "x1" ]]; then echo "${ECHO_T}yes"; else echo "${ECHO_T}no"; fi
 echo
-echo -n "Building AltiVec support? " 
-if [[ "x$USE_ALTIVEC" = "x1" ]]; then echo "yes"; else echo "no"; fi
-echo -n "Using OpenMP parallization? " 
-if [[ "x$USE_OPENMP" = "x1" ]]; then echo "yes"; else echo "no"; fi
+echo $ECHO_N "Building AltiVec support? $ECHO_C" 
+if [[ "x$USE_ALTIVEC" = "x1" ]]; then echo "${ECHO_T}yes"; else echo "${ECHO_T}no"; fi
+echo $ECHO_N "Using OpenMP parallization? $ECHO_C" 
+if [[ "x$USE_OPENMP" = "x1" ]]; then echo "${ECHO_T}yes"; else echo "${ECHO_T}no"; fi
 echo
-echo -n "Building Python bindings? " 
+echo $ECHO_N "Building Python bindings? $ECHO_C" 
 if [[ "x$USE_PY_BINDINGS" = "x1" ]]; then 
-  echo "yes"; 
-  echo -n "Using readline for interactive Python? "
-  if [[ ! "$with_readline" = "no" ]]; then echo "yes"; else echo "no"; fi
+  echo "${ECHO_T}yes"; 
+  echo $ECHO_N "Using readline for interactive Python? $ECHO_C"
+  if [[ ! "$with_readline" = "no" ]]; then echo "${ECHO_T}yes"; else echo "${ECHO_T}no"; fi
 else 
-  echo "no"; 
+  echo "${ECHO_T}no"; 
 fi
-dnl echo -n "Building a parser for Jan's input files? "
+dnl echo $ECHO_N "Building a parser for Jan's input files? "
 dnl if test ! -z "$LEX" && test ! -z "$YACC"; then echo "yes"; else echo "no"; fi
 echo
 echo "Field components will use $FIELD_TYPE."
 echo
-echo -n "Build type: "
-if test "x$WANT_DEBUG" = "x1"; then echo "debugging"; else echo "optimized"; fi
-echo -n "Profiling? " 
-if test "x$WANT_PROFILE" = "x1"; then echo "yes"; else echo "no"; fi
+echo $ECHO_N "Build type: $ECHO_C"
+if test "x$WANT_DEBUG" = "x1"; then echo "${ECHO_T}debugging"; else echo "${ECHO_T}optimized"; fi
+echo $ECHO_N "Profiling? $ECHO_C" 
+if test "x$WANT_PROFILE" = "x1"; then echo "${ECHO_T}yes"; else echo "${ECHO_T}no"; fi
 echo
 echo "$PACKAGE_NAME is ready to be built. Type 'make'."

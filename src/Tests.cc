@@ -28,6 +28,7 @@
 #include "Boundaries/Hwall.hh"
 #include "Boundaries/UPml.hh"
 #include "Results/PointResult.hh"
+#include "Results/GridResult.hh"
 #include "DataWriters/AsciiDataWriter.hh"
 #include "DataWriters/MatlabDataWriter.hh"
 #include "DataWriters/NetCDFDataWriter.hh"
@@ -67,11 +68,12 @@ void hole()
   fdtd.set_grid_deltas(delta, delta, delta);
   fdtd.set_grid_size(800e-9, 700e-9, 800e-9);
 
-  MaterialLib mlib;
+  shared_ptr<MaterialLib> mlib 
+    = shared_ptr<MaterialLib>(new MaterialLib());
 
   Material mat;
-  mat.epsilon = 2.2;
-  mlib.add_material("dielectric", mat);
+  mat.set_epsilon(2.2);
+  (*mlib).add_material("dielectric", mat);
 
   fdtd.load_materials(mlib);
 
@@ -82,15 +84,21 @@ void hole()
     fdtd.set_boundary(static_cast<Face>(i), bound);
   }
 
-  NetCDFDataWriter ncdw;
-  ncdw.set_filename(prefix + "planes.nc");
-  fdtd.add_datawriter("ncdw", weak_ptr<NetCDFDataWriter>(&ncdw));
+  shared_ptr<NetCDFDataWriter> ncdw 
+    = shared_ptr<NetCDFDataWriter>(new NetCDFDataWriter());
+
+  (*ncdw).set_filename(prefix + "planes.nc");
+  fdtd.add_datawriter("ncdw", ncdw);
   
-  MatlabDataWriter mdw;
-  mdw.set_filename(prefix + "power.mat");
+  shared_ptr<MatlabDataWriter> mdw 
+    = shared_ptr<MatlabDataWriter>(new MatlabDataWriter());
+
+  (*mdw).set_filename(prefix + "power.mat");
   fdtd.add_datawriter("mdw", mdw);
 
-  GridResult gridr;
+  shared_ptr<GridResult> gridr
+    = shared_ptr<GridResult>(new GridResult);
+
   fdtd.add_result("grid", gridr);
   fdtd.map_result_to_datawriter("grid", "ncdw");
 

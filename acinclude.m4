@@ -553,7 +553,7 @@ PYTHON_VERSION=`echo "import distutils.sysconfig; print distutils.sysconfig.get_
 
         if test "$ac_cxx_python" = "yes" ; then
                 AC_DEFINE([HAVE_PYTHON], [1], [Using Python])
-                CXXFLAGS="$CXXFLAGS $PYTHON_LDFLAGS"
+                LDFLAGS="$LDFLAGS $PYTHON_LDFLAGS"
                 CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDES"
                 if [[ ! -z "$with_python_includes" ]]; then 
                         CPPFLAGS="$CPPFLAGS -I$with_python_includes"
