@@ -437,7 +437,7 @@ main (int argc, char **argv)
   adw3.add_variable(res3);
 
   point_t p2;
-  p2.x = 2;
+  p2.x = 22;
   p2.y = 25;
   p2.z = 25;
  
@@ -490,8 +490,8 @@ main (int argc, char **argv)
     //test3(grid, 0);
 
     //if (rank == 0)
-    //  test_yz_plane(grid.get_face_start(BACK, EY, 0), 
-    //                grid.get_plane_dt(BACK), 23, rank);
+    //test_yz_plane(grid.get_face_start(BACK, EY, 22), 
+    //                grid.get_plane_dt(BACK), 0, rank);
     //else if (rank == 1)
     //  test_yz_plane(grid.get_face_start(BACK, EY, 0), 
     //                grid.get_plane_dt(BACK), 0, rank);
