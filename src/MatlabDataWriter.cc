@@ -358,8 +358,11 @@ void MatlabArray::append_buffer(unsigned int num_bytes, const void *ptr)
     me_data_.append_buffer(num_bytes, ptr);
     tag_.num_bytes += num_bytes;
 
-    me_dim_lens_.buffer_[0] += 1;
     dim_lengths_[0] += 1;
+
+    me_dim_lens_.overwrite_buffer(sizeof(int32_t) * num_dims_,
+                                  static_cast<const void *>(dim_lengths_));
+
   } else {
     me_data_.overwrite_buffer(num_bytes, ptr);
   }
@@ -522,7 +525,9 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
     throw DataWriterException("MatlabDataWriter: File should already be open!");
 
   try {
-    vars_[variable.get_name()]->append_buffer(len, ptr);
+    if (len > 0)
+      vars_[variable.get_name()]->append_buffer(len, ptr);
+
   } catch (MemoryException e) {
     if (rank_ == 0 && file_.is_open())
     {
@@ -556,6 +561,7 @@ void MatlabDataWriter::test()
   short int data[] = {2, 3, 4, 5};
   ma->append_buffer(2 * sizeof(short int), reinterpret_cast<void *>(data));
   ma->append_buffer(2 * sizeof(short int), reinterpret_cast<void *>(data + 2));
+  ma->append_buffer(2 * sizeof(short int), reinterpret_cast<void *>(data));
 
   ma2->append_buffer(16 * sizeof(double), reinterpret_cast<void *>(data2));
   ma2->append_buffer(16 * sizeof(double), reinterpret_cast<void *>(data2));

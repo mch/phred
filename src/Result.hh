@@ -25,6 +25,7 @@
 #include <string>
 #include <vector>
 
+#include "Exceptions.hh"
 #include "Types.hh"
 #include "Grid.hh"
 #include "Data.hh"
@@ -194,7 +195,7 @@ public:
    * derived data type.
    * @param type MPI derived data type
    */
-  inline void set_datatype(MPI_Datatype &type)
+  inline void set_datatype(MPI_Datatype type)
   {
     data_.set_datatype(type);
   }

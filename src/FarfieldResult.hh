@@ -77,6 +77,8 @@ protected:
   float *theta_;
   float *phi_;
 
+  float *freqs_buffer_; /* The frequencies to return. */ 
+
   float **e_theta_re_;
   float **e_theta_im_;
   float **e_phi_re_;

@@ -577,6 +577,7 @@ static void pml_test(int rank, int size)
   h.xmin = 20; h.xmax = 60; h.ymin = 5; h.ymax = 15; 
   h.zmin = 5; h.zmax = 15; 
   farfield.set_huygens(h);
+  farfield.set_time_param(0, 49, 0);
 
   fdtd.add_result("farfield", &farfield);
   fdtd.map_result_to_datawriter("farfield", "mdw");
