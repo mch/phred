@@ -22,6 +22,8 @@
 #include "CSGCylinder.hh"
 #include <cmath>
 
+using namespace std;
+
 CSGCylinder::CSGCylinder()
   : radius_(0.5), height_(1)
 {}

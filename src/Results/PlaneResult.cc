@@ -31,7 +31,7 @@ PlaneResult::PlaneResult()
 
 PlaneResult::~PlaneResult()
 {
-  //deinit(); // deinit() is not safe to call multiple times right now.
+  ////deinit(); // deinit() is not safe to call multiple times right now.
 }
 
 void PlaneResult::calculate_result(const Grid &grid, 

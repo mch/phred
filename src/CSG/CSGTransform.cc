@@ -25,6 +25,8 @@
 
 #include <iostream>
 
+using namespace std;
+
 CSGTransform::CSGTransform(shared_ptr<CSGObject> child)
   : child_(child), tx_(0), ty_(0), tz_(0), angle_(0), 
     sx_(1), sy_(1), sz_(1)
@@ -117,8 +119,8 @@ void CSGTransform::set_scaling(float sx, float sy, float sz)
   sy_ = sy;
   sz_ = sz;
 
-  std::cerr << "WARNING! CSGTransform scaling is NOT implemented!" 
-            << std::endl;
+  cerr << "WARNING! CSGTransform scaling is NOT implemented!" 
+       << endl;
 }
 
 void CSGTransform::set_translation(float tx, float ty, float tz)
@@ -129,7 +131,7 @@ void CSGTransform::set_translation(float tx, float ty, float tz)
 }
 
 
-std::ostream& CSGTransform::to_string(std::ostream &os) const
+ostream& CSGTransform::to_string(ostream &os) const
 {
   if (child_.get())
   {

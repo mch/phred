@@ -55,11 +55,15 @@
 
 using namespace std;
 
+// Grid cell size for square hole sims
 // For testing on tapir
-float deltax = 20e-9;
-float deltay = 20e-9;
-float deltaz = 20e-9;
+// float deltax = 20e-9;
+// float deltay = 20e-9;
+// float deltaz = 20e-9;
 
+float deltax = 5e-9;
+float deltay = 5e-9;
+float deltaz = 5e-9;
 
 /**
  * Million node benchmark
@@ -71,32 +75,32 @@ void mn_benchmark()
   fdtd.set_grid_deltas(1e-2, 1e-2, 1e-2);
   fdtd.set_grid_size(1,1,1);
 
-  fdtd.set_time_steps(100);
+  fdtd.set_time_steps(1000);
 
 #ifdef USE_OPENMP
   int max_threads = omp_get_max_threads();
 
    time_t start, now;
    clock_t cpu_start, cpu_now;
-   //for (int numthreads = 1; numthreads <= max_threads; numthreads++)
-     {
-       //omp_set_num_threads(numthreads);
+   for (int numthreads = 1; numthreads <= max_threads; numthreads++)
+   {
+     omp_set_num_threads(numthreads);
        
-       //cout << "100x100x100 million node 100 time step benchmark on "
-      //      << numthreads << " of " << max_threads << "...\n";
-
-       start = time(NULL);
-       cpu_start = clock();
-       fdtd.run();
-       now = time(NULL);
-       cpu_now = clock();
-       
-       //cout << numthreads << " of " 
-//	    << omp_get_max_threads() << " threads took " 
-//	    << now - start << " wall clock seconds, and "
-//	    << (cpu_now - cpu_start) / static_cast<double>(CLOCKS_PER_SEC)
-//	    << " cpu seconds." << endl;
-     }
+     cout << "100x100x100 million node 100 time step benchmark on "
+          << numthreads << " of " << max_threads << "...\n";
+     
+     start = time(NULL);
+     cpu_start = clock();
+     fdtd.run();
+     now = time(NULL);
+     cpu_now = clock();
+     
+     cout << numthreads << " of " 
+          << omp_get_max_threads() << " threads took " 
+          << now - start << " wall clock seconds, and "
+          << (cpu_now - cpu_start) / static_cast<double>(CLOCKS_PER_SEC)
+          << " cpu seconds." << endl;
+   }
 
 #else
    cout << "100x100x100 million node 100 time step benchmark\n";
@@ -123,7 +127,7 @@ void var_benchmark(unsigned int x_cells, unsigned int y_cells,
                        1.0 / static_cast<float>(z_cells));
   fdtd.set_grid_size(1,1,1);
 
-  fdtd.set_time_steps(100);
+  fdtd.set_time_steps(1000);
 
 #ifdef USE_OPENMP
    // Test the OpenMP

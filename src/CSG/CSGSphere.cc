@@ -22,6 +22,8 @@
 #include "CSGSphere.hh"
 #include <cmath>
 
+using namespace std;
+
 CSGSphere::CSGSphere()
   : radius_(0.5)
 {}
