@@ -1,5 +1,6 @@
 /* 
-   phred - Phred is a parallel finite difference time domain electromagnetics simulator.
+   phred - Phred is a parallel finite difference time domain
+   electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes
 
@@ -16,10 +17,6 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software Foundation,
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
-
-#include <termios.h>
-#include <grp.h>
-#include <pwd.h>
 */
 
 #include <stdio.h>
@@ -29,16 +26,22 @@
 /* MPI (rocks your socks right off) */
 #include <mpi.h>
 
+#ifdef HAVE_LIBPOPT
 /* popt plays way nicer with MPI than getopt. Trust me. */
 #include <popt.h>
+#endif
 
 /* Let's use C++ for things that aren't speed critical, because life
-   is just so much easier that way. And safer. */
+   is just so much easier that way. And safer. Practice safe hex. */
 #include <iostream>
 #include <vector>
 #include <string>
 
 using namespace std; // Too lazy to type namespaces all the time. 
+
+// In order to actually do stuff...
+#include "MaterialLib.hh"
+#include "Grid.hh"
 
 #define EXIT_FAILURE 1
 
@@ -50,46 +53,54 @@ using namespace std; // Too lazy to type namespaces all the time.
 
 static void usage (int status);
 
+#ifdef HAVE_LIBPOPT
 static struct poptOption options[] = 
   {
-    {"help", 'h', POPT_ARG_NON, 0, 'h'},
+    {"help", 'h', POPT_ARG_NONE, 0, 'h'},
     {"version", 'V', POPT_ARG_NONE, 0, 'V'},
     {"verbose", 'v', POPT_ARG_NONE, 0, 'v'},
-    {"file", 'f', POPT_ARG_STRING, 0 'f'}
+    {"file", 'f', POPT_ARG_STRING, 0, 'f'}
   };
+#endif
 
 static int decode_switches (int argc, char **argv);
+
+// Ugly globals
+string inputfile;
+const char *program_name;
 
 int
 main (int argc, char **argv)
 {
-  int i, rank, size, pn_len;
+  int i, rank, size, len;
   string prog_name;
   char *temp;
 
-  MPI_Init(&argc, &args);
+  MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   if (rank == 0)
   {
     prog_name = argv[0];
-    pn_len = prog_name.size();
+    len = prog_name.size();
+    program_name = prog_name.c_str();
     
     // MPI implementations are not required to distribute command line
     // args, although MPICH does.
-    i = decode_switches (argc, const_cast<const char **>(argv));
+    i = decode_switches (argc, argv);
   } 
 
   // Our first try at MPI
-  MPI_Bcast(&pn_len, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-  if (rank != 0)
-    temp = new char(pn_len + 1);
-  else
+  if (rank != 0) {
+    temp = new char(len + 1);
+  } else {
     temp = const_cast<char *>(prog_name.c_str());
+  }
 
-  MPI_Bcast(&temp, pn_len + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
+  MPI_Bcast(temp, len + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
 
   if (rank != 0)
   {
@@ -97,9 +108,31 @@ main (int argc, char **argv)
     delete[] temp;
   }
 
+  // Please sir, what file should I load? 
+  if (rank == 0)
+  {
+    len = inputfile.size();
+    temp = const_cast<char *>(inputfile.c_str());
+  }
+
+  MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  if (rank != 0) {
+    temp = new char(len + 1);
+  }
+
+  MPI_Bcast(temp, len + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+  if (rank != 0) {
+    inputfile = temp;
+    delete[] temp;
+  }
+
   cout << "My rank is " << rank << ", and my program name is " 
-       << prog_name << endl;
-  
+       << prog_name << " which is " << len << " chars long." << endl;
+  cout << "I'm going to load data from the file '" << inputfile << "'."
+       << endl;
+
   // Parse the input script (each process will just load it's own file
   // for now. ) 
 
@@ -123,7 +156,10 @@ decode_switches (int argc, char **argv)
   int c;
   char *arg = 0;
 
-  poptContext ctx = poptGetContext(0, argc, argv, options, 0);
+#ifdef HAVE_LIBPOPT
+  poptContext ctx = poptGetContext(0, argc, 
+                                   const_cast<const char **>(argv), 
+                                   options, 0);
 
   while ((c = poptGetNextOpt (ctx)) > 0 || c == POPT_ERROR_BADOPT)
   {
@@ -160,6 +196,7 @@ decode_switches (int argc, char **argv)
 
   poptFreeContext(ctx);
 
+#endif
 
   
   return optind;
@@ -171,13 +208,22 @@ usage (int status)
 {
   printf (_("%s - \
 Phred is a parallel finite difference time domain electromagnetics simulator.\n"), program_name);
+
+#ifdef HAVE_LIBPOPT
   printf (_("Usage: %s [OPTION]... [FILE]...\n"), program_name);
   printf (_("\
 Options:\n\
-  -i, --interactive          prompt for confirmation\n\
+  -f, --filename             filename to read problem description from\n\
   -v, --verbose              print more information\n\
   -h, --help                 display this help and exit\n\
   -V, --version              output version information and exit\n\
 "));
+#else
+  printf (_("Usage: %s FILENAME\n"), program_name);
+  printf(_("\
+FILENAME is the file containing the description of the proble to simulate.\n\
+"));
+#endif
+
   exit (status);
 }

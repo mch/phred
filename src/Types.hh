@@ -2,6 +2,9 @@
 // may be processed by autoconf in the future so these things 
 // can be configure switches, or dependent on machine type. 
 
+#ifndef TYPES_H
+#define TYPES_H
+
 // Boundary conditions
 enum BoundaryCondition {
   SUBDOMAIN, // Share me
@@ -35,3 +38,6 @@ typedef double field_t;
 
 // Grid spacings
 typedef double delta_t;
+
+
+#endif // TYPES_H

@@ -138,7 +138,7 @@ expri: INT { $$ = $1; }
 
 void parse_jan_grammer()
 {
-  yydebug=1;
+  //yydebug=1;
   yyparse();
 }
 

@@ -1,4 +1,4 @@
-/* config.h.in.  Generated from configure.in by autoheader.  */
+/* src/config.h.in.  Generated from configure.in by autoheader.  */
 
 /* Define to 1 if the `closedir' function returns void instead of `int'. */
 #undef CLOSEDIR_VOID
@@ -10,6 +10,9 @@
 
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
+
+/* Turn on debugging messages */
+#undef DEBUG
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
@@ -28,14 +31,17 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have the `mpi' library (-lmpi). */
+#undef HAVE_LIBMPI
+
+/* Define to 1 if you have the `popt' library (-lpopt). */
+#undef HAVE_LIBPOPT
+
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
-
-/* Define to 1 if you have the `mkfifo' function. */
-#undef HAVE_MKFIFO
 
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
@@ -54,10 +60,6 @@
 
 /* Define to 1 if `st_blocks' is member of `struct stat'. */
 #undef HAVE_STRUCT_STAT_ST_BLOCKS
-
-/* Define if struct utimbuf is declared -- usually in <utime.h>. Some systems
-   have utime.h but don't declare the struct anywhere. */
-#undef HAVE_STRUCT_UTIMBUF
 
 /* Define to 1 if your `struct stat' has `st_blocks'. Deprecated, use
    `HAVE_STRUCT_STAT_ST_BLOCKS' instead. */
@@ -95,9 +97,6 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if you have the <utime.h> header file. */
-#undef HAVE_UTIME_H
-
 /* Define to 1 if `major', `minor', and `makedev' are declared in <mkdev.h>.
    */
 #undef MAJOR_IN_MKDEV
@@ -105,6 +104,9 @@
 /* Define to 1 if `major', `minor', and `makedev' are declared in
    <sysmacros.h>. */
 #undef MAJOR_IN_SYSMACROS
+
+/* Turn off assertions */
+#undef NDEBUG
 
 /* Name of package */
 #undef PACKAGE
@@ -127,19 +129,19 @@
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
-#undef TIME_WITH_SYS_TIME
-
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
+
+/* Use the popt library */
+#undef USE_POPT
 
 /* Version number of package */
 #undef VERSION

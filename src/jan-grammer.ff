@@ -7,7 +7,7 @@
 #include <limits.h>
 #include <iostream>
 using namespace std;
-#include "jan-grammer.tab.h"
+#include "jan-grammer.h"
 %}
 
  /* Definitions */

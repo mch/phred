@@ -3,7 +3,7 @@
 Grid::Grid() 
   : global_dimx_(0), global_dimy_(0), global_dimz_(0), 
     dimx_(0), dimy_(0), dimz_(0), 
-    deltax_, deltay_, deltaz_, deltat_, 
+    deltax_(0), deltay_(0), deltaz_(0), deltat_(0), 
     num_materials_(0),
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
     Da_(0), Dbx_(0), Dby_(0), Dbz_(0),
@@ -24,7 +24,7 @@ Grid::~Grid()
 }
     
 
-Grid::free_grid()
+void Grid::free_grid()
 {
   // Slightly dangerous, but if one is allocated then all should 
   // be allocated. 
@@ -76,7 +76,7 @@ Grid::free_grid()
 }
 
 
-Grid::free_material()
+void Grid::free_material()
 {
   if (Ca_) {
     delete[] Ca_;
@@ -94,52 +94,52 @@ Grid::free_material()
 }
 
 
-Grid::init_datatypes()
+void Grid::init_datatypes()
 {
   MPI_Type_contiguous(dimz_, GRID_MPI_TYPE, &z_vector_);
-  MPI_Type_commit(&z_vector);
+  MPI_Type_commit(&z_vector_);
 
   MPI_Type_vector(dimy_, 1, dimz_, GRID_MPI_TYPE, &y_vector_);
-  MPI_Type_commit(&y_vector);
+  MPI_Type_commit(&y_vector_);
   
   MPI_Type_vector(dimx_, 1, dimy_ * dimz_, GRID_MPI_TYPE, &x_vector_);
-  MPI_Type_commit(&x_vector);
+  MPI_Type_commit(&x_vector_);
 
   // Not 100% sure about these:
   MPI_Type_vector(dimy_, 1, 0, z_vector_, &yz_plane_);
   MPI_Type_commit(&yz_plane_);
 
   MPI_Type_vector(dimx_, 1, dimy_, z_vector_, &xz_plane_);
-  MPI_Type_commit(&xz_plane);
+  MPI_Type_commit(&xz_plane_);
 
   MPI_Type_vector(dimx_, 1, 0, y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
 }
 
 
-Grid::alloc_grid()
+void Grid::alloc_grid()
 {
 
-  ex_ = new **field_t(dimx_);
-  ey_ = new **field_t(dimx_);
-  ez_ = new **field_t(dimx_);
+  ex_ = new field_t **[dimx_];
+  ey_ = new field_t **[dimx_];
+  ez_ = new field_t **[dimx_];
 
-  hx_ = new **field_t(dimx_);
-  hy_ = new **field_t(dimx_);
-  hz_ = new **field_t(dimx_);
+  hx_ = new field_t **[dimx_];
+  hy_ = new field_t **[dimx_];
+  hz_ = new field_t **[dimx_];
 
-  material_ = new **unsigned int(dimx_);
+  material_ = new unsigned int **[dimx_];
 
   for (unsigned int i = 0; i < dimx_; i++) {
-    ex_[i] = new *field_t(dimy_);
-    ey_[i] = new *field_t(dimy_);
-    ez_[i] = new *field_t(dimy_);
+    ex_[i] = new field_t *[dimy_];
+    ey_[i] = new field_t *[dimy_];
+    ez_[i] = new field_t *[dimy_];
 
-    hx_[i] = new *field_t(dimy_);
-    hy_[i] = new *field_t(dimy_);
-    hz_[i] = new *field_t(dimy_);
+    hx_[i] = new field_t *[dimy_];
+    hy_[i] = new field_t *[dimy_];
+    hz_[i] = new field_t *[dimy_];
 
-    material_[i] = new *unsigned int(dimy_);
+    material_[i] = new unsigned int *[dimy_];
 
     for (unsigned int j = 0; j < dimy_; j++) {
       ex_[i][j] = new field_t(dimz_);
@@ -169,7 +169,7 @@ Grid::alloc_grid()
 }
 
 
-Grid::load_materials(MaterialLib &matlib)
+void Grid::load_materials(MaterialLib &matlib)
 {
   // Clear up any material data that may already be loaded
   free_material();
@@ -305,4 +305,15 @@ void Grid::set_boundary(unsigned int face, BoundaryCondition bc)
 void Grid::set_face_rank(unsigned int face, int rank)
 {
   face_rank_[face] = rank;
+}
+
+
+void Grid::update_e()
+{
+
+}
+
+void Grid::update_h()
+{
+
 }

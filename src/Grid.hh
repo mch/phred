@@ -13,6 +13,8 @@
 #ifndef GRID
 #define GRID
 
+#include <mpi.h>
+
 #include "Types.hh"
 #include "MaterialLib.hh"
 
@@ -57,7 +59,7 @@ class Grid {
   
   // H Field Coefficients
   mat_coef_t *Da_;
-  mat_coef_t *Dbz_;
+  mat_coef_t *Dbx_;
   mat_coef_t *Dby_;
   mat_coef_t *Dbz_;
 
@@ -117,7 +119,7 @@ class Grid {
   virtual void update_h();
 
   // Calculate the material constants from the given material library
-  void load_material(MaterialLib &matlib);
+  void load_materials(MaterialLib &matlib);
   void free_material();
 
   // Grid actions
