@@ -67,6 +67,7 @@ const Grid &Grid::operator=(const Grid &rhs)
   num_materials_ = rhs.num_materials_;
   Ca_ = Cbx_ = Cby_ = Cbz_ = Da_ = Dbx_ = Dby_ = Dbz_ = 0;
   ex_ = ey_ = ez_ = hx_ = hy_ = hz_ = 0;
+  material_lib_ = rhs.material_lib_;
   material_ = 0;
   xy_plane_ = rhs.xy_plane_;
   yz_plane_ = rhs.yz_plane_;
@@ -474,7 +475,9 @@ void Grid::load_materials(MaterialLib &matlib)
     cerr << "Unable to load material data; the grid is not in define mode." << endl;
     return;
   }
-
+  
+  material_lib_ = matlib;
+  
   // Clear up any material data that may already be loaded
   free_material();
 

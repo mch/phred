@@ -24,6 +24,10 @@
 #include "Grid.hh"
 #include "Constants.hh"
 
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
 UPml::UPml()
   : d_(0), h_(0), sigmas_(0), poly_order_(4)
 {
@@ -39,6 +43,7 @@ void UPml::init(const Grid &grid, Face face)
 {
   compute_regions(face, grid);
 
+  // Allocate memory
   unsigned int sz = (grid_r_.xmax - grid_r_.xmin) 
     * (grid_r_.ymax - grid_r_.ymin) * (grid_r_.zmax - grid_r_.zmin);
   
@@ -75,14 +80,16 @@ void UPml::init(const Grid &grid, Face face)
   mat_coef_t sigma_max = (poly_order_ + 1) 
     / (150 * PI * delta * sqrt(EPS_0));
 
-  sigmas_ = new mat_coef_t[thickness];
+  sigmas_ = new mat_coef_t[thickness_];
 
-  for (int idx = 0; idx < thickness; idx++)
+  for (int idx = 0; idx < thickness_; idx++)
     sigmas_[idx] = sigma_max * pow(static_cast<float>(idx), 
                                    static_cast<float>(poly_order_)) 
-      / pow(static_cast<float>(thickness),
+      / pow(static_cast<float>(thickness_),
             static_cast<float>(poly_order_));
 
+  // Build the shadow library
+  
   
 }
 

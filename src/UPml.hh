@@ -74,7 +74,6 @@ protected:
   void update_hy(Grid &grid);
   void update_hz(Grid &grid);
 
-
 public:
   UPml();
   ~UPml();

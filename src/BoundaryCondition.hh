@@ -36,6 +36,7 @@ class SubdomainBc;
  */
 class BoundaryCond
 {
+  friend class Grid; // Gah. These shouldn't be friends! They should be ENEMIES!
 private:
 
 protected:
@@ -98,7 +99,7 @@ protected:
   /**
    * Calculates the field component update regions. 
    */
-  void compute_regions(Face face, const Grid &grid);
+  virtual void compute_regions(Face face, const Grid &grid);
 
   /** 
    * Compute the local boundary condition region to update for a

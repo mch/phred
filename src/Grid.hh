@@ -111,6 +111,9 @@ class Grid {
   mat_coef_t *Dby_;
   mat_coef_t *Dbz_;
 
+  // Material library
+  MaterialLib material_lib_;
+
   /**
    * Field data: one big vector, where a 3d coordinate is indexed
    * using idx = z + (y + x*dimy) * dimz. This is done this way so
@@ -842,6 +845,14 @@ class Grid {
   {
     assert(x < info_.dimx_ && y < info_.dimy_ && z < info_.dimz_);
     material_[pi(x, y, z)] = mid;
+  }
+
+  /**
+   * Return the material library
+   */ 
+  inline const MaterialLib &get_material_lib() const
+  {
+    return material_lib_;
   }
 
 };
