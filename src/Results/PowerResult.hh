@@ -92,6 +92,7 @@ protected:
   Variable real_var_; /**< Power data */
   Variable imag_var_; /**< Power data */
   Variable freq_var_; /**< Frequency data */
+  Variable power_var_; /**< Power at a time instant */ 
 
   field_t *et1r_;
   field_t *et1i_;

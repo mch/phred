@@ -267,6 +267,35 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
 //   }
 // #endif 
 
+  // Rearrange this so that there is only one loop traversing the
+  // data, and put the time and freq calculations inside?
+
+  // Compute the instantaneous power through the surface at this
+  // instant in time.
+  unsigned int idx = 0;
+  
+  for (unsigned int x = region_.xmin; x < region_.xmax; x++) 
+  {
+    for (unsigned int y = region_.ymin; y < region_.ymax; y++) 
+    {
+      for (unsigned int z = region_.zmin; z < region_.zmax; z++) 
+      {
+        et1 = plane_->get_e_t1(x, y, z);
+        et2 = plane_->get_e_t2(x, y, z);
+        
+        ht1 = (plane_->get_h_t1(x, y, z) 
+               + plane_->get_h_t1(x + step_x_, y + step_y_, 
+                                  z + step_z_)) / 2;
+        ht2 = (plane_->get_h_t2(x, y, z) 
+               + plane_->get_h_t2(x + step_x_, y + step_y_, 
+                                  z + step_z_)) / 2;
+
+        // .....
+      }
+    }
+  }
+
+  // Compute the power throught the surface in the frequency domain
   for (unsigned int i = 0; i <= num_freqs_; i++)
   {
     cos_temp = cos(2 * PI * freqs_[i] * time);
