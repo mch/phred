@@ -48,6 +48,8 @@ void CSGSphere::set_radius(float radius)
 {
   if (radius > 0)
     radius_ = radius;
+  else
+    throw CSGException("Sphere radius must be greater than zero.");
 }
 
 float CSGSphere::get_radius() const

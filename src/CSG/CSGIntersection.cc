@@ -37,7 +37,7 @@ CSGStatus CSGIntersection::is_point_inside(float x, float y, float z) const
   CSGStatus ret = l;
 
   if (l == INSIDE && r == INSIDE)
-    ret == INSIDE;
+    ret = INSIDE;
 
   return ret;
 }

@@ -21,6 +21,10 @@
 
 #include "CSGDifference.hh"
 
+#include <iostream>
+
+using namespace std;
+
 CSGDifference::CSGDifference(shared_ptr<CSGObject> left, 
                              shared_ptr<CSGObject> right)
   : CSGOperator(left, right)
@@ -36,8 +40,11 @@ CSGStatus CSGDifference::is_point_inside(float x, float y, float z) const
 
   CSGStatus ret = l;
 
-  if (l == INSIDE && r == INSIDE)
-    ret == OUTSIDE;
+  if (l == INSIDE && r == INSIDE) {
+    ret = OUTSIDE;
+//     cerr << "CSG Difference, point (" << x << ", " << y << ", " 
+//          << z << ") is inside both, thus outside. " << endl;
+  }
 
   return ret;
 }

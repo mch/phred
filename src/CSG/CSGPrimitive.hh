@@ -42,6 +42,14 @@ public:
   void set_centre(float x, float y, float z);
 
   /**
+   * Create a copy of this object. 
+   */ 
+  virtual shared_ptr<CSGObject> copy() const
+  {
+    return shared_ptr<CSGObject>(new CSGPrimitive(*this));
+  }
+
+  /**
    * Returns the centre of the object. 
    */ 
   point get_centre();

@@ -116,7 +116,8 @@ void PyInterpreter::run_script(const char *filename)
     {
       PyErr_Print();
     }
-    MPI_Abort(MPI_COMM_WORLD, 1);
+    throw PyInterpException("Python detected an error.");
+    //MPI_Abort(MPI_COMM_WORLD, 1);
   }
 
   fclose(fp);

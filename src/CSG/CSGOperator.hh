@@ -43,6 +43,29 @@ public:
   virtual ~CSGOperator()
   {}
 
+  CSGOperator(const CSGOperator &rhs)
+  {
+    *this = rhs;
+  }
+
+  // This needs to be fixed. 
+  const CSGOperator &operator=(const CSGOperator &rhs)
+  {
+    left_ = (*rhs.left_).copy();
+    right_ = (*rhs.right_).copy();
+
+    return *this;
+  }
+
+  /**
+   * Create a copy of this object. 
+   */ 
+  virtual shared_ptr<CSGObject> copy() const
+  {
+    CSGOperator *op = new CSGOperator((*left_).copy(), (*right_).copy());
+    return shared_ptr<CSGOperator>(op);
+  }
+
 protected:
   shared_ptr<CSGObject> left_;
   shared_ptr<CSGObject> right_;

@@ -54,23 +54,26 @@ CSGStatus CSGBox::is_point_inside(float x, float y, float z) const
 
 void CSGBox::set_size(float x_size, float y_size, float z_size)
 {
-  if (x_size > 0)
+  if (x_size >= 0)
   {
     lengths_[0] = x_size;
     half_lengths_[0] = x_size / 2.0;
-  }
+  } else
+    throw CSGException("Box size must be greater than zero along x dimension.");
 
-  if (y_size > 0)
+  if (y_size >= 0)
   {
     lengths_[1] = y_size;
     half_lengths_[1] = y_size / 2.0;
-  }
+  } else
+    throw CSGException("Box size must be greater than zero along y dimension.");
 
-  if (z_size > 0)
+  if (z_size >= 0)
   {
     lengths_[2] = z_size;
     half_lengths_[2] = z_size / 2.0;
-  }
+  } else
+    throw CSGException("Box size must be greater than zero along z dimension.");
 }
 
 point CSGBox::get_size() const

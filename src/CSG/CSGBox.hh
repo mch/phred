@@ -53,6 +53,14 @@ public:
   point get_size() const;
 
   /**
+   * Create a copy of this object. 
+   */ 
+  virtual shared_ptr<CSGObject> copy() const
+  {
+    return shared_ptr<CSGObject>(new CSGBox(*this));
+  }
+
+  /**
    * Returns true if the object on the right hand side is enclosed by
    * the object on the left.
    */

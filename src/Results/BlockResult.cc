@@ -132,24 +132,38 @@ map<string, Variable *> &BlockResult::get_result(const Grid &grid,
   {
     if (field_comp_ == FC_E)
     {
-      // SLOW!
+      field_t *f = field_data_;
+      const field_t *ex = grid.get_pointer(grid_point(0,0,0), FC_EX);
+      const field_t *ey = grid.get_pointer(grid_point(0,0,0), FC_EY);
+      const field_t *ez = grid.get_pointer(grid_point(0,0,0), FC_EZ);
+
       for (unsigned int i = 0; i < grid.get_ldx(); i++)
         for (unsigned int j = 0; j < grid.get_ldy(); j++)
-          for (unsigned int k = 0; k < grid.get_ldz(); k++)
-            field_data_[grid.pi(i,j,k)] 
-              = sqrt(pow(grid.get_ex(i,j,k), 2) 
-                     + pow(grid.get_ey(i,j,k), 2) 
-                     + pow(grid.get_ez(i,j,k), 2) );
+          for (unsigned int k = 0; k < grid.get_ldz(); 
+               k++, f++, ex++, ey++, ez++)
+            *f = sqrt(pow(*ex, 2) + pow(*ey, 2) + pow(*ez, 2));
+//             field_data_[grid.pi(i,j,k)] 
+//               = sqrt(pow(grid.get_ex(i,j,k), 2) 
+//                      + pow(grid.get_ey(i,j,k), 2) 
+//                      + pow(grid.get_ez(i,j,k), 2) );
     }
     else if (field_comp_ == FC_H)
     {
+      field_t *f = field_data_;
+      const field_t *hx = grid.get_pointer(grid_point(0,0,0), FC_HX);
+      const field_t *hy = grid.get_pointer(grid_point(0,0,0), FC_HY);
+      const field_t *hz = grid.get_pointer(grid_point(0,0,0), FC_HZ);
+
       for (unsigned int i = 0; i < grid.get_ldx(); i++)
         for (unsigned int j = 0; j < grid.get_ldy(); j++)
-          for (unsigned int k = 0; k < grid.get_ldz(); k++)
-            field_data_[grid.pi(i,j,k)] 
-              = sqrt(pow(grid.get_hx(i,j,k), 2) 
-                     + pow(grid.get_hy(i,j,k), 2) 
-                     + pow(grid.get_hz(i,j,k), 2) );
+          for (unsigned int k = 0; k < grid.get_ldz(); 
+               k++, f++, hx++, hy++, hz++)
+            *f = sqrt(pow(*hx, 2) + pow(*hy, 2) + pow(*hz, 2));
+
+//             field_data_[grid.pi(i,j,k)] 
+//               = sqrt(pow(grid.get_hx(i,j,k), 2) 
+//                      + pow(grid.get_hy(i,j,k), 2) 
+//                      + pow(grid.get_hz(i,j,k), 2) );
     }
 
     var_.set_num(1);

@@ -45,6 +45,14 @@ public:
   CSGStatus is_point_inside(float x, float y, float z) const;
 
   /**
+   * Create a copy of this object. 
+   */ 
+  virtual shared_ptr<CSGObject> copy() const
+  {
+    return shared_ptr<CSGObject>(new CSGSphere(*this));
+  }
+
+  /**
    * Set the radius of this sphere. 
    */ 
   void set_radius(float radius);

@@ -23,6 +23,11 @@
 #define CSG_OBJECT_H
 
 #include "../Types.hh"
+#include "../Exceptions.hh"
+
+#include <boost/shared_ptr.hpp>
+
+using namespace boost;
 
 /**
  * This is an abstract base class for a node in a constructive 
@@ -44,6 +49,14 @@ public:
   virtual CSGStatus is_point_inside(float x, float y, float z) const
   { return OUTSIDE; } // Should be abstract; this makes boost.python happy. 
   
+  /**
+   * Create a copy of this object. 
+   */ 
+  virtual shared_ptr<CSGObject> copy() const
+  {
+    return shared_ptr<CSGObject> (new CSGObject(*this));
+  }
+
   /**
    * Returns true if the object on the right hand side is enclosed by
    * the object on the left.

@@ -46,6 +46,8 @@ void CSGCylinder::set_radius(float radius)
 {
   if (radius > 0)
     radius_ = radius;
+  else
+    throw CSGException("Cylinder radius must be greater than zero.");
 }
 
 float CSGCylinder::get_radius() const
@@ -57,6 +59,8 @@ void CSGCylinder::set_height(float height)
 {
   if (height > 0)
     height_ = height;
+  else
+    throw CSGException("Cylinder height must be greater than zero.");
 }
   
 float CSGCylinder::get_height() const

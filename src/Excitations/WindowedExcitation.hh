@@ -76,12 +76,12 @@ public:
 
     }
 
-    cerr << "WindowedExcitation::init, xmin_ = " << xmin_
-         << ", ymin_ = " << ymin_ << ", zmin_ = " << zmin_
-         << ", xmax_ = " << xmax_ << ", ymax_ = " << ymax_
-         << ", zmax_ = " << zmax_ << endl;
-    cerr << "Local region starts at " << lxmin_ << ", " 
-         << lymin_ << ", " << lzmin_ << endl;
+//     cerr << "WindowedExcitation::init, xmin_ = " << xmin_
+//          << ", ymin_ = " << ymin_ << ", zmin_ = " << zmin_
+//          << ", xmax_ = " << xmax_ << ", ymax_ = " << ymax_
+//          << ", zmax_ = " << zmax_ << endl;
+//     cerr << "Local region starts at " << lxmin_ << ", " 
+//          << lymin_ << ", " << lzmin_ << endl;
   }
 
   /**

@@ -49,6 +49,11 @@ ProblemGeometry::get_material_id(float x, float y, float z) const
     if ((*((*iter).obj_)).is_point_inside(x, y, z) == INSIDE)
     {
       ret = (*iter).material_id_;
+
+//       cerr << "Point (" << x << ", " << y << ", " 
+//            << z << ") is inside material " 
+//            << (*iter).material_id_ << endl;
+
       break;
     }
   }
@@ -60,21 +65,21 @@ void ProblemGeometry::add_object(string material, shared_ptr<CSGObject> obj)
 {
   objects_.push_back(GeomObject(material, obj));
 
-  CSGBox *b = dynamic_cast<CSGBox *>(obj.get());
-  CSGSphere *s = dynamic_cast<CSGSphere *>(obj.get());
-  if (b)
-  {
-    point sz = b->get_size();
-    point c = b->get_centre();
-    cerr << "Added box with centre at " << c.x << ", " << c.y << ", "
-         << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
-         << endl;
-  } else if (s) {
-    point c = s->get_centre();
-    cerr << "Added sphere with centre at " << c.x << ", " << c.y << ", "
-         << c.z << ", radius " << s->get_radius()
-         << endl;
-  }
+//   CSGBox *b = dynamic_cast<CSGBox *>(obj.get());
+//   CSGSphere *s = dynamic_cast<CSGSphere *>(obj.get());
+//   if (b)
+//   {
+//     point sz = b->get_size();
+//     point c = b->get_centre();
+//     cerr << "Added box with centre at " << c.x << ", " << c.y << ", "
+//          << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
+//          << endl;
+//   } else if (s) {
+//     point c = s->get_centre();
+//     cerr << "Added sphere with centre at " << c.x << ", " << c.y << ", "
+//          << c.z << ", radius " << s->get_radius()
+//          << endl;
+//   }
 }
 
 void ProblemGeometry::set_grid_size(float x_size, float y_size, float z_size)
@@ -122,9 +127,9 @@ void ProblemGeometry::init(const Grid &grid)
   point c = box->get_centre();
   point sz = box->get_size();
 
-  cerr << "Grid is centred at " << c.x << ", " << c.y << ", "
-       << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
-       << endl;
+//   cerr << "Grid is centred at " << c.x << ", " << c.y << ", "
+//        << c.z << ", size " << sz.x << ", " << sz.y << ", " << sz.z 
+//        << endl;
 
   vector <GeomObject>::iterator iter = objects_.begin();
   vector <GeomObject>::iterator iter_e = objects_.end();
@@ -134,11 +139,11 @@ void ProblemGeometry::init(const Grid &grid)
     const Material &mat = (*material).get_material(grid_box_.material_.c_str());
     grid_box_.material_id_ = mat.get_id();
 
-    cerr << "ProblemGeom, set mat id to " << grid_box_.material_id_
-         << " for material '" << grid_box_.material_ << "'." << endl;
+//     cerr << "ProblemGeom, set mat id to " << grid_box_.material_id_
+//          << " for material '" << grid_box_.material_ << "'." << endl;
 
   } catch (const UnknownMaterialException &e) {
-    cout << "WARNING! The grid is using the material '"
+    cout << "ERROR! The grid is using the material '"
          << grid_box_.material_ << "' which does not exist!" << endl;
     throw e;
   }
@@ -151,12 +156,12 @@ void ProblemGeometry::init(const Grid &grid)
       (*iter).material_id_ = mat.get_id();
 
     } catch (const UnknownMaterialException &e) {
-      cout << "WARNING! A solid object is using the material '"
+      cout << "ERROR! A solid object is using the material '"
            << (*iter).material_ << "' which does not exist!" << endl;
       throw e;
     }
-    cerr << "ProblemGeom, set mat id to " << (*iter).material_id_
-         << " for material '" << (*iter).material_ << "'." << endl;
+//     cerr << "ProblemGeom, set mat id to " << (*iter).material_id_
+//          << " for material '" << (*iter).material_ << "'." << endl;
   }  
 }
 
