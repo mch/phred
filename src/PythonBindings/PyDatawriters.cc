@@ -60,6 +60,7 @@ void export_datawriters()
   class_<DataWriter, DataWriterWrap, boost::noncopyable>("DataWriter", 
                                                          "Data writer base class")
     .def("set_filename", &DataWriter::set_filename)
+    .def("add_scalar", &DataWriter::add_scalar)
     ;
 
   class_<NetCDFDataWriter, bases<DataWriter>, boost::noncopyable>("NetCDFDataWriter", 

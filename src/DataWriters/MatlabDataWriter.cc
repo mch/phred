@@ -833,6 +833,19 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
   return len;
 }
 
+void MatlabDataWriter::add_scalar(const char *name, double &value)
+{
+  vector<int> dim_lens;
+  dim_lens.push_back(1);
+
+  MatlabArray *array = 
+    new MatlabArray(name, dim_lens, false, MPI_DOUBLE, false);
+
+  vars_[name] = array;
+
+  array->append_buffer(sizeof(double), reinterpret_cast<void *>(&value));
+}
+
 void MatlabDataWriter::test()
 {
   vector<int> dims, dims2;

@@ -412,6 +412,18 @@ public:
   virtual void add_variable(Result &result);
 
   /**
+   * Add a scalar to be written to the output file. This is intended
+   * for small things that might be needed in post-processing.
+   *
+   * This throws a DataWriterException if the data writer does not
+   * support it.
+   *
+   * @param name variable name in the output file.
+   * @param value the value of the scalar
+   */ 
+  virtual void add_scalar(const char *name, double &value);
+
+  /**
    * Write a test file
    */ 
   void test();

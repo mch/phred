@@ -406,11 +406,34 @@ int main (int argc, char **argv)
     - static_cast<double>(start_cpu)) 
     / static_cast<double>(CLOCKS_PER_SEC);
 
-  cout << "Phred is phinished. \nPhred executed for " 
-       << time_total << " real seconds, and for "
-       << time_total_cpu << " CPU seconds. "
-       << endl;
+  int secs = static_cast<int>(now - start);
+  int mins = secs / 60;
+  secs = secs % 60;
+  int hours = mins / 60;
+  mins = mins % 60;
+  int days = hours / 24;
+  hours = hours % 24;
 
+  cout << "Phred is phinished. \nPhred executed for " ;
+  
+  if (days == 1)
+    cout << days << " day, "; 
+  else if (days > 1)
+    cout << days << " days, "; 
+  
+  if (hours == 1)
+    cout << hours << " hour, ";
+  else if (hours > 1)
+    cout << hours << " hours, ";
+  
+  if (mins == 1)
+    cout << mins << " minute, ";
+  else if (mins > 1)
+    cout << mins << " minutes, ";
+  
+  cout << secs << " seconds." << endl;
+  cout << time_total_cpu << " seconds of CPU time was used." << endl;
+  
 #ifdef USE_RUSAGE
   struct rusage ru; 
   

@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -128,6 +128,18 @@ public:
    * @param result describes the result
    */
   virtual void add_variable(Result &result) = 0;
+
+  /**
+   * Add a scalar to be written to the output file. This is intended
+   * for small things that might be needed in post-processing.
+   *
+   * This throws a DataWriterException if the data writer does not
+   * support it.
+   *
+   * @param name variable name in the output file.
+   * @param value the value of the scalar
+   */ 
+  virtual void add_scalar(const char *name, double &value);
 
   /**
    * Handle the data produced by a Result object. The default

@@ -109,23 +109,23 @@ what licences phred may be made availble under, which is currently
 only the GPL, but it could be made availble under other licences by
 request. These are:
 
-popt (command line option parsing), Lesser GNU Public Licence
+popt (command line option parsing), MIT/X Consortium License
 
 netCDF (data file output), unknown
 
 HDF (data file output), unknown
 
 LAM/MPI (Message passing), under a special license which is probably
-GPL compadible. 
+GPL compatible. 
 
 MPICH (Message passing), under a special license which is probably
-GPL compadible. 
+GPL compatible. 
 
-Python, 
+Python 2.3, Python license, GPL compatible
 
 readline, GPL
 
-Boost, Boost licence, GPL compadible AFAIK
+Boost, Boost licence, GPL compatible
 
 
 

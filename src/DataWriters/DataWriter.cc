@@ -30,6 +30,10 @@ DataWriter::DataWriter()
 DataWriter::~DataWriter()
 { }
 
+void DataWriter::add_scalar(const char *name, double &value)
+{
+  throw DataWriterException("This data writer does not support add_scalar.");
+}
 
 void DataWriter::set_filename(string filename)
 {
