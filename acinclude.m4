@@ -601,11 +601,11 @@ AC_ARG_WITH(boost,
 AC_HELP_STRING([--with-boost@<:@=DIR@:>@],[Set the path to the Boost installation]),
 [],[withval='yes'])
 
-if test "$1" = required -a "$withval" = no ; then
+if test "$1" = required -a "$withval" = "no" ; then
         AC_MSG_ERROR_BOOST_PYTHON
 fi
 
-if test "$withval" != no ; then
+if test "$withval" != "no" ; then
 
         saveCPPFLAGS=$CPPFLAGS
         saveLDFLAGS=$LDFLAGS
@@ -615,9 +615,9 @@ if test "$withval" != no ; then
                 LIBS="$LIBS -framework Python"
         fi
 
-        if test "$withval" != 'yes'; then
-                CPPFLAGS="-I$withval/include"
-                LDFLAGS="-L$withval/lib"
+        if test "$withval" != "yes"; then
+                CPPFLAGS="$CPPFLAGS -I$withval/include"
+                LDFLAGS="$LDFLAGS -L$withval/lib"
         fi
         LIBS="$LIBS -lboost_python"
 
@@ -645,8 +645,8 @@ BOOST_PYTHON_MODULE(hello)
         LIBS=$saveLIBS
 
 
-        if test "$ac_cxx_lib_boost_python" = yes ; then
-                if test "$withval" != yes ; then
+        if test "$ac_cxx_lib_boost_python" = "yes" ; then
+                if test "$withval" != "yes" ; then
                         CPPFLAGS="-I$withval/include $CPPFLAGS"
                         LDFLAGS="-L$withval/lib $LDFLAGS"
                 fi
