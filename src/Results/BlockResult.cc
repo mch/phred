@@ -21,6 +21,7 @@
 
 #include "BlockResult.hh"
 #include "../Globals.hh"
+#include <math.h>
 
 BlockResult::BlockResult()
   : field_comp_(FC_EY), init_(false), field_data_(0)

@@ -20,6 +20,7 @@
 */
 
 #include "BartlettExcitation.hh"
+#include <math.h>
 
 field_t BartlettExcitation::window(region_t r, 
                                    unsigned int i, unsigned int j, 
