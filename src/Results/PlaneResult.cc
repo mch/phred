@@ -150,8 +150,6 @@ void PlaneResult::init(const Grid &grid)
     break;
   }
 
-  //  cerr << "Have data? " << (have_data_ ? "yes" : "no") << endl;
-
   MPI_Type_commit(&datatype_);
 
   var_.set_name(base_name_);
