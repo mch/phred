@@ -232,6 +232,14 @@ class Grid {
   const Grid &operator=(const Grid &rhs);
 
   /**
+   * Return whether the grid is in define mode or not. 
+   */
+  inline bool get_define_mode() const
+  {
+    return define_;
+  }
+
+  /**
    * Turn define mode on or off. If you are turning off define mode,
    * a number of sanity checks and stability checks are made to
    * ensure that the settings make sense and can be solved. 
@@ -240,14 +248,6 @@ class Grid {
    * it on. 
    */
   virtual void set_define_mode(bool d);
-
-  /**
-   * Returns the PML common object used by the PML boundary conditions
-   */
-  inline PmlCommon &get_pml_common()
-  {
-    return pml_common_;
-  }
 
   /**
    * Compute the next time step of electric field. This is a convenience
@@ -297,7 +297,7 @@ class Grid {
    * Retrieve information about the grid's size, space and time step
    * size, and boundary conditions. 
    *
-   * @return a copy of the GridInfo object 
+   * @return a reference to the GridInfo object 
    */
   inline GridInfo& get_grid_info() 
   {

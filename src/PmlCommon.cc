@@ -25,6 +25,8 @@
 
 #include <math.h>
 
+PmlCommon *PmlCommon::pml_common_ = 0;
+
 PmlCommon::PmlCommon()
   : ratio_x_(0), ratio_star_x_(0), 
     ratio_y_(0), ratio_star_y_(0), 
@@ -42,7 +44,24 @@ PmlCommon::~PmlCommon()
   free_coeffs();
 }
 
-void PmlCommon::alloc_coeffs(Grid &grid)
+PmlCommon *PmlCommon::get_pml_common(Grid &grid)
+{
+  if (grid.get_define_mode())
+    return 0;
+
+  if (pml_common_)
+    return pml_common_;
+
+  pml_common_ = new PmlCommon();
+  if (!pml_common_)
+    return 0; // stack unwinding may be too costly here
+
+  pml_common_->init_coeffs(grid);
+
+  return pml_common_;
+}
+
+void PmlCommon::alloc_coeffs(const Grid &grid)
 {
   free_coeffs();
 
@@ -279,7 +298,7 @@ void PmlCommon::init_coeffs(Grid &grid)
   
 }
 
-void PmlCommon::init_ratios(Face face, Grid &grid, Pml *p)
+void PmlCommon::init_ratios(Face face, const Grid &grid, Pml *p)
 {
   delta_t d_space;
   int step; 

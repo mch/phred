@@ -19,7 +19,7 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
-#include "UPML.hh"
+#include "UPml.hh"
 #include "Exceptions.hh"
 #include "Grid.hh"
 
@@ -152,11 +152,11 @@ void UPml::update_ex(Grid &grid)
         hy = &(grid.hy_[idx]);
         
         for (k = grid_ex_r_.zmin; k < grid_ex_r_.zmax; k++) {
-          mid = material_[idx];
+          mid = grid.material_[idx];
           
-          *ex = Ca_[mid] * *ex
-            + Cby_[mid] * (*hz1 - *hz2)
-            + Cbz_[mid] * (*(hy - 1) - *hy);
+          *ex = grid.Ca_[mid] * *ex
+            + grid.Cby_[mid] * (*hz1 - *hz2)
+            + grid.Cbz_[mid] * (*(hy - 1) - *hy);
           
           ex++;
           hz1++;
@@ -195,11 +195,11 @@ void UPml::update_ey(Grid &grid)
         hx = &(grid.hx_[idx]);
 
         for (k = grid_ey_r_.zmin; k < grid_ey_r_.zmax; k++) {
-          mid = material_[idx];
+          mid = grid.material_[idx];
           
-          *ey = Ca_[mid] * *ey
-            + Cbz_[mid] * (*hx - *(hx-1))
-            + Cbx_[mid] * (*hz1 - *hz2);
+          *ey = grid.Ca_[mid] * *ey
+            + grid.Cbz_[mid] * (*hx - *(hx-1))
+            + grid.Cbx_[mid] * (*hz1 - *hz2);
           
           ey++;
           hx++;
@@ -238,11 +238,11 @@ void UPml::update_ez(Grid &grid)
         hy1 = &(grid.hy_[idx]);
 
         for (k = grid_ez_r_.zmin; k < grid_ez_r_.zmax; k++) {
-          mid = material_[idx];
+          mid = grid.material_[idx];
           
-          *ez = Ca_[mid] * *ez
-            + Cbx_[mid] * (*hy1 - *hy2)
-            + Cby_[mid] * (*hx1 - *hx2);
+          *ez = grid.Ca_[mid] * *ez
+            + grid.Cbx_[mid] * (*hy1 - *hy2)
+            + grid.Cby_[mid] * (*hx1 - *hx2);
 
           ez++;
           hy1++; hy2++; hx1++; hx2++;
@@ -277,11 +277,11 @@ void UPml::update_hx(Grid &grid)
         ez1 = &(grid.ez_[idx]);
 
         for (k = grid_hx_r_.zmin; k < grid_hx_r_.zmax; k++) {
-          mid = material_[idx];
+          mid = grid.material_[idx];
           
-          *hx = Da_[mid] * *hx
-            + Dby_[mid] * (*ez1 - *ez2)
-            + Dbz_[mid] * (*(ey+1) - *ey);
+          *hx = grid.Da_[mid] * *hx
+            + grid.Dby_[mid] * (*ez1 - *ez2)
+            + grid.Dbz_[mid] * (*(ey+1) - *ey);
           
           hx++; idx++;
           ez1++; ez2++; ey++;
@@ -317,11 +317,11 @@ void UPml::update_hy(Grid &grid)
         ez2 = &(grid.ez_[idx]);
 
         for (k = grid_hy_r_.zmin; k < grid_hy_r_.zmax; k++) {
-          mid = material_[idx];
+          mid = grid.material_[idx];
           
-          *hy = Da_[mid] * *hy
-            + Dbz_[mid] * (*ex - *(ex + 1))
-            + Dbx_[mid] * (*ez1 - *ez2);        
+          *hy = grid.Da_[mid] * *hy
+            + grid.Dbz_[mid] * (*ex - *(ex + 1))
+            + grid.Dbx_[mid] * (*ez1 - *ez2);        
           
           hy++; idx++;
           ex++; ez1++; ez2++;
@@ -356,11 +356,11 @@ void UPml::update_hz(Grid &grid)
         ey1 = &(grid.ey_[idx]);
 
         for (k = grid_hz_r_.zmin; k < grid_hz_r_.zmax; k++) {
-          mid = material_[idx];
+          mid = grid.material_[idx];
           
-          *hz1 = Da_[mid] * *hz1
-            + Dbx_[mid] * (*ey1 - *ey2)
-            + Dby_[mid] * (*ex1 - *ex2);
+          *hz1 = grid.Da_[mid] * *hz1
+            + grid.Dbx_[mid] * (*ey1 - *ey2)
+            + grid.Dby_[mid] * (*ex1 - *ex2);
           
           hz1++; idx++;
           ey1++; ey2++;

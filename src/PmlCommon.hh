@@ -76,9 +76,14 @@ private:
   unsigned int dimz_;
 
   /**
+   * The pointer to the one and only PmlCommon object.
+   */ 
+  static PmlCommon *pml_common_;
+
+  /**
    * Setup the coefficients 
    */
-  void alloc_coeffs(Grid &grid);
+  void alloc_coeffs(const Grid &grid);
 
   /**
    * Free the coefficients.
@@ -88,19 +93,13 @@ private:
   /**
    * Helper function to initialize ratios
    */
-  void init_ratios(Face face, Grid &grid, Pml *p);
+  void init_ratios(Face face, const Grid &grid, Pml *p);
 
-public:
   /**
    * Constructor
    */
   PmlCommon();
 
-  /**
-   * Destructornator!
-   */
-  ~PmlCommon();
-  
   /**
    * Set the common PML parameters and calculate coeffs and
    * stuff. Called by Grid when leaving define mode, when all the
@@ -110,6 +109,24 @@ public:
    */
   void init_coeffs(Grid &grid);
 
+public:
+  /**
+   * Destructornator!
+   */
+  ~PmlCommon();
+
+  /**
+   * Returns the only available instance of this class. If the grid is
+   * in define mode, null will be returned.
+   *
+   * @param grid required to initialize the class if this is the first
+   * time the instance has been requrested
+   *
+   * @return If the grid is in define mode, null will be returned,
+   * otherwise, the pml common object will be returned. 
+   */
+  static PmlCommon *get_pml_common(Grid &grid);
+  
   /**
    * Return a e_x_coef1 coefficient
    */

@@ -387,7 +387,7 @@ void Pml::pml_update_ex(Grid &grid)
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_ex_r_); 
 
-  PmlCommon &com = grid.get_pml_common();
+  PmlCommon *com = PmlCommon::get_pml_common(grid);
 
   for(i = pml_r.xmin, it = grid_ex_r_.xmin; it < grid_ex_r_.xmax; i++, it++)
     for(j = pml_r.ymin, jt = grid_ex_r_.ymin; jt < grid_ex_r_.ymax; j++, jt++)
@@ -399,14 +399,14 @@ void Pml::pml_update_ex(Grid &grid)
         mid = grid.material_[grid_idx];
 
         exz_[pml_idx] = 
-          com.get_e_z_coef1(kt) * grid.Ca_[mid] * exz_[pml_idx] 
-          + com.get_e_z_coef2(kt) * grid.Cbz_[mid] 
+          com->get_e_z_coef1(kt) * grid.Ca_[mid] * exz_[pml_idx] 
+          + com->get_e_z_coef2(kt) * grid.Cbz_[mid] 
             * (grid.hy_[grid.pi(it, jt, kt-1)] 
                - grid.hy_[grid.pi(it, jt, kt)]);
         
         exy_[pml_idx] = 
-          com.get_e_y_coef1(jt) * grid.Ca_[mid] * exy_[pml_idx] 
-          + com.get_e_y_coef2(jt) * grid.Cby_[mid] 
+          com->get_e_y_coef1(jt) * grid.Ca_[mid] * exy_[pml_idx] 
+          + com->get_e_y_coef2(jt) * grid.Cby_[mid] 
           * (grid.hz_[grid.pi(it, jt, kt)] 
              - grid.hz_[grid.pi(it, jt-1, kt)]);
         
@@ -424,7 +424,7 @@ void Pml::pml_update_ey(Grid &grid)
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_ey_r_); 
 
-  PmlCommon &com = grid.get_pml_common();
+  PmlCommon *com = PmlCommon::get_pml_common(grid);
 
   for(i = pml_r.xmin, it = grid_ey_r_.xmin; it < grid_ey_r_.xmax; i++, it++)
     for(j = pml_r.ymin, jt = grid_ey_r_.ymin; jt < grid_ey_r_.ymax; j++, jt++)
@@ -436,14 +436,14 @@ void Pml::pml_update_ey(Grid &grid)
         mid = grid.material_[grid_idx];
 
         eyx_[pml_idx] = 
-          com.get_e_x_coef1(it) * grid.Ca_[mid] * eyx_[pml_idx] 
-          + com.get_e_x_coef2(it) * grid.Cbx_[mid] 
+          com->get_e_x_coef1(it) * grid.Ca_[mid] * eyx_[pml_idx] 
+          + com->get_e_x_coef2(it) * grid.Cbx_[mid] 
             * (grid.hz_[grid.pi(it-1, jt, kt)] 
                - grid.hz_[grid.pi(it, jt, kt)]);
         
         eyz_[pml_idx] = 
-          com.get_e_z_coef1(kt) * grid.Ca_[mid] * eyz_[pml_idx] 
-          + com.get_e_z_coef2(kt) * grid.Cbz_[mid] 
+          com->get_e_z_coef1(kt) * grid.Ca_[mid] * eyz_[pml_idx] 
+          + com->get_e_z_coef2(kt) * grid.Cbz_[mid] 
             * (grid.hx_[grid.pi(it, jt, kt)] 
                - grid.hx_[grid.pi(it, jt, kt-1)]);
         
@@ -461,7 +461,7 @@ void Pml::pml_update_ez(Grid &grid)
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_ez_r_); 
 
-  PmlCommon &com = grid.get_pml_common();
+  PmlCommon *com = PmlCommon::get_pml_common(grid);
 
   for(i = pml_r.xmin, it = grid_ez_r_.xmin; it < grid_ez_r_.xmax; i++, it++)
     for(j = pml_r.ymin, jt = grid_ez_r_.ymin; jt < grid_ez_r_.ymax; j++, jt++)
@@ -473,14 +473,14 @@ void Pml::pml_update_ez(Grid &grid)
         mid = grid.material_[grid_idx];
 
         ezy_[pml_idx] = 
-          com.get_e_y_coef1(jt) * grid.Ca_[mid] * ezy_[pml_idx] 
-          + com.get_e_y_coef2(jt) * grid.Cby_[mid] 
+          com->get_e_y_coef1(jt) * grid.Ca_[mid] * ezy_[pml_idx] 
+          + com->get_e_y_coef2(jt) * grid.Cby_[mid] 
           * (grid.hx_[grid.pi(it, jt-1, kt)] 
              - grid.hx_[grid.pi(it, jt, kt)]);
         
         ezx_[pml_idx] = 
-          com.get_e_x_coef1(it) * grid.Ca_[mid] * ezx_[pml_idx] 
-          + com.get_e_x_coef2(it) * grid.Cbx_[mid] 
+          com->get_e_x_coef1(it) * grid.Ca_[mid] * ezx_[pml_idx] 
+          + com->get_e_x_coef2(it) * grid.Cbx_[mid] 
           * (grid.hy_[grid.pi(it, jt, kt)] 
              - grid.hy_[grid.pi(it-1, jt, kt)]);
         
@@ -498,7 +498,7 @@ void Pml::pml_update_hx(Grid &grid)
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_hx_r_); 
 
-  PmlCommon &com = grid.get_pml_common();
+  PmlCommon *com = PmlCommon::get_pml_common(grid);
 
   for(i = pml_r.xmin, it = grid_hx_r_.xmin; it < grid_hx_r_.xmax; i++, it++)
     for(j = pml_r.ymin, jt = grid_hx_r_.ymin; jt < grid_hx_r_.ymax; j++, jt++)
@@ -510,14 +510,14 @@ void Pml::pml_update_hx(Grid &grid)
         mid = grid.material_[grid_idx];
 
         hxz_[pml_idx] = 
-          com.get_h_z_coef1(kt) * grid.Da_[mid] * hxz_[pml_idx] 
-          + com.get_h_z_coef2(kt) * grid.Dbz_[mid] 
+          com->get_h_z_coef1(kt) * grid.Da_[mid] * hxz_[pml_idx] 
+          + com->get_h_z_coef2(kt) * grid.Dbz_[mid] 
           * (grid.ey_[grid.pi(it, jt, kt+1)] 
              - grid.ey_[grid.pi(it, jt, kt)]);
         
         hxy_[pml_idx] = 
-          com.get_h_y_coef1(jt) * grid.Da_[mid] * hxy_[pml_idx] 
-          + com.get_h_y_coef2(jt) * grid.Dby_[mid] 
+          com->get_h_y_coef1(jt) * grid.Da_[mid] * hxy_[pml_idx] 
+          + com->get_h_y_coef2(jt) * grid.Dby_[mid] 
           * (grid.ez_[grid.pi(it, jt, kt)] 
              - grid.ez_[grid.pi(it, jt+1, kt)]);
         
@@ -535,7 +535,7 @@ void Pml::pml_update_hy(Grid &grid)
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_hy_r_); 
 
-  PmlCommon &com = grid.get_pml_common();
+  PmlCommon *com = PmlCommon::get_pml_common(grid);
 
   for(i = pml_r.xmin, it = grid_hy_r_.xmin; it < grid_hy_r_.xmax; i++, it++)
     for(j = pml_r.ymin, jt = grid_hy_r_.ymin; jt < grid_hy_r_.ymax; j++, jt++)
@@ -547,14 +547,14 @@ void Pml::pml_update_hy(Grid &grid)
         mid = grid.material_[grid_idx];
 
         hyx_[pml_idx] = 
-          com.get_h_x_coef1(it) * grid.Da_[mid] * hyx_[pml_idx] 
-          + com.get_h_x_coef2(it) * grid.Dbx_[mid] 
+          com->get_h_x_coef1(it) * grid.Da_[mid] * hyx_[pml_idx] 
+          + com->get_h_x_coef2(it) * grid.Dbx_[mid] 
           * (grid.ez_[grid.pi(it+1, jt, kt)] 
              - grid.ez_[grid.pi(it, jt, kt)]);
         
         hyz_[pml_idx] = 
-          com.get_h_z_coef1(kt) * grid.Da_[mid] * hyz_[pml_idx] 
-          + com.get_h_z_coef2(kt) * grid.Dbz_[mid] 
+          com->get_h_z_coef1(kt) * grid.Da_[mid] * hyz_[pml_idx] 
+          + com->get_h_z_coef2(kt) * grid.Dbz_[mid] 
           * (grid.ex_[grid.pi(it, jt, kt)] 
              - grid.ex_[grid.pi(it, jt, kt+1)]);
         
@@ -572,7 +572,7 @@ void Pml::pml_update_hz(Grid &grid)
   // Region in the PML to update
   region_t pml_r = find_local_region(grid_hz_r_); 
 
-  PmlCommon &com = grid.get_pml_common();
+  PmlCommon *com = PmlCommon::get_pml_common(grid);
 
   for(i = pml_r.xmin, it = grid_hz_r_.xmin; it < grid_hz_r_.xmax; i++, it++)
     for(j = pml_r.ymin, jt = grid_hz_r_.ymin; jt < grid_hz_r_.ymax; j++, jt++)
@@ -584,14 +584,14 @@ void Pml::pml_update_hz(Grid &grid)
         mid = grid.material_[grid_idx];
 
         hzy_[pml_idx] = 
-          com.get_h_y_coef1(jt) * grid.Da_[mid] * hzy_[pml_idx] 
-          + com.get_h_y_coef2(jt) * grid.Dby_[mid] 
+          com->get_h_y_coef1(jt) * grid.Da_[mid] * hzy_[pml_idx] 
+          + com->get_h_y_coef2(jt) * grid.Dby_[mid] 
           * (grid.ex_[grid.pi(it, jt+1, kt)] 
              - grid.ex_[grid.pi(it, jt, kt)]);
         
         hzx_[pml_idx] = 
-          com.get_h_x_coef1(it) * grid.Da_[mid] * hzx_[pml_idx] 
-          + com.get_h_x_coef2(it) * grid.Dbx_[mid] 
+          com->get_h_x_coef1(it) * grid.Da_[mid] * hzx_[pml_idx] 
+          + com->get_h_x_coef2(it) * grid.Dbx_[mid] 
           * (grid.ey_[grid.pi(it, jt, kt)] 
              - grid.ey_[grid.pi(it+1, jt, kt)]);
         
