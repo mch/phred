@@ -165,7 +165,7 @@ public:
   /**
    * Returns the starting points of the dimensions for this rank. 
    */
-  inline const vector<unsigned int> &get_fim_starts() const
+  inline const vector<unsigned int> &get_dim_starts() const
   {
     return dim_starts_;
   }

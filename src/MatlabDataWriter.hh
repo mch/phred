@@ -30,6 +30,7 @@
 
 #include <sys/types.h>
 #include <stdint.h>
+#include <mpi.h>
 
 using namespace std;
 
@@ -94,19 +95,11 @@ typedef struct {
  * Array flags format
  */
 typedef struct {
-  uint8_t undefined[2];
   union flags_t {
-    uint8_t byte;
-    struct {
-      char bits: 4;
-      char complex_bit: 1;
-      char global_bit: 1;
-      char logical_bit: 1;
-      char one_more_bit: 1;
-    } bits;
+    uint32_t flags32;
+    uint8_t flag_bytes[4];
   } flags;
-  uint8_t array_class;
-  uint8_t undefined2[4];
+  uint32_t undefined;
 } array_flags_t;
 
 /**
@@ -114,7 +107,8 @@ typedef struct {
  *
  * \bug This buffers data until we can write it out. The buffer
  * implementation is extremly poor; it reallocates a new chunk of
- * memory when it is needed and just copies everything. Ugg. 
+ * memory when it is needed and just copies everything. Ugg. Chaining
+ * would probably be better.
  */
 class MatlabElement {
   friend class MatlabArray;
@@ -123,14 +117,19 @@ private:
   MatlabElement(MATLAB_data_type type);
   MatlabElement();
 
-  //MatlabElement(const MatlabElement &rhs);
-  //const MatlabElement &operator=(const MatlabElement &rhs);
+  // Not allowed. 
+  MatlabElement(const MatlabElement &rhs)
+  {}
+  const MatlabElement &operator=(const MatlabElement &rhs)
+  {}
 
 protected:
   data_tag_t tag_; /**< Type and size of data */ 
   unsigned char num_pad_bytes_; /**< Number of pad bytes on the end of
                                    the data to make it align to 64 bit
                                    boundaries. */  
+
+  MPI_Datatype mpi_type_; 
   
   unsigned int file_offset_; /**< Position (in bytes) in the file of
                                 the start of the tag for this element */ 
@@ -161,13 +160,23 @@ public:
   }
 
   /**
+   * Overwrite data in the buffer
+   *
+   * @param num_bytes The number of bytes to write
+   * @param ptr The memory to get the data from
+   */ 
+  virtual void overwrite_buffer(unsigned int num_bytes, 
+                                const void *ptr);
+
+  /**
    * Append to the buffer. 
    *
    * @param num_bytes The number of bytes to append to the end of
    * this element. 
    * @param ptr The memory to get the data from. 
    */
-  virtual void append_buffer(unsigned int num_bytes, const void *ptr);
+  virtual void append_buffer(unsigned int num_bytes, 
+                             const void *ptr);
 
   /**
    * Write the buffered data to disk, along with it's tag telling the
@@ -178,23 +187,13 @@ public:
   virtual void write_buffer(ostream &stream);
 
   /**
-   * Writes some data to the given ostream
-   *
-   * @param stream The output stream to write to. 
-   * @param num_bytes The number of bytes to append to the end of
-   * this element. 
-   * @param ptr The memory to get the data from. 
+   * Reshape the data into N rows and M columns.
+   * 
+   * @param N number of rows
+   * @param M Number of columns
    */
-  // virtual void write_data(ostream &stream, unsigned int num_bytes,
-//                           const void *ptr, bool buffer = true);
+  virtual void reshape_buffer(int N, int M, MPI_Datatype type);
   
-  /**
-   * Updates the file offset so that we know where to find the tag in
-   * the file. 
-   *
-   * @param bytes The number of bytes to add to the current offset. 
-   */ 
-  //virtual void update_file_offset(int bytes);
 };
 
 /**
@@ -207,8 +206,11 @@ class MatlabArray : public MatlabElement {
   friend class MatlabDataWriter; 
 private:
 
-  //MatlabArray(const MatlabVariable &rhs);
-  //const MatlabArray &operator=(const MatlabVariable &rhs);
+  // Not allowed
+  MatlabArray(const MatlabArray &rhs)
+  {}
+  const MatlabArray &operator=(const MatlabArray &rhs)
+  {}
 
 protected:
   MatlabElement me_flags_;
@@ -233,8 +235,9 @@ protected:
   
 public:
   MatlabArray(const char *name, 
-              const vector<int> &dim_lens, bool time_dim,
-              MATLAB_data_type type,
+              const vector<int> &dim_lens, 
+              bool time_dim,
+              MPI_Datatype type,
               bool complex); 
 
   virtual ~MatlabArray();
@@ -255,17 +258,6 @@ public:
    */ 
   virtual void write_buffer(ostream &stream);
 
-  /**
-   * Writes this array to the given ostream
-   *
-   * @param stream The output stream to write to. 
-   * @param num_bytes The number of bytes to append to the end of
-   * this element. 
-   * @param ptr The memory to get the data from. 
-   */
-  //void write_data(ostream &stream, unsigned int num_bytes,
-  //                const void *ptr);
-  
   /**
    * How many bytes (data and tag) will this variable write? This
    * must ask all of the children how big they are, and report the
@@ -298,10 +290,7 @@ protected:
   struct {
     char text[124];
     uint16_t version;
-    union {
-      uint16_t endian_16; 
-      char bytes[2];
-    } endian;
+    uint8_t endian[2]; 
   } header_;
 
   map<string, MatlabArray *> vars_;
@@ -340,8 +329,6 @@ protected:
                  const vector<int> &dimensions, 
                  MATLAB_data_type type,
                  bool complex);
-
-  //static MatlabArray build_char_array(const char *name);
 
 public:
   MatlabDataWriter(int rank, int size);
