@@ -37,9 +37,13 @@ void MatlabElement::compress_helper()
   T temp = 0;
   unsigned int size = tag_.num_bytes / sizeof(T);
   bool is_int = true;
-  double max = 0;
-  double min = 0;
   T *tptr = reinterpret_cast<T *>(buffer_);
+
+  if (size == 0)
+    return;
+
+  double max = static_cast<double>(tptr[0]);
+  double min = max;
 
   for (unsigned int idx = 0; idx < size; idx++)
   {      
@@ -89,6 +93,11 @@ void MatlabElement::compress_helper()
     {
       compressed_tag_.datatype = miINT32;
       compressed_tag_.num_bytes = size * sizeof(signed int);
+    }
+    else
+    {
+      compressed_tag_.datatype = miDOUBLE;
+      compressed_tag_.num_bytes = size * sizeof(double);
     }
   } 
   else
@@ -159,15 +168,10 @@ void write_compress_helper(ostream &stream, data_tag_t tag,
       }
       break;
     case miSINGLE:
+    case miDOUBLE:
       {
         // Compression has to write floats as doubles or MATLAB won't
         // be able to load the resulting file.
-        double temp2 = static_cast<double>(temp);
-        stream.write(reinterpret_cast<char *>(&temp2), sizeof(double));
-      }
-      break;
-    case miDOUBLE:
-      {
         double temp2 = static_cast<double>(temp);
         stream.write(reinterpret_cast<char *>(&temp2), sizeof(double));
       }
