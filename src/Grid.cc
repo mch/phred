@@ -1357,6 +1357,8 @@ grid_point Grid::get_global_cell(point p) const
   return get_global_cell(p.x, p.y, p.z);
 }
 
+// MCH, 2005-02-08: Modified to use global lengths rather than local
+// when checkni if a point is outside of the grid.
 grid_point Grid::get_global_cell(float x, float y, float z) const
 {
   grid_point ret; 
@@ -1366,6 +1368,7 @@ grid_point Grid::get_global_cell(float x, float y, float z) const
     point size = (*pg_).get_grid_size();
     point centre = (*pg_).get_grid_centre();
 
+    // Lower left back corner of the grid
     float xs = centre.x - size.x / 2;
     float ys = centre.y - size.y / 2;
     float zs = centre.z - size.z / 2;
@@ -1378,22 +1381,22 @@ grid_point Grid::get_global_cell(float x, float y, float z) const
     if (x > xs)
     {
       i = static_cast<unsigned int>(floor((x - xs) / get_deltax()));
-      if (i > get_ldx_sd())
-        i = get_ldx_sd() - 1;
+      if (i > get_gdx())
+        i = get_gdx() - 1;
     }
 
     if (y > ys)
     {
       j = static_cast<unsigned int>(floor((y - ys) / get_deltay()));
-      if (j > get_ldy_sd())
-        j = get_ldy_sd() - 1;
+      if (j > get_gdy())
+        j = get_gdy() - 1;
     }
 
     if (z > zs)
     {
       k = static_cast<unsigned int>(floor((z - zs) / get_deltaz()));
-      if (k > get_ldz_sd())
-        k = get_ldz_sd() - 1;
+      if (k > get_gdz())
+        k = get_gdz() - 1;
     }
 
     ret.x = i;

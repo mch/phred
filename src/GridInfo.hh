@@ -62,8 +62,8 @@ public:
   unsigned int start_y_;
   unsigned int start_z_;
 
-  // Local grid size (this sub domain only) INCLUDING overlap
-  // This overlap allows us to calculate the interior of
+  // Local grid size (this sub domain only) INCLUDING ghost cells
+  // This ghost cells allow us to calculate the interior of
   // the subdomain without having to stop and ask the other
   // processors for data. 
   unsigned int dimx_;
@@ -72,13 +72,13 @@ public:
 
   // These dimensions are intended to be returned by the Grid to
   // clients which need them, such as results. These sizes DO NOT
-  // include the subdomain overlap.
+  // include the ghost cells.
   unsigned int dimx_no_sd_;
   unsigned int dimy_no_sd_;
   unsigned int dimz_no_sd_;
 
   // Local grid starting point W.R.T global grid, NOT INCLUDING
-  // subdomain overlap.
+  // ghost cells.
   unsigned int start_x_no_sd_;
   unsigned int start_y_no_sd_;
   unsigned int start_z_no_sd_;
@@ -128,7 +128,7 @@ protected:
   /**
    * This region defines the minimums and maximums for the
    * computational domain on the local process, not including any
-   * overlap that may occur due to the division of the global
+   * ghost cells that may exist due to the division of the global
    * computational domain among processors.
    */ 
   region_t local_domain_no_ol_;
@@ -136,7 +136,7 @@ protected:
   /**
    * This region defines the minimums and maximums for the
    * computational domain on the local process with respect to the
-   * global domain, not including any overlap that may occur due to
+   * global domain, not including any ghost cells that may exist due to
    * the division of the global computational domain among processors.
    */ 
   region_t local_domain_in_global_no_ol_;

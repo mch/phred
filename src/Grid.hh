@@ -142,8 +142,8 @@ class Grid {
 
   // Derived MPI data types for sending data around. These are for
   // Grid internal use ONLY. Results MUST create thier own data types,
-  // since generally results will not want to include the overlap, and
-  // these always include the overlap.
+  // since generally results will not want to include the ghost cells, 
+  // which these always include.
   MPI_Datatype xy_plane_;
   MPI_Datatype yz_plane_;
   MPI_Datatype xz_plane_;
@@ -417,14 +417,14 @@ class Grid {
   }
 
   /**
-   * Convert global coordinate to local grid coordinates. Generally
-   * excitations and geometry specifications are given in terms of
-   * the global FDTD grid. Since each processor only knows about part
-   * of that grid, it is necessary to convert global coordinates to
-   * local ones that can be used. 
+   * Convert global coordinate to local coordinates. Generally
+   * excitations and geometry specifications are given in terms of the
+   * global computational domain. Since each processor only knows
+   * about part of that domain, it is necessary to convert global
+   * coordinates to local ones that can be used.
    *
    * @param r the global region to convert.
-   * @param no_ol true if the subdomain overlap should NOT be included (for Results)
+   * @param no_ol true if the ghost cells should NOT be included (for Results)
    *
    * @return region in local coordinate. 
    */
@@ -440,11 +440,11 @@ class Grid {
   grid_point global_to_local(grid_point p) const;
 
   /**
-   * Convert global coordinate to local grid coordinates. Generally
-   * excitations and geometry specifications are given in terms of
-   * the global FDTD grid. Since each processor only knows about part
-   * of that grid, it is necessary to convert global coordinates to
-   * local ones that can be used. 
+   * Convert a global grid regions to a local grid region. Generally
+   * excitations and geometry specifications are given in terms of the
+   * global FDTD grid. Since each processor only knows about part of
+   * that grid, it is necessary to convert global coordinates to local
+   * ones that can be used.
    *
    * @param xmin The starting cell of the box in x
    * @param x_stop The ending cell of the box in x
@@ -459,29 +459,6 @@ class Grid {
                                     unsigned int ymin, unsigned int y_stop, 
                                     unsigned int zmin, unsigned int z_stop,
                                     bool no_ol = false) const;
-
-  /**
-   * Define geometry in the grid (i.e. assign material indicies to
-   * grid points). All definitions are done in global coordinates. It
-   * is the grid's job to calculate the region within the subdomain
-   * and assign the material indicies appropriatly. This function can
-   * only be used in define mode. 
-   *
-   * @param xmin The starting cell of the box in x
-   * @param x_stop The ending cell of the box in x
-   * @param ymin The starting cell of the box in y
-   * @param y_stop The ending cell of the box in y
-   * @param zmin The starting cell of the box in z
-   * @param z_stop The ending cell of the box in z
-   *
-   * @param mat_index The material index to use in this region. 0 is
-   * perfect electric conductor, 1 and up are ordered as in the
-   * material library.
-   */
-  //virtual void define_box(unsigned int xmin, unsigned int x_stop, 
-  //                        unsigned int ymin, unsigned int y_stop, 
-  //                        unsigned int zmin, unsigned int z_stop, 
-  //                        unsigned int mat_index);
 
   /**
    * Returns the global size of the x dimension.
@@ -545,7 +522,7 @@ class Grid {
 
   /**
    * Returns the local start of the x dimension, INCLUDING any
-   * overlap. 
+   * ghost cells. 
    *
    * @return local grid x start
    */
@@ -555,7 +532,7 @@ class Grid {
   }
 
   /**
-   * Returns the local start of the y dimension, INCLUDING any overlap.
+   * Returns the local start of the y dimension, INCLUDING any ghost cells.
    *
    * @return local grid y start
    */
@@ -565,7 +542,7 @@ class Grid {
   }
 
   /**
-   * Returns the local start of the z dimension, INCLUDING any overlap. 
+   * Returns the local start of the z dimension, INCLUDING any ghost cells. 
    *
    * @return local grid z start
    */
@@ -606,7 +583,7 @@ class Grid {
 
   /**
    * Returns the local size of the x dimension, including any
-   * subdomain overlap, if it exists.
+   * ghost cells, if they exists.
    *
    * @return local grid x size
    */
@@ -617,7 +594,7 @@ class Grid {
 
   /**
    * Returns the local size of the y dimension, including any
-   * subdomain overlap, if it exists.
+   * ghost cells, if they exists.
    *
    * @return local grid y size
    */
@@ -628,7 +605,7 @@ class Grid {
 
   /**
    * Returns the local size of the z dimension, including any
-   * subdomain overlap, if it exists.
+   * ghost cells, if present.
    *
    * @return local grid z size
    */
@@ -857,7 +834,7 @@ class Grid {
    * take care when using this pointer! 
    *
    * This is intended to be used by SubdomainBc for sending and
-   * recieving data between ranks where the grids overlap. 
+   * recieving data between ranks where the grids overlap (the ghost cells)
    *
    * @param face The face of interest
    * @param comp The component of interest
@@ -956,7 +933,7 @@ class Grid {
 
   /**
    * Returns a region of cells contained inside a given non-rotated
-   * CSGBox, NOT INCLUDING any overlap due to subdomain division.
+   * CSGBox, NOT INCLUDING any ghost cells due to subdomain division.
    *
    * Returned region is in local coordinates, suitable for iterating
    * over.
@@ -965,7 +942,7 @@ class Grid {
 
   /**
    * Returns a region of cells contained inside a given non-rotated
-   * CSGBox, NOT INCLUDING any overlap due to subdomain division. 
+   * CSGBox, NOT INCLUDING any ghost cells due to subdomain division. 
    *
    * Returned region is in GLOBAL coordinates, suitable only for setting
    * up dimensions in Results. 

@@ -1,0 +1,31 @@
+Running Phred on IRIX
+---------------------
+Read the MPI and OpenMP man pages! There is lots of important info
+there! 
+
+Debugging:
+Set MPI_COREDUMP_VERBOSE=1 
+
+Use a CPU list? 
+
+Use MPI_DSM_PLACEMENT... firsttouch or threadroundrobin? fixed is
+default...
+
+MPI_DSM_TOPOLOGY=cube? 
+
+MPI_DSM_VERBOSE prints info about numa process placement
+
+MPI_DSM_VERIFY makes some checks...
+
+MPI_OPENMP_INTEROP... see "Using MPI with OpenMP"... set this and
+compile with -mp, and link such that the libmpi.so init code runs
+before the libmp.so init code: CC -64 -mp compute_mp.C -lmp -lmpi++ -lmpi
+
+
+cpusets? MPI_DSM_OFF? 
+
+
+
+OpenMP options:
+_DSM_MIGRATION=ON to migrate pages around...
+_DSM_VERBOSE

@@ -222,28 +222,36 @@ void FDTD::run()
 
   delete alg;
 
-#ifdef DEBUG
-  cerr << "Local grid on rank " << MPI_RANK << " is "
-       << local_ginfo_.dimx_ << " x " 
-       << local_ginfo_.dimy_ << " x " 
-       << local_ginfo_.dimz_ << ".\n"
-       << "Global grid as far as this rank is concerened: " 
-       << local_ginfo_.global_dimx_ << " x " 
-       << local_ginfo_.global_dimy_ << " x " 
-       << local_ginfo_.global_dimz_ << ".\n"
-       << "Local grid with no subdomain overlaps: "
-       << local_ginfo_.dimx_no_sd_ << " x " 
-       << local_ginfo_.dimy_no_sd_ << " x " 
-       << local_ginfo_.dimz_no_sd_ << ".\n"
-       << "Local grid starts at: "
-       << local_ginfo_.start_x_no_sd_ << " x " 
-       << local_ginfo_.start_y_no_sd_ << " x " 
-       << local_ginfo_.start_z_no_sd_ << ".\n"
-       << "Global grid starts at: "
-       << local_ginfo_.start_x_ << " x " 
-       << local_ginfo_.start_y_ << " x " 
-       << local_ginfo_.start_z_ << ".\n\n";
-#endif
+  if (!quiet)
+  {
+    cout
+      << "Size of the entire (global) grid: \n\t-> " 
+      << local_ginfo_.global_dimx_ << " x " 
+      << local_ginfo_.global_dimy_ << " x " 
+      << local_ginfo_.global_dimz_ << ".\n"
+    
+      << "Size of the local grid on rank " << MPI_RANK << ":\n\t-> "
+      << local_ginfo_.dimx_ << " x " 
+      << local_ginfo_.dimy_ << " x " 
+      << local_ginfo_.dimz_ << ".\n"
+
+      << "Size of the local grid excluding ghost cells:\n\t-> "
+      << local_ginfo_.dimx_no_sd_ << " x " 
+      << local_ginfo_.dimy_no_sd_ << " x " 
+      << local_ginfo_.dimz_no_sd_ << ".\n"
+
+      << "Within the global grid, the local grid on rank " 
+      << MPI_RANK << " starts at:\n\t-> "
+      << local_ginfo_.start_x_ << " x " 
+      << local_ginfo_.start_y_ << " x " 
+      << local_ginfo_.start_z_ << ".\n"
+
+    << "Within the global grid, the local grid on rank " 
+      << MPI_RANK << ", excluding ghost cells, \nstarts at:\n\t-> "
+      << local_ginfo_.start_x_no_sd_ << " x " 
+      << local_ginfo_.start_y_no_sd_ << " x " 
+      << local_ginfo_.start_z_no_sd_ << ".\n\n";
+  }
 
   // Decide what grid to used from materials
   bool freqgrid = false;

@@ -65,6 +65,8 @@ Hmmm, array padding: -qhot=arraypad
 
 * MIPSPro 7.3.1.1m on IRIX
 
+See README.IRIX
+
 Had to run configure like this: 
 CPPFLAGS="-I/opt/boost/include/boost-1_31/boost/compatibility/cpp_c_headers/ -I/opt/boost/include/boost-1_31/" ../phred/configure --with-cxx=CC --enable-openmp
 

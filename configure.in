@@ -163,7 +163,7 @@ dnl SGI IRIX  and MIPSPro C++ stuff
 if test "x$build_vendor" = "xsgi"; then
   CXXFLAGS="$CXXFLAGS -LANG:std -ptused -prelink"
 
-  if test "x$HAVE_OPENMP" = "x1"; then
+  if test "x$USE_OPENMP" = "x1"; then
     LIBS="$LIBS -lm -lmp -lmpi++ -lmpi";
   else
     LIBS="$LIBS -lm -lmpi++ -lmpi";

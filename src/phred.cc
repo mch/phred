@@ -124,13 +124,11 @@ void no_memory()
 
 static void usage (int status);
 
-
 /****************************************************************
  * DROPPING SUPPORT FOR POPT SOON!
  * getopt is more common...
  ****************************************************************/
-
-//#undef HAVE_LIBPOPT 
+#undef HAVE_LIBPOPT 
 #ifdef HAVE_LIBPOPT
 
 /* popt plays way nicer with MPI than getopt. Trust me. */
