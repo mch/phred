@@ -50,4 +50,7 @@ shared_ptr<CSGObject> CSGOperator::copy() const
 }
 
 std::ostream& CSGOperator::to_string(std::ostream &os) const
-{}
+{
+	return os << "CSGOperator...";
+}
+

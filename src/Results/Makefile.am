@@ -24,8 +24,6 @@ libresults_a_SOURCES = 	Result.hh \
 	GridResult.hh \
 	GridResult.cc \
 	FarfieldResult2.hh \
-	FarfieldResult2.cc
-
-# Jan's Farfield: 
-#	FarfieldResult.cc \
-#	FarfieldResult.hh
+	FarfieldResult2.cc \
+	FarfieldResult.cc \
+	FarfieldResult.hh

@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -24,1038 +24,478 @@
 #include "../Constants.hh"
 #include <cmath>
 
-/* Jan's complex number and vector helper functions */
-#include "../fdtd_complex.hh"
+#include "../PlaneTiling.hh"
 
 FarfieldResult::FarfieldResult()
-  : theta_start_(0), theta_stop_(0), phi_start_(90), phi_stop_(90),
-    num_pts_(0), axis_(X_AXIS), freq_start_(0), freq_stop_(100), 
-    num_freqs_(10), freq_space_(0), 
-    theta_(0), phi_(0), 
-    e_theta_re_(0), e_theta_im_(0), 
-    e_phi_re_(0), e_phi_im_(0), 
-    jff_mom_(0), mff_mom_(0),
-    t_cross_(0), rank_(0), size_(0), 
-    output_type_(ETHETAPHI), result_(0)
-{
-  freqs_.set_element_type(MPI_FLOAT);
-  angles_.set_element_type(MPI_FLOAT);
-  data_.set_element_type(MPI_FLOAT);
-
-  freqs_.set_datatype(MPI_FLOAT);
-  angles_.set_datatype(MPI_FLOAT);
-  // data_'s datatype is different, calculated in init().
-
-  angles_.has_time_dimension(false);
-  freqs_.has_time_dimension(false);
-  data_.has_time_dimension(false);
-
-  variables_["angles"] = &angles_;
-  variables_["freqs"] = &freqs_;
-  variables_["ff_data"] = &data_;
-}
+  : r_(100),
+    Wx_(0), Wy_(0), Wz_(0), Ux_(0), Uy_(0), Uz_(0),
+    E_temp_(0), H_temp_(0), E_theta_(0), E_phi_(0)
+{}
 
 FarfieldResult::~FarfieldResult()
-{}
+{
+  deinit();
+}
+
+void FarfieldResult2::set_theta_degrees(field_t theta_start, 
+                                        field_t theta_stop, 
+                                        unsigned int num_theta)
+{
+  set_theta(theta_start * (PI / 180), theta_stop * (PI / 180),
+            num_theta);
+}
+
+void FarfieldResult2::set_theta(field_t theta_start, field_t theta_stop, 
+                                unsigned int num_theta)
+{
+  if (num_theta < 1)
+    throw ResultException("FarfieldResult must return data at one "
+                          "or more angles of theta");
+
+  if (abs(theta_stop - theta_start) > 2 * PI)
+    throw ResultException("FarfiedlResult theta angles must not span more "
+                          "than 360 degrees.");
+
+  theta_data_.set_params(theta_start, theta_stop, num_theta);
+}
+
+void FarfieldResult2::set_phi_degrees(field_t phi_start, field_t phi_stop, 
+                                      unsigned int num_phi)
+{
+  set_phi(phi_start * (PI / 180), phi_stop * (PI / 180),
+          num_phi);
+}
+
+void FarfieldResult2::set_phi(field_t phi_start, field_t phi_stop, 
+                                unsigned int num_phi)
+{
+  if (num_phi < 1)
+    throw ResultException("FarfieldResult must return data at one "
+                          "or more angles of phi");
+  
+  if (abs(phi_stop - phi_start) > 2 * PI)
+    throw ResultException("FarfiedlResult phi angles must not span more "
+                          "than 360 degrees.");
+
+  phi_data_.set_params(phi_start, phi_stop, num_phi);
+}
+
+void FarfieldResult::init(const Grid &grid)
+{
+  deinit();
+
+  if (box_.get())
+  {
+    region_ = grid.get_local_region(*(box_.get()));
+  } else {
+    throw ResultException("SurfaceCurrentResult has no surface defined!");
+  }
+
+  shared_ptr<Block> gregion = grid.get_global_region(*(box_.get()));
+
+  // Number of farfield timesteps we have to keep track of
+  point bsz = (*box_).get_size();
+  field_t maxlength = bsz.x();
+
+  if (bsz.y() > maxlength)
+    maxlength = bsz.y();
+
+  if (bsz.z() > maxlength)
+    maxlength = bsz.z();
+
+  ff_tsteps_ = static_cast<unsigned int>(ceil((time_stop_ - time_start) 
+                                              + 2 * (maxlength / C)));
+  
+  // Allocate space for W and U
+  unsigned int sz = ff_tsteps_ * theta_data_.length() * phi_data_.length();
+
+  Wx_ = new field_t[sz];
+  Wy_ = new field_t[sz];
+  Wz_ = new field_t[sz];
+  
+  Ux_ = new field_t[sz];
+  Uy_ = new field_t[sz];
+  Uz_ = new field_t[sz];
+
+  memset(Wx_, 0, sizeof(field_t)*sz);
+  memset(Wy_, 0, sizeof(field_t)*sz);
+  memset(Wz_, 0, sizeof(field_t)*sz);
+
+  memset(Ux_, 0, sizeof(field_t)*sz);
+  memset(Uy_, 0, sizeof(field_t)*sz);
+  memset(Uz_, 0, sizeof(field_t)*sz);
+
+  if (MPI_RANK == 0)
+  {
+    E_theta_ = new field_t[sz];
+    E_phi_ = new field_t[sz];
+
+    memset(E_theta_, 0, sizeof(field_t)*sz);
+    memset(E_phi_, 0, sizeof(field_t)*sz);
+  }
+
+  // Allocate space to store past values of E and H on the faces so
+  // that the time derivate can be properly approximated.
+  unsigned int tempsz = 2 * region_->xlen() * region_->ylen()
+    + 2 * region_->xlen() * region_->zlen()
+    + 2 * region_->ylen() * region_->zlen();
+  
+  E_temp_ = new field_t[tempsz * 6 * 3];
+  H_temp_ = new field_t[tempsz * 6 * 3];
+
+  // Set up output variables
+  freqs_.reset();
+  theta_.reset();
+  phi_.reset();
+  E_theta_var_.reset()
+  E_phi_var_.reset()
+
+  pre_vars_["freqs"] = &freqs_;
+  pre_vars_["theta"] = &theta_;
+  pre_vars_["phi"] = &phi_;
+
+  post_vars_["Et"] = &E_theta_var_;
+  post_vars_["Ep"] = &E_phi_var_;
+
+  freqs_.add_dimension("freqs", frequencies_.length(), 
+                       frequencies_.length(), 0);
+  freqs_.set_name(base_name_ + "freqs");
+  freqs_.set_ptr(frequencies_.get_ptr());
+  freqs_.has_time_dimension(false);
+
+  theta_.add_dimension("theta", theta_data_.length(), 
+                       theta_data_.length(), 0);
+  theta_.set_name(base_name_ + "theta");
+  theta_.set_ptr(theta_data_.get_ptr());
+  theta_.has_time_dimension(false);
+
+  phi_.add_dimension("phi", phi_data_.length(), phi_data_.length(), 0);
+  phi_.set_name(base_name_ + "phi");
+  phi_.set_ptr(phi_data_.get_ptr());
+  phi_.has_time_dimension(false);
+
+  E_theta_var_.add_dimension("phi", phi_data_.length(), 
+                             phi_data_.length(), 0);
+  E_theta_var_.add_dimension("theta", theta_data_.length(), 
+                             theta_data_.length(), 0);
+  E_theta_var_.add_dimension("fftime", ff_tsteps_, ff_tsteps_, 0);
+  E_theta_var_.set_name(base_name_ + "Et");
+  E_theta_var_.set_ptr(E_theta_);
+  E_theta_var_.has_time_dimension(false);
+
+  E_phi_var_.add_dimension("phi", phi_data_.length(), 
+                             phi_data_.length(), 0);
+  E_phi_var_.add_dimension("theta", theta_data_.length(), 
+                             theta_data_.length(), 0);
+  E_phi_var_.add_dimension("fftime", ff_tsteps_, ff_tsteps_, 0);
+  E_phi_var_.set_name(base_name_ + "Ep");
+  E_phi_var_.set_ptr(E_phi_);
+  E_phi_var_.has_time_dimension(false);
+
+  if (MPI_RANK == 0)
+  {
+    phi_.set_num(phi_data_.length());
+    theta_.set_num(theta_data_.length());
+    freqs_.set_num(frequencies_.length());
+
+    E_theta_var_.set_num(sz);
+    E_phi_var_.set_num(sz);
+  }
+  else
+  {
+    phi_.set_num(0);
+    theta_.set_num(0);
+    freqs_.set_num(0);
+
+    E_theta_var_.set_num(0);
+    E_phi_var_.set_num(0);
+  }
+}
+  
+void FarfieldResult::deinit()
+{ 
+  if (Wx_)
+  {
+    delete[] Wx_;
+    Wx_ = 0;
+  }
+
+  if (Wy_)
+  {
+    delete[] Wy_;
+    Wy_ = 0;
+  }
+
+  if (Wz_)
+  {
+    delete[] Wz_;
+    Wz_ = 0;
+  }
+
+  if (Ux_)
+  {
+    delete[] Ux_;
+    Ux_ = 0;
+  }
+
+  if (Uy_)
+  {
+    delete[] Uy_;
+    Uy_ = 0;
+  }
+
+  if (Uz_)
+  {
+    delete[] Uz_;
+    Uz_ = 0;
+  }
+
+  if (E_theta_)
+  {
+    delete[] E_theta_;
+    E_theta_ = 0;
+  }
+
+  if (E_phi_)
+  {
+    delete[] E_phi_;
+    E_phi_ = 0;
+  }
+
+  if (E_temp_)
+  {
+    delete[] E_temp_;
+    E_temp_ = 0;
+  }
+
+  if (H_temp_)
+  {
+    delete[] H_temp_;
+    H_temp_ = 0;
+  }
+}
+
+ostream& FarfieldResult::to_string(ostream &os) const
+{
+  return os << "Near to Far field transformation using Luebbers' method.";
+}
+
+/**
+ * Contains any data that is required by the FFAlg::alg() function
+ */ 
+class FFData
+{
+public:
+  // W and U in farfield. These must be set to the correct pointers
+  // for the current theta and phi for the observation point of interest. 
+  // Thus, de-reference the pointer using the ff time step. 
+  field_t *W_t1, *W_t2;
+  field_t *U_t1, *U_t2;
+
+  // E and H temp so that we can properly calculate the derivate of
+  // the components w.r.t. time. These must be dereferenced to the
+  // correct face and field components.
+  field_t *E_t1, E_t2, *H_t1, E_t2;
+
+  // An index into the above variables. 
+  unsigned int idx;
+
+  // Current point in the far field for which W and U are being
+  // evaluated.
+  field_t theta, phi;
+
+  // Current time step
+  unsigned int tstep;
+
+  // Time delta
+  delta_t dt;
+
+  // Centre of the grid
+  grid_point grid_centre;
+
+  // Distance from origin to observation sphere
+  field_t obs_radius;
+
+  // Cell size
+  field_t cellsize;
+
+  // Debugging only
+  unsigned int ff_tsteps_;
+};
+
+/**
+ * Compute the running sums for U and W at each time step and each
+ * point of interest in the farfield.
+ */
+class FFAlg
+{
+public:
+  static inline void alg(const int &x, const int &y, const int &z,
+                         Fields_t &f, FFData &data)
+  {
+    field_t xt = (x - static_cast<int>(data.grid_centre.x)) * data.dx;
+    field_t yt = (y - static_cast<int>(data.grid_centre.y)) * data.dy;
+    field_t zt = (z - static_cast<int>(data.grid_centre.z)) * data.dz;
+
+    // Distance to source point
+    field_t r_prime = sqrt(xt*xt + yt*yt + zt*zt);
+
+    field_t tau = (obs_radius - (xt * sin(data.phi) * cos(data.theta)
+      + yt * sin(data.phi) * sin(data.theta) + zt * cos(data.phi))) / C;
+
+    // Farfield time step for this result. 
+    int U_n = static_cast<int>(floor(data.tstep + 0.5 + tau / data.dt));
+    int W_n = static_cast<int>(floor(data.tstep + tau / data.dt));
+
+    assert(U_n > 0 && (U_n + 1) < data.ff_tsteps_);
+    assert(W_n > 0 && (W_n + 1) < data.ff_tsteps_);
+
+    field_t U_a = (data.tstep + 0.5 + tau / data.dt) - U_n;
+    field_t W_a = (data.tstep + tau / data.dt) - W_n;
+
+    assert(U_a > 0.0 && U_a < 1.0);
+    assert(W_a > 0.0 && W_a < 1.0);
+
+    // The 4 * PI * r * C has been factored out and must be applied
+    // when the spherical components are calculated.
+    //field_t temp = data.cellsize / (4 * PI * data.obs_radius * C * data.dt);
+    field_t temp = data.cellsize / (data.dt);
+
+    data.U_t1[U_n] += temp * (1 - U_a) * (f.et2_avg - data.E_t2[data.idx]);
+    data.U_t2[U_n] -= temp * (1 - U_a) * (f.et1_avg - data.E_t1[data.idx]);
+
+    data.U_t1[U_n + 1] += temp * U_a * (f.et2_avg - data.E_t2[data.idx]);
+    data.U_t2[U_n + 1] -= temp * U_a * (f.et1_avg - data.E_t1[data.idx]);
+
+    data.E_t1[data.idx] = f.et1_avg;
+    data.E_t2[data.idx] = f.et2_avg;
+
+    data.W_t1[W_n] -= (1 - W_a) * temp * (f.ht2_avg - data.H_t2[data.idx]);
+    data.W_t2[W_n] += (1 - W_a) * temp * (f.ht1_avg - data.H_t1[data.idx]);
+
+    data.W_t1[W_n + 1] -= W_a * temp * (f.ht2_avg - data.H_t2[data.idx]);
+    data.W_t2[W_n + 1] += W_a * temp * (f.ht1_avg - data.H_t1[data.idx]);
+
+    data.H_t1[data.idx] = f.ht1_avg;
+    data.H_t2[data.idx] = f.ht2_avg;
+
+    data.idx++;
+  }
+
+};
 
 map<string, Variable *> & FarfieldResult::get_result(const Grid &grid, 
                                                      unsigned int time_step)
 {
-  if (result_time(time_step))
+  if (result_time())
   {
-    // Fetch the required data from other ranks. 
+    // Set up the common stuff in the Data object
+    FFData data;
+    data.tstep = time_step;
+    data.dt = grid.get_deltat();
+    data.grid_centre = grid.get_centre();
+    data.obs_radius = r_;
+    data.ff_tsteps_ = ff_tsteps_;
 
-    // Do the computation
-    ffpu_calculate(grid, time_step);
-
-  }
-
-  // Only return results on the last time step. 
-  if (time_step == time_stop_)
-  {
-    // copy the data into the result_
-    field_t *p = result_;
-    for (unsigned int j = 0; j < num_freqs_; j++)
+    // Calculate W and U for each observation point of interest. 
+    for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
     {
-      for (unsigned int i = 0; i < num_pts_; i++)
+      for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
       {
-        switch (output_type_)
+        data.phi = phi_data_.get(phi_idx);
+        data.theta = theta_data_.get(theta_idx);
+        
+        for (int face_idx = 0; face_idx < 6; face_idx++)
         {
-        case ETHETA:
-          *p = e_theta_re_[i][j];
-          ++p;
-          *p = e_theta_im_[i][j];
-          ++p;
-          break;
+          data.idx = 0;
+          
+          switch (face_idx)
+          {
+          case FRONT:
+          case BACK:
+            data.W_t1 = &Wy_[WU_index(phi_idx, theta_idx, 0)];
+            data.W_t2 = &Wz_[WU_index(phi_idx, theta_idx, 0)];
+            data.E_t1 = &E_temp_[temp_idx(face_idx, 1, 0, 0, 
+                                          region_->ylen(), region_->zlen())];
+            data.E_t2 = &E_temp_[temp_idx(face_idx, 2, 0, 0, 
+                                          region_->ylen(), region_->zlen())];
+            data.cellsize = grid.get_deltay() * grid.get_deltaz();
+            break;
+            
+          case LEFT:
+          case RIGHT:
+            data.W_t1 = &Wz_[WU_index(phi_idx, theta_idx, 0)];
+            data.W_t2 = &Wx_[WU_index(phi_idx, theta_idx, 0)];
+            data.E_t1 = &E_temp_[temp_idx(face_idx, 2, 0, 0, 
+                                          region_->ylen(), region_->zlen())];
+            data.E_t2 = &E_temp_[temp_idx(face_idx, 0, 0, 0, 
+                                          region_->ylen(), region_->zlen())];
+            data.cellsize = grid.get_deltax() * grid.get_deltaz();
+            break;
 
-        case EPHI:
-          *p = e_phi_re_[i][j];
-          ++p;
-          *p = e_phi_im_[i][j];
-          ++p;
-          break;
+          case TOP:
+          case BOTTOM:
+            data.W_t1 = &Wx_[WU_index(phi_idx, theta_idx, 0)];
+            data.W_t2 = &Wy_[WU_index(phi_idx, theta_idx, 0)];
+            data.E_t1 = &E_temp_[temp_idx(face_idx, 0, 0, 0, 
+                                          region_->ylen(), region_->zlen())];
+            data.E_t2 = &E_temp_[temp_idx(face_idx, 1, 0, 0, 
+                                          region_->ylen(), region_->zlen())];
+            data.cellsize = grid.get_deltax() * grid.get_deltay();
+            break;
+          }            
 
-        case HTHETA:
-          *p = e_theta_re_[i][j] / ETA_0;
-          ++p;
-          *p = e_theta_im_[i][j] / ETA_0;
-          ++p;
-          break;
-
-        case HPHI:
-          *p = e_phi_re_[i][j] / ETA_0;
-          ++p;
-          *p = e_phi_im_[i][j] / ETA_0;
-          ++p;
-          break;
-
-        case ETHETAPHI:
-          *p = e_theta_re_[i][j];
-          ++p;
-          *p = e_theta_im_[i][j];
-          ++p;
-          *p = e_phi_re_[i][j];
-          ++p;
-          *p = e_phi_im_[i][j];
-          ++p;
-          break;
-
-        case HTHETAPHI:
-          *p = e_theta_re_[i][j] / ETA_0;
-          ++p;
-          *p = e_theta_im_[i][j] / ETA_0;
-          ++p;
-          *p = e_phi_re_[i][j] / ETA_0;
-          ++p;
-          *p = e_phi_im_[i][j] / ETA_0;
-          ++p; 
-          break;
-
-        case RCSNORM:
-          *p = freq_start_ + (j * freq_space_);
-          ++p;
-          *p = (e_theta_im_[i][j] * e_theta_im_[i][j] 
-                + e_phi_im_[i][j] * e_phi_im_[i][j]
-                + e_theta_re_[i][j] * e_theta_re_[i][j] 
-                + e_phi_re_[i][j] * e_phi_re_[i][j]) 
-            / (2 * ETA_0);
-          ++p;
-          break;
-
-        case RCSDBPOL:
-          *p = freq_start_ + (j * freq_space_);
-          ++p;
-          *p = 10 * log10((e_theta_im_[i][j] * e_theta_im_[i][j] 
-                           + e_phi_im_[i][j] * e_phi_im_[i][j]
-                           + e_theta_re_[i][j] * e_theta_re_[i][j] 
-                           + e_phi_re_[i][j] * e_phi_re_[i][j]) 
-                          / (2 * ETA_0));
-          ++p;
-          break;
+          PlaneTiling<FFAlg, FFData>::loop(grid, *region_, face_idx, data);
         }
-      }
-    }
-
-    data_.set_num(1);
-    data_.set_ptr(result_);
-
-    angles_.set_num(num_pts_);
-    freqs_.set_num(num_freqs_);
-  
-    angles_.set_ptr(theta_);
-    freqs_.set_ptr(freqs_buffer_);
-  }
-  else
-  {
-    data_.set_num(0);
-    angles_.set_num(0);
-    freqs_.set_num(0);
+      } // end for theta
+    } // end for phi
   }
 
   return variables_;
 }
 
-void FarfieldResult::init(const Grid &grid)
+map<string, Variable *> &FarfieldResult::get_pre_result(const Grid &grid)
 {
-  if (num_pts_ <= 0 || num_freqs_ <= 0)
-    throw ResultException("A positive non-zero number of angle and frequency points are required.");
-
-  if (size_ == 0)
-    throw ResultException("The rank and size must be set in this result.");
-
-  if (size_ > 1)
-    throw ResultException("This result is not yet ready to be run in parallel.");
-
-  t_cross_ = static_cast<int>(
-    ceil(sqrt(pow(static_cast<delta_t>(grid.get_deltax() 
-                                       * (global_r_.xmax - global_r_.xmin)),
-                  static_cast<delta_t>(2.))
-              + pow(static_cast<delta_t>(grid.get_deltay() 
-                                         * (global_r_.ymax - global_r_.ymin)),
-                    static_cast<delta_t>(2.))
-              + pow(static_cast<delta_t>(grid.get_deltaz() 
-                                         * (global_r_.zmax - global_r_.zmin)),
-                    static_cast<delta_t>(2.)))
-         / (C * grid.get_deltat())));
-  
-  theta_ = new float[num_pts_ * 2];
-  phi_ = theta_ + num_pts_;
-  freqs_buffer_ = new float[num_freqs_];
-
-  e_theta_re_ = new float*[num_pts_];
-  e_theta_im_ = new float*[num_pts_];
-  e_phi_re_ = new float*[num_pts_];
-  e_phi_im_ = new float*[num_pts_];
-  
-  jff_mom_ = new float**[num_pts_];
-  mff_mom_ = new float**[num_pts_];
-  
-  if (!theta_ || !phi_ || !freqs_buffer_ || !e_theta_re_ 
-      || !e_theta_im_ || !e_phi_re_
-      || !e_phi_im_ || !jff_mom_ || !mff_mom_)
-  {
-    deinit();
-    throw MemoryException();
-  }
-
-  for (int i = 0; i < num_pts_; i++)
-  {
-    e_theta_re_[i] = new float[num_freqs_];
-    e_theta_im_[i] = new float[num_freqs_];
-    e_phi_re_[i] = new float[num_freqs_];
-    e_phi_im_[i] = new float[num_freqs_];
-    
-    jff_mom_[i] = new float*[t_cross_];
-    mff_mom_[i] = new float*[t_cross_];
-    
-    if (!e_theta_re_[i] || !e_theta_im_[i] || !e_phi_re_[i] || !e_phi_im_[i]
-        || !jff_mom_[i] || !mff_mom_[i])
-    {
-      deinit();
-      throw MemoryException();
-    }
-
-    for (int j = 0; j < t_cross_; j++)
-    {
-      jff_mom_[i][j] = new float[3];
-      mff_mom_[i][j] = new float[3];
-
-      if (!jff_mom_[i][j] || !mff_mom_[i][j])
-      {
-        deinit();
-        throw MemoryException();
-      }
-    }
-  }
-  
-  arc_connect();
-
-  freq_space_ = (freq_stop_ - freq_start_) / num_freqs_;
-
-  for (int i = 0; i < num_freqs_; i++)
-    freqs_buffer_[i] = freq_start_ + i * freq_space_;
-
-  freqs_.set_name(base_name_ + "_frequecies");
-  angles_.set_name(base_name_ + "_angles");
-
-  // Output will be a three dimensional result, with a 2d table for
-  // each frequency, and each frequency on it's own page. It will look
-  // like this:
-  // theta phi e_theta e_phi h_theta h_phi
-  // or a variation on that. 
-  unsigned int num_cols = 0;
-  switch (output_type_)
-  {
-  case ETHETA:
-    data_.set_name(base_name_ + "_E_theta");
-    num_cols = 2;
-    break;
-
-  case EPHI:
-    data_.set_name(base_name_ + "_E_phi");
-    num_cols = 2;
-    break;
-
-  case HTHETA:
-    data_.set_name(base_name_ + "_H_theta");
-    num_cols = 2;
-    break;
-
-  case HPHI:
-    data_.set_name(base_name_ + "_H_phi");
-    num_cols = 2;
-    break;
-
-  case RCSNORM:
-    data_.set_name(base_name_ + "_Norm_RCS");
-    num_cols = 2;
-    break;
-
-  case RCSDBPOL:
-    data_.set_name(base_name_ + "_Norm_RCS_db");
-    num_cols = 2;
-    break;
-
-  case ETHETAPHI:
-    data_.set_name(base_name_ + "_E_theta_phi");
-    num_cols = 4;
-    break;
-
-  case HTHETAPHI:
-    data_.set_name(base_name_ + "_H_theta_phi"); 
-    num_cols = 4;
-    break;
-  }
-  
-  freqs_.add_dimension("frequency", num_freqs_, num_freqs_, 0);
-
-  angles_.add_dimension("angles", num_pts_, num_pts_, 0);
-  angles_.add_dimension("theta and phi", 2, 2, 0);
-
-  data_.add_dimension("data", num_cols, num_cols, 0);
-  data_.add_dimension("points", num_pts_, num_pts_, 0);
-  data_.add_dimension("frequencies", num_freqs_, num_freqs_, 0);
-
-  result_ = new field_t[num_cols * num_freqs_ * num_pts_];
-  if (!result_)
-  {
-    deinit();
-    throw MemoryException();
-  }
-  memset(result_, 0, num_cols * num_freqs_ * num_pts_);
-  
-  MPI_Type_contiguous(num_cols * num_freqs_ * num_pts_, 
-                      MPI_FLOAT, &data_type_);
-  MPI_Type_commit(&data_type_);
-  data_.set_datatype(data_type_);
-  data_.set_num(0);
-
-  // THIS IS WRONG!
-  int t_sz; 
-  //MPI_Type_size(MPI_FLOAT, &t_sz);
-  //MPI_Datatype temp_type;
-  //MPI_Type_vector(num_pts_, 1, num_pts_, MPI_FLOAT, &temp_type);
-  //MPI_Type_hvector(2, 1, t_sz, temp_type, &angle_type_);
-  //MPI_Type_commit(&angle_type_);
-  
-  //angles_.set_datatype(angle_type_);
-  angles_.set_datatype(MPI_FLOAT);
-}
-  
-void FarfieldResult::deinit()
-{
-  for (int i = 0; i < num_pts_; i++)
-  {
-    for (int j = 0; j < t_cross_; j++)
-    {
-      if (jff_mom_[i][j])
-      {
-        delete[] jff_mom_[i][j];
-        jff_mom_[i][j] = 0;
-      }
-
-      if (mff_mom_[i][j])
-      {
-        delete[] mff_mom_[i][j];
-        mff_mom_[i][j] = 0;
-      }
-    }
-
-    if (e_theta_re_[i])
-    {
-      delete[] e_theta_re_[i];
-      e_theta_re_[i] = 0;
-    }
-
-    if (e_theta_im_[i])
-    {
-      delete[] e_theta_im_[i];
-      e_theta_im_[i] = 0;
-    }
-
-    if (e_phi_re_[i])
-    {
-      delete[] e_phi_re_[i];
-      e_phi_re_[i] = 0;
-    }
-
-    if (e_phi_im_[i])
-    {
-      delete[] e_phi_im_[i];
-      e_phi_im_[i] = 0;
-    }
-
-    if (jff_mom_[i])
-    {
-      delete[] jff_mom_[i];
-      jff_mom_[i] = 0;
-    }
-    
-    if (mff_mom_[i])
-    {
-      delete[] mff_mom_[i];    
-      mff_mom_[i] = 0;    
-    }
-  }
-  
-  if (e_theta_re_)
-  {
-    delete[] e_theta_re_;
-    e_theta_re_ = 0;
-  }
-
-  if (e_theta_im_)
-  {
-    delete[] e_theta_im_;
-    e_theta_im_ = 0;
-  }
-
-  if (e_phi_re_)
-  {
-    delete[] e_phi_re_;
-    e_phi_re_ = 0;
-  }
-
-  if (e_phi_im_)
-  {
-    delete[] e_phi_im_;
-    e_phi_im_ = 0;
-  }
-
-  if (jff_mom_)
-  {
-    delete[] jff_mom_;
-    jff_mom_ = 0;
-  }
-    
-  if (mff_mom_)
-  {
-    delete[] mff_mom_;    
-    mff_mom_ = 0;    
-  }  
-
-  if (theta_)
-  {
-    delete[] theta_;
-    theta_ = 0;
-  }
-
-  if (result_)
-  {
-    delete[] result_;
-    result_ = 0;
-  }
-
-  if (freqs_buffer_)
-  {
-    delete[] freqs_buffer_;
-    freqs_buffer_ = 0;
-  }
-
-  MPI_Type_free(&angle_type_);
-  MPI_Type_free(&data_type_);
+  return pre_vars_;
 }
 
-void FarfieldResult::arc_connect()
+map<string, Variable *> &FarfieldResult::get_post_result(const Grid &grid)
 {
-  // From Jan's implementation...
-  float farf_delt;
-  float farf_angle;
-  float xmin,x_stop;
-  float ymin,y_stop;
-  float zmin,z_stop;
-  int ptnr;
+  // Calculate E_theta, E_phi, rcs
+  field_t temp = 4 * PI * r_ * C;
+  field_t W_t, W_p, U_t, U_p;
 
-  if(num_pts_ == 1)
-  {
-    theta_[0] = theta_start_/180.*PI;
-    phi_[0] = phi_start_/180.*PI;
-  }
-                
-  else if(is_parallel( theta_start_, phi_start_,
-                       theta_stop_, phi_stop_))
-  {
+  int idx = 0;
 
-    farf_delt = 2.*PI/( num_pts_-1);
-    xmin = sin( theta_start_/180.*PI)*
-      cos( phi_start_/180.*PI);      
-    ymin = sin( theta_start_/180.*PI)*
-      sin( phi_start_/180.*PI);      
-    zmin = cos( theta_start_/180.*PI);
-                                        
-    for(ptnr = 0; ptnr < num_pts_; ptnr++)
+  for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
+  {
+    for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
     {
-      switch (axis_)
+      for (int fft_idx = 0; fft_idx < ff_steps_; fft_idx++)
       {
-      case 1 :
-        theta_[ptnr] = acos(
-                           zmin*cos(ptnr*farf_delt)+
-                           ymin*sin(ptnr*farf_delt));
-        phi_[ptnr] = atan2_local(
-                                ymin*cos(ptnr*farf_delt)-
-                                zmin*sin(ptnr*farf_delt),xmin)
-          ;
-        break;
-      case -1 :
-        theta_[ptnr] = acos(
-                           zmin*cos(-ptnr*farf_delt)+
-                           ymin*sin(-ptnr*farf_delt));
-        phi_[ptnr] = atan2_local(
-                                ymin*cos(-ptnr*farf_delt)-
-                                zmin*sin(-ptnr*farf_delt),xmin
-                                );
-        break;
-      case 2 :
-        theta_[ptnr] = acos(
-                           xmin*cos(ptnr*farf_delt)+
-                           zmin*sin(ptnr*farf_delt));
-        phi_[ptnr] = atan2_local(
-                                ymin,zmin*cos(ptnr*farf_delt)-
-                                xmin*sin(ptnr*farf_delt));
-        break;
-      case -2 :
-        theta_[ptnr] = acos(
-                           xmin*cos(-ptnr*farf_delt)+
-                           zmin*sin(-ptnr*farf_delt));
-        phi_[ptnr] = atan2_local(
-                                ymin,zmin*cos(-ptnr*farf_delt)
-                                -
-                                xmin*sin(-ptnr*farf_delt));
-        break;
-      case 3 :
-        theta_[ptnr] = 
-          theta_start_/180.*PI;
-        phi_[ptnr] = 
-          phi_start_/180.*PI
-          +ptnr*farf_delt;
-        break;
-      default :
-        theta_[ptnr] = 
-          theta_start_/180.*PI;
-        phi_[ptnr] = 
-          phi_start_/180.*PI
-          -ptnr*farf_delt;
-        break;
-      }
-    }
-  }
-  else
-  {
-    xmin = sin( theta_start_/180.*PI)*
-      cos( phi_start_/180.*PI);      
-    ymin = sin( theta_start_/180.*PI)*
-      sin( phi_start_/180.*PI);      
-    zmin = cos( theta_start_/180.*PI);
-                                                
-    x_stop = sin( theta_stop_/180.*PI)*
-      cos( phi_stop_/180.*PI);       
-    y_stop = sin( theta_stop_/180.*PI)*
-      sin( phi_stop_/180.*PI);       
-    z_stop = cos( theta_stop_/180.*PI);
-                                                
-    farf_angle = acos(xmin*x_stop+ymin*y_stop+zmin*z_stop);
-    if( axis_ < 0)
-      farf_angle = 2.*PI-farf_angle;
+        field_t phi = phi_data_.get(phi_idx);
+        field_t theta = theta_data_.get(theta_idx);
 
-    farf_delt = farf_angle/( num_pts_-1);
-    for(ptnr=0;ptnr< num_pts_;ptnr++)
-    {
-      theta_[ptnr] = acos(1./sin(farf_angle)*
-                         (sin(farf_angle-ptnr*farf_delt)*
-                          zmin+sin(ptnr*farf_delt)*z_stop));
-      phi_[ptnr] = atan2_local(
-                              sin(farf_angle-ptnr*farf_delt)*ymin
-                              +sin(ptnr*farf_delt)*y_stop,
-                              sin(farf_angle-ptnr*farf_delt)*xmin
-                              +sin(ptnr*farf_delt)*x_stop);
-    }
-  }
-  return;
+        W_t = temp * (Wx_[idx] * cos(theta) * cos(phi)
+                      + Wy_[idx] * cos(theta) * sin(phi)
+                      - Wz_[idx] * sin(theta));
+
+        W_p = temp * (- Wx_[idx] * sin(phi) + Wy_[idx] * cos(phi));
+
+        U_t = temp * (Ux_[idx] * cos(theta) * cos(phi)
+                      + Uy_[idx] * cos(theta) * sin(phi)
+                      - Uz_[idx] * sin(phi)); 
+
+        U_p = temp * (- Ux_[idx] * sin(phi) + Uy_[idx] * cos(phi));
+
+        E_theta_[idx] = - ETA * W_t - U_p;
+        E_phi_[idx] = - ETA * W_p + U_t;
+
+        idx++;
+      }
+    } // end for theta
+  } // end for phi
+
+  return post_vars_;
 }
 
-int FarfieldResult::is_parallel(float th1, float ph1, float th2, float ph2)
-{
-  int equal;
-  int opposite;
-  
-  equal = (th1 == th2 && ph1 == ph2) || (th1 == 0 && th2 == 0) 
-    || (th1 == 90 && th2 == 90);
-  opposite = ((th1+th2) == 180 && fabs(ph1-ph2) == 180) 
-    || (th1 == 180 && th2 == 0) || (th1 == 0 && th2 == 180);
-
-  return(equal || opposite);
-}
-
-float FarfieldResult::atan2_local(float y, float x)
-{
-  if (x == 0 && y == 0)
-    return(0.);
-  else
-    return(atan2(y, x));
-}
-
-
-void FarfieldResult::ffpu_calculate(const Grid &grid, 
-                                    unsigned int time_step)
-{
-  int ptnr;
-  float e_theta;
-  float e_phi;
-  float tt;
-  int tnr,fnr;
-  float omega;
-  float tmp_im;
-	
-  ffpu_moment_update(grid);
-	
-  for(ptnr = 0; ptnr<num_pts_;ptnr++)
-  {
-    ffpu_ntff(theta_[ptnr],phi_[ptnr],
-              mff_mom_[ptnr][0],jff_mom_[ptnr][0]
-              ,&e_theta,&e_phi);
-    
-    if(num_freqs_ == 0)
-    {
-      e_theta_re_[ptnr][time_step-time_start_] =
-        e_theta;
-      e_phi_re_[ptnr][time_step-time_start_] =
-        e_phi;
-    }
-    else
-    {
-      tt = time_step*grid.get_deltat();
-      for(fnr = 0; fnr < num_freqs_ ; fnr++)
-      {
-        omega = 2*M_PI*(freq_start_
-                        +fnr*freq_space_);
-        e_theta_re_[ptnr][fnr] += 
-          cos(-omega*tt)*e_theta;
-        e_theta_im_[ptnr][fnr] += 
-          sin(-omega*tt)*e_theta;
-        e_phi_re_[ptnr][fnr] += 
-          cos(-omega*tt)*e_phi;
-        e_phi_im_[ptnr][fnr] += 
-          sin(-omega*tt)*e_phi;
-      }
-    }
-  }
-		
-  if (time_step == time_stop_) 
-  {
-    for(ptnr = 0; ptnr<num_pts_;ptnr++)
-    {
-      if(num_freqs_ == 0)
-      {
-        for(tnr = 0;tnr < time_stop_-
-              time_start_+1; tnr++)
-        
-          e_theta_im_[ptnr][tnr] = (tnr == 0 ? 0. :
-                                    (e_theta_re_[ptnr][tnr]
-                                     -e_theta_re_[ptnr][tnr-1])
-                                    /grid.get_deltat());
-      
-        for(tnr = 0;tnr < time_stop_-
-              time_start_+1; tnr++)
-        
-          e_phi_im_[ptnr][tnr] = (tnr == 0 ? 0. :
-                                  (e_phi_re_[ptnr][tnr]
-                                   -e_phi_re_[ptnr][tnr-1])
-                                  /grid.get_deltat());
-      }
-      else
-        for(fnr = 0; fnr < num_freqs_ ; fnr++)
-        {
-          omega = 2*M_PI*(freq_start_
-                          +fnr*freq_space_);
-        
-          tmp_im = 2.*sin(0.5*omega*grid.get_deltat())
-            *e_theta_re_[ptnr][fnr];
-        
-          e_theta_re_[ptnr][fnr] = 
-            -2.*sin(0.5*omega*grid.get_deltat())*
-            e_theta_im_[ptnr][fnr];
-        
-          e_theta_im_[ptnr][fnr] = tmp_im;
-	
-          tmp_im = 2.*sin(0.5*omega*grid.get_deltat())
-            *e_phi_re_[ptnr][fnr];
-        
-          e_phi_re_[ptnr][fnr] = 
-            -2.*sin(0.5*omega*grid.get_deltat())*
-            e_phi_im_[ptnr][fnr];
-        
-          e_phi_im_[ptnr][fnr] = tmp_im;
-        }
-    }
-  }
-
-  ffpu_moment_cycle();
-	
-}
-
-void FarfieldResult::ffpu_moment_cycle()
-{
-  int ptnr,t;
-
-	
-  for(ptnr=0;ptnr<num_pts_;ptnr++)
-    for(t=0;t<t_cross_-1;t++)
-    {
-      mff_mom_[ptnr][t][0] = mff_mom_[ptnr][t+1][0];
-      mff_mom_[ptnr][t][1] = mff_mom_[ptnr][t+1][1];
-      mff_mom_[ptnr][t][2] = mff_mom_[ptnr][t+1][2];
-      jff_mom_[ptnr][t][0] = jff_mom_[ptnr][t+1][0];
-      jff_mom_[ptnr][t][1] = jff_mom_[ptnr][t+1][1];
-      jff_mom_[ptnr][t][2] = jff_mom_[ptnr][t+1][2];
-    }
-			
-  for(ptnr=0;ptnr<num_pts_;ptnr++)
-  {
-    mff_mom_[ptnr][t_cross_-1][0] = 0.;
-    mff_mom_[ptnr][t_cross_-1][1] = 0.;
-    mff_mom_[ptnr][t_cross_-1][2] = 0.;
-    jff_mom_[ptnr][t_cross_-1][0] = 0.;
-    jff_mom_[ptnr][t_cross_-1][1] = 0.;
-    jff_mom_[ptnr][t_cross_-1][2] = 0.;
-  }
-  return;
-}
-
-void FarfieldResult::ffpu_ntff(float theta, float phi, float *ms, float *js,
-                               float *e_theta, float *e_phi)
-{
-  float theta_unit[3];
-  float phi_unit[3];
-  float ms_theta,ms_phi;
-  float js_theta,js_phi;
-	
-	
-  f_vfill(theta_unit,cos(theta)*cos(phi),cos(theta)*sin(phi),-sin(theta));
-  f_vfill(phi_unit,-sin(phi),cos(phi),0.);
-	
-  ms_theta = f_dot(ms,theta_unit);
-  ms_phi = f_dot(ms,phi_unit);
-	
-  js_theta = f_dot(js,theta_unit);
-  js_phi = f_dot(js,phi_unit);
-	
-  *e_theta = (-ms_phi-ETA_0*js_theta)/(4.*PI*C);
-  *e_phi = (ms_theta-ETA_0*js_phi)/(4.*PI*C);
-  return;
-}
-
-void FarfieldResult::ffpu_moment_update(const Grid &grid)
-{
-  int surf_i,surf_j,surf_k;
-  int glob_i,glob_j,glob_k;
-  float r_unit[3];
-  float r_accent[3];
-  float origin[3];
-  float e_x,e_y,e_z;
-  float h_x,h_y,h_z;
-  int ptnr;
-  float tau;
-  int t1_e,t1_h;
-  float f1_e,f1_h;
-  float f2_e,f2_h;
-	
-  for(ptnr = 0; ptnr < num_pts_; ptnr++)
-  {
-    r_unit[0] = sin(theta_[ptnr])*cos(phi_[ptnr]);
-    r_unit[1] = sin(theta_[ptnr])*sin(phi_[ptnr]);
-    r_unit[2] = cos(theta_[ptnr]);
-    origin[0] = (r_unit[0] < 0. ? (global_r_.xmin-1)*grid.get_deltax() :
-                 (global_r_.xmax+1)*grid.get_deltax());
-    origin[1] = (r_unit[1] < 0. ? (global_r_.ymin-1)*grid.get_deltay() :
-                 (global_r_.ymax+1)*grid.get_deltay());
-    origin[2] = (r_unit[2] < 0. ? (global_r_.zmin-1)*grid.get_deltaz() :
-                 (global_r_.zmax+1)*grid.get_deltaz());
-	
-
-    /* xmin side */
-	
-    for(surf_j=0, glob_j=global_r_.ymin+surf_j ;
-        surf_j<global_r_.ymax-global_r_.ymin ;
-        surf_j++,glob_j++)
-      for(surf_k=0, glob_k=global_r_.zmin+surf_k ;
-          surf_k<global_r_.zmax-global_r_.zmin ;
-          surf_k++,glob_k++)
-      {
-        r_accent[0] = global_r_.xmin*grid.get_deltax()-origin[0];
-        r_accent[1] = (glob_j+0.5)*grid.get_deltay()-origin[1];
-        r_accent[2] = (glob_k+0.5)*grid.get_deltaz()-origin[2];
-        tau = -f_dot(r_unit,r_accent)/(C*grid.get_deltat());
-
-        t1_h = static_cast<int>(floor(tau));
-        f2_h = tau-t1_h;
-        f1_h = 1.-f2_h;
-
-        t1_e = static_cast<int>(floor(tau+0.5));
-        f2_e = tau+0.5-t1_e;
-        f1_e = 1.-f2_e;
-				
-        
-        e_y = 0.5*(grid.get_ey(global_r_.xmin,glob_j,glob_k)+
-                   grid.get_ey(global_r_.xmin,glob_j,glob_k+1));
-        e_z = 0.5*(grid.get_ez(global_r_.xmin,glob_j,glob_k)+
-                   grid.get_ez(global_r_.xmin,glob_j+1,glob_k));
-        h_y = 0.25*(grid.get_hy(global_r_.xmin-1,glob_j,glob_k)+
-                    grid.get_hy(global_r_.xmin-1,glob_j+1,glob_k)+
-                    grid.get_hy(global_r_.xmin,glob_j,glob_k)+
-                    grid.get_hy(global_r_.xmin,glob_j+1,glob_k));
-        h_z = 0.25*(grid.get_hz(global_r_.xmin-1,glob_j,glob_k)+
-                    grid.get_hz(global_r_.xmin-1,glob_j,glob_k+1)+
-                    grid.get_hz(global_r_.xmin,glob_j,glob_k)+
-                    grid.get_hz(global_r_.xmin,glob_j,glob_k+1));
-
-        mff_mom_[ptnr][t1_e][1] -= f1_e*e_z*grid.get_deltay()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e+1][1] -= f2_e*e_z*grid.get_deltay()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e][2] += f1_e*e_y*grid.get_deltay()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e+1][2] += f2_e*e_y*grid.get_deltay()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h][1] += f1_h*h_z*grid.get_deltay()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h+1][1] += f2_h*h_z*grid.get_deltay()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h][2] -= f1_h*h_y*grid.get_deltay()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h+1][2] -= f2_h*h_y*grid.get_deltay()*grid.get_deltaz();
-      }
-	
-    /* xmax side */
-	
-    for(surf_j=0, glob_j = global_r_.ymin + surf_j;
-        surf_j < global_r_.ymax - global_r_.ymin;
-        surf_j++, glob_j++)
-      for(surf_k = 0, glob_k = global_r_.zmin + surf_k;
-          surf_k < global_r_.zmax - global_r_.zmin;
-          surf_k++,glob_k++)
-      {
-        r_accent[0] = global_r_.xmax*grid.get_deltax()-origin[0];
-        r_accent[1] = (glob_j+0.5)*grid.get_deltay()-origin[1];
-        r_accent[2] = (glob_k+0.5)*grid.get_deltaz()-origin[2];
-        tau = -(r_unit[0]*r_accent[0]+r_unit[1]*r_accent[1]+
-                r_unit[2]*r_accent[2])/(C*grid.get_deltat());
-
-        t1_h = static_cast<int>(floor(tau));
-        f2_h = tau-t1_h;
-        f1_h = 1.-f2_h;
-
-        t1_e = static_cast<int>(floor(tau+0.5));
-        f2_e = tau+0.5-t1_e;
-        f1_e = 1.-f2_e;
-				
-        e_y = 0.5*(grid.get_ey(global_r_.xmax,glob_j,glob_k)+
-                   grid.get_ey(global_r_.xmax,glob_j,glob_k+1));
-        e_z = 0.5*(grid.get_ez(global_r_.xmax,glob_j,glob_k)+
-                   grid.get_ez(global_r_.xmax,glob_j+1,glob_k));
-        h_y = 0.25*(grid.get_hy(global_r_.xmax-1,glob_j,glob_k)+
-                    grid.get_hy(global_r_.xmax-1,glob_j+1,glob_k)+
-                    grid.get_hy(global_r_.xmax,glob_j,glob_k)+
-                    grid.get_hy(global_r_.xmax,glob_j+1,glob_k));
-        h_z = 0.25*(grid.get_hz(global_r_.xmax-1,glob_j,glob_k)+
-                    grid.get_hz(global_r_.xmax-1,glob_j,glob_k+1)+
-                    grid.get_hz(global_r_.xmax,glob_j,glob_k)+
-                    grid.get_hz(global_r_.xmax,glob_j,glob_k+1));
-
-        mff_mom_[ptnr][t1_e][1] += f1_e*e_z*grid.get_deltay()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e+1][1] += f2_e*e_z*grid.get_deltay()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e][2] -= f1_e*e_y*grid.get_deltay()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e+1][2] -= f2_e*e_y*grid.get_deltay()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h][1] -= f1_h*h_z*grid.get_deltay()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h+1][1] -= f2_h*h_z*grid.get_deltay()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h][2] += f1_h*h_y*grid.get_deltay()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h+1][2] += f2_h*h_y*grid.get_deltay()*grid.get_deltaz();
-      }
-		
-    /* side ymin */	
-	
-    for(surf_i=0, glob_i=global_r_.xmin+surf_i ;
-        surf_i<global_r_.xmax-global_r_.xmin ;
-        surf_i++,glob_i++)
-      for(surf_k=0, glob_k=global_r_.zmin+surf_k ;
-          surf_k<global_r_.zmax-global_r_.zmin ;
-          surf_k++,glob_k++)
-      {
-        r_accent[0] = (glob_i+0.5)*grid.get_deltax()-origin[0];
-        r_accent[1] = global_r_.ymin*grid.get_deltay()-origin[1];
-        r_accent[2] = (glob_k+0.5)*grid.get_deltaz()-origin[2];
-
-        tau = -(r_unit[0]*r_accent[0]+r_unit[1]*r_accent[1]+
-                r_unit[2]*r_accent[2])/(C*grid.get_deltat());
-
-        t1_h = static_cast<int>(floor(tau));
-        f2_h = tau-t1_h;
-        f1_h = 1.-f2_h;
-
-        t1_e = static_cast<int>(floor(tau+0.5));
-        f2_e = tau+0.5-t1_e;
-        f1_e = 1.-f2_e;
-				
-        e_x = 0.5*(grid.get_ex(glob_i,global_r_.ymin,glob_k)+
-                   grid.get_ex(glob_i,global_r_.ymin,glob_k+1));
-        e_z = 0.5*(grid.get_ez(glob_i,global_r_.ymin,glob_k)+
-                   grid.get_ez(glob_i+1,global_r_.ymin,glob_k));
-        h_x = 0.25*(grid.get_hx(glob_i,global_r_.ymin-1,glob_k)+
-                    grid.get_hx(glob_i+1,global_r_.ymin-1,glob_k)+
-                    grid.get_hx(glob_i,global_r_.ymin,glob_k)+
-                    grid.get_hx(glob_i+1,global_r_.ymin,glob_k));
-        h_z = 0.25*(grid.get_hz(glob_i,global_r_.ymin-1,glob_k)+
-                    grid.get_hz(glob_i,global_r_.ymin-1,glob_k+1)+
-                    grid.get_hz(glob_i,global_r_.ymin,glob_k)+
-                    grid.get_hz(glob_i,global_r_.ymin,glob_k+1));
-	
-        mff_mom_[ptnr][t1_e][0] += f1_e*e_z*grid.get_deltax()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e+1][0] += f2_e*e_z*grid.get_deltax()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e][2] -= f1_e*e_x*grid.get_deltax()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e+1][2] -= f2_e*e_x*grid.get_deltax()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h][0] -= f1_h*h_z*grid.get_deltax()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h+1][0] -= f2_h*h_z*grid.get_deltax()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h][2] += f1_h*h_x*grid.get_deltax()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h+1][2] += f2_h*h_x*grid.get_deltax()*grid.get_deltaz();
-      }
-				
-    /* side ymax */	
-	
-    for(surf_i=0, glob_i=global_r_.xmin+surf_i ;
-        surf_i<global_r_.xmax-global_r_.xmin ;
-        surf_i++,glob_i++)
-      for(surf_k=0, glob_k=global_r_.zmin+surf_k ;
-          surf_k<global_r_.zmax-global_r_.zmin ;
-          surf_k++,glob_k++)
-      {
-        r_accent[0] = (glob_i+0.5)*grid.get_deltax()-origin[0];
-        r_accent[1] = global_r_.ymax*grid.get_deltay()-origin[1];
-        r_accent[2] = (glob_k+0.5)*grid.get_deltaz()-origin[2];
-
-        tau = -(r_unit[0]*r_accent[0]+r_unit[1]*r_accent[1]+
-                r_unit[2]*r_accent[2])/(C*grid.get_deltat());
-
-        t1_h = static_cast<int>(floor(tau));
-        f2_h = tau-t1_h;
-        f1_h = 1.-f2_h;
-
-        t1_e = static_cast<int>(floor(tau+0.5));
-        f2_e = tau+0.5-t1_e;
-        f1_e = 1.-f2_e;
-				
-        e_x = 0.5*(grid.get_ex(glob_i,global_r_.ymax,glob_k)+
-                   grid.get_ex(glob_i,global_r_.ymax,glob_k+1));
-        e_z = 0.5*(grid.get_ez(glob_i,global_r_.ymax,glob_k)+
-                   grid.get_ez(glob_i+1,global_r_.ymax,glob_k));
-        h_x = 0.25*(grid.get_hx(glob_i,global_r_.ymax-1,glob_k)+
-                    grid.get_hx(glob_i+1,global_r_.ymax-1,glob_k)+
-                    grid.get_hx(glob_i,global_r_.ymax,glob_k)+
-                    grid.get_hx(glob_i+1,global_r_.ymax,glob_k));
-        h_z = 0.25*(grid.get_hz(glob_i,global_r_.ymax-1,glob_k)+
-                    grid.get_hz(glob_i,global_r_.ymax-1,glob_k+1)+
-                    grid.get_hz(glob_i,global_r_.ymax,glob_k)+
-                    grid.get_hz(glob_i,global_r_.ymax,glob_k+1));
-	
-        mff_mom_[ptnr][t1_e][0] -= f1_e*e_z*grid.get_deltax()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e+1][0] -= f2_e*e_z*grid.get_deltax()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e][2] += f1_e*e_x*grid.get_deltax()*grid.get_deltaz();
-        mff_mom_[ptnr][t1_e+1][2] += f2_e*e_x*grid.get_deltax()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h][0] += f1_h*h_z*grid.get_deltax()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h+1][0] += f2_h*h_z*grid.get_deltax()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h][2] -= f1_h*h_x*grid.get_deltax()*grid.get_deltaz();
-        jff_mom_[ptnr][t1_h+1][2] -= f2_h*h_x*grid.get_deltax()*grid.get_deltaz();
-      }
-			
-    /* side zmin */	
-	
-    for(surf_i=0, glob_i=global_r_.xmin+surf_i ;
-        surf_i<global_r_.xmax-global_r_.xmin ;
-        surf_i++,glob_i++)
-      for(surf_j=0, glob_j=global_r_.ymin+surf_j ;
-          surf_j<global_r_.ymax-global_r_.ymin ;
-          surf_j++,glob_j++)
-      {
-        r_accent[0] = (glob_i+0.5)*grid.get_deltax()-origin[0];
-        r_accent[1] = (glob_j+0.5)*grid.get_deltay()-origin[1];
-        r_accent[2] = global_r_.zmin*grid.get_deltaz()-origin[2];
-
-        tau = -(r_unit[0]*r_accent[0]+r_unit[1]*r_accent[1]+
-                r_unit[2]*r_accent[2])/(C*grid.get_deltat());
-
-        t1_h = static_cast<int>(floor(tau));
-        f2_h = tau-t1_h;
-        f1_h = 1.-f2_h;
-
-        t1_e = static_cast<int>(floor(tau+0.5));
-        f2_e = tau+0.5-t1_e;
-        f1_e = 1.-f2_e;
-				
-
-        e_x = 0.5*(grid.get_ex(glob_i,glob_j,global_r_.zmin)+
-                   grid.get_ex(glob_i,glob_j+1,global_r_.zmin));
-        e_y = 0.5*(grid.get_ey(glob_i,glob_j,global_r_.zmin)+
-                   grid.get_ey(glob_i+1,glob_j,global_r_.zmin));
-        h_x = 0.25*(grid.get_hx(glob_i,glob_j,global_r_.zmin-1)+
-                    grid.get_hx(glob_i+1,glob_j,global_r_.zmin-1)+
-                    grid.get_hx(glob_i,glob_j,global_r_.zmin)+
-                    grid.get_hx(glob_i+1,glob_j,global_r_.zmin));
-        h_y = 0.25*(grid.get_hy(glob_i,glob_j,global_r_.zmin-1)+
-                    grid.get_hy(glob_i,glob_j+1,global_r_.zmin-1)+
-                    grid.get_hy(glob_i,glob_j,global_r_.zmin)+
-                    grid.get_hy(glob_i,glob_j+1,global_r_.zmin));
-        mff_mom_[ptnr][t1_e][0] -= f1_e*e_y*grid.get_deltax()*grid.get_deltay();
-        mff_mom_[ptnr][t1_e+1][0] -= f2_e*e_y*grid.get_deltax()*grid.get_deltay();
-        mff_mom_[ptnr][t1_e][1] += f1_e*e_x*grid.get_deltax()*grid.get_deltay();
-        mff_mom_[ptnr][t1_e+1][1] += f2_e*e_x*grid.get_deltax()*grid.get_deltay();
-        jff_mom_[ptnr][t1_h][0] += f1_h*h_y*grid.get_deltax()*grid.get_deltay();
-        jff_mom_[ptnr][t1_h+1][0] += f2_h*h_y*grid.get_deltax()*grid.get_deltay();
-        jff_mom_[ptnr][t1_h][1] -= f1_h*h_x*grid.get_deltax()*grid.get_deltay();
-        jff_mom_[ptnr][t1_h+1][1] -= f2_h*h_x*grid.get_deltax()*grid.get_deltay();
-      }			
-		
-    /* side zmax */	
-	
-    for(surf_i=0, glob_i=global_r_.xmin+surf_i ;
-        surf_i<global_r_.xmax-global_r_.xmin ;
-        surf_i++,glob_i++)
-      for(surf_j=0, glob_j=global_r_.ymin+surf_j ;
-          surf_j<global_r_.ymax-global_r_.ymin ;
-          surf_j++,glob_j++)
-      {
-        r_accent[0] = (glob_i+0.5)*grid.get_deltax()-origin[0];
-        r_accent[1] = (glob_j+0.5)*grid.get_deltay()-origin[1];
-        r_accent[2] = global_r_.zmax*grid.get_deltaz()-origin[2];
-
-        tau = -(r_unit[0]*r_accent[0]+r_unit[1]*r_accent[1]+
-                r_unit[2]*r_accent[2])/(C*grid.get_deltat());
-
-        t1_h = static_cast<int>(floor(tau));
-        f2_h = tau-t1_h;
-        f1_h = 1.-f2_h;
-
-        t1_e = static_cast<int>(floor(tau+0.5));
-        f2_e = tau+0.5-t1_e;
-        f1_e = 1.-f2_e;
-				
-
-        e_x = 0.5*(grid.get_ex(glob_i,glob_j,global_r_.zmax)+
-                   grid.get_ex(glob_i,glob_j+1,global_r_.zmax));
-        e_y = 0.5*(grid.get_ey(glob_i,glob_j,global_r_.zmax)+
-                   grid.get_ey(glob_i+1,glob_j,global_r_.zmax));
-        h_x = 0.25*(grid.get_hx(glob_i,glob_j,global_r_.zmax-1)+
-                    grid.get_hx(glob_i+1,glob_j,global_r_.zmax-1)+
-                    grid.get_hx(glob_i,glob_j,global_r_.zmax)+
-                    grid.get_hx(glob_i+1,glob_j,global_r_.zmax));
-        h_y = 0.25*(grid.get_hy(glob_i,glob_j,global_r_.zmax-1)+
-                    grid.get_hy(glob_i,glob_j+1,global_r_.zmax-1)+
-                    grid.get_hy(glob_i,glob_j,global_r_.zmax)+
-                    grid.get_hy(glob_i,glob_j+1,global_r_.zmax));
-        mff_mom_[ptnr][t1_e][0] += f1_e*e_y*grid.get_deltax()*grid.get_deltay();
-        mff_mom_[ptnr][t1_e+1][0] += f2_e*e_y*grid.get_deltax()*grid.get_deltay();
-        mff_mom_[ptnr][t1_e][1] -= f1_e*e_x*grid.get_deltax()*grid.get_deltay();
-        mff_mom_[ptnr][t1_e+1][1] -= f2_e*e_x*grid.get_deltax()*grid.get_deltay();
-        jff_mom_[ptnr][t1_h][0] -= f1_h*h_y*grid.get_deltax()*grid.get_deltay();
-        jff_mom_[ptnr][t1_h+1][0] -= f2_h*h_y*grid.get_deltax()*grid.get_deltay();
-        jff_mom_[ptnr][t1_h][1] += f1_h*h_x*grid.get_deltax()*grid.get_deltay();
-        jff_mom_[ptnr][t1_h+1][1] += f2_h*h_x*grid.get_deltax()*grid.get_deltay();
-      }
-  }
-  return;
-}
-
-ostream& FarfieldResult::to_string(ostream &os) const
-{
-  os << "Jan's Farfield result. DOES NOT WORK PROPERLY (my fault, not Jan's).";
-}
