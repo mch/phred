@@ -10,6 +10,10 @@ overall layout of Phred and how it operates (or is supposed to
 operate). That can also serve as the specification to build unit
 tests from, so that the code can be verified as working correctly. 
 
+* General
+- All member variables must be set to a default value, pointers
+  especially MUST be set to zero. 
+
 * MPI Problems and cavets
 - All things that operate on regions MUST ensure that they handle the
   case where the region in question spans nodes. Eg. Excitations,

@@ -56,14 +56,94 @@ using namespace std;
  */ 
 void mn_benchmark()
 {
-  cout << "100x100x100 million node 100 time step benchmark\n";
-
   FDTD fdtd;
   fdtd.set_grid_deltas(1e-2, 1e-2, 1e-2);
   fdtd.set_grid_size(1,1,1);
 
   fdtd.set_time_steps(100);
-  fdtd.run();
+
+#ifdef USE_OPENMP
+   // Test the OpenMP
+   time_t start, now;
+   clock_t cpu_start, cpu_now;
+
+   for (int numthreads = 1; numthreads <= omp_get_max_threads(); numthreads++)
+     {
+       omp_set_num_threads(numthreads);
+       
+       cout << "100x100x100 million node 100 time step benchmark on "
+            << numthreads << " of " << omp_get_max_threads() << "...\n";
+
+       start = time(NULL);
+       cpu_start = clock();
+       fdtd.run();
+       now = time(NULL);
+       cpu_now = clock();
+       
+       cout << numthreads << " of " 
+	    << omp_get_max_threads() << " threads took " 
+	    << now - start << " wall clock seconds, and "
+	    << (cpu_now - cpu_start) / static_cast<double>(CLOCKS_PER_SEC)
+	    << " cpu seconds." << endl;
+     }
+
+#else
+   cout << "100x100x100 million node 100 time step benchmark\n";
+   fdtd.run();
+#endif
+
+}
+
+/**
+ * Variable size benchmark
+ */ 
+void var_benchmark(unsigned int x_cells, unsigned int y_cells, 
+                   unsigned int z_cells)
+{
+  if (x_cells < 100 || y_cells < 100 || z_cells < 100)
+  {
+    cout << "Don't waste your time. Use a bigger problem for benchmarking.\n";
+    return;
+  }
+
+  FDTD fdtd;
+  fdtd.set_grid_deltas(1.0 / static_cast<float>(x_cells), 
+                       1.0 / static_cast<float>(y_cells),
+                       1.0 / static_cast<float>(z_cells));
+  fdtd.set_grid_size(1,1,1);
+
+  fdtd.set_time_steps(100);
+
+#ifdef USE_OPENMP
+   // Test the OpenMP
+   time_t start, now;
+   clock_t cpu_start, cpu_now;
+
+   for (int numthreads = 1; numthreads <= omp_get_max_threads(); numthreads++)
+     {
+       omp_set_num_threads(numthreads);
+       
+       cout << "Variable size, 100 time step benchmark on "
+            << numthreads << " of " << omp_get_max_threads() << "...\n";
+
+       start = time(NULL);
+       cpu_start = clock();
+       fdtd.run();
+       now = time(NULL);
+       cpu_now = clock();
+       
+       cout << numthreads << " of " 
+	    << omp_get_max_threads() << " threads took " 
+	    << now - start << " wall clock seconds, and "
+	    << (cpu_now - cpu_start) / static_cast<double>(CLOCKS_PER_SEC)
+	    << " cpu seconds." << endl;
+     }
+
+#else
+   cout << "Variable size, 100 time step benchmark\n";
+   fdtd.run();
+#endif
+ 
 }
 
 /**

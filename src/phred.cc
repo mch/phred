@@ -105,6 +105,10 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include <omp.h>
 #endif
 
+#include <boost/lexical_cast.hpp>
+using boost::lexical_cast;
+using boost::bad_lexical_cast;
+
 /* For handling low memory conditions, which happens quite often */
 #include <new>
 
@@ -342,8 +346,38 @@ int main (int argc, char **argv)
 #endif
 
     if (test_run) {
-      mn_benchmark();
+#ifndef HAVE_LIBPOPT
+      string phred_name(argv[argc - 4]);
+      if (phred_name.length() > 5)
+        phred_name = phred_name.substr(phred_name.length() - 5, 5);
 
+      if (argc >= 4 && phred_name.compare("phred") == 0)
+      {
+        unsigned int x_cells = 0;
+        unsigned int y_cells = 0;
+        unsigned int z_cells = 0;
+
+        try
+        {
+          x_cells = lexical_cast<unsigned int>(argv[argc - 3]);
+          y_cells = lexical_cast<unsigned int>(argv[argc - 2]);
+          z_cells = lexical_cast<unsigned int>(argv[argc - 1]);
+          
+          var_benchmark(x_cells, y_cells, z_cells);
+        }
+        catch(bad_lexical_cast &)
+        {
+          cout << "To use the variable size benchmark, the last 3 command "
+          "line arguments must\nbe natural numbers each greater than "
+          "100.\nRunning million node benchmark instead.\n";
+          mn_benchmark();
+        }
+      } else {
+        mn_benchmark();
+      }
+#else
+      mn_benchmark();
+#endif
     } else if (!interactive) {
 
       if (argc > 1)
