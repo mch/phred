@@ -59,6 +59,16 @@ protected:
   unsigned int poly_order_; /**< Order of the polynomial used to shape
                                the conductivity */
 
+  // UPML Specific update coeffs. 
+  mat_coef_t **C1_;
+  mat_coef_t **C2_;
+  mat_coef_t **C3_;
+  mat_coef_t **C4_;
+  mat_coef_t **C5_;
+  mat_coef_t **C6_;
+
+
+  Face our_face_;
 
 //   template<region_t region, field_t component, field_t curl1, field_t curl2>
 //   void normal_update(Grid &grid);
@@ -74,6 +84,23 @@ protected:
   void update_hx(Grid &grid, bool pml);
   void update_hy(Grid &grid, bool pml);
   void update_hz(Grid &grid, bool pml);
+
+  /**
+   * Allocate space for the material coefficients
+   */
+  void alloc_coefs(unsigned int num_materials);
+
+  /**
+   * Free the material coefficients.
+   */
+  void free_coefs();
+
+  /**
+   * Determine the correct sigma index for this layer
+   */
+  unsigned int sigma_index(Grid &grid, unsigned int x, 
+                           unsigned int y, 
+                           unsigned int z);
 
 public:
   UPml();
