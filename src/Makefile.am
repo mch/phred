@@ -24,6 +24,7 @@ phred_SOURCES=phred.cc \
 	Ewall.hh \
 	Ewall.cc \
 	Hwall.hh \
+	Hwall.cc \
 	Types.hh \
 	SubdomainAlg.hh \
 	SimpleSDAlg.cc \

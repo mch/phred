@@ -82,6 +82,7 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "MaterialLib.hh"
 #include "Grid.hh"
 #include "SimpleSDAlg.hh"
+#include "Gaussm.hh"
 #include "config.h"
 
 #define EXIT_FAILURE 1
@@ -225,6 +226,8 @@ main (int argc, char **argv)
   // Excitation
   Gaussm ex;
   ex.set_parameters(1, 500e12, 300e12);
+  ex.set_region(50, 50, 50, 50, 2, 2);
+  ex.set_polarization(0.0, 1.0, 0.0);
 
   // Main loop
   unsigned int num_time_steps = 100;
@@ -232,6 +235,9 @@ main (int argc, char **argv)
 
   cout << "main loop begins." << endl;  
   for (ts = 0; ts < num_time_steps; ts++) {
+    cout << "phred, time step " << ts << ", excitation: " 
+         << ex.source_function(grid, ts) << endl;
+
     // Excitations
     ex.excite(grid, ts);
 

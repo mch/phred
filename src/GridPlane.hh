@@ -27,7 +27,7 @@ class GridPlane
 {
 private:
 protected:
-  Grid &grid_;
+  Grid &grid_; /**< a reference to the grid... performance implications? */
 
 public:
   /**

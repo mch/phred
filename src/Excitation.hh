@@ -24,9 +24,14 @@ protected:
   unsigned int z_end_;
 
   /**
-   * Field component to excite
+   * Field polarization to excite, x, y, z
    */
-  FieldComponent component_;
+  field_t polarization_[3];
+
+  /**
+   * Field to excite, E or H
+   */
+  FieldType type_;
 
 public:
   Excitation();
@@ -41,7 +46,9 @@ public:
   virtual void excite(Grid &grid, unsigned int time_step) = 0;
 
   /**
-   * Set the (rectangular) region to apply the excitation to
+   * Set the (rectangular) region to apply the excitation to. The
+   * start and end coordinates can range from 0 to global grid size -
+   * 1. 
    *
    * @param x_start The starting x coordinate
    * @param x_end The ending x coordinate
@@ -53,7 +60,23 @@ public:
   void set_region(unsigned int x_start, unsigned int x_end, 
                   unsigned int y_start, unsigned int y_end, 
                   unsigned int z_start, unsigned int z_end);
-                  
+
+  /**
+   * Set the polarization vector
+   *
+   * @param x the x component
+   * @param y the y component
+   * @param z the z component
+   */
+  void set_polarization(field_t x, field_t y, field_t z);
+
+  /**
+   * Set the field to excite. Either E or H. 
+   *
+   * @param t FieldType
+   */
+  void set_type(FieldType t);
+
 };
 
 #endif // EXCITE_H

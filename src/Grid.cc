@@ -1,5 +1,8 @@
 #include "Grid.hh"
 
+#include "Ewall.hh"
+#include "Hwall.hh"
+
 Grid::Grid() 
   : num_materials_(0),
     Ca_(0), Cbx_(0), Cby_(0), Cbz_(0),
@@ -261,18 +264,18 @@ void Grid::define_box(unsigned int x_start, unsigned int x_stop,
   // Given coordinates are global, so we have to convert them to local. 
   unsigned int xs, ys, zs, xe, ye, ze;
 
-  xs = (get_lsx() > x_start) ? get_lsx() : x_start - get_lsx();
-  ys = (get_lsy() > y_start) ? get_lsy() : y_start - get_lsy();
-  zs = (get_lsz() > z_start) ? get_lsz() : z_start - get_lsz();
+  xs = (get_lsx() > x_start) ? get_lsx() - 1 : x_start - get_lsx();
+  ys = (get_lsy() > y_start) ? get_lsy() - 1 : y_start - get_lsy();
+  zs = (get_lsz() > z_start) ? get_lsz() - 1 : z_start - get_lsz();
 
-  xe = (x_stop > get_lsx() + get_ldx()) 
-    ? get_ldx() : x_stop - get_lsx();
+  xe = (x_stop >= get_lsx() + get_ldx()) 
+    ? get_ldx() : x_stop - get_lsx() + 1;
 
-  ye = (y_stop > get_lsy() + get_ldy()) 
-    ? get_ldy() : y_stop - get_lsy();
+  ye = (y_stop >= get_lsy() + get_ldy()) 
+    ? get_ldy() : y_stop - get_lsy() + 1;
 
-  ze = (z_stop > get_lsz() + get_ldz()) 
-    ? get_ldz() : z_stop - get_lsz();
+  ze = (z_stop >= get_lsz() + get_ldz()) 
+    ? get_ldz() : z_stop - get_lsz() + 1;
 
   for (unsigned int i = xs; i < xe; i++)
   {
@@ -411,7 +414,72 @@ void Grid::update_hz()
 
 void Grid::apply_boundaries()
 {
+  for (int i = 0; i < 6; i++) {
+    switch (info_.face_bc_[i]) {
+    case SUBDOMAIN:
+      cerr << "WARNING: Subdomain communication not yet supported!" << endl;
+      break;
 
+    case EWALL:
+      {
+        Ewall ew;
+        ew.apply(static_cast<Face>(i), *this);
+      }
+      break;
+
+    case HWALL:
+      {
+        Hwall hw;
+        hw.apply(static_cast<Face>(i), *this);
+      }
+      break;
+
+    case MUR:
+      cerr << "WARNING: Mur ABC's not yet supported!" << endl;
+      break;
+
+    default: 
+      cerr << "WARNING: unrecognized boundary condition!" << endl;
+    }
+  }
 }
 
 
+region Grid::global_to_local(region in)
+{
+  region r;
+
+  r.xmin = (get_lsx() > in.xmin) ? get_lsx() - 1
+    : in.xmin - get_lsx();
+  r.ymin = (get_lsy() > in.ymin) ? get_lsy() - 1
+    : in.ymin - get_lsy();
+  r.zmin = (get_lsz() > in.zmin) ? get_lsz() - 1
+    : in.zmin - get_lsz();
+
+  r.xmax = (in.xmax >= get_lsx() + get_ldx()) 
+    ? get_ldx() : in.xmax - get_lsx() + 1;
+
+  r.ymax = (in.ymax >= get_lsy() + get_ldy()) 
+    ? get_ldy() : in.ymax - get_lsy() + 1;
+
+  r.zmax = (in.zmax >= get_lsz() + get_ldz()) 
+    ? get_ldz() : in.zmax - get_lsz() + 1;
+
+  return r;
+}
+
+region Grid::global_to_local(unsigned int x_start, unsigned int x_stop, 
+                             unsigned int y_start, unsigned int y_stop, 
+                             unsigned int z_start, unsigned int z_stop)
+{
+  region result;
+  
+  result.xmin = x_start;
+  result.xmax = x_stop;
+  result.ymin = y_start;
+  result.ymax = y_stop;
+  result.zmin = z_start;
+  result.zmax = z_stop;
+
+  return global_to_local(result);
+}

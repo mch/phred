@@ -12,23 +12,31 @@ class Ewall : public BoundaryCond
 {
 private:
 protected:
-
+  /**
+   * Implements a loop across a GridPlane. 
+   *
+   * @param T a subclass of GridPlane
+   * @param r the region to apply the condition to, usually found
+   * using find_face()
+   * @param grid the grid to apply the boundary condition to
+   */
   template<class T>
-  void helper(region r, Grid &grid);
+  void condition(region r, Grid &grid);
 
 public:
   Ewall();
-  virtual ~Ewall();
+  ~Ewall();
 
   /**
-   * Apply the electric wall boundary condition to a face of a grid. 
+   * Applies the electric wall boundary condition to a face of the
+   * grid by building a GridPlane object for the face, and passing
+   * that to a templated loop helper function.
    *
    * @param face the face to apply the boundary condition to. 
    * @param grid the grid to apply the boundary condition to. 
    */
-  virtual void apply(Face face,
-                     Grid &grid);
-
+  void apply(Face face,
+             Grid &grid);  
 };
 
 #endif // EWALL_H

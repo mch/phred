@@ -171,6 +171,37 @@ class Grid {
    */ 
   virtual void alloc_grid();
 
+  /**
+   * Convert global coordinate to local grid coordinates. Generally
+   * excitations and geometry specifications are given in terms of
+   * the global FDTD grid. Since each processor only knows about part
+   * of that grid, it is necessary to convert global coordinates to
+   * local ones that can be used. 
+   *
+   * @param region the global region to convert.
+   * @return region in local coordinate. 
+   */
+  region global_to_local(region r);
+
+  /**
+   * Convert global coordinate to local grid coordinates. Generally
+   * excitations and geometry specifications are given in terms of
+   * the global FDTD grid. Since each processor only knows about part
+   * of that grid, it is necessary to convert global coordinates to
+   * local ones that can be used. 
+   *
+   * @param x_start The starting cell of the box in x
+   * @param x_end The ending cell of the box in x
+   * @param y_start The starting cell of the box in y
+   * @param y_end The ending cell of the box in y
+   * @param z_start The starting cell of the box in z
+   * @param z_end The ending cell of the box in z
+   *
+   * @return region in local coordinate. 
+   */
+  region global_to_local(unsigned int x_start, unsigned int x_stop, 
+                         unsigned int y_start, unsigned int y_stop, 
+                         unsigned int z_start, unsigned int z_stop);
 
   /**
    * Define geometry in the grid (i.e. assign material indicies to

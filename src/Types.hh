@@ -13,8 +13,8 @@
 enum BoundaryCondition {
   SUBDOMAIN, /**< Means that the face is shared with another node */
   EWALL, /**< Electric wall */
-  HWALL /**< Magnetic wall */
-  //ABC /**< 2nd order absorbing boundary condition */
+  HWALL, /**< Magnetic wall */
+  MUR /**< 2nd order absorbing boundary condition */
   //IMPEDANCE, /**< Imedance boundary */
   //  PML /**< Perfectly matched layers (Berenger's absorbing boundary) */
 };
@@ -57,6 +57,14 @@ enum FieldComponent {
 };
 
 /**
+ * Field types, E and H
+ */
+enum FieldType {
+  E,
+  H
+};
+
+/**
  * The type used for material coefficients
  */
 typedef float mat_coef_t; 
@@ -77,5 +85,17 @@ typedef double field_t;
  */
 typedef double delta_t;
 
+/** \struct region
+ * \brief min and max coordinates that can be used to define a
+ * block within the grid. Or a face. 
+ */
+typedef struct region_t {
+  unsigned int xmin;
+  unsigned int xmax;
+  unsigned int ymin;
+  unsigned int ymax;
+  unsigned int zmin;
+  unsigned int zmax;
+} region;
 
 #endif // TYPES_H
