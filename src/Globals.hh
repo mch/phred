@@ -22,7 +22,7 @@
 #include <mpi.h>
 
 // Globals from phred.cc
-extern bool interactive, estimate_memory, mnps, quiet, setup_only;
+extern bool interactive, estimate_memory, quiet, setup_only;
 
 // Shouldn't be any harm in making these global...
 extern int MPI_RANK, MPI_SIZE;

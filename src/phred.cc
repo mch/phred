@@ -143,7 +143,6 @@ static struct poptOption options[] =
     {"interactive", 'i', POPT_ARG_NONE, 0, 'i'},
     {"file", 'f', POPT_ARG_STRING, 0, 'f'},
     {"memory", 'm', POPT_ARG_NONE, 0, 'm'},
-    {"mnps", 'b', POPT_ARG_NONE, 0, 'b'}, 
     {"quiet", 'q', POPT_ARG_NONE, 0, 'q'}, 
     {"test", 't', POPT_ARG_STRING, 0, 't'},
     {"setup", 's', POPT_ARG_STRING, 0, 's'},
@@ -164,7 +163,7 @@ static string get_extension(string filename);
 // Ugly globals
 string inputfile, test_case;
 const char *program_name;
-bool interactive, estimate_memory, mnps, quiet, test_run, setup_only;
+bool interactive, estimate_memory, quiet, test_run, setup_only;
 int MPI_RANK, MPI_SIZE, argi_g;
 
 /* Set all the option flags according to the switches specified.
@@ -217,10 +216,6 @@ decode_switches (int argc, char **argv)
 
     case 'm':
       estimate_memory = true; 
-      break;
-
-    case 'b':
-      mnps = true;
       break;
 
     case 'q':
@@ -289,10 +284,6 @@ decode_switches (int argc, char **argv)
       estimate_memory = true; 
       break;
 
-    case 'b':
-      mnps = true;
-      break;
-
     case 'q':
       quiet = true;
       break;
@@ -337,8 +328,6 @@ Options:\n");
   -q, --quiet                Don't echo configuration information at\n\
                              start up, don't report each time step, etc.\n\
   -m, --memory               Estimate amount of required memory and exit\n\
-  -b, --mnps                 Benchmark: estimate the millions of nodes \n\
-                             processed per second\n\
   -t, --test                 Run a hard coded test problem; select from:\n\
                              H   Single circular hole\n\
                              M   Million node benchmark\n\
@@ -455,7 +444,6 @@ int main (int argc, char **argv)
 
   interactive = false;
   estimate_memory = false;
-  mnps = false;
   quiet = false;
 
   //std::set_terminate (__gnu_cxx::__verbose_terminate_handler);

@@ -47,12 +47,6 @@ void MetaFDTD::run()
   // grid box and the maximum excitation frequency, unless overridden.
   //...
 
-  if (setup_only)
-  {
-    cout << "Set up only requested. Exiting. \n";
-    return;
-  }
-
   // Subdivide the grid using a domain decomosition algorithm.
   if (!quiet)
     cout << "Performing domain decomposition..." << endl;
@@ -296,86 +290,86 @@ void MetaFDTD::run()
 
   compute_update_regions();
 
-  cout << "\nStarting FDTD time stepping, running for " 
-       << time_steps_ << " time steps..." << endl;
-
-  // For optionally tracking millions of nodes per second. 
-  time_t start = time(NULL);
-  time_t now;
-
-  clock_t start_cpu = clock();
-  clock_t now_cpu;
-
-  double time_total = 0;
-  double time_total_cpu = 0;
-
-  // For estimating run time
-  time_t rt_start = time(NULL);
-  time_t rt_now;
-  unsigned int rt_steps = 9;
-  
-  for (ts = 1; ts <= time_steps_; ts++) {
-    
-    if ((ts - 10) % 100 == 0)
-    {
-      rt_now = time(NULL);
-      int secs = static_cast<int>((static_cast<double>(rt_now - rt_start) 
-                                   / rt_steps) * (time_steps_ - ts));
-
-      cout << "Estimated time remaining at time step " << ts << ": \n\t";
-      print_elapsed_time(secs);
-
-      rt_steps = 100;
-      rt_start = time(NULL);
-    }
-
-    update_h(gud);
-
-    // Excitations
-    h_eiter = h_eiter_b;
-    while (h_eiter != h_eiter_e)
-    {
-      (*h_eiter).second->excite(*grid_, ts, H);
-      ++h_eiter;
-    }
-
-    // Boundary condition application
-    grid_->apply_boundaries(H);
-
-    update_e(gud);
-    
-    // Excitations
-    e_eiter = e_eiter_b;
-    while (e_eiter != e_eiter_e)
-    {
-      (*e_eiter).second->excite(*grid_, ts, E);
-      ++e_eiter;
-    }
-    
-    // Boundary condition application
-    grid_->apply_boundaries(E);
-
-    // Results
-    iter = r_dw_map_.begin();
-    iter_e = r_dw_map_.end();
-
-    while (iter != iter_e)
-    {
-      riter = results_.find((*iter).first);
-      dwiter = datawriters_.find((*iter).second);      
-      
-      if (riter != riter_e && dwiter != dwiter_e)
-        (*dwiter).second->handle_data(ts, 
-                                      (*riter).second->get_result(*grid_, ts));
-
-
-      ++iter;
-   }
-    
-  } // End of main loop
-
-  if (mnps)
+  if (!setup_only)
   {
+    cout << "\nStarting FDTD time stepping, running for " 
+         << time_steps_ << " time steps..." << endl;
+
+    // For optionally tracking millions of nodes per second. 
+    time_t start = time(NULL);
+    time_t now;
+
+    clock_t start_cpu = clock();
+    clock_t now_cpu;
+
+    double time_total = 0;
+    double time_total_cpu = 0;
+
+    // For estimating run time
+    time_t rt_start = time(NULL);
+    time_t rt_now;
+    unsigned int rt_steps = 9;
+  
+    for (ts = 1; ts <= time_steps_; ts++) {
+    
+      if ((ts - 10) % 100 == 0)
+      {
+        rt_now = time(NULL);
+        int secs = static_cast<int>((static_cast<double>(rt_now - rt_start) 
+                                     / rt_steps) * (time_steps_ - ts));
+
+        cout << "Estimated time remaining at time step " << ts << ": \n\t";
+        print_elapsed_time(secs);
+
+        rt_steps = 100;
+        rt_start = time(NULL);
+      }
+
+      update_h(gud);
+
+      // Excitations
+      h_eiter = h_eiter_b;
+      while (h_eiter != h_eiter_e)
+      {
+        (*h_eiter).second->excite(*grid_, ts, H);
+        ++h_eiter;
+      }
+
+      // Boundary condition application
+      grid_->apply_boundaries(H);
+
+      update_e(gud);
+    
+      // Excitations
+      e_eiter = e_eiter_b;
+      while (e_eiter != e_eiter_e)
+      {
+        (*e_eiter).second->excite(*grid_, ts, E);
+        ++e_eiter;
+      }
+    
+      // Boundary condition application
+      grid_->apply_boundaries(E);
+
+      // Results
+      iter = r_dw_map_.begin();
+      iter_e = r_dw_map_.end();
+
+      while (iter != iter_e)
+      {
+        riter = results_.find((*iter).first);
+        dwiter = datawriters_.find((*iter).second);      
+      
+        if (riter != riter_e && dwiter != dwiter_e)
+          (*dwiter).second->handle_data(ts, 
+                                        (*riter).second->get_result(*grid_, ts));
+
+
+        ++iter;
+      }
+    
+    } // End of main loop
+
     now = time(NULL);
     now_cpu = clock();
     time_total = static_cast<double>(now) - static_cast<double>(start);
@@ -417,25 +411,27 @@ void MetaFDTD::run()
            << cpu_mnps << endl;
       cout << "Note: MNPS w.r.t. CPU time may be incorrect. " << endl;
     }
+
+    // Do data output for results that only produce data at the end
+    iter = r_dw_map_.begin();
+    iter_e = r_dw_map_.end();
+
+    while (iter != iter_e)
+    {
+      riter = results_.find((*iter).first);
+      dwiter = datawriters_.find((*iter).second);      
+    
+      if (riter != riter_e && dwiter != dwiter_e)
+        (*dwiter).second->handle_data(ts, 
+                                      (*riter).second->get_post_result(*grid_));
+    
+    
+      ++iter;
+    }
+
+  } else {
+    cout << "Set up only requested. Exiting. \n";
   }
-
-  // Do data output for results that only produce data at the end
-  iter = r_dw_map_.begin();
-  iter_e = r_dw_map_.end();
-
-  while (iter != iter_e)
-  {
-    riter = results_.find((*iter).first);
-    dwiter = datawriters_.find((*iter).second);      
-    
-    if (riter != riter_e && dwiter != dwiter_e)
-      (*dwiter).second->handle_data(ts, 
-                                    (*riter).second->get_post_result(*grid_));
-    
-    
-    ++iter;
-  }
-
 
   // life cycle de init
   e_eiter = e_eiter_b;

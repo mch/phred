@@ -103,11 +103,11 @@ void mn_benchmark()
 void var_benchmark(unsigned int x_cells, unsigned int y_cells, 
                    unsigned int z_cells)
 {
-  if (x_cells * y_cells * z_cells < 1000000)
-  {
-    cout << "Don't waste your time. Use a bigger problem for benchmarking.\n";
-    return;
-  }
+  //if (x_cells * y_cells * z_cells < 1000000)
+  //{
+  //  cout << "Don't waste your time. Use a bigger problem for benchmarking.\n";
+  //  return;
+  //}
 
   FDTD fdtd;
   fdtd.set_grid_deltas(1.0 / static_cast<float>(x_cells), 
