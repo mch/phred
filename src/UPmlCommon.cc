@@ -5,6 +5,8 @@
 #include "Constants.hh"
 #include "Exceptions.hh"
 
+#include <math.h>
+
 UPmlCommon::UPmlCommon(const Grid &grid)
   : grid_(grid), poly_order_(4), sigma_x_(0), sigma_y_(0), sigma_z_(0), 
     c1_(0), c2_(0), c3_(0), c4_(0), c5_(0), c6_(0), x_size_(0), 

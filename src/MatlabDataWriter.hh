@@ -29,7 +29,7 @@
 #include <string>
 
 #include <sys/types.h>
-#include <stdint.h>
+/* #include <stdint.h> */
 #include <mpi.h>
 
 using namespace std;
