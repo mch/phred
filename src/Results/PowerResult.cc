@@ -29,7 +29,7 @@
 
 PowerResult::PowerResult()
   : power_real_(0), power_imag_(0), time_power_(0),
-    has_data_(false), et1_(0), et2_(0), ht1_(0), ht2_(0)
+  has_data_(false) //, et1_(0), et2_(0), ht1_(0), ht2_(0)
 {
   real_var_.has_time_dimension(false);
   imag_var_.has_time_dimension(false);
@@ -46,7 +46,7 @@ PowerResult::PowerResult(field_t freq_start, field_t freq_stop,
                          unsigned int num_freqs)
   : DFTResult(freq_start, freq_stop, num_freqs), 
     power_real_(0), power_imag_(0), time_power_(0),
-    has_data_(false), et1_(0), et2_(0), ht1_(0), ht2_(0)
+  has_data_(false) //, et1_(0), et2_(0), ht1_(0), ht2_(0)
 {
   real_var_.has_time_dimension(false);
   imag_var_.has_time_dimension(false);
@@ -152,11 +152,11 @@ void PowerResult::init(const Grid &grid)
     /* GRR, ARGH! */
     unsigned int sz = frequencies_.length() * x_size_ * y_size_ * z_size_;
 
-    et1_ = new complex<field_t>[sz];
-    et2_ = new complex<field_t>[sz];
+//     et1_ = new complex<field_t>[sz];
+//     et2_ = new complex<field_t>[sz];
 
-    ht1_ = new complex<field_t>[sz];
-    ht2_ = new complex<field_t>[sz];
+//     ht1_ = new complex<field_t>[sz];
+//     ht2_ = new complex<field_t>[sz];
 
     prev_et1_ = new field_t[sz];
     prev_et2_ = new field_t[sz];
@@ -227,18 +227,18 @@ void PowerResult::deinit()
     power_imag_ = 0;
   }
 
-  if (et1_)
-  {
-    delete[] et1_;
-    delete[] et2_;
-    delete[] ht1_;
-    delete[] ht2_;
+//   if (et1_)
+//   {
+//     delete[] et1_;
+//     delete[] et2_;
+//     delete[] ht1_;
+//     delete[] ht2_;
 
-    et1_ = 0;
-    et2_ = 0;
-    ht1_ = 0;
-    ht2_ = 0;
-  }
+//     et1_ = 0;
+//     et2_ = 0;
+//     ht1_ = 0;
+//     ht2_ = 0;
+//   }
 
   if (prev_et1_)
   {
@@ -303,58 +303,58 @@ public:
  *
  * THIS IS TOTALLY WRONG! 
  */ 
-class DFTPowerAlg
-{
-public:
-  class Data
-  {
-  public:
-    int idx;
+// class DFTPowerAlg
+// {
+// public:
+//   class Data
+//   {
+//   public:
+//     int idx;
     
-    field_t e_cos_temp;
-    field_t e_sin_temp;
+//     field_t e_cos_temp;
+//     field_t e_sin_temp;
 
-    field_t h_cos_temp;
-    field_t h_sin_temp;
+//     field_t h_cos_temp;
+//     field_t h_sin_temp;
 
-    complex<field_t> *et1_, *et2_, *ht1_, *ht2_;
+//     complex<field_t> *et1_, *et2_, *ht1_, *ht2_;
 
-    const field_t *prev_et1_, *prev_et2_;
+//     const field_t *prev_et1_, *prev_et2_;
 
-    field_t p_real;
-    field_t p_imag;
+//     field_t p_real;
+//     field_t p_imag;
 
-    field_t cell_area;
-  };
+//     field_t cell_area;
+//   };
 
-  static inline void alg(const int &x, const int &y, const int &z, 
-                         Fields_t &f, Data &data)
-  {
-    // It is necessary to store the old value of E so that the average
-    // of two time steps can be calculated, otherwise the result will
-    // be incorrect.
-    field_t et1_tavg = (f.et1_avg + data.prev_et1_[data.idx]) / 2;
-    field_t et2_tavg = (f.et2_avg + data.prev_et2_[data.idx]) / 2;
+//   static inline void alg(const int &x, const int &y, const int &z, 
+//                          Fields_t &f, Data &data)
+//   {
+//     // It is necessary to store the old value of E so that the average
+//     // of two time steps can be calculated, otherwise the result will
+//     // be incorrect.
+//     field_t et1_tavg = (f.et1_avg + data.prev_et1_[data.idx]) / 2;
+//     field_t et2_tavg = (f.et2_avg + data.prev_et2_[data.idx]) / 2;
 
-    data.et1_[data.idx] += complex<field_t>(et1_tavg * data.e_cos_temp, 
-                                            -1 * f.et1_avg * data.e_sin_temp);
-    data.et2_[data.idx] += complex<field_t>(et2_tavg * data.e_cos_temp, 
-                                            -1 * f.et2_avg * data.e_sin_temp);
-    data.ht1_[data.idx] += complex<field_t>(f.ht1_avg * data.h_cos_temp,
-                                            -1 * f.ht1_avg * data.h_sin_temp);
-    data.ht2_[data.idx] += complex<field_t>(f.ht2_avg * data.h_cos_temp, 
-                                            -1 * f.ht2_avg * data.h_sin_temp);
+//     data.et1_[data.idx] += complex<field_t>(et1_tavg * data.e_cos_temp, 
+//                                             -1 * f.et1_avg * data.e_sin_temp);
+//     data.et2_[data.idx] += complex<field_t>(et2_tavg * data.e_cos_temp, 
+//                                             -1 * f.et2_avg * data.e_sin_temp);
+//     data.ht1_[data.idx] += complex<field_t>(f.ht1_avg * data.h_cos_temp,
+//                                             -1 * f.ht1_avg * data.h_sin_temp);
+//     data.ht2_[data.idx] += complex<field_t>(f.ht2_avg * data.h_cos_temp, 
+//                                             -1 * f.ht2_avg * data.h_sin_temp);
 
-    complex<field_t> temp = (data.et1_[data.idx] * conj(data.ht2_[data.idx])
-      - data.et2_[data.idx] * conj(data.ht1_[data.idx])) * data.cell_area;
+//     complex<field_t> temp = (data.et1_[data.idx] * conj(data.ht2_[data.idx])
+//       - data.et2_[data.idx] * conj(data.ht1_[data.idx])) * data.cell_area;
  
-    // Cheap, approximate integration.
-    data.p_real += temp.real();
-    data.p_imag += temp.imag();
+//     // Cheap, approximate integration.
+//     data.p_real += temp.real();
+//     data.p_imag += temp.imag();
    
-    ++data.idx;
-  }
-};
+//     ++data.idx;
+//   }
+// };
 
 /**
  * This class updates the stored value of the E tangential components 
@@ -402,9 +402,9 @@ void PowerResult::calculate_result(const Grid &grid,
   MPI_Reduce(&time_power_, &time_power_, 1, GRID_MPI_TYPE, MPI_SUM, 0, 
              MPI_COMM_WORLD);
 
-  DFTPowerAlg::Data dftdata;
+  // DFTPowerAlg::Data dftdata;
 
-  dftdata.cell_area = cell_area_;
+//   dftdata.cell_area = cell_area_;
 
   delta_t dt = grid.get_deltat();
 
@@ -412,19 +412,19 @@ void PowerResult::calculate_result(const Grid &grid,
   delta_t e_time = dt * time_step;
   delta_t h_time = dt * (static_cast<delta_t>(time_step) - 0.5);
 
-  dftdata.et1_ = et1_;
-  dftdata.et2_ = et2_;
+//   dftdata.et1_ = et1_;
+//   dftdata.et2_ = et2_;
 
-  dftdata.ht1_ = ht1_;
-  dftdata.ht2_ = ht2_;
+//   dftdata.ht1_ = ht1_;
+//   dftdata.ht2_ = ht2_;
 
-  dftdata.prev_et1_ = prev_et1_;
-  dftdata.prev_et2_ = prev_et2_;
+//   dftdata.prev_et1_ = prev_et1_;
+//   dftdata.prev_et2_ = prev_et2_;
 
   for (unsigned int i = 0; i < frequencies_.length(); i++)
   {
-    dftdata.p_real = 0;
-    dftdata.p_imag = 0;
+//     dftdata.p_real = 0;
+//     dftdata.p_imag = 0;
 
 //     if (has_data_)
 //     {

@@ -106,10 +106,10 @@ protected:
 //   field_t *ht2r_;
 //   field_t *ht2i_;
 
-  complex<field_t> *et1_;
-  complex<field_t> *et2_;
-  complex<field_t> *ht1_;
-  complex<field_t> *ht2_;
+//   complex<field_t> *et1_;
+//   complex<field_t> *et2_;
+//   complex<field_t> *ht1_;
+//   complex<field_t> *ht2_;
 
   unsigned int x_size_;
   unsigned int y_size_;
