@@ -40,10 +40,6 @@ map<string, Variable *> &PlaneResult::get_result(const Grid &grid,
   if (result_time(time_step))
   {
     var_.set_num(1);
-    var_.set_ptr(grid.get_face_start(face_, field_, plane_));
-
-    MPI_Datatype t = grid.get_plane_dt(face_);
-    var_.set_datatype(t);
   } else {
     var_.set_num(0);
   }
@@ -59,21 +55,47 @@ void PlaneResult::init(const Grid &grid)
   case BACK:
     var_.add_dimension("y", grid.get_ldy(), 0);
     var_.add_dimension("z", grid.get_ldz(), 0);
+
+    // ERROR: This is only contiguous if the overlap IS INCLUDED!
+    // That's not what we want for results!
+    MPI_Type_contiguous(grid.get_ldz() * grid.get_ldy(), 
+                        GRID_MPI_TYPE, &datatype_);
     break;
 
   case TOP:
   case BOTTOM:
     var_.add_dimension("x", grid.get_ldx(), 0);
     var_.add_dimension("y", grid.get_ldy(), 0);
+
+    MPI_Datatype y_vector;
+    MPI_Type_vector(grid.get_ldy(), 1, grid.get_ldz(), 
+                    GRID_MPI_TYPE, &y_vector);
+
+    MPI_Type_hvector(grid.get_ldx(), 1, 
+                     sizeof(field_t) * grid.get_ldz() * grid.get_ldy(), 
+                     y_vector, &datatype_);
     break;
 
   case LEFT:
   case RIGHT:
     var_.add_dimension("x", grid.get_ldx(), 0);
     var_.add_dimension("z", grid.get_ldz(), 0);
+
+    MPI_Type_vector(grid.get_ldx(), grid.get_ldz(), 
+                    grid.get_ldy() * grid.get_ldz(), 
+                    GRID_MPI_TYPE, &datatype_);
     break;
   }
 
-  var_.set_name(base_name_);
+  MPI_Type_commit(&datatype_);
 
+  var_.set_name(base_name_);
+  var_.set_datatype(datatype_);
+  var_.set_ptr(grid.get_face_start(face_, field_, plane_));
+
+}
+
+void PlaneResult::deinit()
+{
+  MPI_Type_free(&datatype_);
 }

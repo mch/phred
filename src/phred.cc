@@ -224,7 +224,9 @@ Options:\n\
   -q, --quiet                Don't output warnings about problem setup, etc.\n\
   -m, --memory               Estimate amount of required memory and exit\n\
   -b, --mnps                 Benchmark: estimate the millions of nodes \n\
-                             processed per second\n\
+                             processed per second (this does NOT include\n\
+                             time spent in IO or other activities; only\n\
+                             node update times are counted.\n\
   -V, --version              output version information and exit\n\
 ");
 #else

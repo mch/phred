@@ -388,28 +388,28 @@ void FDTD::run(int rank, int size)
   e_eiter = e_eiter_b;
   while (e_eiter != e_eiter_e) 
   {
-    (*e_eiter).second->deinit(*grid_);
+    (*e_eiter).second->deinit();
     ++e_eiter;
   }
 
   h_eiter = h_eiter_b;
   while (h_eiter != h_eiter_e) 
   {
-    (*h_eiter).second->deinit(*grid_);
+    (*h_eiter).second->deinit();
     ++h_eiter;
   }
 
   riter = riter_b;
   while (riter != riter_e) 
   {
-    (*riter).second->deinit(*grid_);
+    (*riter).second->deinit();
     ++riter;
   }
 
   dwiter = dwiter_b;
   while (dwiter != dwiter_e) 
   {
-    (*dwiter).second->deinit(*grid_);
+    (*dwiter).second->deinit();
     ++dwiter;
   }
 

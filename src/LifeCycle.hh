@@ -52,7 +52,7 @@ public:
    * whatever. Called just after the simulation ends. The default
    * implementation does nothing. 
    */
-  virtual void deinit(const Grid &grid)
+  virtual void deinit()
   {}
 };
 

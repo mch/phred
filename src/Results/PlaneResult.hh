@@ -47,6 +47,8 @@ protected:
 
   Variable var_; /**< Our variable */
 
+  MPI_Datatype datatype_; 
+
 public:
 
   PlaneResult();
@@ -106,6 +108,11 @@ public:
    */
   virtual void init(const Grid &grid);
 
+  /**
+   * Deinit the result; free the MPI derived type. 
+   */ 
+  virtual void deinit();
+  
   /**
    * Set the name of our variable to something human readable!
    */
