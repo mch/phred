@@ -97,7 +97,8 @@ protected:
                  // otherwise. Only intended to make calling
                  // alloc_fields multiple times consqeunce free.
 
-  region_t pml_r_;
+  region_t grid_r_; /**< Total Grid region */
+  region_t pml_r_; /**< Total PML Region */
 
   // These regions are regions *in the grid coordinates*, not in the
   // PML coordinates, which are the regions for each field component
@@ -118,6 +119,11 @@ protected:
   MPI_Datatype yz_plane_;
   MPI_Datatype xz_plane_;
 
+  /** 
+   * Compute the local PML region to update for a particular field
+   * component. 
+   */
+  region_t find_local_region(region_t field_r);
 
   /** 
    * A helper function called by PmlCommon::init_ratios

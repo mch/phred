@@ -127,6 +127,10 @@ void FarfieldResult::init(const Grid &grid)
   }
   
   arc_connect();
+
+  time_dim_ = false; 
+
+  //dim_lens_.push_back(N);
 }
   
 void FarfieldResult::deinit(const Grid &grid)
