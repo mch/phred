@@ -15,6 +15,8 @@ libboundaries_a_SOURCES = BoundaryCondition.hh \
 	SubdomainBc.hh \
 	SubdomainBc.cc \
 	Ewall.hh \
-	Ewall.cc
+	Ewall.cc \
+	GPml.hh \
+	GPml.cc
 
 libboundaries_a_LIBADD = $(TEMPLATE_OBJS)

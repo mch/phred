@@ -31,8 +31,41 @@
 class GPML : public BoundaryCond 
 {
 public:
+  GPml();
+  GPml(const GPml &rhs);
+  ~GPml();
+
+  const GPml &operator=(const GPml &rhs);
+
+  /**
+   * Applies a boundary condition to a face of the grid.
+   *
+   * @param face the face to apply the boundary condition to. 
+   * @param grid the grid to apply the boundary condition to. 
+   * @param the field components to affect. 
+   */
+  void apply(Face face, Grid &grid, FieldType type);
+
+  /**
+   * Our own special version of LifeCycle's init() which has an
+   * additional parameter: the face number the bounary is on.
+   */ 
+  void init(const Grid &grid, Face face);
+
+  /**
+   * Our own special version of LifeCycle's deinit() which has an
+   * additional parameter: the face number the bounary is on.
+   */ 
+  void deinit(const Grid &grid, Face face);
+
+  /**
+   * Boundary condition type.
+   */
+  inline BoundaryCondition get_type() const
+  { return GPML; }
 
 private:
+
 
 };
 
