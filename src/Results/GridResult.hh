@@ -40,15 +40,12 @@ public:
    * sizes in case of graded meshes), and other things as I think of
    * them.
    *
-   * Data is only made available at time step 0. 
-   *
    * @param grid a reference to a Grid object
    * @return a reference to a data object, which contains an MPI
    * derived data type, a pointer, and the number of items in the
    * result.
    */
-  map<string, Variable *> &get_result(const Grid &grid, 
-                                      unsigned int time_step);
+  map<string, Variable *> &get_pre_result(const Grid &grid);
 
   /**
    * Called to perform any initialization that may be required.

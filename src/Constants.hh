@@ -45,5 +45,8 @@ static const field_t ETA_0 = 3.767303662405271e+02;
 // Speed of light in free space
 static const field_t C = 2.997925e8;
 
+// Freespace wave impedenace, sqrt(MU_0 / EPS_0)
+static const field_t ETA = 3.276730366241e2;
+
 #endif
 

@@ -987,6 +987,16 @@ class Grid {
    */ 
   grid_point get_global_cell(point p) const;
 
+  /**
+   * Returns the size of the grid in real coordinates, i.e. meters
+   */ 
+  point get_size() const;
+
+  /**
+   * Returns the centre of the grid in real coordinates. 
+   */ 
+  point get_centre() const;
+
 };
 
 #endif // GRID_H

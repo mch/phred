@@ -69,7 +69,7 @@ void PointDFTResult::init(const Grid &grid)
   else 
     l_.z = point_.z - grid.get_lsz();
 
-  if (interval_.length() == 0)
+  if (frequencies_.length() == 0)
   {
     throw ResultException("PointDFTResult: Frequency interval is not"
                           " correctly set up. ");
@@ -77,18 +77,18 @@ void PointDFTResult::init(const Grid &grid)
 
   var_.has_time_dimension(false); // We have only one output at the end. 
   
-  var_.add_dimension("freqs", interval_.length(), interval_.length(), 0);
+  var_.add_dimension("freqs", frequencies_.length(), frequencies_.length(), 0);
   var_.add_dimension("results", 13, 13, 0);
   var_.set_name(base_name_);
 
-  result_ = new field_t[(interval_.length() + 1) * 13];
+  result_ = new field_t[(frequencies_.length() + 1) * 13];
 
   if (!result_)
     throw MemoryException();
 
-  for (unsigned int i = 0; i <= interval_.length(); i++)
+  for (unsigned int i = 0; i <= frequencies_.length(); i++)
   {
-    result_[i * 13] = interval_.get(i); // _start() + interval_.get_spacing() * i;
+    result_[i * 13] = frequencies_.get(i); // _start() + frequencies_.get_spacing() * i;
     for (unsigned int j = 1; j < 13; j++)
       result_[i*13 + j] = 0;
   }
@@ -100,7 +100,7 @@ void PointDFTResult::init(const Grid &grid)
 
   if (ours_)
   {
-    var_.set_num(interval_.length());
+    var_.set_num(frequencies_.length());
     var_.set_ptr(result_);
   } else {
     var_.set_num(0);
@@ -129,7 +129,7 @@ map<string, Variable *> &PointDFTResult::get_result(const Grid &grid,
 
   if (ours_)
   {
-    for (unsigned int i = 0; i <= interval_.length(); i++)
+    for (unsigned int i = 0; i <= frequencies_.length(); i++)
     {
       e_cos_temp = cos(-2 * PI * result_[i*13] * e_time);
       e_sin_temp = sin(-2 * PI * result_[i*13] * e_time);
@@ -172,8 +172,8 @@ ostream& PointDFTResult::to_string(ostream &os) const
   point sp = space_point_;
   grid_point p = point_;
 
-  os << "PointDFTResult outputting " << interval_.length()
-     << ", starting at " << interval_.get_start() << " and ending at "
-     << interval_.get_end() << "\nData is sampled at point " 
+  os << "PointDFTResult outputting " << frequencies_.length()
+     << ", starting at " << frequencies_.get_start() << " and ending at "
+     << frequencies_.get_end() << "\nData is sampled at point " 
      << sp << ", grid cell " << p;
 }

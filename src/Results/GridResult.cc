@@ -32,7 +32,7 @@ GridResult::~GridResult()
 void GridResult::init(const Grid &grid)
 {
   material_ids_.has_time_dimension(false);
-  variables_["material_ids"] = &material_ids_;
+  pre_vars_["material_ids"] = &material_ids_;
   //variables_["delta_xs"] = &deltaxs_;
   //variables_["delta_ys"] = &deltays_;
   //variables_["delta_zs"] = &deltazs_;
@@ -108,17 +108,9 @@ void GridResult::deinit()
 {}
 
 map<string, Variable *> &
-GridResult::get_result(const Grid &grid, unsigned int time_step)
+GridResult::get_pre_result(const Grid &grid)
 {
-  if (time_step > 1)
-  {
-    material_ids_.set_num(0);
-    deltaxs_.set_num(0);
-    deltays_.set_num(0);
-    deltazs_.set_num(0);
-  }
-
-  return variables_;
+  return post_vars_;
 }
 
 ostream& GridResult::to_string(ostream &os) const

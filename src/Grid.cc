@@ -1511,3 +1511,12 @@ shared_ptr<Block> Grid::get_global_region(CSGBox &box) const
   return shared_ptr<Block> (new Block(ret));
 }
 
+point Grid::get_size() const
+{
+  return (*pg_).get_grid_size();
+}
+
+point Grid::get_centre() const
+{
+  return (*pg_).get_grid_centre();
+}

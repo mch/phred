@@ -226,18 +226,18 @@ void PowerResult::init(const Grid &grid)
   freq_var_.set_name(base_name_ + "_freqs");
   power_var_.set_name(base_name_ + "_time_power");
   
-  real_var_.add_dimension("Frequency", interval_.length(), 
-                          interval_.length(), 0);
-  imag_var_.add_dimension("Frequency", interval_.length(), 
-                          interval_.length(), 0);
-  freq_var_.add_dimension("Frequency", interval_.length(), 
-                          interval_.length(), 0);
+  real_var_.add_dimension("Frequency", frequencies_.length(), 
+                          frequencies_.length(), 0);
+  imag_var_.add_dimension("Frequency", frequencies_.length(), 
+                          frequencies_.length(), 0);
+  freq_var_.add_dimension("Frequency", frequencies_.length(), 
+                          frequencies_.length(), 0);
   power_var_.add_dimension("Power", 1, 1, 0);
   
   if (has_data_)
   {
     /* GRR, ARGH! */
-    unsigned int sz = interval_.length() * x_size_ * y_size_ * z_size_;
+    unsigned int sz = frequencies_.length() * x_size_ * y_size_ * z_size_;
 
     et1r_ = new field_t[sz];
     et1i_ = new field_t[sz];
@@ -268,28 +268,28 @@ void PowerResult::init(const Grid &grid)
        because we need to average the H field with the next cell. */
  
     /* Set up the frequencies */ 
-    power_real_ = new field_t[interval_.length()];
-    power_imag_ = new field_t[interval_.length()];
+    power_real_ = new field_t[frequencies_.length()];
+    power_imag_ = new field_t[frequencies_.length()];
 
 //     if (!freqs_ || !power_real_ || !power_imag_)
 //       throw MemoryException();
 
-    memset(power_imag_, 0, sizeof(field_t) * (interval_.length()));
-    memset(power_real_, 0, sizeof(field_t) * (interval_.length()));
+    memset(power_imag_, 0, sizeof(field_t) * (frequencies_.length()));
+    memset(power_real_, 0, sizeof(field_t) * (frequencies_.length()));
 
     /* Set up output variables. */
     imag_var_.set_ptr(power_imag_);
     real_var_.set_ptr(power_real_);  
-    freq_var_.set_ptr(interval_.get_ptr());
+    freq_var_.set_ptr(frequencies_.get_ptr());
     power_var_.set_ptr(&time_power_);
 
     if (MPI_RANK == 0) // All data is collected to rank 0 by this
                        // result, rather than by the DataWriters.
     {
       power_var_.set_num(1);
-      real_var_.set_num(interval_.length());
-      imag_var_.set_num(interval_.length());
-      freq_var_.set_num(interval_.length());
+      real_var_.set_num(frequencies_.length());
+      imag_var_.set_num(frequencies_.length());
+      freq_var_.set_num(frequencies_.length());
     } else {
       power_var_.set_num(0);
       real_var_.set_num(0);
@@ -301,10 +301,10 @@ void PowerResult::init(const Grid &grid)
     cerr << "PowerResult::init(), computing power through a surface which is "
          << x_size_ << " x " << y_size_ << " x " << z_size_ 
          << " in size." << endl;
-    cerr << "Frequency range: " << interval_.get_start() << " to " 
-         << interval_.get_end() << ", spacing: " 
-         << interval_.get_spacing() << ", number: "
-         << interval_.length() << endl;
+    cerr << "Frequency range: " << frequencies_.get_start() << " to " 
+         << frequencies_.get_end() << ", spacing: " 
+         << frequencies_.get_spacing() << ", number: "
+         << frequencies_.length() << endl;
     cerr << "Cell area is " << cell_area_ << endl;
 #endif 
   } else {
@@ -336,12 +336,12 @@ void PowerResult::init(const Grid &grid)
       dfts_[i].reset();
 
       if (has_data_)
-        dfts_[i].set_num(interval_.length() * x_size_ * y_size_ * z_size_);
+        dfts_[i].set_num(frequencies_.length() * x_size_ * y_size_ * z_size_);
       else
         dfts_[i].set_num(0);
 
       dfts_[i].has_time_dimension(false);
-      dfts_[i].add_dimension("f", interval_.length(), interval_.length(), 0);
+      dfts_[i].add_dimension("f", frequencies_.length(), frequencies_.length(), 0);
       dfts_[i].add_dimension("x", local_t1_len, global_t2_len, t1_start);
       dfts_[i].add_dimension("y", local_t2_len, global_t2_len, t2_start);
     }
@@ -464,13 +464,13 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
              MPI_COMM_WORLD);
 
   // Compute the power throught the surface in the frequency domain
-  for (unsigned int i = 0; i < interval_.length(); i++)
+  for (unsigned int i = 0; i < frequencies_.length(); i++)
   {
-    e_cos_temp = cos(-2 * PI * interval_.get(i) * e_time);
-    e_sin_temp = sin(-2 * PI * interval_.get(i) * e_time);
+    e_cos_temp = cos(-2 * PI * frequencies_.get(i) * e_time);
+    e_sin_temp = sin(-2 * PI * frequencies_.get(i) * e_time);
 
-    h_cos_temp = cos(-2 * PI * interval_.get(i) * h_time);
-    h_sin_temp = sin(-2 * PI * interval_.get(i) * h_time);
+    h_cos_temp = cos(-2 * PI * frequencies_.get(i) * h_time);
+    h_sin_temp = sin(-2 * PI * frequencies_.get(i) * h_time);
 
     p_real2 = 0;
     p_imag2 = 0;

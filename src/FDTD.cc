@@ -381,21 +381,21 @@ void FDTD::run()
   unsigned int ts = 0;
 
   // Do data output for results that do that first thing, like GridResult
-//   vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
-//   vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();
+  vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
+  vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();
 
-//   while (iter != iter_e)
-//   {
-//     riter = results_.find((*iter).first);
-//     dwiter = datawriters_.find((*iter).second);      
+  while (iter != iter_e)
+  {
+    riter = results_.find((*iter).first);
+    dwiter = datawriters_.find((*iter).second);      
     
-//     if (riter != riter_e && dwiter != dwiter_e)
-//       (*dwiter).second->handle_data(0, 
-//                                     (*riter).second->get_result(*grid_, 0));
+    if (riter != riter_e && dwiter != dwiter_e)
+      (*dwiter).second->handle_data(0, 
+                                    (*riter).second->get_pre_result(*grid_));
     
     
-//     ++iter;
-//   }
+    ++iter;
+  }
 
   // For optionally tracking millions of nodes per second. 
   time_t start, now;
@@ -506,8 +506,8 @@ void FDTD::run()
     grid_->apply_boundaries(E);
 
     // Results
-    vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
-    vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();
+    iter = r_dw_map_.begin();
+    iter_e = r_dw_map_.end();
 
     while (iter != iter_e)
     {
@@ -541,25 +541,28 @@ void FDTD::run()
     cout << "Average millions of nodes per second, w.r.t. CPU time: " 
          << num_mnodes / (avg_cpu_time / static_cast<double>(CLOCKS_PER_SEC)) 
          << endl;
-    cout << "NOTE: These numbers only account for the time required to do node updates.\nIt does not include time required for applying boundary conditions or\nexcitations, or for generating output data.\n";
+    cout << "NOTE: These numbers only account for the time required "
+      "to do node updates.\nIt does not include time required for "
+      "applying boundary conditions or\nexcitations, or for "
+      "generating output data.\n";
   }
 
   // Do data output for results that only produce data at the end
-//   vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
-//   vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();
+  iter = r_dw_map_.begin();
+  iter_e = r_dw_map_.end();
 
-//   while (iter != iter_e)
-//   {
-//     riter = results_.find((*iter).first);
-//     dwiter = datawriters_.find((*iter).second);      
+  while (iter != iter_e)
+  {
+    riter = results_.find((*iter).first);
+    dwiter = datawriters_.find((*iter).second);      
     
-//     if (riter != riter_e && dwiter != dwiter_e)
-//       (*dwiter).second->handle_data(ts, 
-//                                     (*riter).second->get_result(*grid_, ts));
+    if (riter != riter_e && dwiter != dwiter_e)
+      (*dwiter).second->handle_data(ts, 
+                                    (*riter).second->get_post_result(*grid_));
     
     
-//     ++iter;
-//   }
+    ++iter;
+  }
 
 
   // life cycle de init

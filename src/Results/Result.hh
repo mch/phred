@@ -51,6 +51,10 @@ typedef struct {
  *
  * A variable can choose to return no result however, by setting the
  * number of items at a given time step to zero. 
+ *
+ * \bug Now that we've got this pre and post variables stuff, we can
+ * probably get rid of this has_time_dimension stuff, since stuff in
+ * the variables_ map obviously is intended to have a time dimension.
  */
 class Variable 
 {
@@ -330,9 +334,18 @@ class Result : public LifeCycle
 private:
 
 protected:
+  // This map should hold shared_ptrs!
   map <string, Variable *> variables_; /**< Variables for this result. Most
                                           results will only have one
                                           variable. */  
+  
+  map <string, Variable *> pre_vars_; /**< Variables that are ready
+                                         before time stepping
+                                         start. */ 
+
+  map <string, Variable *> post_vars_; /**< Variables that are ready
+                                          after time stepping is
+                                          done. */ 
 
   unsigned int time_start_; /**< Time step to start returning results at */
   unsigned int time_stop_; /**< Time step to stop returning results at */
@@ -458,15 +471,31 @@ public:
    * result.
    */
   virtual map<string, Variable *> &get_result(const Grid &grid, 
-                                              unsigned int time_step) = 0;
+                                              unsigned int time_step)
+  { return variables_; }
+  
+  /**
+   * Pre-output. Returns a set of variables that are ready before time
+   * stepping starts. Things like frequency and angles ranges, etc.
+   *
+   * @param grid the grid!
+   */ 
+  virtual map<string, Variable *> &get_pre_result(const Grid &grid)
+  { return pre_vars_; }
+
+  /**
+   * Post-output. Returns a set of variables that are ready after time
+   * stepping ends. Things like far field transformations, etc. 
+   *
+   * @param grid the grid!
+   */ 
+  virtual map<string, Variable *> &get_post_result(const Grid &grid)
+  { return post_vars_; }
 
   /**
    * Print a string representation to an ostream.
    */
   virtual ostream& to_string(ostream &os) const = 0;
-//   {
-//     return os << "A Result of indeterminate type.";
-//   }
 
   friend ostream& operator<< (ostream& os, const Result &r);
 };

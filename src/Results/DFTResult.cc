@@ -26,7 +26,7 @@ DFTResult::DFTResult()
 
 DFTResult::DFTResult(field_t freq_start, field_t freq_stop, 
                      unsigned int num_freqs)
-  : interval_(freq_start, freq_stop, num_freqs)
+  : frequencies_(freq_start, freq_stop, num_freqs)
 {}
 
 DFTResult::~DFTResult()
@@ -34,7 +34,7 @@ DFTResult::~DFTResult()
 
 ostream& DFTResult::to_string(ostream &os) const
 {
-  os << "Generic DFTResult outputting " << interval_.length()
-     << ", starting at " << interval_.get_start() << " and ending at "
-     << interval_.get_end();
+  os << "Generic DFTResult outputting " << frequencies_.length()
+     << ", starting at " << frequencies_.get_start() << " and ending at "
+     << frequencies_.get_end();
 }

@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
@@ -28,7 +28,7 @@
 #include "../Results/SignalDFTResult.hh"
 #include "../Results/SignalTimeResult.hh"
 #include "../Results/BlockResult.hh"
-//#include "../Results/FarfieldResult.hh"
+#include "../Results/FarfieldResult2.hh"
 #include "../Results/PowerResult.hh"
 #include "../Results/FakeResult.hh"
 #include "../Results/GridResult.hh"
@@ -110,6 +110,24 @@ void export_results()
     .def("set_region", &SurfaceCurrentResult::set_region, 
          "Set the CSGBox which defines the surface over which "
          "currents should be calculated.")
+    ;
+
+  class_<FarfieldResult2, bases<DFTResult> >("FarfieldResult2", 
+                                             "Calculates the farfield "
+                                             "resulting from a scattering "
+                                             "object in the near field.")
+    .def("set_theta", &FarfieldResult2::set_theta, 
+         "Set the angle range from the X axis in radians")
+    .def("set_phi", &FarfieldResult2::set_phi,
+         "Set the angle range from the Z axis in radians")
+    .def("set_theta_degrees", &FarfieldResult2::set_theta_degrees,
+         "Set the angle range from the X axis in degrees")
+    .def("set_phi_degrees", &FarfieldResult2::set_phi_degrees,
+         "Set the angle range from the Z axis in degrees")
+    .def("set_radius", &FarfieldResult2::set_radius, 
+         "Set the radius of the sphere where observations are being done.")
+    .def("get_radius", &FarfieldResult2::get_radius,
+         "Get the radius of the sphere where observations are being done.")
     ;
 
 //   class_<FarfieldResult, bases<Result> >("FarfieldResult")

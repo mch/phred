@@ -55,14 +55,14 @@ public:
    */ 
   void set_freq(field_t freq_start, field_t freq_stop, 
                 unsigned int num_freqs)
-  { interval_.set_params(freq_start, freq_stop, num_freqs); }
+  { frequencies_.set_params(freq_start, freq_stop, num_freqs); }
 
   /**
    * Get the start frequency of the range
    */
   inline field_t get_freq_start() const
   {
-    return interval_.get_start();
+    return frequencies_.get_start();
   }
 
   /**
@@ -70,7 +70,7 @@ public:
    */
   inline field_t get_freq_stop() const
   {
-    return interval_.get_end();
+    return frequencies_.get_end();
   }
 
   /**
@@ -78,7 +78,7 @@ public:
    */
   inline unsigned int get_num_freq() const
   {
-    return interval_.length();
+    return frequencies_.length();
   }
 
   /**
@@ -88,7 +88,7 @@ public:
 
 protected:
 
-  Interval<field_t> interval_;
+  Interval<field_t> frequencies_;
 
 private:
 };

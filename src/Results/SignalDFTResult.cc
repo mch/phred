@@ -49,25 +49,25 @@ SignalDFTResult::~SignalDFTResult()
 
 void SignalDFTResult::init(const Grid &grid)
 {
-  if (interval_.length() == 0)
+  if (frequencies_.length() == 0)
   {
     throw ResultException("SignalDFTResult: Frequency interval is not"
                           " correctly set up. ");
   }
 
   var_.has_time_dimension(false); // We have only one output at the end. 
-  var_.add_dimension("freqs", interval_.length(), interval_.length(), 0);
+  var_.add_dimension("freqs", frequencies_.length(), frequencies_.length(), 0);
   var_.add_dimension("results", 3, 3, 0);
   var_.set_name(base_name_);
 
-  result_ = new field_t[(interval_.length() + 1) * 3];
+  result_ = new field_t[(frequencies_.length() + 1) * 3];
 
   if (!result_)
     throw MemoryException();
   
-  for (unsigned int i = 0; i <= interval_.length(); i++)
+  for (unsigned int i = 0; i <= frequencies_.length(); i++)
   {
-    result_[i * 3] = interval_.get(i); // _start() + freq_space_ * i;
+    result_[i * 3] = frequencies_.get(i); // _start() + freq_space_ * i;
     result_[i*3 + 1] = 0;
     result_[i*3 + 2] = 0;
   }
@@ -76,7 +76,7 @@ void SignalDFTResult::init(const Grid &grid)
   MPI_Type_contiguous(3, GRID_MPI_TYPE, &temp);
   MPI_Type_commit(&temp);
 
-  var_.set_num(interval_.length());
+  var_.set_num(frequencies_.length());
   var_.set_ptr(result_);
   var_.set_datatype(temp);
 }
@@ -101,7 +101,7 @@ map<string, Variable *> &SignalDFTResult::get_result(const Grid &grid,
   {
     float time = time_step * grid.get_deltat();
     field_t sf = te_.signal_function(time);
-    for (unsigned int i = 0; i <= interval_.length(); i++)
+    for (unsigned int i = 0; i <= frequencies_.length(); i++)
     {
       result_[i*3 + 1] += sf * cos(-2 * PI * result_[i*3] 
                                    * time);
@@ -109,7 +109,7 @@ map<string, Variable *> &SignalDFTResult::get_result(const Grid &grid,
       result_[i*3 + 2] += (-1) * sf * sin(-2 * PI * result_[i*3] 
                                           * time);
     }
-    var_.set_num(interval_.length()); 
+    var_.set_num(frequencies_.length()); 
   } else {
     var_.set_num(0); 
   }
@@ -119,9 +119,9 @@ map<string, Variable *> &SignalDFTResult::get_result(const Grid &grid,
 
 ostream& SignalDFTResult::to_string(ostream &os) const
 {
-  os << "SignalDFTResult outputting " << interval_.length() 
-     << ", starting at " << interval_.get_start() << " and ending at "
-     << interval_.get_end();
+  os << "SignalDFTResult outputting " << frequencies_.length() 
+     << ", starting at " << frequencies_.get_start() << " and ending at "
+     << frequencies_.get_end();
 
   return os;
 }

@@ -31,6 +31,16 @@
 #endif
 
 /**
+ * A structure for passing around values during the farfield computation.
+ */ 
+typedef struct {
+  complex<field_t> N_theta;
+  complex<field_t> N_phi;
+  complex<field_t> L_theta;
+  complex<field_t> L_phi;
+} vecp_t;
+
+/**
  * This result calculates a near to far field transformation at a
  * number of discreet frequencies and a number of discreet angles. The
  * method implemented here calculates the phasor electric and magnetic
@@ -40,6 +50,11 @@
  *
  * This does not attempt to normalize to the source. Users will have
  * to do that in post processing for now.
+ *
+ * \bug This is somewhat limiting in that the arcs the farfield is
+ * computed on are not arbitrary. They are defined by a shift off the
+ * x axis, then a sweep along the z axis. This probably isn't a big
+ * deal for practical problems.
  */ 
 class FarfieldResult2 : public DFTResult
 {
@@ -67,6 +82,16 @@ public:
    */
   map<string, Variable *> &get_result(const Grid &grid, 
                                       unsigned int time_step);
+
+  /**
+   * Returns the frequency range, theta, and phi ranges. 
+   */ 
+  map<string, Variable *> &get_pre_result(const Grid &grid);
+
+  /**
+   * Returns the farfield RCS data. 
+   */ 
+  map<string, Variable *> &get_post_result(const Grid &grid);
 
   /**
    * Set the range of theta (angle from the X axis) to calculate the
@@ -117,19 +142,55 @@ public:
                        unsigned int num_phi);
 
   /**
+   * Set the radius of the observation sphere
+   */ 
+  void set_radius(field_t r);
+
+  /**
+   * Returns the radius of the observation sphere
+   */ 
+  inline field_t get_radius()
+  { return r_; }
+
+  /**
    * Print a string representation to an ostream.
    */
   ostream& to_string(ostream &os) const;
 
 private:
+  /**
+   * Helper for calculating the DFT of currents on the surface of the
+   * box.
+   */ 
+  template<class T>
+  void calc_currents(const Grid &grid, 
+                     unsigned int time_step, 
+                     region_t &cells,
+                     int face_idx);
+
+  /**
+   * Calculate the temporary vector potentials N and L in spherical
+   * coordinates.
+   *
+   * @param theta the angle from the x axis of the observation point
+   * @param phi the angle from the z axis of the observation point
+   * @param freq the frequency to calc the potentials at. 
+   */
+  void calc_potentials(vecp_t &p, const field_t &theta, 
+                       const field_t &phi, const unsigned int &f_idx, 
+                       const field_t &k, const Grid &grid);
+
   shared_ptr<CSGBox> box_; /**< The box to use as the surface to
                               integrate currents over. */
   
-  region_t grid_box_; /**< The cells that are in our local region */ 
+  shared_ptr<Block> region_;
 
   // Angle range
   Interval<field_t> theta_data_;
   Interval<field_t> phi_data_;
+
+  // Distance to observation point... hmm...
+  field_t r_;
 
   // Storage space for J and M phasors on each face
 #ifdef HAVE_COMPLEX
