@@ -31,7 +31,8 @@ PowerResult::PowerResult()
     has_data_(false), xmin_(0), ymin_(0), zmin_(0), 
     xmax_(0), ymax_(0), zmax_(0),
     step_x_(0), step_y_(0), step_z_(0), 
-    plane_(0), normal_(X_AXIS)
+    plane_(0), normal_(X_AXIS), 
+    export_dfts_(false)
 {
   real_var_.has_time_dimension(false);
   imag_var_.has_time_dimension(false);
@@ -104,8 +105,14 @@ void PowerResult::init(const Grid &grid)
 {
   const GridInfo &gi = grid.get_grid_info();
 
+  /* For setting up dimensions when exporting DFT's */ 
+  unsigned int global_t1_len, global_t2_len;
+  unsigned int local_t1_len, local_t2_len;
+  unsigned int t1_start, t2_start;
+
   /* Region must be in out local sub-domain */ 
   region_ = grid.get_local_region(*box_);
+  shared_ptr<Block> global_b_ = grid.get_global_region(*box_);
 
   x_size_ = (*region_).xmax() - (*region_).xmin();
   y_size_ = (*region_).ymax() - (*region_).ymin();
@@ -139,6 +146,14 @@ void PowerResult::init(const Grid &grid)
       has_data_ = true;
       xmax_ = xmin_ + 1;
     }
+
+    local_t1_len = y_size_;
+    global_t1_len = (*global_b_).ylen();
+    t1_start = (*region_).ystart() - (*global_b_).ystart();
+
+    local_t2_len = z_size_;
+    global_t2_len = (*global_b_).zlen();
+    t2_start = (*region_).zstart() - (*global_b_).zstart();
   } 
   else if (face_ == LEFT || face_ == RIGHT) 
   {
@@ -159,6 +174,14 @@ void PowerResult::init(const Grid &grid)
       has_data_ = true;
       ymax_ = ymin_ + 1;
     }
+
+    local_t1_len = z_size_;
+    global_t1_len = (*global_b_).zlen();
+    t1_start = (*region_).zstart() - (*global_b_).zstart();
+
+    local_t2_len = x_size_;
+    global_t2_len = (*global_b_).xlen();
+    t2_start = (*region_).xstart() - (*global_b_).xstart();
   } 
   else if (face_ == TOP || face_ == BOTTOM)
   {
@@ -179,6 +202,15 @@ void PowerResult::init(const Grid &grid)
       has_data_ = true;
       zmax_ = zmin_ + 1;
     }
+
+    local_t1_len = x_size_;
+    global_t1_len = (*global_b_).xlen();
+    t1_start = (*region_).xstart() - (*global_b_).xstart();
+
+    local_t2_len = y_size_;
+    global_t2_len = (*global_b_).ylen();
+    t2_start = (*region_).ystart() - (*global_b_).ystart();
+
   } else {
     throw ResultException("Region must be limited to a plane for a PowerResult.");
   }
@@ -196,15 +228,15 @@ void PowerResult::init(const Grid &grid)
   freq_var_.set_name(base_name_ + "_freqs");
   power_var_.set_name(base_name_ + "_time_power");
   
-  real_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
-  imag_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
-  freq_var_.add_dimension("Frequency", num_freqs_, num_freqs_, 0);
+  real_var_.add_dimension("Frequency", num_freqs_ + 1, num_freqs_ + 1, 0);
+  imag_var_.add_dimension("Frequency", num_freqs_ + 1, num_freqs_ + 1, 0);
+  freq_var_.add_dimension("Frequency", num_freqs_ + 1, num_freqs_ + 1, 0);
   power_var_.add_dimension("Power", 1, 1, 0);
   
   if (has_data_)
   {
     /* GRR, ARGH! */
-    unsigned int sz = x_size_ * y_size_ * z_size_;
+    unsigned int sz = (num_freqs_ + 1) * x_size_ * y_size_ * z_size_;
 
     et1r_ = new field_t[sz];
     et1i_ = new field_t[sz];
@@ -259,9 +291,9 @@ void PowerResult::init(const Grid &grid)
                        // result, rather than by the DataWriters.
     {
       power_var_.set_num(1);
-      real_var_.set_num(num_freqs_);
-      imag_var_.set_num(num_freqs_);
-      freq_var_.set_num(num_freqs_);
+      real_var_.set_num(num_freqs_ + 1);
+      imag_var_.set_num(num_freqs_ + 1);
+      freq_var_.set_num(num_freqs_ + 1);
     } else {
       power_var_.set_num(0);
       real_var_.set_num(0);
@@ -288,6 +320,55 @@ void PowerResult::init(const Grid &grid)
     imag_var_.set_num(0);
     freq_var_.set_num(0);
   }
+
+
+  // Set up the optional DFT export
+  if (export_dfts_)
+  {
+    variables_["et1_dft_r"] = &dfts_[0];
+    variables_["et1_dft_i"] = &dfts_[1];
+    variables_["et2_dft_r"] = &dfts_[2];
+    variables_["et2_dft_i"] = &dfts_[3];
+    variables_["ht1_dft_r"] = &dfts_[4];
+    variables_["ht1_dft_i"] = &dfts_[5];
+    variables_["ht2_dft_r"] = &dfts_[6];
+    variables_["ht2_dft_i"] = &dfts_[7];
+
+    for (int i = 0; i < 8; i++)
+    {
+      dfts_[i].reset();
+
+      if (has_data_)
+        dfts_[i].set_num((num_freqs_ + 1) * x_size_ * y_size_ * z_size_);
+      else
+        dfts_[i].set_num(0);
+
+      dfts_[i].has_time_dimension(false);
+      dfts_[i].add_dimension("f", num_freqs_ + 1, num_freqs_ + 1, 0);
+      dfts_[i].add_dimension("x", local_t1_len, global_t2_len, t1_start);
+      dfts_[i].add_dimension("y", local_t2_len, global_t2_len, t2_start);
+    }
+
+    dfts_[0].set_name(base_name_ + "et1_dft_r");
+    dfts_[1].set_name(base_name_ + "et1_dft_i");
+    dfts_[2].set_name(base_name_ + "et2_dft_r");
+    dfts_[3].set_name(base_name_ + "et2_dft_i");
+    dfts_[4].set_name(base_name_ + "ht1_dft_r");
+    dfts_[5].set_name(base_name_ + "ht1_dft_i");
+    dfts_[6].set_name(base_name_ + "ht2_dft_r");
+    dfts_[7].set_name(base_name_ + "ht2_dft_i");
+
+    dfts_[0].set_ptr(et1r_);
+    dfts_[1].set_ptr(et1i_);
+    dfts_[2].set_ptr(et2r_);
+    dfts_[3].set_ptr(et2i_);
+    dfts_[4].set_ptr(ht1r_);
+    dfts_[5].set_ptr(ht1i_);
+    dfts_[6].set_ptr(ht2r_);
+    dfts_[7].set_ptr(ht2i_);
+
+  }
+
 }
 
 void PowerResult::deinit()
@@ -405,7 +486,7 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
     p_real2 = 0;
     p_imag2 = 0;
 
-    unsigned int idx = 0;
+    unsigned int idx = i * x_size_ * y_size_ * z_size_;
 
     if (has_data_)
     {
@@ -415,6 +496,7 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
         {
           for (int z = zmin_; z < zmax_; z++) 
           {
+            // SLOW: Replace with pointer ops
             et1 = plane_->get_e_t1(x, y, z);
             et2 = plane_->get_e_t2(x, y, z);
 
@@ -425,15 +507,16 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
                    + plane_->get_h_t2(x + step_x_, y + step_y_, 
                                       z + step_z_)) / 2;
           
+            // Replace with complex numbers?
             et1_real = et1 * e_cos_temp;
             et1_imag = (-1) * et1 * e_sin_temp;
           
             et2_real = et2 * e_cos_temp;
             et2_imag = (-1) * et2 * e_sin_temp;
-          
+
             ht1_real = ht1 * h_cos_temp;
             ht1_imag = (-1) * ht1 * h_sin_temp;
-          
+
             ht2_real = ht2 * h_cos_temp;
             ht2_imag = (-1) * ht2 * h_sin_temp;
           
@@ -447,6 +530,7 @@ map<string, Variable *> &PowerResult::get_result(const Grid &grid,
             ht1i_[idx] += ht1_imag;
             ht2i_[idx] += ht2_imag;
 
+            // Hmmm....
             p_real2 += ((et1r_[idx] * ht2r_[idx] + et1i_[idx] * ht2i_[idx])
               - (et2r_[idx] * ht1r_[idx] + et2i_[idx] * ht1i_[idx])) 
               * cell_area_;

@@ -69,7 +69,21 @@ public:
     box_ = box;
   }
 
+  /**
+   * Allow the user to request the raw DFT's of the field components
+   * which are tangential to the surface.
+   */ 
+  inline void export_dfts(bool dft)
+  {
+    export_dfts_ = dft;
+  }
   
+  /**
+   * Returns true if the DFT's of the tangential field components will
+   * the exported.
+   */ 
+  inline bool exporting_dfts()
+  { return export_dfts_; }
 
 protected:
   field_t *freqs_; /**< Frequencies */ 
@@ -123,6 +137,12 @@ protected:
     return z + (y + x*y_size_) * z_size_;
   }
 
+
+  // Optional stuff:
+  bool export_dfts_; /**< True if the DFT's of the field components
+                        are desired */
+  Variable dfts_[8]; /**< DFT's for et1_r, et1_i, et2_r, et2_i, 
+                        ht1_r, ht1_i, ht2_r, ht2_i. */ 
 
 private:
 };
