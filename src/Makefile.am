@@ -16,7 +16,7 @@ phred_LDADD += PythonBindings/libpyphread.a
 phred_LDFLAGS += @PYTHON_LDFLAGS@
 endif
 
-BUILT_SOURCES = jan-grammer.h jan-grammer.cc jan-grammer-flex.cc
+#BUILT_SOURCES = jan-grammer.h jan-grammer.cc jan-grammer-flex.cc
 
 AM_YFLAGS = -d
 
