@@ -260,6 +260,62 @@ public:
 };
 
 /**
+ * This class is a meta-program template which calculates the running
+ * DFT of the E and H fields of interest.
+ *
+ * This version is hopefully faster...
+ */ 
+class DFTPowerAlgFast
+{
+public:
+  class Data
+  {
+  public:
+    int idx;
+    
+    field_t *cos_temp;
+    field_t *sin_temp;
+
+    field_t *e_cos_temp;
+    field_t *e_sin_temp;
+
+    complex<field_t> *et1_, *et2_, *ht1_, *ht2_;
+
+    const field_t *prev_et1_, *prev_et2_;
+
+  };
+
+  static inline void alg(const int &x, const int &y, const int &z, 
+                         Fields_t &f, Data &data)
+  {
+    // It is necessary to store the old value of E so that the average
+    // of two time steps can be calculated, otherwise the result will
+    // be incorrect.
+    field_t et1_tavg = (f.et1_avg); // + data.prev_et1_[data.idx]) / 2;
+    field_t et2_tavg = (f.et2_avg); // + data.prev_et2_[data.idx]) / 2;
+
+    for (unsigned int i = 0; i < frequencies_.length(); i++)
+    {
+      // THE TIME AVERAGING SEEMS TO BE CAUSING PROBLEMS
+      data.et1_[data.idx] += complex<field_t>
+        (et1_tavg * data.e_cos_temp[i], 
+         -1 * et1_tavg * data.e_sin_temp[i]);
+      data.et2_[data.idx] += complex<field_t>
+        (et2_tavg * data.e_cos_temp[i], 
+         -1 * et2_tavg * data.e_sin_temp[i]);
+      data.ht1_[data.idx] += complex<field_t>
+        (f.ht1_avg * data.cos_temp[i],
+         -1 * f.ht1_avg * data.sin_temp[i]);
+      data.ht2_[data.idx] += complex<field_t>
+        (f.ht2_avg * data.cos_temp[i], 
+         -1 * f.ht2_avg * data.sin_temp[i]);
+
+      ++data.idx;
+    }
+  }
+};
+
+/**
  * This class calculates the total power through the plane after all
  * the time steps have been completed.
  */
@@ -295,36 +351,68 @@ struct CalcPowerAlg
 /**
  * This class updates the stored value of the E tangential components 
  */
-class PrevEupdate
-{
-public:
-  class Data 
-  {
-  public:
-    field_t *prev_et1_;
-    field_t *prev_et2_;
+// class PrevEupdate
+// {
+// public:
+//   class Data 
+//   {
+//   public:
+//     field_t *prev_et1_;
+//     field_t *prev_et2_;
     
-    int idx;
+//     int idx;
 
-    Data(field_t *pet1, field_t *pet2)
-      : prev_et1_(pet1), prev_et2_(pet2), idx(0)
-    {}
-  };
+//     Data(field_t *pet1, field_t *pet2)
+//       : prev_et1_(pet1), prev_et2_(pet2), idx(0)
+//     {}
+//   };
 
-  static inline void alg(const int &x, const int &y, const int &z,
-                         Fields_t &f, Data &data)
-  {
-    data.prev_et1_[data.idx] = f.et1_avg;
-    data.prev_et2_[data.idx] = f.et2_avg;
+//   static inline void alg(const int &x, const int &y, const int &z,
+//                          Fields_t &f, Data &data)
+//   {
+//     data.prev_et1_[data.idx] = f.et1_avg;
+//     data.prev_et2_[data.idx] = f.et2_avg;
 
-    ++data.idx;
-  }
-};
+//     ++data.idx;
+//   }
+// };
 
 void AvgPowerResult::calculate_result(const Grid &grid, 
                                       unsigned int time_step)
 {
-  DFTPowerAlg::Data dftdata;
+//   DFTPowerAlg::Data dftdata;
+
+//   dftdata.et1_ = et1_;
+//   dftdata.et2_ = et2_;
+
+//   dftdata.ht1_ = ht1_;
+//   dftdata.ht2_ = ht2_;
+
+//   dftdata.prev_et1_ = prev_et1_;
+//   dftdata.prev_et2_ = prev_et2_;
+
+//   delta_t dt = grid.get_deltat();
+//   delta_t time = dt * time_step;
+//   delta_t e_time = dt * (static_cast<delta_t>(time_step) + 0.5);
+
+//   for (unsigned int i = 0; i < frequencies_.length(); i++)
+//   {
+//     if (has_data_)
+//     {
+//       dftdata.cos_temp = cos(-2 * PI * frequencies_.get(i) * time);
+//       dftdata.sin_temp = sin(-2 * PI * frequencies_.get(i) * time);
+
+//       dftdata.e_cos_temp = cos(-2 * PI * frequencies_.get(i) * e_time);
+//       dftdata.e_sin_temp = sin(-2 * PI * frequencies_.get(i) * e_time);
+
+//       dftdata.idx = i * x_size_ * y_size_ * z_size_;
+      
+//       PlaneTiling<DFTPowerAlg, DFTPowerAlg::Data>::loop(grid, (*region_),
+//                                                         face_, dftdata);
+//     }
+//   }
+
+  DFTPowerAlgFast::Data dftdata;
 
   dftdata.et1_ = et1_;
   dftdata.et2_ = et2_;
@@ -335,6 +423,14 @@ void AvgPowerResult::calculate_result(const Grid &grid,
   dftdata.prev_et1_ = prev_et1_;
   dftdata.prev_et2_ = prev_et2_;
 
+  dftdata.cos_temp = cos_temp_;
+  dftdata.sin_temp = sin_temp_;
+
+  dftdata.e_cos_temp = e_cos_temp_;
+  dftdata.e_sin_temp = e_sin_temp_;
+
+  dftdata.idx = 0;
+
   delta_t dt = grid.get_deltat();
   delta_t time = dt * time_step;
   delta_t e_time = dt * (static_cast<delta_t>(time_step) + 0.5);
@@ -343,23 +439,22 @@ void AvgPowerResult::calculate_result(const Grid &grid,
   {
     if (has_data_)
     {
-      dftdata.cos_temp = cos(-2 * PI * frequencies_.get(i) * time);
-      dftdata.sin_temp = sin(-2 * PI * frequencies_.get(i) * time);
+      dftdata.cos_temp[i] = cos(-2 * PI * frequencies_.get(i) * time);
+      dftdata.sin_temp[i] = sin(-2 * PI * frequencies_.get(i) * time);
 
-      dftdata.e_cos_temp = cos(-2 * PI * frequencies_.get(i) * e_time);
-      dftdata.e_sin_temp = sin(-2 * PI * frequencies_.get(i) * e_time);
-
-      dftdata.idx = i * x_size_ * y_size_ * z_size_;
-      
-      PlaneTiling<DFTPowerAlg, DFTPowerAlg::Data>::loop(grid, (*region_),
-                                                        face_, dftdata);
+      dftdata.e_cos_temp[i] = cos(-2 * PI * frequencies_.get(i) * e_time);
+      dftdata.e_sin_temp[i] = sin(-2 * PI * frequencies_.get(i) * e_time);
     }
   }
 
+  if (has_data_)
+    PlaneTiling<DFTPowerAlgFast, DFTPowerAlgFast::Data>
+      ::loop(grid, (*region_), face_, dftdata);
+  
   // Store the current value of Et1, Et2
-  PrevEupdate::Data pedata(prev_et1_, prev_et2_);
-  PlaneTiling<PrevEupdate, PrevEupdate::Data>::loop(grid, (*region_),
-                                                    face_, pedata);
+//   PrevEupdate::Data pedata(prev_et1_, prev_et2_);
+//   PlaneTiling<PrevEupdate, PrevEupdate::Data>::loop(grid, (*region_),
+//                                                     face_, pedata);
 }
 
 void AvgPowerResult::calculate_post_result(const Grid &grid)

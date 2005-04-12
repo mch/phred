@@ -108,6 +108,13 @@ protected:
   field_t *prev_et1_; /**< Previous value of 1st tangential E component */ 
   field_t *prev_et2_; /**< Previous value of 2nd tangential E component */ 
 
+  // Storage for pre-calculated sin and cos values
+  field_t *cos_temp_;
+  field_t *sin_temp_;
+  
+  field_t *e_cos_temp_;
+  field_t *e_sin_temp_;
+
   /**
    * Print a string representation to an ostream.
    */

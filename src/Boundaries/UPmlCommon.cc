@@ -476,11 +476,11 @@ mat_coef_t UPmlCommon::calc_sigma_max(delta_t delta)
   {
     ret = sigma_ratio_ * ((poly_order_ + 1) 
                           / (150 * PI * delta * sqrt(eps_opt_)));
-// #ifdef DEBUG
-//     cout << "Calculated Maximum conductivity using poly_order = " 
-//          << poly_order_ << ", eps_opt = " << eps_opt_ 
-//          << "\nand sigma_ratio = " << sigma_ratio_ << ": " << ret << endl;
-// #endif
+    //#ifdef DEBUG
+    cout << "UPML: Calculated Maximum conductivity using poly_order = " 
+         << poly_order_ << ", eps_opt = " << eps_opt_ 
+         << "\nand sigma_ratio = " << sigma_ratio_ << ": " << ret << endl;
+    //#endif
   }
   else
     ret = sigma_max_;

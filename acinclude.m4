@@ -603,10 +603,10 @@ dnl
 dnl Set the path to the Boost installation with
 dnl --with-boost[=DIR]
 dnl
-dnl Then try to compile and run a simple program with a Blitz Array
-dnl Optional argument `required' triggers an error if Blitz++ not installed
-dnl dnl @version $Id: ac_cxx_lib_boost_python.m4,v 1.4 2004/03/25 14:17:52 patricg Exp $
-dnl @author Patrick Guio <address@bogus.example.com>
+dnl Then try to compile and run a simple program with boost.python
+dnl Optional argument `required' triggers an error if Boost.python
+dnl not installed
+dnl @author Matt Hughes <mhughe@uvic.ca>
 dnl
 AC_DEFUN([AC_MSG_ERROR_BOOST_PYTHON],[
 AC_MSG_ERROR([
