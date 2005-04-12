@@ -82,6 +82,12 @@ protected:
    */ 
   mat_coef_t sigma_ratio_;
 
+  /**
+   * This parameter can be set to a value > 1 to help terminate
+   * evenescant waves. It is graded into the PML like sigma max. 
+   */ 
+  mat_coef_t k_max_;
+
   // MPI Derived data types for moving split field data across
   // subdomain boundaries
   MPI_Datatype z_vector_;
@@ -172,6 +178,13 @@ public:
     if (sr > 0.0)
       sigma_ratio_ = sr; 
   }
+
+  inline void set_k_max(mat_coef_t km)
+  { k_max_ = km; }
+
+  inline mat_coef_t get_k_max()
+  { return k_max_; }
+
 };
 
 #endif // UPML_BC_H

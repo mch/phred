@@ -28,13 +28,17 @@
 #include <cmath>
 
 AvgPowerResult::AvgPowerResult()
-  : power_real_(0), power_imag_(0), prev_et1_(0), prev_et2_(0)
+  : power_real_(0), power_imag_(0), prev_et1_(0), prev_et2_(0), 
+    cos_temp_(0), sin_temp_(0),
+    e_cos_temp_(0), e_sin_temp_(0)
 {}
 
 AvgPowerResult::AvgPowerResult(field_t freq_start, field_t freq_stop, 
                                unsigned int num_freqs)
   : DFTResult(freq_start, freq_stop, num_freqs), 
-    power_real_(0), power_imag_(0), prev_et1_(0), prev_et2_(0)
+    power_real_(0), power_imag_(0), prev_et1_(0), prev_et2_(0),
+    cos_temp_(0), sin_temp_(0),
+    e_cos_temp_(0), e_sin_temp_(0)
 {}
 
 AvgPowerResult::~AvgPowerResult()
@@ -129,6 +133,18 @@ void AvgPowerResult::init(const Grid &grid)
   
   if (has_data_)
   {
+    cos_temp_ = new field_t[frequencies_.length()];
+    sin_temp_ = new field_t[frequencies_.length()];
+
+    e_cos_temp_ = new field_t[frequencies_.length()];
+    e_sin_temp_ = new field_t[frequencies_.length()];
+
+    memset(cos_temp_, 0, sizeof(field_t) * frequencies_.length());
+    memset(sin_temp_, 0, sizeof(field_t) * frequencies_.length());
+
+    memset(e_cos_temp_, 0, sizeof(field_t) * frequencies_.length());
+    memset(e_sin_temp_, 0, sizeof(field_t) * frequencies_.length());
+
     /* GRR, ARGH! */
     unsigned int sz = frequencies_.length() * x_size_ * y_size_ * z_size_;
 
@@ -210,6 +226,20 @@ void AvgPowerResult::deinit()
     delete[] prev_et2_;
     prev_et2_ = 0;
   }
+
+  if (cos_temp_)
+  {
+    delete[] cos_temp_;
+    delete[] sin_temp_;
+
+    delete[] e_cos_temp_;
+    delete[] e_sin_temp_;
+
+    cos_temp_ = 0;
+    sin_temp_ = 0;
+    e_cos_temp_ = 0;
+    e_sin_temp_ = 0;
+  }
 }
 
 /**
@@ -283,6 +313,7 @@ public:
 
     const field_t *prev_et1_, *prev_et2_;
 
+    int num_f_;
   };
 
   static inline void alg(const int &x, const int &y, const int &z, 
@@ -294,7 +325,7 @@ public:
     field_t et1_tavg = (f.et1_avg); // + data.prev_et1_[data.idx]) / 2;
     field_t et2_tavg = (f.et2_avg); // + data.prev_et2_[data.idx]) / 2;
 
-    for (unsigned int i = 0; i < frequencies_.length(); i++)
+    for (unsigned int i = 0; i < data.num_f_; i++)
     {
       // THE TIME AVERAGING SEEMS TO BE CAUSING PROBLEMS
       data.et1_[data.idx] += complex<field_t>
@@ -324,7 +355,8 @@ struct CalcPowerAlg
   struct Data
   {
     int idx;
-    
+    int stride;
+
     complex<field_t> *et1_, *et2_, *ht1_, *ht2_;
 
     field_t p_real;
@@ -344,7 +376,7 @@ struct CalcPowerAlg
     data.p_imag += temp.imag();
 
 
-    ++data.idx;
+    data.idx += data.stride;
   }
 };
 
@@ -431,6 +463,8 @@ void AvgPowerResult::calculate_result(const Grid &grid,
 
   dftdata.idx = 0;
 
+  dftdata.num_f_ = frequencies_.length();
+
   delta_t dt = grid.get_deltat();
   delta_t time = dt * time_step;
   delta_t e_time = dt * (static_cast<delta_t>(time_step) + 0.5);
@@ -476,7 +510,8 @@ void AvgPowerResult::calculate_post_result(const Grid &grid)
 
     if (has_data_)
     {
-      data.idx = i * x_size_ * y_size_ * z_size_;
+      data.idx = i; 
+      data.stride = frequencies_.length(); 
 
       PlaneTiling<CalcPowerAlg, CalcPowerAlg::Data>
         ::loop(grid, (*region_), face_, data);
