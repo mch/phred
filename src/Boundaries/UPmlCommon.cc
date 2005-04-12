@@ -10,7 +10,7 @@
 UPmlCommon::UPmlCommon(const Grid &grid)
   : grid_(grid), inited_(false), poly_order_(4), 
     sigma_max_(0.0), eps_opt_(1.0), 
-    sigma_ratio_(1.0),
+    sigma_ratio_(1.0), k_max_(1),
     x_size_(0), y_size_(0), z_size_(0),
     sigma_x_(0), sigma_y_(0), sigma_z_(0), 
     kx_(0), ky_(0), kz_(0),

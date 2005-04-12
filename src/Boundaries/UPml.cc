@@ -44,7 +44,8 @@ UPml::UPml()
     aux2_x_(0), aux2_y_(0), aux2_z_(0),
     aux3_x_(0), aux3_y_(0), aux3_z_(0),
     sigma_max_(0.0), 
-    poly_order_(4), eps_opt_(1.0), sigma_ratio_(1.0)
+    poly_order_(4), eps_opt_(1.0), sigma_ratio_(1.0),
+    k_max_(1)
 {
 
 }
@@ -241,6 +242,7 @@ void UPml::init(const Grid &grid, Face face)
   common_->set_poly_order(poly_order_);
   common_->set_eps_opt(eps_opt_);
   common_->set_sigma_ratio(sigma_ratio_);
+  common_->set_k_max(k_max_);
 
   common_->init_coeffs();
 
