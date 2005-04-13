@@ -186,6 +186,7 @@ void UPmlCommon::init_sigmas()
   shared_ptr<MaterialLib> mlib = grid_.get_material_lib();
   delta_t delta;
   float *sigmas;
+  float *k;
   unsigned int start, thickness;
   int incr;
   int nm = grid_.get_material_lib()->num_materials();
@@ -334,6 +335,7 @@ void UPmlCommon::init_sigmas()
     case BACK:
       delta = grid_.get_deltax();
       sigmas = sigma_x_;
+      k = kx_;
 
       if (faceidx == FRONT)
       {
@@ -351,6 +353,7 @@ void UPmlCommon::init_sigmas()
     case RIGHT:
       delta = grid_.get_deltay();
       sigmas = sigma_y_;
+      k = ky_;
 
       if (faceidx == RIGHT)
       {
@@ -368,6 +371,7 @@ void UPmlCommon::init_sigmas()
     case BOTTOM:
       delta = grid_.get_deltaz();
       sigmas = sigma_z_;
+      k = kz_;
 
       if (faceidx == TOP)
       {
@@ -391,6 +395,8 @@ void UPmlCommon::init_sigmas()
       sigmas[sigidx] = sigma_max * pow(static_cast<float>(idx) 
                                        / static_cast<float>(thickness), 
                                        static_cast<float>(poly_order_));
+
+      // Assign k... but how? 
     }      
   }
 

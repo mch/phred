@@ -90,6 +90,9 @@ Python yourself, be sure to 'make libinstall' and 'make
 libpython2.3.so'. 'make altinstall' seems to be the only target that
 actually installs the shared library in $PREFIX/lib. 
 
+On some systems, it is necessary to install a Python which does not
+use threads. 
+
 Phred uses Boost.Python (http://boost.org/) to bring the C++ and
 Python languages together. Boost.Python is a sophisticated library
 that depends on a number of modern C++ compiler features, so make
@@ -103,8 +106,6 @@ cd boost/tools/build/jam_src/
 cp bin.XXX SOME_BIN_DIR
 cd ../../..
 bjam -sTOOLS=gcc --layout=system --prefix=/opt/boost_OR_SOMETHING install
-
-Phred expects to see 
 
 On Minerva (an RS/6000 SP), I could not compile python because the
 compiler version we have has a bug related to partial template
@@ -121,8 +122,6 @@ packages which are available under a variety of licences. This affects
 what licences phred may be made availble under, which is currently
 only the GPL, but it could be made availble under other licences by
 request. These are:
-
-popt (command line option parsing), MIT/X Consortium License
 
 netCDF (data file output), unknown
 
