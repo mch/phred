@@ -43,6 +43,26 @@ If you want to try vectorizing the code, add the -restrict and
 -vec_report. Use -vec_report5 for more information about what can and
 can't be vectorized and why. 
 
+On the Westgrid Glacier cluster, phred has to be compiled using MPICH
+and the Intel compiler. In order to do this, follow these steps: 
+
+1) source /global/software/intel/cc-8.0/bin/iccvars.sh
+2) export CXX=/global/software/mpich-1.2.5.2/ssh/bin/mpiCC
+3) export CC=/global/software/mpich-1.2.5.2/ssh/bin/mpiCC
+4) export PATH=/global/software/mpich-1.2.5.2/ssh/bin/:$PATH
+5) ../Phred-0.1.3/configure --enable-openmp
+
+If netCDF, Python, and Boost.Python are installed in non-standard
+locations, then it is probably also necessary to set the CPPFLAGS and
+LDFLAGS vairables. On Glacier, I've set mine to:
+
+LDFLAGS="-L/global/home/mch/opt/netCDF/lib -L/global/home/mch/opt/boost/lib -L/global/home/mch/opt/python2.4/lib -Wl,-rpath,/global/home/mch/opt/python2.4/lib -Wl,-rpath,/global/home/mch/opt/netCDF/lib -Wl,-rpath,/global/home/mch/opt/boost/lib"
+
+CPPFLAGS="-I/global/home/mch/opt/netCDF/include -I/global/home/mch/opt/boost/include -I/global/home/mch/opt/python2.4/include"
+
+I need to fix the configure script so that the paths to the files can
+be specified as configure options.
+
 
 * VisualAge 6 for AIX
 

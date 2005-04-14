@@ -140,6 +140,8 @@ void export_boundaries()
                   &UPml::set_eps_opt)
     .add_property("sigma_ratio", &UPml::get_sigma_ratio, 
                   &UPml::set_sigma_ratio)
+    .add_property("k_max", &UPml::get_k_max,
+                  &UPml::set_k_max)
     ;
 
   class_<Periodic, bases<BoundaryCond>, boost::noncopyable>

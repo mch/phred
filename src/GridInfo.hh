@@ -90,6 +90,9 @@ public:
   delta_t deltaz_;
   delta_t deltat_;
 
+  // The default material inside the grid. Set by Grid::set_define(false)
+  mat_idx_t default_mat_;
+
   // A grid is a cube with six faces. Those faces either need to have
   // boundary conditions, or they are subdomain boundaries and they
   // need to be shared with other processors. These arrays tell what

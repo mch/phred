@@ -397,27 +397,47 @@ void UPmlCommon::init_sigmas()
                                        static_cast<float>(poly_order_));
 
       // Assign k... but how? 
+      k[sigidx] = 1 + (k_max_ - 1) * pow(static_cast<float>(idx) 
+                                        / static_cast<float>(thickness), 
+                                        static_cast<float>(poly_order_));
     }      
   }
 
-// #ifdef DEBUG
-//   cout << "UPML conductivity profiles: \nx axis: ";
+#ifdef DEBUG
+  cout << "UPML conductivity profiles: \nx axis: ";
 
-//   for (int i = 0; i < grid_.get_ldx_sd(); i++)
-//     cout << sigma_x_[i] << " ";
+  for (int i = 0; i < grid_.get_ldx_sd(); i++)
+    cout << sigma_x_[i] << " ";
 
-//   cout << "\ny axis: ";
+  cout << "\ny axis: ";
 
-//   for (int i = 0; i < grid_.get_ldy_sd(); i++)
-//     cout << sigma_y_[i] << " ";
+  for (int i = 0; i < grid_.get_ldy_sd(); i++)
+    cout << sigma_y_[i] << " ";
 
-//   cout << "\nz axis: ";
+  cout << "\nz axis: ";
 
-//   for (int i = 0; i < grid_.get_ldz_sd(); i++)
-//     cout << sigma_z_[i] << " ";
+  for (int i = 0; i < grid_.get_ldz_sd(); i++)
+    cout << sigma_z_[i] << " ";
   
-//   cout << endl;
-// #endif
+  cout << endl;
+
+  cout << "UPML k profiles: \nx axis: ";
+
+  for (int i = 0; i < grid_.get_ldx_sd(); i++)
+    cout << kx_[i] << " ";
+
+  cout << "\ny axis: ";
+
+  for (int i = 0; i < grid_.get_ldy_sd(); i++)
+    cout << ky_[i] << " ";
+
+  cout << "\nz axis: ";
+
+  for (int i = 0; i < grid_.get_ldz_sd(); i++)
+    cout << kz_[i] << " ";
+  
+  cout << endl;
+#endif
 
 }
 

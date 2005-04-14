@@ -64,6 +64,11 @@ public:
   void set_grid_material(const char *material);
 
   /**
+   * Get the default material index inside the grid. 
+   */ 
+  mat_idx_t get_grid_material_id() const;
+
+  /**
    * Returns the material id for a given point in the grid. 
    */ 
   unsigned int get_material_id(float x, float y, float z) const;

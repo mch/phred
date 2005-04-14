@@ -36,9 +36,9 @@
 #include "../Results/GridResult.hh"
 #include "../Results/SurfaceCurrentResult.hh"
 #include "../Results/WindowedExResult.hh"
+#include "../Results/PropertiesResult.hh"
 
 using namespace boost::python;
-
 
 void export_results()
 {
@@ -176,5 +176,10 @@ void export_results()
 
   class_<WindowedExResult, bases<Result> >
     ("WindowedExResult", init<shared_ptr<WindowedExcitation> >())
+    ;
+
+  class_<PropertiesResult, bases<Result> >
+    ("PropertiesResult", "Returns properties of the simulation such as "
+     "the grid and time deltas.")
     ;
 }

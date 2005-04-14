@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,6 +34,11 @@ ProblemGeometry::~ProblemGeometry()
 void ProblemGeometry::set_grid_material(const char *material)
 {
   grid_box_.material_ = material;
+}
+
+mat_idx_t ProblemGeometry::get_grid_material_id() const
+{
+  return grid_box_.material_id_;
 }
 
 unsigned int 

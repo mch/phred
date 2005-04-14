@@ -124,6 +124,8 @@ void Grid::set_define_mode(bool d)
     // Set up the grid geometry. 
     if (pg_)
     {
+      info_.default_mat_ = pg_->get_grid_material_id();
+
       point size = (*pg_).get_grid_size();
       point centre = (*pg_).get_grid_centre();
 
