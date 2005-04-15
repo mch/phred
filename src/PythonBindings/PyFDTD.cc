@@ -56,6 +56,8 @@ void export_fdtd()
     .def("get_decomp_alg", &FDTD::get_decomp_alg)
     .add_property("decomp_alg", &FDTD::get_decomp_alg, 
                   &FDTD::set_decomp_alg)
+    .add_property("dt_scale", &FDTD::get_dt_scale, 
+                  &FDTD::set_dt_scale);
     ;
   
   enum_<MetaType>("MetaType")

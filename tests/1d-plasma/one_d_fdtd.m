@@ -5,13 +5,13 @@ len = 149;
 
 c = 3e8;
 
-centre_f = 5e15;
-df = 5e14;
+centre_f = 500e12;
+df = 200e12;
 
-wl = c ./ (centre_f + 2*df);
+wl = c ./ (centre_f + df);
 
-dz = wl ./ 40;
-dt = 0.8 .* 1 ./ (c * sqrt(1/(dz*dz)));
+dz = wl ./ 32;
+dt = 0.9 .* 1 ./ (c * sqrt(1/(dz*dz)));
 
 disp(sprintf('dz = %g, dt = %g', dz, dt));
 %dz = 18.75e-9;
@@ -36,8 +36,12 @@ sigmastar = [0 0];
 %collision_f = [0 1.4e+14];
 %plasma_f = [0 5.8e15];
 %collision_f = [0 107.5e12];
-plasma_f = [0 12.57e15];
-collision_f = [0 385.1e12];
+%plasma_f = [0 12.57e15];
+%collision_f = [0 385.1e12];
+
+% Johnson and Christy silver
+plasma_f = [0 2.17e15];
+collision_f = [0 32.258e12];
 
 %mat.set_collision_freq(5.7e13 * 2 * M_PI);
 %mat.set_plasma_freq(2e15 * 2 * M_PI);

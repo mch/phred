@@ -24,7 +24,7 @@
 #include "Globals.hh"
 
 FDTD::FDTD()
-  : time_steps_(0), ddalg_(DDA_MPICART)
+  : time_steps_(0), ddalg_(DDA_MPICART), dt_scale_(0.9)
 {
   mlib_ = shared_ptr<MaterialLib>(new MaterialLib()); // Empty default. 
 }
@@ -90,7 +90,7 @@ void FDTD::set_grid_deltas(field_t dx, field_t dy, field_t dz)
   global_ginfo_.deltay_ = dy;
   global_ginfo_.deltaz_ = dz;
   
-  global_ginfo_.deltat_ = 0.9 / 
+  global_ginfo_.deltat_ = dt_scale_ / 
     ( C * sqrt( 1/(dx*dx) + 1/(dy*dy) + 1/(dz*dz)));
 
   point gsize = geometry_.get_grid_size();

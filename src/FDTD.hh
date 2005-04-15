@@ -207,6 +207,26 @@ public:
   inline DomainDecompAlg get_decomp_alg()
   { return ddalg_; }
 
+  /**
+   * Set the time delta scale parameter. This scales the value of
+   * delta t calculated from the grid cell size using the Courant
+   * stability condition.
+   * 
+   * The valid range of this parameter is between 0.0 and 1.0. The
+   * default value is 0.9.
+   */ 
+  inline void set_dt_scale(float dt_scale)
+  {
+    if (dt_scale > 0.0 && dt_scale < 1.0)
+      dt_scale_ = dt_scale;
+  }
+
+  /**
+   * Returns the scaling factor used to calculate delta t. 
+   */ 
+  inline float get_dt_scale()
+  { return dt_scale_; }
+
 protected:
   /**
    * The grid to operate on; what kind of grid specifically is decided
@@ -296,6 +316,16 @@ protected:
    * The domain decomposition algorithm to use
    */ 
   DomainDecompAlg ddalg_;
+
+  /**
+   * This factor scales down the size of the time step from that
+   * calculated using the stability condition. The default value is
+   * 0.9. The valid range of this parameter is between 0.0 and 1.0. 
+   *
+   * This value is not used if the time step size is explicitly set by
+   * the user.
+   */ 
+  float dt_scale_; 
 
 };
 
