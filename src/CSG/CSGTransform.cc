@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,20 +51,9 @@ CSGTransform::~CSGTransform()
 CSGStatus CSGTransform::is_point_inside(float x, float y, float z) const
 {
   // Transform the point to the child object's coordinates. 
-  float x0 = x - tx_;
-  float y0 = y - ty_;
-  float z0 = z - tz_;
-
-  // Scale the point
-  x0 = x0 / sx_;
-  y0 = y0 / sy_;
-  z0 = z0 / sz_;
-
-  // Transform the point to the point of rotation and rotate, and then
-  // shift back.
-  x0 = x0 + rotation_point_.x;
-  y0 = y0 + rotation_point_.y;
-  z0 = z0 + rotation_point_.z;
+  float x0 = x - tx_ + rotation_point_.x;
+  float y0 = y - ty_ + rotation_point_.y;
+  float z0 = z - tz_ + rotation_point_.z;
 
   float x1 = x0 * Ainv[0][0] + y0 * Ainv[0][1] + z0 * Ainv[0][2]
     - rotation_point_.x;
@@ -72,6 +61,10 @@ CSGStatus CSGTransform::is_point_inside(float x, float y, float z) const
     - rotation_point_.y;
   float z1 = x0 * Ainv[2][0] + y0 * Ainv[2][1] + z0 * Ainv[2][2]
     - rotation_point_.z;
+
+  x1 = x1 / sx_;
+  y1 = y1 / sy_;
+  z1 = z1 / sz_;
 
   return (*child_).is_point_inside(x1, y1, z1);
 }

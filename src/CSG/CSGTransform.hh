@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,7 +28,6 @@
  * This class transforms a child object by rotation, translation,
  * and scaling. x_t = A * x_0 + t
  *
- * \bug Scaling is not implemented
  * \bug rotation about an arbitrary point is not implemented. 
  */ 
 class CSGTransform : public CSGObject {
