@@ -126,35 +126,9 @@ void no_memory()
 
 static void usage (int status);
 
-/****************************************************************
- * DROPPING SUPPORT FOR POPT SOON!
- * getopt is more common...
- ****************************************************************/
-#undef HAVE_LIBPOPT 
-#ifdef HAVE_LIBPOPT
-
-/* popt plays way nicer with MPI than getopt. Trust me. !?!?!?!? WTF */
-#include <popt.h>
-
-static struct poptOption options[] = 
-  {
-    {"help", 'h', POPT_ARG_NONE, 0, 'h'},
-    {"version", 'V', POPT_ARG_NONE, 0, 'V'},
-    {"interactive", 'i', POPT_ARG_NONE, 0, 'i'},
-    {"file", 'f', POPT_ARG_STRING, 0, 'f'},
-    {"memory", 'm', POPT_ARG_NONE, 0, 'm'},
-    {"quiet", 'q', POPT_ARG_NONE, 0, 'q'}, 
-    {"test", 't', POPT_ARG_STRING, 0, 't'},
-    {"setup", 's', POPT_ARG_STRING, 0, 's'},
-    {0, 0, 0, 0, 0}
-  };
-
-#else /* getopt instead? */ 
 #ifdef HAVE_GETOPT
 #include <unistd.h>
 #endif
-
-#endif /* #ifdef HAVE_LIBPOPT */
 
 static int decode_switches (int argc, char **argv);
 
@@ -173,80 +147,6 @@ decode_switches (int argc, char **argv)
 {
   int c;
   char *arg = 0;
-#ifdef HAVE_LIBPOPT
-  argi_g = 0;
-
-  poptContext ctx = poptGetContext(0, argc, 
-                                   const_cast<const char **>(argv), 
-                                   options, 0);
-
-  while ((c = poptGetNextOpt (ctx)) > 0 || c == POPT_ERROR_BADOPT)
-  {
-    argi_g++;
-
-    if (c == POPT_ERROR_BADOPT)
-      continue;
-
-    switch (c)
-    {
-    case 'V':
-      cout << "Phred " << VERSION << endl;
-      exit (0);
-      break;
-
-    case 'h':
-      usage (0);
-      break;
-
-    case 'i':
-      interactive = true;
-      break;
-      
-    case 'f':
-      arg = const_cast<char *>(poptGetOptArg(ctx));
-
-      if (arg)
-        inputfile = arg;
-      else 
-      {
-        cout << "No filename given for the -f switch." << endl;
-        usage(0);
-      }
-      break;
-
-    case 'm':
-      estimate_memory = true; 
-      break;
-
-    case 'q':
-      quiet = true;
-      break;
-
-    case 's':
-      setup_only = true;
-      break;
-
-    case 't':
-      arg = const_cast<char *>(poptGetOptArg(ctx));
-
-      if (arg)
-        test_case = arg;
-      else 
-      {
-        cout << "No testcase specified." << endl;
-        usage(0);
-      }
-
-      test_run = true;
-      break;
-
-    default:
-      cout << "WARNING: got unknown option number: " << c << endl;
-    }
-  }
-
-  poptFreeContext(ctx);
-#else
 
 #ifdef HAVE_GETOPT
   opterr = 0;
@@ -295,14 +195,9 @@ decode_switches (int argc, char **argv)
     case 's':
       setup_only = true;
       break;
-
-    default:
-      cout << "WARNING: got unknown option number: " << c << endl;
     }
 
 #endif /* #ifdef HAVE_GETOPT */ 
-
-#endif /* #ifdef HAVE_LIBPOPT */ 
 
   return 0;
 }
@@ -312,44 +207,6 @@ usage (int status)
 {
   printf ("%s - \
 Phred is a parallel finite difference time domain electromagnetics simulator.\n", program_name);
-
-#ifdef HAVE_LIBPOPT
-  printf ("Usage: %s [OPTION]... [FILE]...\n", program_name);
-  printf ("\
-Options:\n");
-  //printf("-f, --filename             filename to read problem description from\n");
-#ifdef USE_PY_BINDINGS
-  printf("  -i, --interactive          start an interactive Python interpreter on\n\
-                             rank zero if that process is attached to a \n\
-                             terminal. Commands will be mirrored to\n\
-                             interpreters running on the other ranks.\n");
-#endif
-  printf("  -h, --help                 display this help and exit\n\
-  -q, --quiet                Don't echo configuration information at\n\
-                             start up, don't report each time step, etc.\n\
-  -m, --memory               Estimate amount of required memory and exit\n\
-  -t, --test                 Run a hard coded test problem; select from:\n\
-                             H   Single circular hole\n\
-                             M   Million node benchmark\n\
-                             V   Variable number of nodes benchmark; \n\
-                                 follow by the number of cells\n\
-                                 in the X, Y, and Z axis.\n\
-                             S   Square hole in PEC, followed by the size of\n\
-                                 the hole in the y dimension as\n\
-                                 an integer number of nanometers.\n\
-                             P   Square hole in Ag, followed by the size of\n\
-                                 the hole in the y dimension as\n\
-                                 an integer number of nanometers.\n\
-                             T   Square hole in a 1 cell thick PEC film,\n\
-                                 followed by the side of the hole in the \n\
-                                 y dimension as an integer number of \n\
-                                 nanometers.\n\
-  -s, --setup                Parse the input file and set up data structures,\n\
-                             but do not run simulation. Use this to test\n\
-                             script file. \n\
-  -V, --version              output version information and exit\n\
-");
-#else
 
 #ifdef HAVE_GETOPT
 #ifdef USE_PY_BINDINGS
@@ -411,8 +268,6 @@ the program will attempt to load the problem description from the\n\
 file 'problem.phred'.\n\
 ");
 #endif /* HAVE_GETOPT */
-
-#endif /* HAVE_LIBPOPT */ 
 
   MPI_Finalize();
   exit(status);
@@ -480,23 +335,23 @@ int main (int argc, char **argv)
        << ".\nThere are a total of " << MPI_SIZE
        << " processes in this group." << endl;
 
-// #ifdef USE_OPENMP
-//   int max_threads = omp_get_max_threads();
-//   omp_set_num_threads(max_threads);
+#ifdef USE_OPENMP
+  int max_threads = omp_get_max_threads();
+  omp_set_num_threads(max_threads);
 
-//   cout << "\nOpenMP information: \nNumber of threads in team: " 
-//        << omp_get_num_threads()
-//        << "\nMaximum number of threads in team: " << max_threads
-//        << "\nNumber of processors: " << omp_get_num_procs()
-//        << "\nCurrent thread number: " << omp_get_thread_num()
-//        << "\nDynamic thread adjustment? " 
-//        << (omp_get_dynamic() ? "yes" : "no")
-//        << "\nIn parallel? "
-//        << (omp_in_parallel() ? "yes" : "no")
-//        << "\nNested parallism? "
-//        << (omp_get_nested() ? "yes" : "no")
-//        << "\n" << endl;
-// #endif
+  cout << "\nOpenMP information: \nNumber of threads in team: " 
+       << omp_get_num_threads()
+       << "\nMaximum number of threads in team: " << max_threads
+       << "\nNumber of processors: " << omp_get_num_procs()
+       << "\nCurrent thread number: " << omp_get_thread_num()
+       << "\nDynamic thread adjustment? " 
+       << (omp_get_dynamic() ? "yes" : "no")
+       << "\nIn parallel? "
+       << (omp_in_parallel() ? "yes" : "no")
+       << "\nNested parallism? "
+       << (omp_get_nested() ? "yes" : "no")
+       << "\n" << endl << endl;
+#endif
 	
 
 
