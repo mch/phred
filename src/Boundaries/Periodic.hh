@@ -28,11 +28,12 @@
 
 /**
  * This class implements periodic boundary conditions. An excitation
- * that will supply a plane wave must be given so that the phase
- * shifts between the boundaries can be properly calculated.
+ * that will supply a plane wave must be given.
  *
  * The master/slave relationship will be determined from the
  * excitation. It depends on the direction of the Poynting vector.
+ *
+ * \bug Does not transfer data across MPI sub-domains!
  */ 
 class Periodic : public BoundaryCond
 {
@@ -89,16 +90,8 @@ private:
 
   bool valid_; /**< True if this periodic boundary set up is valid. */ 
 
-  float ex_constant_; /**< Phase constant to multiply E field
-                         by. =exp(j*k*y) */ 
-
-  float ey_constant_;
-  float ez_constant_;
-
-  float hx_constant_; /**< Phase constant to multiply H field
-                         by. =exp(-j*k*y) */ 
-  float hy_constant_;
-  float hz_constant_;
+  int exchange_rank_; /**< The MPI rank that we share data with (may
+                         be the same as MPI_RANK) */ 
 
   void copy_e(Face face, Grid &grid);
   void copy_h(Face face, Grid &grid);

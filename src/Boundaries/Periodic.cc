@@ -22,9 +22,7 @@
 #include "Periodic.hh"
 
 Periodic::Periodic(shared_ptr<PeriodicExcitation> pe)
-  : pe_(pe), valid_(false), 
-    ex_constant_(1.0), ey_constant_(1.0), ez_constant_(1.0),
-    hx_constant_(1.0), hy_constant_(1.0), hz_constant_(1.0)
+  : pe_(pe), valid_(false)
 {
   for (int i = 0; i < 6; i++)
   {
@@ -90,7 +88,6 @@ void Periodic::deinit(const Grid &grid, Face face)
 
 }
 
-// This will have to be modified to multiply the value by a phase constant... 
 void Periodic::copy_e(Face face, Grid &grid)
 {
   switch (face)
@@ -100,12 +97,12 @@ void Periodic::copy_e(Face face, Grid &grid)
     {
       for (int k = 0; k < grid.get_ldz_sd(); k++)
       {
-        grid.set_ey(0, j, k, ex_constant_
-                    * grid.get_ey(grid.get_ldx_sd() - 1, j, k)); 
-        grid.set_ez(0, j, k, ex_constant_
-                    * grid.get_ez(grid.get_ldx_sd() - 1, j, k));
+        grid.set_ey(0, j, k, grid.get_ey(grid.get_ldx_sd() - 1, j, k)); 
+        grid.set_ez(0, j, k, grid.get_ez(grid.get_ldx_sd() - 1, j, k));
       }
     }
+
+    
 
     break;
 
@@ -114,10 +111,8 @@ void Periodic::copy_e(Face face, Grid &grid)
     {
       for (int k = 0; k < grid.get_ldz_sd(); k++)
       {
-        grid.set_ex(i, 0, k, ey_constant_
-                    * grid.get_ex(i, grid.get_ldy_sd() - 1, k));
-        grid.set_ez(i, 0, k, ey_constant_
-                    * grid.get_ez(i, grid.get_ldy_sd() - 1, k));
+        grid.set_ex(i, 0, k, grid.get_ex(i, grid.get_ldy_sd() - 1, k));
+        grid.set_ez(i, 0, k, grid.get_ez(i, grid.get_ldy_sd() - 1, k));
       }
     }
     break;
@@ -127,10 +122,8 @@ void Periodic::copy_e(Face face, Grid &grid)
     {
       for (int j = 0; j < grid.get_ldy_sd(); j++)
       {
-        grid.set_ex(i, j, 0, ez_constant_
-                    * grid.get_ex(i, j, grid.get_ldz_sd() - 1));
-        grid.set_ey(i, j, 0, ez_constant_
-                    * grid.get_ey(i, j, grid.get_ldz_sd() - 1));
+        grid.set_ex(i, j, 0, grid.get_ex(i, j, grid.get_ldz_sd() - 1));
+        grid.set_ey(i, j, 0, grid.get_ey(i, j, grid.get_ldz_sd() - 1));
       }
     }
     break;
@@ -149,10 +142,10 @@ void Periodic::copy_h(Face face, Grid &grid)
       for (int k = 0; k < grid.get_ldz_sd(); k++)
       {
         grid.set_hy(grid.get_ldx_sd() - 1, j, k, 
-                    grid.get_hy(0, j, k) * hx_constant_);
+                    grid.get_hy(0, j, k));
 
         grid.set_hz(grid.get_ldx_sd() - 1, j, k, 
-                    grid.get_hz(0, j, k) * hx_constant_);
+                    grid.get_hz(0, j, k));
       }
     }
     break;
@@ -163,9 +156,9 @@ void Periodic::copy_h(Face face, Grid &grid)
       for (int k = 0; k < grid.get_ldz_sd(); k++)
       {
         grid.set_hx(i, grid.get_ldy_sd() - 1, k, 
-                    grid.get_hx(i, 0, k) * hy_constant_);
+                    grid.get_hx(i, 0, k));
         grid.set_hz(i, grid.get_ldy_sd() - 1, k, 
-                    grid.get_hz(i, 0, k) * hy_constant_);
+                    grid.get_hz(i, 0, k));
       }
     }
     break;
@@ -176,9 +169,9 @@ void Periodic::copy_h(Face face, Grid &grid)
       for (int j = 0; j < grid.get_ldy_sd(); j++)
       {
         grid.set_hx(i, j, grid.get_ldz_sd() - 1, 
-                    grid.get_hx(i, j, 0) * hz_constant_);
+                    grid.get_hx(i, j, 0));
         grid.set_hy(i, j, grid.get_ldz_sd() - 1, 
-                    grid.get_hy(i, j, 0) * hz_constant_);
+                    grid.get_hy(i, j, 0));
       }
     }
     break;
