@@ -1,8 +1,8 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ public:
   // 5 - Top (z = dimz, XY plane)
   //
 protected:
-  shared_ptr<BoundaryCond> face_bc_[6]; // Boundary condition to apply
+  shared_ptr<BoundaryCond> face_bc_[6]; /*< Boundary condition to apply */
   
   /**
    * This region defines the size of the entire computational domain,
@@ -148,6 +148,12 @@ protected:
    * The order in which to apply the boundary conditions. 
    */ 
   Face bc_order_[6];
+
+  /**
+   * The MPI rank of the process where the real (i.e. user assigned,
+   * i.e. not a SubdomainBC) boundary condition lives.
+   */
+  int bc_rank_[6];
 
   /**
    * Compute the contents of the bc_order_ array based on the
@@ -233,6 +239,12 @@ public:
    * @param the grid to apply to 
    */
   void apply_boundaries(Grid &grid, FieldType type);
+
+  /**
+   * Returns the MPI RANK the real boundary for a given face is on. 
+   */ 
+  int get_bc_rank(Face face) const
+  { return bc_rank_[face]; }
 
 };
 

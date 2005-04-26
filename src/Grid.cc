@@ -304,7 +304,8 @@ void Grid::set_define_mode(bool d)
       }
 
       // Tell subdomains about Grid data that needs to be exchanged
-      SubdomainBc *sd = dynamic_cast<SubdomainBc *>(&info_.get_boundary(static_cast<Face>(i)));
+      SubdomainBc *sd = 
+        dynamic_cast<SubdomainBc *>(&info_.get_boundary(static_cast<Face>(i)));
       if (sd)
       {
         setup_subdomain_data(sd, static_cast<Face>(i));

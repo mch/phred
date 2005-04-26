@@ -20,6 +20,7 @@
 */
 
 #include "GridInfo.hh"
+#include "Globals.hh"
 
 #ifdef DEBUG
 #include <iostream>
@@ -39,6 +40,7 @@ GridInfo::GridInfo()
   {
     face_bc_[i] = shared_ptr<BoundaryCond>(new Ewall());
     bc_order_[i] = static_cast<Face>(i);
+    bc_rank_[i] = MPI_RANK;
   }
 }
 
