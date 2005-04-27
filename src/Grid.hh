@@ -293,14 +293,6 @@ class Grid {
    */
   virtual void setup_subdomain_data(SubdomainBc *sd, Face face);
 
-  /**
-   * Return the MPI derived data type for the xy plane. 
-   *
-   * @param face the face to return the data type for
-   * @return MPI_Datatype
-   */
-  MPI_Datatype get_plane_dt(Face face) const;
-
  public:
   Grid();
   virtual ~Grid();
@@ -336,6 +328,14 @@ class Grid {
    * data pointers are set to zero.
    */
   const Grid &operator=(const Grid &rhs);
+
+  /**
+   * Return the MPI derived data type for a given face. 
+   *
+   * @param face the face to return the data type for
+   * @return MPI_Datatype
+   */
+  MPI_Datatype get_plane_dt(Face face) const;
 
   /**
    * Return whether the grid is in define mode or not. 

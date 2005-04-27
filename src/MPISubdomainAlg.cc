@@ -43,42 +43,79 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
     periods[i] = 0;
   }
 
-  MPI_Dims_create(MPI_SIZE, 3, dims);
+  unsigned int sdx, sdy, sdz, n, m, p;
+  bool divided = false;
+  unsigned int sz = static_cast<unsigned int>(MPI_SIZE);
+  
+  if (MPI_SIZE % 2 != 0) {
+    // This uses MPI to divide up the domain, but it doesn't know
+    // anything about minimizing message size, or other factors. The
+    // good thing is that it handles any MPI_SIZE.
+    MPI_Dims_create(MPI_SIZE, 3, dims);
 
-  // Re-arrange the dims so that the largest number of MPI nodes are
-  // placed along the longest grid axis.
-  unsigned int sdx, sdy, sdz;
-  sdx = info.global_dimx_;
-  sdy = info.global_dimy_;
-  sdz = info.global_dimz_;
-
-  // sucktacular:
-//   if (sdy > sdx)
-//   {
-//     int temp = dims[0];
-//     dims[0] = dims[1];
-//     dims[1] = temp;
-
-//     if (sdz > sdy)
-//     {
-//       temp = dims[1];
-//       dims[1] = dims[2];
-//       dims[2] = temp;
-//     }
-//   } 
-//   else if (sdz > sdx)
-//   {
-//     int temp = dims[0];
-//     dims[0] = dims[2];
-//     dims[2] = temp;
+    n = dims[0];
+    m = dims[1];
+    p = dims[2];
+  } else {
     
-//     if (sdy > sdz)
-//     {
-//       temp = dims[1];
-//       dims[1] = dims[2];
-//       dims[2] = temp;
-//     }
-//   }
+    // The following divides up the domain such that the message size is
+    // minimized. 
+
+    // n, m, and p are the number of divisions along the x,
+    // y, and z axis' respectivly
+
+    sdx = info.global_dimx_;
+    sdy = info.global_dimy_;
+    sdz = info.global_dimz_;
+    
+    n = m = p = 1;
+    
+    for (int i = 0; i < MPI_SIZE; i++)
+    {
+      if (sdx >= sdy && sdx >= sdz && (n+1)*m*p <= sz) {
+        n++;
+        sdx = info.global_dimx_ / n;
+        divided = true;
+      }
+      
+      else if (sdy >= sdx && sdy >= sdz && n*(m+1)*p <= sz) {
+        m++;
+        sdy = info.global_dimy_ / m;
+        divided = true;
+      }
+      
+      else if (sdz >= sdx && sdz >= sdy && n*m*(p+1) <= sz) {
+        p++;
+        sdz = info.global_dimz_ / p;
+        divided = true;
+      }
+      
+      if (!divided) {
+        if ((n+1)*m*p <= sz) {
+          n++;
+          sdx = info.global_dimx_ / n;
+        }
+        else if (n*(m+1)*p <= sz) {
+          m++;
+          sdy = info.global_dimy_ / m;
+        }
+        else if (n*m*(p+1) <= sz) {
+          p++;
+          sdz = info.global_dimz_ / p;
+        }
+      }
+
+      divided = false;
+    }
+    
+    if (n*m*p != sz) {
+      cerr << "WARNING: simple domain decomposition did not result in one grid per\nprocessor!" << endl;
+    }
+  
+    dims[0] = n;
+    dims[1] = m;
+    dims[2] = p;
+  }
 
   // Set up a new communicator
   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, periods, 1, &MPI_COMM_PHRED);
@@ -100,11 +137,6 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
   MPI_RANK = new_rank;
 
   GridInfo result = info; 
-  int n, m, p;
-
-  n = dims[0];
-  m = dims[1];
-  p = dims[2];
 
   // Assign sizes and starting points including overlap
   result.dimx_ = static_cast<unsigned int>
@@ -148,6 +180,8 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
   result.dimy_no_sd_ = result.dimy_;
   result.dimz_no_sd_ = result.dimz_;
 
+  // Set up subdomain boundary conditions and tell GridInfo where the
+  // real boundaryies are.
   SubdomainBc *sdbc = 0;
 
   int n_coords[3];
@@ -155,6 +189,7 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
 
   if (coords[0] != 0) { // Back
     sdbc = new SubdomainBc();
+
 
     n_coords[0] = coords[0] - 1;
     n_coords[1] = coords[1];

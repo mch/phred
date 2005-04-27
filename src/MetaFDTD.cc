@@ -52,30 +52,7 @@ void MetaFDTD::run()
     cout << "Performing domain decomposition..." << endl;
 
   SubdomainAlg *alg = 0;
-  if (ddalg_ == DDA_UNDEFINED) 
-  {
-    if (MPI_SIZE == 1 || MPI_SIZE == 2 || MPI_SIZE == 4 || MPI_SIZE == 8)
-      alg = new SimpleSDAlg();
-    else
-    {
-      //  alg = new StripSDAlg();
-      cerr << "Striping sub-domaining algorithm is not implemented yet!"
-           << endl;
-      return;
-    }
-  } 
-  else if (ddalg_ == DDA_SIMPLE)
-    alg = new SimpleSDAlg();
-
-  else if (ddalg_ == DDA_MPICART)
-    alg = new MPISubdomainAlg();
-
-  else if (ddalg_ == DDA_STRIPING)
-  {
-    cerr << "Striping sub-domaining algorithm is not implemented yet!"
-         << endl;
-    return;
-  }
+  alg = new MPISubdomainAlg();
   
   local_ginfo_ = alg->decompose_domain(global_ginfo_);
 

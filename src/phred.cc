@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -320,7 +320,7 @@ int main (int argc, char **argv)
   // else { // rank 0 passes appropriate args
   
   cout << PACKAGE_NAME << " version " << PACKAGE_VERSION 
-       << ", Copyright (C) 2004, 2005 Matt Hughes <mch@ieee.org>\n"
+       << ", Copyright (C) 2004-2005 Matt Hughes <mch@ieee.org>\n"
        << PACKAGE_NAME << " comes with ABSOLUTELY NO WARRANTY.\n"
        << "This is free software, and you are welcome to redistribute it\n"
        << "under certian conditions. See the COPYING file for details.\n";

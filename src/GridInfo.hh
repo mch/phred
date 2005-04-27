@@ -150,12 +150,6 @@ protected:
   Face bc_order_[6];
 
   /**
-   * The MPI rank of the process where the real (i.e. user assigned,
-   * i.e. not a SubdomainBC) boundary condition lives.
-   */
-  int bc_rank_[6];
-
-  /**
    * Compute the contents of the bc_order_ array based on the
    * following rules:
    *
@@ -239,12 +233,6 @@ public:
    * @param the grid to apply to 
    */
   void apply_boundaries(Grid &grid, FieldType type);
-
-  /**
-   * Returns the MPI RANK the real boundary for a given face is on. 
-   */ 
-  int get_bc_rank(Face face) const
-  { return bc_rank_[face]; }
 
 };
 

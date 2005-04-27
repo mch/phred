@@ -2,7 +2,7 @@
    Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
-   Copyright (C) 2004 Matt Hughes <mhughe@uvic.ca>
+   Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -197,15 +197,19 @@ public:
   /**
    * Set the domain decomposition algorithm to use. Defaults to the
    * method which uses MPI to sort things out. 
+   *
+   * DEPRECATED.
    */ 
-  inline void set_decomp_alg(DomainDecompAlg a)
-  { ddalg_ = a; }
+//   inline void set_decomp_alg(DomainDecompAlg a)
+//   { ddalg_ = a; }
 
   /**
    * Returns the domain decomposition algorithm being used. 
+   *
+   * DEPRECATED.
    */ 
-  inline DomainDecompAlg get_decomp_alg()
-  { return ddalg_; }
+//   inline DomainDecompAlg get_decomp_alg()
+//   { return ddalg_; }
 
   /**
    * Set the time delta scale parameter. This scales the value of

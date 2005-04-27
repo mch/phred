@@ -20,6 +20,7 @@
 */
 
 #include "Periodic.hh"
+#include "../Globals.hh" 
 
 Periodic::Periodic(shared_ptr<PeriodicExcitation> pe)
   : pe_(pe), valid_(false)
@@ -81,6 +82,57 @@ void Periodic::init(const Grid &grid, Face face)
 
   else if (fbv || tbv || lrv)
     valid_ = true; 
+
+  // Find out where we are
+  int coords[3], dims[3], periods[3];
+  MPI_Cart_get(MPI_COMM_PHRED, 3, dims, periods, coords);
+
+  // Find out the rank with which data must be exchanged
+  int n_coords[3];
+  int n_rank;
+
+  switch (face)
+  {
+  case BACK:
+    n_coords[0] = dims[0] - 1;
+    n_coords[1] = coords[1];
+    n_coords[2] = coords[2];
+    break;
+
+  case FRONT:
+    n_coords[0] = 0;
+    n_coords[1] = coords[1];
+    n_coords[2] = coords[2];
+    break;
+
+  case LEFT:
+    n_coords[0] = coords[0];
+    n_coords[1] = dims[1] - 1;
+    n_coords[2] = coords[2];
+    break;
+
+  case RIGHT:
+    n_coords[0] = coords[0];
+    n_coords[1] = 0;
+    n_coords[2] = coords[2];
+    break;
+
+  case BOTTOM:
+    n_coords[0] = coords[0];
+    n_coords[1] = coords[1];
+    n_coords[2] = dims[2] - 1;
+    break;
+
+  case TOP:
+    n_coords[0] = coords[0];
+    n_coords[1] = coords[1];
+    n_coords[2] = 0;
+    break;
+  }
+
+  MPI_Cart_rank(MPI_COMM_PHRED, n_coords, &n_rank);
+
+  exchange_rank_ = n_rank;
 }
 
 void Periodic::deinit(const Grid &grid, Face face)

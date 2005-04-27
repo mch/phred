@@ -57,8 +57,6 @@ phred_SOURCES=\
 	Exceptions.hh \
 	Data.hh \
 	SubdomainAlg.hh \
-	SimpleSDAlg.cc \
-	SimpleSDAlg.hh \
 	MPISubdomainAlg.cc \
 	MPISubdomainAlg.hh \
 	Contiguous.hh \
@@ -70,4 +68,8 @@ phred_SOURCES=\
 	MetaFDTD.hh \
 	MetaFDTD.cc \
 	phred.cc $(phred_cond)
+
+# Deprecated:
+#	SimpleSDAlg.cc
+#	SimpleSDAlg.hh
 

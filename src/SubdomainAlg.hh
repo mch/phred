@@ -29,6 +29,12 @@
  * algorithm that produces a grid for a particular node. All
  * processors are intended to run this algorithm. 
  *
+ * All subclasses MUST: 
+ * 1) Divide the global comuptational domain up into appropriatly
+ *    sized chunks for each rank.
+ * 2) Set up SubdomainBC boundary conditions where the local domains
+ *    meet and information must be exchanged between MPI ranks.
+ *
  * This ABC and it's subclasses implement the Strategy pattern from pg
  * 315 of gof1995. The GridInfo object is the Context the individual
  * strategies work with.
