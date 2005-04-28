@@ -165,39 +165,39 @@ void GridInfo::reorder_boundaries()
       bc_order_[bc_idx++] = static_cast<Face>(i);
   }
 
-// #ifdef DEBUG
-//   cout << "Boundary condition order: \n\t";
-//   for (int i = 0; i < 6; i++)
-//   {
-//     cout << face_string(bc_order_[i]) << " [";
+#ifdef DEBUG
+  cout << "Boundary condition order: \n\t";
+  for (int i = 0; i < 6; i++)
+  {
+    cout << face_string(bc_order_[i]) << " [";
 
-//     BoundaryCondition t = face_bc_[bc_order_[i]].get()->get_type();
-//     switch (t)
-//     {
-//     case UNKNOWN:
-//       cout << "unknown";
-//       break;
-//     case SUBDOMAIN:
-//       cout << "subdomain";
-//       break;
-//     case EWALL:
-//       cout << "ewall";
-//       break;
-//     case HWALL:
-//       cout << "hwall";
-//       break;
-//     case PML:
-//       cout << "pml";
-//       break;
-//     case UPML:
-//       cout << "upml";
-//       break;
-//     case PERIODIC:
-//       cout << "periodic";
-//       break;
-//     }
-//     cout << "]\n\t";
-//   }
-//   cout << endl;
-// #endif
+    BoundaryCondition t = face_bc_[bc_order_[i]].get()->get_type();
+    switch (t)
+    {
+    case UNKNOWN:
+      cout << "unknown";
+      break;
+    case SUBDOMAIN:
+      cout << "subdomain";
+      break;
+    case EWALL:
+      cout << "ewall";
+      break;
+    case HWALL:
+      cout << "hwall";
+      break;
+    case PML:
+      cout << "pml";
+      break;
+    case UPML:
+      cout << "upml";
+      break;
+    case PERIODIC:
+      cout << "periodic";
+      break;
+    }
+    cout << "]\n\t";
+  }
+  cout << endl;
+#endif
 }

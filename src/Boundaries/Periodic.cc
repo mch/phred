@@ -133,6 +133,7 @@ void Periodic::init(const Grid &grid, Face face)
   MPI_Cart_rank(MPI_COMM_PHRED, n_coords, &n_rank);
 
   exchange_rank_ = n_rank;
+  exchange_type_ = grid.get_plane_dt(face);
 }
 
 void Periodic::deinit(const Grid &grid, Face face)
@@ -142,42 +143,86 @@ void Periodic::deinit(const Grid &grid, Face face)
 
 void Periodic::copy_e(Face face, Grid &grid)
 {
+  MPI_Status status;
+
   switch (face)
   {
   case BACK:
-    for (int j = 0; j < grid.get_ldy_sd(); j++)
-    {
-      for (int k = 0; k < grid.get_ldz_sd(); k++)
-      {
-        grid.set_ey(0, j, k, grid.get_ey(grid.get_ldx_sd() - 1, j, k)); 
-        grid.set_ez(0, j, k, grid.get_ez(grid.get_ldx_sd() - 1, j, k));
-      }
-    }
+//     for (int j = 0; j < grid.get_ldy_sd(); j++)
+//     {
+//       for (int k = 0; k < grid.get_ldz_sd(); k++)
+//       {
+//         grid.set_ey(0, j, k, grid.get_ey(grid.get_ldx_sd() - 1, j, k)); 
+//         grid.set_ez(0, j, k, grid.get_ez(grid.get_ldx_sd() - 1, j, k));
+//       }
+//     }
+    MPI_Recv(grid.get_ey_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+             exchange_rank_, 1, MPI_COMM_PHRED, &status);
 
-    
+    MPI_Recv(grid.get_ez_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+             exchange_rank_, 1, MPI_COMM_PHRED, &status);
+    break;
 
+  case FRONT:
+    MPI_Send(grid.get_ey_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
+
+    MPI_Send(grid.get_ez_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
     break;
 
   case LEFT:
-    for (int i = 0; i < grid.get_ldx_sd(); i++)
-    {
-      for (int k = 0; k < grid.get_ldz_sd(); k++)
-      {
-        grid.set_ex(i, 0, k, grid.get_ex(i, grid.get_ldy_sd() - 1, k));
-        grid.set_ez(i, 0, k, grid.get_ez(i, grid.get_ldy_sd() - 1, k));
-      }
-    }
+//     for (int i = 0; i < grid.get_ldx_sd(); i++)
+//     {
+//       for (int k = 0; k < grid.get_ldz_sd(); k++)
+//       {
+//         grid.set_ex(i, 0, k, grid.get_ex(i, grid.get_ldy_sd() - 1, k));
+//         grid.set_ez(i, 0, k, grid.get_ez(i, grid.get_ldy_sd() - 1, k));
+//       }
+//     }
+    MPI_Recv(grid.get_ex_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+             exchange_rank_, 1, MPI_COMM_PHRED, &status);
+
+    MPI_Recv(grid.get_ez_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+             exchange_rank_, 1, MPI_COMM_PHRED, &status);
+    break;
+
+  case RIGHT:
+    MPI_Send(grid.get_ex_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
+
+    MPI_Send(grid.get_ez_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
     break;
 
   case BOTTOM:
-    for (int i = 0; i < grid.get_ldx_sd(); i++)
-    {
-      for (int j = 0; j < grid.get_ldy_sd(); j++)
-      {
-        grid.set_ex(i, j, 0, grid.get_ex(i, j, grid.get_ldz_sd() - 1));
-        grid.set_ey(i, j, 0, grid.get_ey(i, j, grid.get_ldz_sd() - 1));
-      }
-    }
+//     for (int i = 0; i < grid.get_ldx_sd(); i++)
+//     {
+//       for (int j = 0; j < grid.get_ldy_sd(); j++)
+//       {
+//         grid.set_ex(i, j, 0, grid.get_ex(i, j, grid.get_ldz_sd() - 1));
+//         grid.set_ey(i, j, 0, grid.get_ey(i, j, grid.get_ldz_sd() - 1));
+//       }
+//     }
+    MPI_Recv(grid.get_ex_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+             exchange_rank_, 1, MPI_COMM_PHRED, &status);
+
+    MPI_Recv(grid.get_ey_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+             exchange_rank_, 1, MPI_COMM_PHRED, &status);
+    break;
+
+  case TOP:
+    MPI_Send(grid.get_ex_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
+
+    MPI_Send(grid.get_ey_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
     break;
   }
   
@@ -186,48 +231,94 @@ void Periodic::copy_e(Face face, Grid &grid)
 
 void Periodic::copy_h(Face face, Grid &grid)
 {
+  MPI_Status status;
+
   switch (face)
   {
   case FRONT:
-    for (int j = 0; j < grid.get_ldy_sd(); j++)
-    {
-      for (int k = 0; k < grid.get_ldz_sd(); k++)
-      {
-        grid.set_hy(grid.get_ldx_sd() - 1, j, k, 
-                    grid.get_hy(0, j, k));
+//     for (int j = 0; j < grid.get_ldy_sd(); j++)
+//     {
+//       for (int k = 0; k < grid.get_ldz_sd(); k++)
+//       {
+//         grid.set_hy(grid.get_ldx_sd() - 1, j, k, 
+//                     grid.get_hy(0, j, k));
 
-        grid.set_hz(grid.get_ldx_sd() - 1, j, k, 
-                    grid.get_hz(0, j, k));
-      }
-    }
+//         grid.set_hz(grid.get_ldx_sd() - 1, j, k, 
+//                     grid.get_hz(0, j, k));
+//       }
+//     }
+    MPI_Recv(grid.get_hy_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
+
+    MPI_Recv(grid.get_hz_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
+    break;
+
+  case BACK:
+    MPI_Send(grid.get_hy_ptr(grid.pi(0, 0, 0)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
+
+    MPI_Send(grid.get_hz_ptr(grid.pi(0, 0, 0)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
     break;
 
   case RIGHT:
-    for (int i = 0; i < grid.get_ldx_sd(); i++)
-    {
-      for (int k = 0; k < grid.get_ldz_sd(); k++)
-      {
-        grid.set_hx(i, grid.get_ldy_sd() - 1, k, 
-                    grid.get_hx(i, 0, k));
-        grid.set_hz(i, grid.get_ldy_sd() - 1, k, 
-                    grid.get_hz(i, 0, k));
-      }
-    }
+//     for (int i = 0; i < grid.get_ldx_sd(); i++)
+//     {
+//       for (int k = 0; k < grid.get_ldz_sd(); k++)
+//       {
+//         grid.set_hx(i, grid.get_ldy_sd() - 1, k, 
+//                     grid.get_hx(i, 0, k));
+//         grid.set_hz(i, grid.get_ldy_sd() - 1, k, 
+//                     grid.get_hz(i, 0, k));
+//       }
+//     }
+    MPI_Recv(grid.get_hx_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
+
+    MPI_Recv(grid.get_hz_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
+    break;
+
+  case LEFT:
+    MPI_Send(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
+
+    MPI_Send(grid.get_hz_ptr(grid.pi(0, 0, 0)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
     break;
 
   case TOP:
-    for (int i = 0; i < grid.get_ldx_sd(); i++)
-    {
-      for (int j = 0; j < grid.get_ldy_sd(); j++)
-      {
-        grid.set_hx(i, j, grid.get_ldz_sd() - 1, 
-                    grid.get_hx(i, j, 0));
-        grid.set_hy(i, j, grid.get_ldz_sd() - 1, 
-                    grid.get_hy(i, j, 0));
-      }
-    }
+//     for (int i = 0; i < grid.get_ldx_sd(); i++)
+//     {
+//       for (int j = 0; j < grid.get_ldy_sd(); j++)
+//       {
+//         grid.set_hx(i, j, grid.get_ldz_sd() - 1, 
+//                     grid.get_hx(i, j, 0));
+//         grid.set_hy(i, j, grid.get_ldz_sd() - 1, 
+//                     grid.get_hy(i, j, 0));
+//       }
+//     }
+    MPI_Recv(grid.get_hx_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
+
+    MPI_Recv(grid.get_hy_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
     break;
 
+  case BOTTOM:
+    MPI_Send(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
+
+    MPI_Send(grid.get_hy_ptr(grid.pi(0, 0, 0)), 1, 
+             exchange_type_, exchange_rank_, 
+             1, MPI_COMM_PHRED);
+    break;
   }
 
 }
