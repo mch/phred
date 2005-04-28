@@ -48,15 +48,7 @@ old things all over the place.
 
 * Results
 
-- Fix PlaneResult so that it takes coordinates in terms of real space
-  instead of grid cells
-
-- Fix GridResult and BlockResult so that a subset of the grid defined
-  by a CSGBox can be returned, rather than the entire grid.
-
 - Near to farfield transformation
-
-- S Parameter extraction
 
 - Ensure that the output is always correct for 1, 2, 4 etc MPI
   processors. In particular, getting the order of dimensions backward

@@ -35,6 +35,13 @@ MPI_OPENMP_INTEROP... see "Using MPI with OpenMP"... set this and
 compile with -mp, and link such that the libmpi.so init code runs
 before the libmp.so init code: CC -64 -mp compute_mp.C -lmp -lmpi++ -lmpi
 
+MPI_DSM_INTEROP
+
+MPI_DSM_PLACEMENT=threadroundrobin
+
+See the man page for omp and mpi. 
+- Use a multiple of four omp threads per MPI process
+
 
 cpusets? MPI_DSM_OFF? 
 
