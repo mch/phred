@@ -43,11 +43,12 @@ void Periodic::apply(Face face, Grid &grid, FieldType type)
 
   if (faces_[face])
   {
-    if (type == E && (face == BACK || face == LEFT || face == BOTTOM))
+    if (type == E) 
       copy_e(face, grid);
 
-    if (type == H && (face == TOP || face == RIGHT || face == FRONT))
+    if (type == H) 
       copy_h(face, grid);
+
   }
 }
 
@@ -134,6 +135,13 @@ void Periodic::init(const Grid &grid, Face face)
 
   exchange_rank_ = n_rank;
   exchange_type_ = grid.get_plane_dt(face);
+
+  int sz = 0;
+  MPI_Type_size(exchange_type_, &sz);
+  cout << "Periodic MPI datatype size: " << sz << endl;
+  cout << "Grid size in Periodic: " << grid.get_ldx_sd()
+       << " x " << grid.get_ldy_sd() << " x " 
+       << grid.get_ldz_sd() << endl;
 }
 
 void Periodic::deinit(const Grid &grid, Face face)
@@ -144,85 +152,155 @@ void Periodic::deinit(const Grid &grid, Face face)
 void Periodic::copy_e(Face face, Grid &grid)
 {
   MPI_Status status;
+  int idx = grid.pi(grid.get_ldx_sd() - 1, 0, 0);
 
   switch (face)
   {
   case BACK:
-//     for (int j = 0; j < grid.get_ldy_sd(); j++)
+    for (int j = 0; j < grid.get_ldy_sd(); j++)
+    {
+      for (int k = 0; k < grid.get_ldz_sd(); k++)
+      {
+        grid.set_ey(0, j, k, grid.get_ey(grid.get_ldx_sd() - 1, j, k)); 
+        //grid.set_ez(0, j, k, grid.get_ez(grid.get_ldx_sd() - 1, j, k));
+      }
+    }
+//     if (MPI_RANK != exchange_rank_)
 //     {
-//       for (int k = 0; k < grid.get_ldz_sd(); k++)
-//       {
-//         grid.set_ey(0, j, k, grid.get_ey(grid.get_ldx_sd() - 1, j, k)); 
-//         grid.set_ez(0, j, k, grid.get_ez(grid.get_ldx_sd() - 1, j, k));
-//       }
+//       MPI_Recv(grid.get_ey_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+//                exchange_rank_, 1, MPI_COMM_PHRED, &status);
+//       MPI_Recv(grid.get_ez_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+//                exchange_rank_, 1, MPI_COMM_PHRED, &status);
+//     } 
+//     else
+//     {
+
+    // This one doesn't work!? 
+//     MPI_Sendrecv(static_cast<void *>(grid.get_ey_ptr(idx)), 1, 
+//                  exchange_type_, MPI_RANK, 1, 
+//                  static_cast<void *>(grid.get_ey_ptr(0)), 1, 
+//                  exchange_type_, exchange_rank_, 1, 
+//                  MPI_COMM_PHRED, &status);
+      
+    // But this one does?!?!?!
+    MPI_Sendrecv(static_cast<void *>(grid.get_ez_ptr(idx)), 1, 
+                 exchange_type_, MPI_RANK, 1, 
+                 static_cast<void *>(grid.get_ez_ptr(0)), 1, 
+                 exchange_type_, exchange_rank_, 1, 
+                 MPI_COMM_PHRED, &status);
 //     }
-    MPI_Recv(grid.get_ey_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
-             exchange_rank_, 1, MPI_COMM_PHRED, &status);
+//     break;
 
-    MPI_Recv(grid.get_ez_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
-             exchange_rank_, 1, MPI_COMM_PHRED, &status);
-    break;
+//   case FRONT:
+//     if (MPI_RANK != exchange_rank_)
+//     {
+//       MPI_Send(grid.get_ey_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+      
+//       MPI_Send(grid.get_ez_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+//     }
 
-  case FRONT:
-    MPI_Send(grid.get_ey_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
-
-    MPI_Send(grid.get_ez_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
     break;
 
   case LEFT:
-//     for (int i = 0; i < grid.get_ldx_sd(); i++)
+    for (int i = 0; i < grid.get_ldx_sd(); i++)
+    {
+      for (int k = 0; k < grid.get_ldz_sd(); k++)
+      {
+        grid.set_ex(i, 0, k, grid.get_ex(i, grid.get_ldy_sd() - 1, k));
+        grid.set_ez(i, 0, k, grid.get_ez(i, grid.get_ldy_sd() - 1, k));
+      }
+    }
+
+//     if (MPI_RANK != exchange_rank_)
 //     {
-//       for (int k = 0; k < grid.get_ldz_sd(); k++)
-//       {
-//         grid.set_ex(i, 0, k, grid.get_ex(i, grid.get_ldy_sd() - 1, k));
-//         grid.set_ez(i, 0, k, grid.get_ez(i, grid.get_ldy_sd() - 1, k));
-//       }
+//       MPI_Recv(grid.get_ex_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+//                exchange_rank_, 1, MPI_COMM_PHRED, &status);
+      
+//       MPI_Recv(grid.get_ez_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+//                exchange_rank_, 1, MPI_COMM_PHRED, &status);
 //     }
-    MPI_Recv(grid.get_ex_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
-             exchange_rank_, 1, MPI_COMM_PHRED, &status);
+//     else
+//     {
+//       MPI_Sendrecv(grid.get_ex_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+//                    exchange_type_, MPI_RANK, 1, 
+//                    grid.get_ex_ptr(grid.pi(0, 0, 0)), 1, 
+//                    exchange_type_, exchange_rank_, 1, 
+//                    MPI_COMM_PHRED, &status);
+      
+//       MPI_Sendrecv(grid.get_ez_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+//                    exchange_type_, MPI_RANK, 1, 
+//                    grid.get_ez_ptr(grid.pi(0, 0, 0)), 1, 
+//                    exchange_type_, exchange_rank_, 1, 
+//                    MPI_COMM_PHRED, &status);
+//     }
+    
+//     break;
 
-    MPI_Recv(grid.get_ez_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
-             exchange_rank_, 1, MPI_COMM_PHRED, &status);
-    break;
+//   case RIGHT:
+//     if (MPI_RANK != exchange_rank_)
+//     {
+//       MPI_Send(grid.get_ex_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+      
+//       MPI_Send(grid.get_ez_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+//     }
 
-  case RIGHT:
-    MPI_Send(grid.get_ex_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
-
-    MPI_Send(grid.get_ez_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
     break;
 
   case BOTTOM:
-//     for (int i = 0; i < grid.get_ldx_sd(); i++)
+    for (int i = 0; i < grid.get_ldx_sd(); i++)
+    {
+      for (int j = 0; j < grid.get_ldy_sd(); j++)
+      {
+        grid.set_ex(i, j, 0, grid.get_ex(i, j, grid.get_ldz_sd() - 1));
+        grid.set_ey(i, j, 0, grid.get_ey(i, j, grid.get_ldz_sd() - 1));
+      }
+    }
+
+//     if (MPI_RANK != exchange_rank_)
 //     {
-//       for (int j = 0; j < grid.get_ldy_sd(); j++)
-//       {
-//         grid.set_ex(i, j, 0, grid.get_ex(i, j, grid.get_ldz_sd() - 1));
-//         grid.set_ey(i, j, 0, grid.get_ey(i, j, grid.get_ldz_sd() - 1));
-//       }
+//       MPI_Recv(grid.get_ex_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+//                exchange_rank_, 1, MPI_COMM_PHRED, &status);
+      
+//       MPI_Recv(grid.get_ey_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
+//                exchange_rank_, 1, MPI_COMM_PHRED, &status);
 //     }
-    MPI_Recv(grid.get_ex_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
-             exchange_rank_, 1, MPI_COMM_PHRED, &status);
+//     else
+//     {
+//       MPI_Sendrecv(grid.get_ex_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+//                    exchange_type_, MPI_RANK, 1, 
+//                    grid.get_ex_ptr(grid.pi(0, 0, 0)), 1, 
+//                    exchange_type_, exchange_rank_, 1, 
+//                    MPI_COMM_PHRED, &status);
+      
+//       MPI_Sendrecv(grid.get_ey_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+//                    exchange_type_, MPI_RANK, 1, 
+//                    grid.get_ey_ptr(grid.pi(0, 0, 0)), 1, 
+//                    exchange_type_, exchange_rank_, 1, 
+//                    MPI_COMM_PHRED, &status);
+//     }
 
-    MPI_Recv(grid.get_ey_ptr(grid.pi(0, 0, 0)), 1, exchange_type_, 
-             exchange_rank_, 1, MPI_COMM_PHRED, &status);
-    break;
+//     break;
 
-  case TOP:
-    MPI_Send(grid.get_ex_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
+//   case TOP:
+//     if (MPI_RANK != exchange_rank_)
+//     {
+//       MPI_Send(grid.get_ex_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+      
+//       MPI_Send(grid.get_ey_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+//     }
 
-    MPI_Send(grid.get_ey_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
     break;
   }
   
@@ -236,88 +314,156 @@ void Periodic::copy_h(Face face, Grid &grid)
   switch (face)
   {
   case FRONT:
-//     for (int j = 0; j < grid.get_ldy_sd(); j++)
+    for (int j = 0; j < grid.get_ldy_sd(); j++)
+    {
+      for (int k = 0; k < grid.get_ldz_sd(); k++)
+      {
+        grid.set_hy(grid.get_ldx_sd() - 1, j, k, 
+                    grid.get_hy(0, j, k));
+
+        grid.set_hz(grid.get_ldx_sd() - 1, j, k, 
+                    grid.get_hz(0, j, k));
+      }
+    }
+
+//     if (MPI_RANK != exchange_rank_)
 //     {
-//       for (int k = 0; k < grid.get_ldz_sd(); k++)
-//       {
-//         grid.set_hy(grid.get_ldx_sd() - 1, j, k, 
-//                     grid.get_hy(0, j, k));
-
-//         grid.set_hz(grid.get_ldx_sd() - 1, j, k, 
-//                     grid.get_hz(0, j, k));
-//       }
+//       MPI_Recv(grid.get_hy_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+//                exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
+      
+//       MPI_Recv(grid.get_hz_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+//                exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
 //     }
-    MPI_Recv(grid.get_hy_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
-             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
+//     else
+//     {
+//       MPI_Sendrecv(grid.get_hy_ptr(grid.pi(0, 0, 0)), 1, 
+//                    exchange_type_, MPI_RANK, 1, 
+//                    grid.get_hy_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+//                    exchange_type_, exchange_rank_, 1, 
+//                    MPI_COMM_PHRED, &status);
+      
+//       MPI_Sendrecv(grid.get_hz_ptr(grid.pi(0, 0, 0)), 1, 
+//                    exchange_type_, MPI_RANK, 1, 
+//                    grid.get_hz_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+//                    exchange_type_, exchange_rank_, 1, 
+//                    MPI_COMM_PHRED, &status);
+//     }
 
-    MPI_Recv(grid.get_hz_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
-             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
-    break;
+//    break;
 
-  case BACK:
-    MPI_Send(grid.get_hy_ptr(grid.pi(0, 0, 0)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
+//   case BACK:
+//     if (MPI_RANK != exchange_rank_)
+//     {
+//       MPI_Send(grid.get_hy_ptr(grid.pi(0, 0, 0)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+      
+//       MPI_Send(grid.get_hz_ptr(grid.pi(0, 0, 0)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+//     }
 
-    MPI_Send(grid.get_hz_ptr(grid.pi(0, 0, 0)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
     break;
 
   case RIGHT:
-//     for (int i = 0; i < grid.get_ldx_sd(); i++)
+    for (int i = 0; i < grid.get_ldx_sd(); i++)
+    {
+      for (int k = 0; k < grid.get_ldz_sd(); k++)
+      {
+        grid.set_hx(i, grid.get_ldy_sd() - 1, k, 
+                    grid.get_hx(i, 0, k));
+        grid.set_hz(i, grid.get_ldy_sd() - 1, k, 
+                    grid.get_hz(i, 0, k));
+      }
+    }
+//     if (MPI_RANK != exchange_rank_)
 //     {
-//       for (int k = 0; k < grid.get_ldz_sd(); k++)
-//       {
-//         grid.set_hx(i, grid.get_ldy_sd() - 1, k, 
-//                     grid.get_hx(i, 0, k));
-//         grid.set_hz(i, grid.get_ldy_sd() - 1, k, 
-//                     grid.get_hz(i, 0, k));
-//       }
+//       MPI_Recv(grid.get_hx_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+//                exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
+      
+//       MPI_Recv(grid.get_hz_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+//                exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
+//     } 
+//     else
+//     {
+//       MPI_Sendrecv(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
+//                    exchange_type_, MPI_RANK, 1, 
+//                    grid.get_hx_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+//                    exchange_type_, exchange_rank_, 1, 
+//                    MPI_COMM_PHRED, &status);
+      
+//       MPI_Sendrecv(grid.get_hz_ptr(grid.pi(0, 0, 0)), 1, 
+//                    exchange_type_, MPI_RANK, 1, 
+//                    grid.get_hz_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+//                    exchange_type_, exchange_rank_, 1, 
+//                    MPI_COMM_PHRED, &status);
 //     }
-    MPI_Recv(grid.get_hx_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
-             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
 
-    MPI_Recv(grid.get_hz_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
-             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
-    break;
+//     break;
 
-  case LEFT:
-    MPI_Send(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
+//   case LEFT:
+//     if (MPI_RANK != exchange_rank_)
+//     {
+//       MPI_Send(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+      
+//       MPI_Send(grid.get_hz_ptr(grid.pi(0, 0, 0)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+//     }
 
-    MPI_Send(grid.get_hz_ptr(grid.pi(0, 0, 0)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
     break;
 
   case TOP:
-//     for (int i = 0; i < grid.get_ldx_sd(); i++)
+    for (int i = 0; i < grid.get_ldx_sd(); i++)
+    {
+      for (int j = 0; j < grid.get_ldy_sd(); j++)
+      {
+        grid.set_hx(i, j, grid.get_ldz_sd() - 1, 
+                    grid.get_hx(i, j, 0));
+        grid.set_hy(i, j, grid.get_ldz_sd() - 1, 
+                    grid.get_hy(i, j, 0));
+      }
+    }
+//     if (MPI_RANK != exchange_rank_)
 //     {
-//       for (int j = 0; j < grid.get_ldy_sd(); j++)
-//       {
-//         grid.set_hx(i, j, grid.get_ldz_sd() - 1, 
-//                     grid.get_hx(i, j, 0));
-//         grid.set_hy(i, j, grid.get_ldz_sd() - 1, 
-//                     grid.get_hy(i, j, 0));
-//       }
+//       MPI_Recv(grid.get_hx_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+//                exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
+      
+//       MPI_Recv(grid.get_hy_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+//                exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
 //     }
-    MPI_Recv(grid.get_hx_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
-             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
+//     else
+//     {
+//       MPI_Sendrecv(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
+//                    exchange_type_, MPI_RANK, 1, 
+//                    grid.get_hx_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+//                    exchange_type_, exchange_rank_, 1, 
+//                    MPI_COMM_PHRED, &status);
+      
+//       MPI_Sendrecv(grid.get_hy_ptr(grid.pi(0, 0, 0)), 1, 
+//                    exchange_type_, MPI_RANK, 1, 
+//                    grid.get_hy_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+//                    exchange_type_, exchange_rank_, 1, 
+//                    MPI_COMM_PHRED, &status);
+//     }
 
-    MPI_Recv(grid.get_hy_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
-             exchange_type_, exchange_rank_, 1, MPI_COMM_PHRED, &status);
-    break;
+//     break;
 
-  case BOTTOM:
-    MPI_Send(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
+//   case BOTTOM:
 
-    MPI_Send(grid.get_hy_ptr(grid.pi(0, 0, 0)), 1, 
-             exchange_type_, exchange_rank_, 
-             1, MPI_COMM_PHRED);
+//     if (MPI_RANK != exchange_rank_)
+//     {
+//       MPI_Send(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+      
+//       MPI_Send(grid.get_hy_ptr(grid.pi(0, 0, 0)), 1, 
+//                exchange_type_, exchange_rank_, 
+//                1, MPI_COMM_PHRED);
+//     }
+
     break;
   }
 
