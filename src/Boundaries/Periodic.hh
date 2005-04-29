@@ -33,6 +33,10 @@
  * That face to which this boundary condition is assigned always
  * recieves data, i.e. it copies data from the face on the opposite
  * side to itself.
+ *
+ * \bug The check for the validity of the Periodic boundary conditions
+ * in init() will fail in some cases. It must be fixed so that it
+ * retrives the global boundary settings.
  */ 
 class Periodic : public BoundaryCond
 {

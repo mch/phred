@@ -39,8 +39,10 @@ Periodic::~Periodic()
 
 void Periodic::apply(Face face, Grid &grid, FieldType type)
 {
-  if (!valid_)
-    throw BoundaryConditionException("Periodic: boundaries are not valid.");
+  //if (!valid_)
+  //{
+    //throw BoundaryConditionException("Periodic: boundaries are not valid.");
+  //}
 
   if (faces_[face])
   {
@@ -62,6 +64,7 @@ void Periodic::init(const Grid &grid, Face face)
   bool lrv = false;
   bool tbv = false; 
 
+  // These tests have to rely on the global face settings, pre domain decomp. 
   if (faces_[FRONT] && faces_[BACK]) 
     fbv = true; 
 
@@ -145,7 +148,10 @@ void Periodic::deinit(const Grid &grid, Face face)
 void Periodic::copy_e(Face face, Grid &grid)
 {
   MPI_Status status;
+  int idx = grid.pi(grid.get_ldx_sd() - 1, 0, 0);
   int mpi_err = 0;
+  int sz = 0;
+  MPI_Aint extnt = 0;
   
   MPI_Datatype t; 
   t = grid.get_plane_dt(face);
@@ -153,27 +159,49 @@ void Periodic::copy_e(Face face, Grid &grid)
   switch (face)
   {
   case BACK:
-  case FRONT:
-    // Only do this once if we are exchanging with ourselves. 
-    if (MPI_RANK != exchange_rank_[face] 
-        || (MPI_RANK == exchange_rank_[face] && face == BACK))
+    if (MPI_RANK != exchange_rank_[face])
     {
-      MPI_Sendrecv(grid.get_ey_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+      MPI_Recv(grid.get_ey_ptr(grid.pi(0, 0, 0)), 1, t, 
+               exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+      MPI_Recv(grid.get_ez_ptr(grid.pi(0, 0, 0)), 1, t, 
+               exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+    } 
+    else
+    {
+      MPI_Sendrecv(grid.get_ey_ptr(idx), 1, 
                    t, MPI_RANK, 1, 
                    grid.get_ey_ptr(0), 1, 
                    t, exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
       
-      MPI_Sendrecv(grid.get_ez_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+      MPI_Sendrecv(grid.get_ez_ptr(idx), 1, 
                    t, MPI_RANK, 1, 
                    grid.get_ez_ptr(0), 1, 
                    t, exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
     }
     break;
     
+  case FRONT:
+    if (MPI_RANK != exchange_rank_[face])
+    {
+      MPI_Send(grid.get_ey_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
+      
+      MPI_Send(grid.get_ez_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
+    }
+    
+    break;
+
   case LEFT:
-  case RIGHT:
-    if (MPI_RANK != exchange_rank_[face] 
-        || (MPI_RANK == exchange_rank_[face] && face == LEFT))
+    if (MPI_RANK != exchange_rank_[face])
+    {
+      MPI_Recv(grid.get_ex_ptr(grid.pi(0, 0, 0)), 1, t, 
+               exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+      
+      MPI_Recv(grid.get_ez_ptr(grid.pi(0, 0, 0)), 1, t, 
+               exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+    }
+    else
     {
       MPI_Sendrecv(grid.get_ex_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
                    t, MPI_RANK, 1, grid.get_ex_ptr(grid.pi(0, 0, 0)), 1, 
@@ -186,10 +214,28 @@ void Periodic::copy_e(Face face, Grid &grid)
     
     break;
 
+  case RIGHT:
+    if (MPI_RANK != exchange_rank_[face])
+    {
+      MPI_Send(grid.get_ex_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
+      
+      MPI_Send(grid.get_ez_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
+    }
+
+    break;
+
   case BOTTOM:
-  case TOP:
-    if (MPI_RANK != exchange_rank_[face] 
-        || (MPI_RANK == exchange_rank_[face] && face == BOTTOM))
+    if (MPI_RANK != exchange_rank_[face])
+    {
+      MPI_Recv(grid.get_ex_ptr(grid.pi(0, 0, 0)), 1, t, 
+               exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+      
+      MPI_Recv(grid.get_ey_ptr(grid.pi(0, 0, 0)), 1, t, 
+               exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+    }
+    else
     {
       MPI_Sendrecv(grid.get_ex_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
                    t, MPI_RANK, 1, 
@@ -201,8 +247,20 @@ void Periodic::copy_e(Face face, Grid &grid)
                    grid.get_ey_ptr(grid.pi(0, 0, 0)), 1, 
                    t, exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
     }
+
     break;
 
+  case TOP:
+    if (MPI_RANK != exchange_rank_[face])
+    {
+      MPI_Send(grid.get_ex_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
+      
+      MPI_Send(grid.get_ey_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
+    }
+
+    break;
   }
   
 }
@@ -217,9 +275,15 @@ void Periodic::copy_h(Face face, Grid &grid)
   switch (face)
   {
   case FRONT:
-  case BACK:
-    if (MPI_RANK != exchange_rank_[face] 
-        || (MPI_RANK == exchange_rank_[face] && face == FRONT))
+    if (MPI_RANK != exchange_rank_[face])
+    {
+      MPI_Recv(grid.get_hy_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+      
+      MPI_Recv(grid.get_hz_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+    }
+    else
     {
       MPI_Sendrecv(grid.get_hy_ptr(grid.pi(0, 0, 0)), 1, 
                    t, MPI_RANK, 1, 
@@ -231,12 +295,31 @@ void Periodic::copy_h(Face face, Grid &grid)
                    grid.get_hz_ptr(grid.pi(grid.get_ldx_sd() - 1, 0, 0)), 1, 
                    t, exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
     }
+
+   break;
+
+  case BACK:
+    if (MPI_RANK != exchange_rank_[face])
+    {
+      MPI_Send(grid.get_hy_ptr(grid.pi(0, 0, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
+      
+      MPI_Send(grid.get_hz_ptr(grid.pi(0, 0, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
+    }
+
     break;
 
   case RIGHT:
-  case LEFT:
-    if (MPI_RANK != exchange_rank_[face] 
-        || (MPI_RANK == exchange_rank_[face] && face == RIGHT))
+    if (MPI_RANK != exchange_rank_[face])
+    {
+      MPI_Recv(grid.get_hx_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+      
+      MPI_Recv(grid.get_hz_ptr(grid.pi(0, grid.get_ldy_sd() - 1, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+    } 
+    else
     {
       MPI_Sendrecv(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
                    t, MPI_RANK, 1, 
@@ -251,10 +334,28 @@ void Periodic::copy_h(Face face, Grid &grid)
 
     break;
 
+  case LEFT:
+    if (MPI_RANK != exchange_rank_[face])
+    {
+      MPI_Send(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
+      
+      MPI_Send(grid.get_hz_ptr(grid.pi(0, 0, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
+    }
+
+    break;
+
   case TOP:
-  case BOTTOM:
-    if (MPI_RANK != exchange_rank_[face]
-        || (MPI_RANK == exchange_rank_[face] && face == TOP))
+    if (MPI_RANK != exchange_rank_[face])
+    {
+      MPI_Recv(grid.get_hx_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+      
+      MPI_Recv(grid.get_hy_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+    }
+    else
     {
       MPI_Sendrecv(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
                    t, MPI_RANK, 1, 
@@ -265,6 +366,19 @@ void Periodic::copy_h(Face face, Grid &grid)
                    t, MPI_RANK, 1, 
                    grid.get_hy_ptr(grid.pi(0, 0, grid.get_ldz_sd() - 1)), 1, 
                    t, exchange_rank_[face], 1, MPI_COMM_PHRED, &status);
+    }
+
+    break;
+
+  case BOTTOM:
+
+    if (MPI_RANK != exchange_rank_[face])
+    {
+      MPI_Send(grid.get_hx_ptr(grid.pi(0, 0, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
+      
+      MPI_Send(grid.get_hy_ptr(grid.pi(0, 0, 0)), 1, 
+               t, exchange_rank_[face], 1, MPI_COMM_PHRED);
     }
 
     break;
