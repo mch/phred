@@ -487,6 +487,47 @@ void Grid::init_datatypes()
                    y_vector_, &xy_plane_);
   MPI_Type_commit(&xy_plane_);
 
+#ifdef DEBUG
+  int sz; 
+  MPI_Aint extnt;
+
+  MPI_Type_size(x_vector_, &sz);
+  MPI_Type_extent(x_vector_, &extnt);
+
+  cout << "Grid::init_datatypes(): x vector is " << sz << " bytes in size, "
+       << extnt << " in extent. " << endl;
+
+  MPI_Type_size(y_vector_, &sz);
+  MPI_Type_extent(y_vector_, &extnt);
+
+  cout << "Grid::init_datatypes(): y vector is " << sz << " bytes in size, "
+       << extnt << " in extent. " << endl;
+
+  MPI_Type_size(z_vector_, &sz);
+  MPI_Type_extent(z_vector_, &extnt);
+
+  cout << "Grid::init_datatypes(): z vector is " << sz << " bytes in size, "
+       << extnt << " in extent. " << endl;
+
+  MPI_Type_size(yz_plane_, &sz);
+  MPI_Type_extent(yz_plane_, &extnt);
+
+  cout << "Grid::init_datatypes(): yz plane is " << sz << " bytes in size, "
+       << extnt << " in extent. " << endl;
+
+  MPI_Type_size(xz_plane_, &sz);
+  MPI_Type_extent(xz_plane_, &extnt);
+
+  cout << "Grid::init_datatypes(): xz plane is " << sz << " bytes in size, "
+       << extnt << " in extent. " << endl;
+
+  MPI_Type_size(xy_plane_, &sz);
+  MPI_Type_extent(xy_plane_, &extnt);
+
+  cout << "Grid::init_datatypes(): xy plane is " << sz << " bytes in size, "
+       << extnt << " in extent. " << endl;
+#endif
+
   types_alloced_ = true;
 }
 

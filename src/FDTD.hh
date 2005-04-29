@@ -50,6 +50,10 @@ using namespace boost;
  * simulation. It is primarily intended to be used from python. It
  * holds lists of results, excitations, data writers, etc, manages
  * thier memory and life cycles, etc. 
+ *
+ * \bug Assigning a single instance of a boundary condition object to
+ * more than one face probably should not be allowed. Periodic in
+ * particular breaks this, and it is not a good thing.
  */
 class FDTD
 {

@@ -33,8 +33,6 @@
  * That face to which this boundary condition is assigned always
  * recieves data, i.e. it copies data from the face on the opposite
  * side to itself.
- *
- * \bug Does not transfer data across MPI sub-domains!
  */ 
 class Periodic : public BoundaryCond
 {
@@ -91,11 +89,8 @@ private:
 
   bool valid_; /**< True if this periodic boundary set up is valid. */ 
 
-  int exchange_rank_; /**< The MPI rank that we share data with (may
-                         be the same as MPI_RANK) */ 
-
-  MPI_Datatype exchange_type_; /**< The MPI datatype used to copy 
-                                  data around. */
+  int exchange_rank_[6]; /**< The MPI rank that we share data with (may
+                            be the same as MPI_RANK) */ 
 
   void copy_e(Face face, Grid &grid);
   void copy_h(Face face, Grid &grid);

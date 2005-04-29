@@ -38,6 +38,10 @@ class SubdomainBc;
  * field is in. i.e. the boundary edge is colocated with the E field,
  * and the E field at that edge is considered to be part of the
  * boundary.
+ *
+ * \bug Assigning a single instance of a boundary condition object to
+ * more than one face probably should not be allowed. Periodic in
+ * particular breaks this, and it is not a good thing.
  */
 class BoundaryCond
 {
