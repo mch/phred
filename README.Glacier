@@ -43,20 +43,9 @@ One can request specfic blades using a line like:
   the processors are requested in this manner, MPI will start both
   processes on one node and the second will not be used at all.
 
-  For this reason, only the number of nodes should be specified:
-  #PBS -l nodes=2:ppn=1
-
-  ppn should always be set to one. As long as the OMP_NUM_THREADS
-  environment variable is set to 2, OpenMP should be able to make use
-  of the both available processors. The only danger is that it may be
-  possible for PBS to schedule a second job on the same node, since it
-  doesn't know that both processors are actually in use. This could
-  cause the program to slow down, as it and the second job compete for
-  CPU time.
-
-  It should be possible to avoid this problem by re-writing the nodes
-  file to the correct format. The following script reads the existing
-  node file from standard input and writes a corrected one to standard
+  It is possible to avoid this problem by re-writing the nodes file to
+  the correct format. The following script reads the existing node
+  file from standard input and writes a corrected one to standard
   output:
 
 ----
@@ -76,6 +65,13 @@ for n in nodes:
 ----
 
   Save this somewhere like ~/bin/rejigger_nodes.py. 
+
+  Do not simply use a line line #PBS -l nodes=2:ppn:1 when if fact you
+  intend to use both processors on the node. If the resource manager
+  is not informed that your job is using both processors, then it may
+  schedule another job on the apparently unused processor. Both
+  processes will have to fight for CPU time, and both will be slower
+  as a result. 
 
 - Sample PBS.sh file:
 
