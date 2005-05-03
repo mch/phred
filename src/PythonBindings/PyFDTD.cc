@@ -38,7 +38,12 @@ void export_fdtd()
     .def("set_boundary", &FDTD::set_boundary)
     .def("load_materials", &FDTD::load_materials)
     .def("add_excitation", &FDTD::add_excitation)
-    .def("add_result", &FDTD::add_result)
+    .def("add_result", 
+         (void(FDTD::*)(const char *name, shared_ptr<Result>))
+         &FDTD::add_result)
+    .def("add_result_and_map", 
+         (void(FDTD::*)(const char *name, shared_ptr<Result>,
+                        const char *dw))&FDTD::add_result)
     .def("add_object", &FDTD::add_object)
     .def("add_datawriter", &FDTD::add_datawriter)
     .def("map_result_to_datawriter", &FDTD::map_result_to_datawriter)

@@ -145,6 +145,13 @@ void FDTD::add_result(const char *name, shared_ptr<Result> r)
   r->set_name(name);
 }
 
+void FDTD::add_result(const char *name, shared_ptr<Result> r,
+                      const char *dw)
+{
+  add_result(name, r);
+  map_result_to_datawriter(name, dw);
+}
+
 void FDTD::add_datawriter(const char *name, shared_ptr<DataWriter> dw)
 {
   datawriters_[string(name)] = dw;

@@ -166,6 +166,12 @@ public:
    */
   void add_result(const char *name, shared_ptr<Result> r);
 
+  /**
+   * Add a result object and map it to a data writer at the same time. 
+   */ 
+  void add_result(const char *name, shared_ptr<Result> r,
+                  const char *dw);
+
   /** 
    * Add a datawriter, or replace one of the same name. 
    */

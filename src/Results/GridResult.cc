@@ -93,6 +93,7 @@ void GridResult::init(const Grid &grid)
     delete[] displacements;
   }
 
+  material_ids_.set_element_type(MAT_IDX_MPI_TYPE);
 
   material_ids_.add_dimension("x", grid.get_ldx(), grid.get_gdx(), 
                               grid.get_lsx());
