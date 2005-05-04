@@ -27,3 +27,4 @@ extern bool interactive, estimate_memory, quiet, setup_only;
 // Shouldn't be any harm in making these global...
 extern int MPI_RANK, MPI_SIZE;
 extern MPI_Comm MPI_COMM_PHRED;
+//extern MPI_Errhandler MPI_ERROR_HANDLER;

@@ -139,6 +139,7 @@ string inputfile, test_case;
 const char *program_name;
 bool interactive, estimate_memory, quiet, test_run, setup_only;
 int MPI_RANK, MPI_SIZE, argi_g;
+//MPI_Errhandler MPI_ERROR_HANDLER;
 
 /* Set all the option flags according to the switches specified.
    Return the index of the first non-option argument.  */
@@ -307,6 +308,9 @@ int main (int argc, char **argv)
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_PHRED, &MPI_RANK);
   MPI_Comm_size(MPI_COMM_PHRED, &MPI_SIZE);
+
+  // Install a handler for MPI errors:
+  //MPI_Errhandler_create(MPI_Handler_function *function, &MPI_ERROR_HANDLER);
 
   //if (MPI_RANK == 0)
   {

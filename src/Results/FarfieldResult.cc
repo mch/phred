@@ -29,77 +29,7 @@
 #include <cstring>
 #include <cassert>
 
-//#include <fstream>
-
 using namespace std;
-
-// void FarfieldResult::write_cart_comps()
-// {
-//   ofstream fcs;
-
-//   fcs.open("cart_fields.txt");
-
-
-//   fcs.close();
-// }
-
-// void FarfieldResult::idx_tests()
-// {
-//   ofstream wuf;
-
-//   wuf.open("wutest.txt", ofstream::out);
-//   wuf << "# phis: " << phi_data_.length() << "\n";
-//   wuf << "# thetas: " << theta_data_.length() << "\n";
-//   wuf << "# fftsteps: " << ff_tsteps_ << "\n";
-
-//   wuf << "phi_idx phi theta_idx theta WU_index\n";
-
-//   for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
-//   {
-//     for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
-//     {
-//       wuf << phi_idx << "\t" << phi_data_.get(phi_idx) << "\t"
-//           << theta_idx << "\t" << theta_data_.get(theta_idx) << "\t"
-//           << WU_index(phi_idx, theta_idx, 0, theta_data_.length(),
-//                       ff_tsteps_) << "\n";
-//     }
-//   }
-
-//   wuf.close();
-// }
-
-// void FarfieldResult::dump_temps()
-// {
-//   ofstream fp;
-
-//   fp.open("cartesian_fields.txt", ofstream::out);
-  
-//   int idx = 0;
-//   int t_start = (ff_tsteps_ / 2) - (ff_tsteps_ / 8);
-//   int t_end = (ff_tsteps_ / 2) + (ff_tsteps_ / 8);
-
-//   fp << scientific;
-
-//   for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
-//   {
-//     for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
-//     {
-//       for (int t = t_start; t < t_end; t++)
-//       {
-//         fp << phi_data_.get(phi_idx) << " " << theta_data_.get(theta_idx)
-//            << " " << t << " " 
-//            << Wx_[idx] << " " << Wy_[idx] << " " << Wz_[idx] << " "
-//            << Ux_[idx] << " " << Uy_[idx] << " " << Uz_[idx]
-//            << "\n";
-
-//         idx++;
-//       }
-//     }
-//   }
-
-//   fp.close();
-
-// }
 
 FarfieldResult::FarfieldResult()
   : r_(100),
@@ -284,6 +214,7 @@ void FarfieldResult::init(const Grid &grid)
   theta_.set_ptr(theta_data_.get_ptr());
   theta_.has_time_dimension(false);
   theta_.set_element_type(MPI_DOUBLE);
+  theta_.set_datatype(MPI_DOUBLE);
 
   // Phi
   phi_.add_dimension("phi", phi_data_.length(), phi_data_.length(), 0);
@@ -291,6 +222,7 @@ void FarfieldResult::init(const Grid &grid)
   phi_.set_ptr(phi_data_.get_ptr());
   phi_.has_time_dimension(false);
   phi_.set_element_type(MPI_DOUBLE);
+  phi_.set_datatype(MPI_DOUBLE);
 
   // Normalized Electric field in spherical coords
   E_theta_var_.add_dimension("phi", phi_data_.length(), 

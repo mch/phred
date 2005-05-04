@@ -3,6 +3,8 @@ Running Phred on IRIX
 Read the MPI and OpenMP man pages! There is lots of important info
 there! 
 
+http://techpubs.sgi.com/library/tpl/cgi-bin/browse.cgi?coll=linux&db=bks&cmd=toc&pth=/SGI_Developer/MPT_UG
+
 * Checkpointing 
 
 Pass the -cpr or -miser flag to to mpirun in the PBS script. The cpr
@@ -60,3 +62,19 @@ export MPI_DSM_VEBOSE=1
 export MPI_OPENMP_INTEROP=1
 export _DSM_MIGRATION=ON
 export _DSM_VERBOSE=1
+
+
+
+
+----------------------------------------------------------------------
+-- DEBUGGING USING THE PRODEV WORKSHOP DEBUGGER
+----------------------------------------------------------------------
+
+See: http://techpubs.sgi.com/library/tpl/cgi-bin/getdoc.cgi?coll=0650&db=bks&fname=/SGI_Developer/books/MPT_MPI_PM/sgi_html/ch04.html&srch=totalview%20mpi%20debug
+
+1) $ cvd /usr/bin/mpirun
+
+2) cvd> set $pendingtraps=true
+   cvd> stop pgrp all in MPI_SGI_init
+
+3) In command window: /usr/bin/mpirun -np 2 phred problem.py

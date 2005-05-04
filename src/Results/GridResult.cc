@@ -54,9 +54,9 @@ void GridResult::init(const Grid &grid)
   } 
   else
   {
-    unsigned int *dsize = new unsigned int[3];
-    unsigned int *coord = new unsigned int[3];
-    unsigned int *lens = new unsigned int[3];
+    int *dsize = new int[3];
+    int *coord = new int[3];
+    int *lens = new int[3];
     unsigned int ndisps = 0;
     int *displacements = 0;
     const GridInfo &info = grid.get_grid_info();
@@ -73,24 +73,28 @@ void GridResult::init(const Grid &grid)
     lens[1] = info.dimy_no_sd_;
     lens[2] = info.dimz_no_sd_;
 
-    Contiguous::compute_displacements(3, dsize, coord, lens, &ndisps, 
-                                      &displacements);
+//     Contiguous::compute_displacements(3, dsize, coord, lens, &ndisps, 
+//                                       &displacements);
 
-    if (ndisps > 0)
-    {
-      int *contig_lens = new int[ndisps];
+//     if (ndisps > 0)
+//     {
+//       int *contig_lens = new int[ndisps];
 
-      for (int i = 0; i < ndisps; i++)
-        contig_lens[i] = static_cast<int>(info.dimz_no_sd_);
+//       for (int i = 0; i < ndisps; i++)
+//         contig_lens[i] = static_cast<int>(info.dimz_no_sd_);
 
-      MPI_Type_indexed(ndisps, contig_lens, displacements, 
-                       MAT_IDX_MPI_TYPE, &datatype_);
-      MPI_Type_commit(&datatype_);
-    } else {
-      cerr << "BlockResult error: number of displacements is zero. ";
-    }
+//       MPI_Type_indexed(ndisps, contig_lens, displacements, 
+//                        MAT_IDX_MPI_TYPE, &datatype_);
+//       MPI_Type_commit(&datatype_);
+//     } else {
+//       cerr << "BlockResult error: number of displacements is zero. ";
+//     }
 
-    delete[] displacements;
+//     delete[] displacements;
+
+    MPI_Type_create_subarray(3, dsize, lens, coord, MPI_ORDER_C,
+                             MAT_IDX_MPI_TYPE, &datatype_);
+    MPI_Type_commit(&datatype_);
   }
 
   material_ids_.set_element_type(MAT_IDX_MPI_TYPE);
