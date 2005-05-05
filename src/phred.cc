@@ -200,14 +200,15 @@ decode_switches (int argc, char **argv)
 
 #endif /* #ifdef HAVE_GETOPT */ 
 
-  return 0;
+  return optind;
 }
 
 static void
 usage (int status)
 {
   printf ("%s - \
-Phred is a parallel finite difference time domain electromagnetics simulator.\n", program_name);
+Phred is a parallel finite difference time domain \n\
+electromagnetics simulator.\n", program_name);
 
 #ifdef HAVE_GETOPT
 #ifdef USE_PY_BINDINGS
@@ -290,7 +291,8 @@ int main (int argc, char **argv)
 {
   time_t start, now;
   double time_total_cpu = 0.0;
-  
+  int non_option_arg = 0;
+
   // Install a handler for low memory conditions. 
   std::set_new_handler(no_memory);
 
@@ -319,7 +321,7 @@ int main (int argc, char **argv)
     
     // MPI implementations are not required to distribute command line
     // args, although MPICH does.
-    decode_switches (argc, argv);
+    non_option_arg = decode_switches (argc, argv);
   } 
   // else { // rank 0 passes appropriate args
   
@@ -368,7 +370,7 @@ int main (int argc, char **argv)
   try {
 #ifdef USE_PY_BINDINGS
     if (interactive) {
-      PyInterpreter interp(MPI_RANK, MPI_SIZE);
+      PyInterpreter interp(argc, argv);
       interp.run();
     } 
 #endif
@@ -491,7 +493,9 @@ int main (int argc, char **argv)
 
       if (argc > 1)
       {
-        string ext = get_extension(argv[argc - 1]);
+        // First arg should always be the executable name, the second
+        // the script name.
+        string ext = get_extension(argv[non_option_arg]);
 
         // If the file extension is .py, run it in the python interpreter. 
         // If the extension is .jan and load it using Jan's grammer. 
@@ -506,8 +510,8 @@ int main (int argc, char **argv)
         else if (ext.compare("py") == 0)
         {
 #ifdef USE_PY_BINDINGS
-          PyInterpreter interp(MPI_RANK, MPI_SIZE);
-          interp.run_script(argv[argc - 1]);
+          PyInterpreter interp(argc, argv);
+          interp.run_script(argv[non_option_arg]);
 #else
           cout << "Python support is not compiled into this version." << endl;
 #endif

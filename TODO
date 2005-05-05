@@ -1,4 +1,14 @@
 TODO LIST FOR PHRED
+-------------------
+
+* Immdiate bugs
+
+- Is taking the datatype apart in the NetCDFDataWriter really
+  necessary? Doesn't DataWriter put the data into a flat N dimensional
+  buffer for easy access? 
+
+
+----------------------------------------------------------------------
 
 * Various
 

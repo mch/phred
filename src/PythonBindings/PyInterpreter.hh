@@ -44,13 +44,10 @@ class PyInterpreter
 {
 private:
 protected:
-  int rank_;
-  int size_;
-
   char *rl();
   
 public:
-  PyInterpreter(int rank, int size);
+  PyInterpreter(int argc, char **argv);
   ~PyInterpreter();
 
   /**
@@ -87,6 +84,12 @@ public:
    * @param filename the name of the file to execute 
    */
   void run_script(const char *filename);
+
+  /**
+   * Add command line arguments to the sys.argv variable so that they
+   * are available to the script.
+   */
+  void setup_args(int argc, char **argv);
 };
 
 #endif // PY_INTERPRETER_H

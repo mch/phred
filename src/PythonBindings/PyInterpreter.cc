@@ -73,8 +73,7 @@ static struct _inittab modules_[] =
 
 using namespace std;
 
-PyInterpreter::PyInterpreter(int rank, int size)
-  : rank_(rank), size_(size)
+PyInterpreter::PyInterpreter(int argc, char **argv)
 {
   int ret = PyImport_ExtendInittab(modules_);
   if (ret == -1)
@@ -83,7 +82,7 @@ PyInterpreter::PyInterpreter(int rank, int size)
   Py_Initialize();
 
   // Setup command line arguments
-  //PySys_SetArgv(argc, argv);
+  setup_args(argc, argv);
 
 #ifdef HAVE_LIBREADLINE
   rl_bind_key ('\t', rl_insert);
@@ -135,7 +134,7 @@ void PyInterpreter::run_script(const char *filename)
 
 void PyInterpreter::run()
 {
-  if (rank_ == 0)
+  if (MPI_RANK == 0)
     master();
   else
     slave();
@@ -263,26 +262,44 @@ void PyInterpreter::master()
 //   }
 }
 
-void PyInterpreter::add_modules()
+void PyInterpreter::setup_args(int argc, char **argv)
 {
-  //handle<> main_module(borrowed( PyImport_AddModule("__main__") ));
-  //handle<> main_namespace(borrowed( PyModule_GetDict(main_module.get()) ));
-
   object main_module = extract<object>( PyImport_AddModule("__main__") );
   object main_namespace = main_module.attr("__dict__");
 
+  str sys_name("sys");
+  object sys_module = extract<object>( PyImport_Import(sys_name.ptr()) );
+  dict sys_namespace = extract<dict>( sys_module.attr("__dict__") );
+
+  list args;
+  str temp("");
+  for (int i = 0; i < argc; i++)
+  {
+    temp = argv[i];
+    args.append( temp );
+  }
+
+  sys_namespace["argv"] = args;
+
+  list path = extract<list>( sys_namespace["path"] );
+  str dot(".");
+  path.insert(0, dot);
+}
+
+void PyInterpreter::add_modules()
+{
+  object main_module = extract<object>( PyImport_AddModule("__main__") );
+  dict main_namespace = extract<dict>( main_module.attr("__dict__") );
+
 
   // MPI Data
-  main_namespace["MPI_RANK"] = rank_;
-  main_namespace["MPI_SIZE"] = size_;
+  main_namespace["MPI_RANK"] = MPI_RANK;
+  main_namespace["MPI_SIZE"] = MPI_SIZE;
 
   // Import the contents of the Phred module
-//   object phred_mod = extract<object>( PyImport_ImportModule("Phred") );
-//   object phred_namespace = phred_mod.attr("__dict__");
-//   main_namespace....
-  handle<> res( PyRun_String("from Phred import *", Py_single_input, 
-                             main_namespace.ptr(),
-                             main_namespace.ptr()));
+  object phred_mod = extract<object>( PyImport_ImportModule("Phred") );
+  dict phred_namespace = extract<dict>( phred_mod.attr("__dict__") );
+  main_namespace.update(phred_namespace);
 
   // Warrenty text
   str warranty("			    NO WARRANTY\n\
@@ -307,7 +324,8 @@ YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER\n\
 PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE\n\
 POSSIBILITY OF SUCH DAMAGES.\n\
 ");
-  PyDict_SetItemString(main_namespace.ptr(), "warranty", warranty.ptr());
+
+  main_namespace["warranty"] = warranty;
                        
   // Conditions text
   str conditions("		    GNU GENERAL PUBLIC LICENSE\n\
@@ -510,7 +528,7 @@ of preserving the free status of all derivatives of our free software and\n\
 of promoting the sharing and reuse of software generally.\n\
 ");
 
-  PyDict_SetItemString(main_namespace.ptr(), "conditions", conditions.ptr());
+  main_namespace["conditions"] = conditions;
 }
 
 char *PyInterpreter::rl()
