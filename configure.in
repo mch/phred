@@ -385,6 +385,7 @@ AC_OUTPUT([Makefile
            tests/high_speed_c/Makefile 
            tests/boost.python/Makefile 
            tests/boost.spirit/Makefile 
+           tests/benchmarks/Makefile 
            src/Types.hh 
            doc/Doxyfile 
            doc/phred.lsm 
