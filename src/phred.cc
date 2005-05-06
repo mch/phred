@@ -137,7 +137,8 @@ static string get_extension(string filename);
 // Ugly globals
 string inputfile, test_case;
 const char *program_name;
-bool interactive, estimate_memory, quiet, test_run, setup_only;
+bool interactive, estimate_memory, quiet, extra_quiet_g;
+bool test_run, setup_only;
 int MPI_RANK, MPI_SIZE, argi_g;
 //MPI_Errhandler MPI_ERROR_HANDLER;
 
@@ -186,7 +187,10 @@ decode_switches (int argc, char **argv)
       break;
 
     case 'q':
-      quiet = true;
+      if (!quiet)
+        quiet = true;
+      else
+        extra_quiet_g = true;
       break;
 
     case 't':
@@ -221,7 +225,8 @@ electromagnetics simulator.\n", program_name);
   printf("\
   -h          display this help and exit\n\
   -q          Don't echo configuration information at\n\
-              start up, don't report each time step, etc.\n\
+              start up, etc. Use twice to suppress estimated\n\
+              time remaining messages.\n\
   -m          Estimate amount of required memory and exit\n\
   -b          Benchmark: estimate the millions of nodes \n\
               processed per second\n\

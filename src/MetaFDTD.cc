@@ -289,7 +289,7 @@ void MetaFDTD::run()
   
     for (ts = 1; ts <= time_steps_; ts++) {
     
-      if ((ts - 10) % 100 == 0)
+      if (!extra_quiet_g && MPI_RANK == 0 && ts % 100 == 0)
       {
         rt_now = time(NULL);
         int secs = static_cast<int>((static_cast<double>(rt_now - rt_start) 
