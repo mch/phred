@@ -1,0 +1,16 @@
+Benchmarks for test MPI performance, bandwidth and latency in
+particular
+
+Intesting XD1 Tests: http://www.csm.ornl.gov/~dunigan/xd1/
+
+* mpi-simple
+Transfer of contiguous memory
+
+* mpi-derived
+Transfer of planes of memory in a 3d cube like in the FDTD code using
+MPI derived datatypes. Not surprisingly, the contiguous transfer is
+faster than the non-contiguous transfers. 
+
+* mpi-manual
+Transfer of planes of memory in a 3d cube like in the FDTD code using
+manual pack/unpack of the data into buffers. 
