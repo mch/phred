@@ -1,7 +1,7 @@
 /**
  * A simple bandwidth (bytes per second) and latency (sec) measurment
  * tool for non-contiguous data of various sizes transmitted using
- * manual buffer packing and unpacking.
+ * no derived datatypes or packing and unpacking.
  *
  * The data is a 3d cubic space, and the data transmitted is XY, YZ,
  * ZX planes of data within that cube. This mimics the transactions
@@ -67,9 +67,9 @@ decode_switches (int argc, char **argv)
 static void
 usage()
 {
-  cout << "mpi-manual: Simple MPI benchmarks using manual packing\n\
+  cout << "mpi-nopack: Simple MPI benchmarks using no packing\n\
 \n\
-Usage: mpi-manual [-a MIN_CUBE_SIZE] [-b MAX_CUBE_SIZE] [-x] [-y] [-z]\n\
+Usage: mpi-nopack [-a MIN_CUBE_SIZE] [-b MAX_CUBE_SIZE] [-x] [-y] [-z]\n\
 \n\
  -a Set the minimum cube size to use. Defaults to 20.\n\
  -b Set the maximum cube size to use. Defaults to 200.\n\
@@ -101,11 +101,8 @@ void loop_xy(double *buf)
 
   for (int sz = MIN_CUBE_SZ; sz <= MAX_CUBE_SZ; sz += INCR)
   {
-    int msgsz = sz * sz; 
+    int msgsz = 1; 
     int stride = sz;
-    double *temp = new double[sz * sz];
-    int buf_offset = 0;
-    int temp_offset = 0;
 
     double start, stop;
     result_t r;
@@ -116,26 +113,14 @@ void loop_xy(double *buf)
       start = MPI::Wtime();
       for (int i = 0; i < LOOPS; i++)
       {
-        // Pack 
-        for (int xi = 0; xi < msgsz; xi++)
+        for (int xi = 0; xi < sz; xi++)
         {
-          temp[temp_offset] = buf[buf_offset];
-          temp_offset++;
-          buf_offset += stride;
-        }
-
-        // send/recv
-        MPI::COMM_WORLD.Send(temp, msgsz, MPI::DOUBLE, 1, 1);
-        MPI::COMM_WORLD.Recv(temp, msgsz, MPI::DOUBLE, 1, 1, status);
-
-        // Unpack
-        buf_offset = 0;
-        temp_offset = 0;
-        for (int xi = 0; xi < msgsz; xi++)
-        {
-          buf[buf_offset] = temp[temp_offset];
-          temp_offset++;
-          buf_offset += stride;
+          for (int yi = 0; yi < sz; yi++)
+          {
+            MPI::COMM_WORLD.Send(buf, msgsz, MPI::DOUBLE, 1, 1);
+            MPI::COMM_WORLD.Recv(buf, msgsz, MPI::DOUBLE, 1, 1, status);
+            buf += stride;
+          }
         }
       }
       stop = MPI::Wtime();
@@ -145,29 +130,15 @@ void loop_xy(double *buf)
       start = MPI::Wtime();
       for (int i = 0; i < LOOPS; i++)
       {
-        MPI::COMM_WORLD.Recv(temp, msgsz, MPI::DOUBLE, 0, 1, status);
-
-        // Unpack
-        buf_offset = 0;
-        temp_offset = 0;
-        for (int xi = 0; xi < msgsz; xi++)
+        for (int xi = 0; xi < sz; xi++)
         {
-          buf[buf_offset] = temp[temp_offset];
-          temp_offset++;
-          buf_offset += stride;
+          for (int yi = 0; yi < sz; yi++)
+          {
+            MPI::COMM_WORLD.Recv(buf, msgsz, MPI::DOUBLE, 0, 1, status);
+            MPI::COMM_WORLD.Send(buf, msgsz, MPI::DOUBLE, 0, 1);
+            buf += stride;
+          }
         }
-
-        // Pack 
-        buf_offset = 0;
-        temp_offset = 0;
-        for (int xi = 0; xi < msgsz; xi++)
-        {
-          temp[temp_offset] = buf[buf_offset];
-          temp_offset++;
-          buf_offset += stride;
-        }
-
-        MPI::COMM_WORLD.Send(temp, msgsz, MPI::DOUBLE, 0, 1);
       }
       stop = MPI::Wtime();
     }
@@ -182,8 +153,6 @@ void loop_xy(double *buf)
       bwfile << sz << " " << r.time << " " << r.bandwidth 
              << " " << r.latency << " " << r.bytes 
              << " " << r.message_size << endl;
-
-    delete[] temp;
   }
 
   if (MPI::COMM_WORLD.Get_rank() == 0)
@@ -191,7 +160,6 @@ void loop_xy(double *buf)
 
 }
 
-// No packing needed
 void loop_yz(double *buf)
 {
   ofstream bwfile;
@@ -259,9 +227,8 @@ void loop_zx(double *buf)
 
   for (int sz = MIN_CUBE_SZ; sz <= MAX_CUBE_SZ; sz += INCR)
   {
-    int msgsz = sz * sz; 
+    int msgsz = sz; 
     int stride = sz * sz;
-    double *temp = new double[sz * sz];
 
     double start, stop;
     result_t r;
@@ -272,25 +239,26 @@ void loop_zx(double *buf)
       start = MPI::Wtime();
       for (int i = 0; i < LOOPS; i++)
       {
-        // Pack
-
-        // Send / Recv
-        MPI::COMM_WORLD.Send(temp, msgsz, MPI::DOUBLE, 1, 1);
-        MPI::COMM_WORLD.Recv(temp, msgsz, MPI::DOUBLE, 1, 1, status);
-
-        // Unpack
-
-        
+        for (int xi = 0; xi < sz; xi++)
+        {
+          MPI::COMM_WORLD.Send(buf, msgsz, MPI::DOUBLE, 1, 1);
+          MPI::COMM_WORLD.Recv(buf, msgsz, MPI::DOUBLE, 1, 1, status);
+          buf += stride;
+        }
       }
       stop = MPI::Wtime();
-    }
+    } 
     else 
     {
       start = MPI::Wtime();
       for (int i = 0; i < LOOPS; i++)
       {
-        MPI::COMM_WORLD.Recv(temp, msgsz, MPI::DOUBLE, 0, 1, status);
-        MPI::COMM_WORLD.Send(temp, msgsz, MPI::DOUBLE, 0, 1);
+        for (int xi = 0; xi < sz; xi++)
+        {
+          MPI::COMM_WORLD.Recv(buf, msgsz, MPI::DOUBLE, 0, 1, status);
+          MPI::COMM_WORLD.Send(buf, msgsz, MPI::DOUBLE, 0, 1);
+          buf += stride;
+        }
       }
       stop = MPI::Wtime();
     }
@@ -305,8 +273,6 @@ void loop_zx(double *buf)
       bwfile << sz << " " << r.time << " " << r.bandwidth 
              << " " << r.latency << " " << r.bytes 
              << " " << r.message_size << endl;
-
-    delete[] temp;
   }
 
   if (MPI::COMM_WORLD.Get_rank() == 0)
