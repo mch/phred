@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
@@ -299,6 +299,7 @@ void PyInterpreter::add_modules()
   // Import the contents of the Phred module
   object phred_mod = extract<object>( PyImport_ImportModule("Phred") );
   dict phred_namespace = extract<dict>( phred_mod.attr("__dict__") );
+  phred_namespace["__name__"] = "__main__";
   main_namespace.update(phred_namespace);
 
   // Warrenty text
