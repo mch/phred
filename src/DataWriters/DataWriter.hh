@@ -89,9 +89,6 @@ protected:
     * have to override it (if they override handle_data() instead). 
     *
     * @param var The data object describing the data to write
-    * @param t The MPI datatype to write; may be different than the one
-    * in the Data object because we take the datatype apart
-    * recursivly. It will be a simple MPI datatype, not a derived type. 
     * @param ptr A point to the data
     * @param len The number of bytes left to write
     *
