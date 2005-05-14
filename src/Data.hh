@@ -45,9 +45,6 @@ private:
 protected:
   MPI_Datatype type_; /**< LOCAL datatype. For interperting data sent
                        * from a single node. */
-  MPI_Datatype global_type_; /**< GLOBAL datatype. For interperting
-                              * the data once it has been collected to
-                              * the output node. */ 
 
   map<unsigned int, const void *> ptrs_;
   unsigned int num_; /**< Number of items of type_ that can be
@@ -55,11 +52,8 @@ protected:
 
 public:
   Data()
-    : type_(GRID_MPI_TYPE), global_type_(MPI_DATATYPE_NULL), num_(0)
-  {
-    //MPI_Type_contiguous(1, GRID_MPI_TYPE, &type_);
-    //MPI_Type_commit(&type_);
-  }
+    : type_(GRID_MPI_TYPE), num_(0)
+  { }
 
   ~Data()
   {}
@@ -79,37 +73,6 @@ public:
   inline MPI_Datatype get_datatype() const
   {
     return type_;
-  }
-
-  /**
-   * Used to set the global data type.
-   *
-   * @param type MPI derived data type
-   */
-  inline void set_global_datatype(MPI_Datatype &type)
-  {
-    global_type_ = type;
-  }
-
-  /**
-   * Get the global data type. DataWriters should use this data type
-   * to interpert the collected chuck of data that is to be
-   * written. For example, one process may return a column of ints,
-   * and another may return a column of floats, as reflected by each
-   * node's local data type for this variable. This datatype specifies
-   * how those two columns go together. 
-   *
-   * The more common case is a plane or block result, where this
-   * datatype specifies the entire (global) region of data, but the
-   * local data type species only the data chuck local to that node.
-   *
-   * If this item is not set, datawriters should compute the global
-   * region from the collected dimension information. This is the
-   * simple case.
-   */
-  inline MPI_Datatype get_global_datatype() const
-  {
-    return global_type_;
   }
 
   /**

@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
@@ -297,11 +297,19 @@ unsigned int NetCDFDataWriter::write_data(unsigned int time_step,
   if (var.time_dim_)
   {
     count[0] = 1;
-    start[0] = variable.get_output_time();
+
+    map<Variable *, Vardata *>::iterator auxviter 
+      = auxvardata_.find(&variable);    
+    
+    if (auxviter == auxvardata_.end())
+      start[0] = 0;
+    else
+      start[0] = auxviter->second->output_time_;
   }
 
   unsigned int ret = write_data(var.var_id_, start, count, 
-                                data.get_datatype(), ptr, len);
+                                variable.get_element_type(), 
+                                ptr, len);
 
   delete[] start;
   delete[] count;

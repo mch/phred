@@ -74,50 +74,15 @@ protected:
 
   MPI_Datatype element_type_; /**< The MPI data type of the individual
                                  elements of this variable. */ 
-
-  // The follow elements are for DataWriter use only!
-  vector<MPI_Datatype> node_types_; /**< A list of MPI derieved data
-                                       types that describe how data
-                                       recieved from each node fits
-                                       into the output buffer. */ 
-
-  bool have_node_dtypes_; /**< True if we've collected
-                             node_types_ already. Used because
-                             some data writers may choose not to use
-                             the default handle_data function, and use
-                             MPI-IO instead (for example). */ 
-
-  unsigned int output_time_; /**< Set and used by the DataWriter to
-                                index into a DataWriter's time
-                                dimension. */ 
   
 public:
   Variable()
     : var_name_("Result"), time_dim_(true), 
-      element_type_(GRID_MPI_TYPE), have_node_dtypes_(false),
-      output_time_(0)
+      element_type_(GRID_MPI_TYPE)
   {}
 
   ~Variable()
-  {
-    vector<MPI_Datatype>::iterator iter = node_types_.begin();
-    vector<MPI_Datatype>::iterator iter_e = node_types_.end();
-    
-    for(; iter != iter_e; ++iter)
-    {
-      if (*iter != MPI_DATATYPE_NULL)
-        MPI_Type_free(&(*iter));
-    }
-  }
-
-  /**
-   * Returns the output time for this variable (i.e. the number of
-   * times this variable has actually generated output).
-   */ 
-  inline unsigned int get_output_time() const
-  {
-    return output_time_;
-  }
+  {}
 
   /**
    * Add a dimension to this variable. Once set, dimensions are
@@ -342,7 +307,7 @@ protected:
   map <string, Variable *> pre_vars_; /**< Variables that are ready
                                          before time stepping
                                          start. */ 
-
+  
   map <string, Variable *> post_vars_; /**< Variables that are ready
                                           after time stepping is
                                           done. */ 

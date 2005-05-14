@@ -39,7 +39,7 @@ using namespace std;
  * which save data to disk, or perform other output
  * functions. DataWriter's have a list of variables, although some
  * writers may only be able to support one. Variables have dimensions,
- * units, and names. DataWriter's must support at least one
+ * units, and names. DataWriter's must support at least the one
  * dimensional data.
  *
  * The subclass must implement add variable and provide it's own way
@@ -50,10 +50,27 @@ class DataWriter : public LifeCycle
 private:
 
 protected:
+  /**
+   * Stuff that the default DataWriter::handle_data implementation
+   * needs for each variable, like how much data will be recieved from
+   * each rank and a buffer to store temporary data.
+   */ 
+  typedef struct
+  {
+    vector<MPI_Datatype> types_;
+    char *buffer_;
+    unsigned int buf_sz_;
+    unsigned int output_time_;
+  } Vardata;
+  
   int rank_;  /**< MPI Rank of the process that handles data writing
                  (defaults to 0) */
 
   string filename_; /**< File to write data to */
+
+  map<Variable *, Vardata *> auxvardata_; /**< Stuff that the default
+                                           implementation of
+                                           handle_data needs */ 
 
   /** 
    * A helper function to gather data from all ranks onto rank 0 so
@@ -81,8 +98,9 @@ protected:
     * @return the number of bytes written. 
     */
   virtual unsigned int write_data(unsigned int time_step, 
-                                  Variable &var, MPI_Datatype t, 
-                                  void *ptr, unsigned int len) = 0;
+                                  Variable &var, void *ptr, 
+                                  unsigned int len)
+  {}
 
   /**
    * Returns a vector of MPI data types that describe how the data
