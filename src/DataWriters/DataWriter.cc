@@ -161,7 +161,7 @@ void DataWriter::gather_data(unsigned int time_step, Variable &var)
       // restricted to ranks in the current group etc...
       for (int i = 1; i < MPI_SIZE; i++)
       {
-        if (sizes[0] > 0) {
+        if (sizes[i] > 0) {
           MPI_Recv(static_cast<void *>(auxvdata->buffer_), 
                    1, auxvdata->types_[i], 
                    i, 1, MPI_COMM_PHRED, &status);
