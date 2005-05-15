@@ -57,8 +57,3 @@ void PeriodicExcitation::set_region(shared_ptr<CSGBox> box, Face face)
   Excitation::set_region(box);
 }
 
-void PeriodicExcitation::set_poynting(float x, float y, float z)
-{
-  // GNDN for now. Once this is enabled, the excite() function will
-  // need a lot of work!
-}

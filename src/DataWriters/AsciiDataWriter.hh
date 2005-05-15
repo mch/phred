@@ -63,7 +63,7 @@ protected:
    * Called by gather_data(), calls the above function. 
    */
   unsigned int write_data(unsigned int time_step, 
-                          Variable &var, MPI_Datatype t, void *ptr, 
+                          Variable &var, void *ptr, 
                           unsigned int len);
 
   /**

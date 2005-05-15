@@ -779,13 +779,13 @@ void UPml::update_ey(Grid &grid)
             // aux3: Penultimate value of S, S^(n-2)
 
             field_t p_temp; 
-            p_temp = aux1_y_[pml_idx] * common_->Az(jt) 
-              + common_->Bz(jt) 
+            p_temp = aux1_y_[pml_idx] * common_->Az(kt) 
+              + common_->Bz(kt) 
               * ( idz*(*hx - *(hx-1)) - idx*(*hz2 - *hz1));
 
-            d_temp = *dy * common_->Ax(kt) 
-            + common_->Bx(kt)
-            * (p_temp * common_->Cy(it) - aux1_y_[pml_idx] * common_->Dy(it));
+            d_temp = *dy * common_->Ax(it) 
+            + common_->Bx(it)
+            * (p_temp * common_->Cy(jt) - aux1_y_[pml_idx] * common_->Dy(jt));
 
 #ifdef ADE_DRUDE
             field_t e_temp;
@@ -967,13 +967,13 @@ void UPml::update_ez(Grid &grid)
             // aux3: Penultimate value of S, S^(n-2)
 
             field_t p_temp; 
-            p_temp = aux1_z_[pml_idx] * common_->Ax(jt) 
-              + common_->Bx(jt) 
+            p_temp = aux1_z_[pml_idx] * common_->Ax(it) 
+              + common_->Bx(it) 
               * ( idx*(*hy1 - *hy2) - idy*(*hx2 - *hx1) );
 
-            d_temp = *dz * common_->Ay(kt) 
-            + common_->By(kt)
-            * (p_temp * common_->Cz(it) - aux1_z_[pml_idx] * common_->Dz(it));
+            d_temp = *dz * common_->Ay(jt) 
+            + common_->By(jt)
+            * (p_temp * common_->Cz(kt) - aux1_z_[pml_idx] * common_->Dz(kt));
 
 #ifdef ADE_DRUDE
             e_temp = common_->drude_c1(mid) * *ez 

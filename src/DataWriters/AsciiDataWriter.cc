@@ -94,7 +94,7 @@ void AsciiDataWriter::add_variable(Result &result)
 }
 
 unsigned int AsciiDataWriter::write_data(unsigned int time_step, 
-                                         Variable &variable, MPI_Datatype t, 
+                                         Variable &variable,
                                          void *ptr, unsigned int len)
 {
   const Data &data = variable.get_data();
@@ -114,7 +114,7 @@ unsigned int AsciiDataWriter::write_data(unsigned int time_step,
   unsigned int tbw = 0, bytes_written = 0;
 
   while (tbw < len) {
-    bytes_written = write_data(t, ptr, len);
+    bytes_written = write_data(variable.get_element_type(), ptr, len);
     tbw += bytes_written;
 
     // Kind of ugly, but necessary to work on AIX
@@ -161,45 +161,46 @@ unsigned int AsciiDataWriter::write_data(MPI_Datatype t, void *ptr,
     bytes_written = write_array<double>(ptr, len);
   else if (t == MPI_LONG_DOUBLE)
     bytes_written = write_array<long double>(ptr, len);
-  else if (t == MPI_PACKED)
-    file_ << "packed\t";
+  //else if (t == MPI_PACKED)
+  //  file_ << "packed\t";
   else 
   {
-    int num_ints, num_addrs, num_dts, combiner; 
+//     int num_ints, num_addrs, num_dts, combiner; 
 
-    MPI_Type_get_envelope(t, &num_ints, &num_addrs, &num_dts, 
-                          &combiner);
+//     MPI_Type_get_envelope(t, &num_ints, &num_addrs, &num_dts, 
+//                           &combiner);
 
-    int *ints;
-    MPI_Aint *aints;
-    MPI_Datatype *dts;
+//     int *ints;
+//     MPI_Aint *aints;
+//     MPI_Datatype *dts;
 
-    ints = new int[num_ints];
-    aints = new MPI_Aint[num_addrs];
-    dts = new MPI_Datatype[num_dts];
+//     ints = new int[num_ints];
+//     aints = new MPI_Aint[num_addrs];
+//     dts = new MPI_Datatype[num_dts];
 
-    MPI_Type_get_contents(t, num_ints, num_addrs, num_dts, 
-                          ints, aints, dts);
+//     MPI_Type_get_contents(t, num_ints, num_addrs, num_dts, 
+//                           ints, aints, dts);
 
-    int i = 0;
-    while (i < num_dts && dts[i] > 0)
-    {
-      // Get the size of the data type, so we can send the right
-      // number for the third arg of write_data. 
-      int sz;
-      MPI_Type_size(dts[i], &sz);
-      bytes_written = write_data(dts[i], ptr, ints[i] * sz);
+//     int i = 0;
+//     while (i < num_dts && dts[i] > 0)
+//     {
+//       // Get the size of the data type, so we can send the right
+//       // number for the third arg of write_data. 
+//       int sz;
+//       MPI_Type_size(dts[i], &sz);
+//       bytes_written = write_data(dts[i], ptr, ints[i] * sz);
 
-      // Kind of ugly, but necessary to work on AIX
-      char *byte_ptr = static_cast<char *>(ptr);
-      byte_ptr += bytes_written;
-      ptr = static_cast<void *>(byte_ptr);
-      i++;
-    }
+//       // Kind of ugly, but necessary to work on AIX
+//       char *byte_ptr = static_cast<char *>(ptr);
+//       byte_ptr += bytes_written;
+//       ptr = static_cast<void *>(byte_ptr);
+//       i++;
+//     }
 
-    delete[] ints;
-    delete[] aints;
-    delete[] dts;
+//     delete[] ints;
+//     delete[] aints;
+//     delete[] dts;
+    throw DataWriterException("AsciiDataWriter: Unknown element type");
   }
   
   return bytes_written;

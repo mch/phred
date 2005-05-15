@@ -174,61 +174,73 @@ public:
 
   inline float Ax(loop_idx_t i) const
   {
+    assert(i < x_size_);
     return Ax_[i];
   }
 
   inline float Ay(loop_idx_t i) const
   {
+    assert(i < y_size_);
     return Ay_[i];
   }
 
   inline float Az(loop_idx_t i) const
   {
+    assert(i < z_size_);
     return Az_[i];
   }
 
   inline float Bx(loop_idx_t i) const
   {
+    assert(i < x_size_);
     return Bx_[i];
   }
 
   inline float By(loop_idx_t i) const
   {
+    assert(i < y_size_);
     return By_[i];
   }
 
   inline float Bz(loop_idx_t i) const
   {
+    assert(i < z_size_);
     return Bz_[i];
   }
 
   inline float Cx(loop_idx_t i) const
   {
+    assert(i < x_size_);
     return Cx_[i];
   }
 
   inline float Cy(loop_idx_t i) const
   {
+    assert(i < y_size_);
     return Cy_[i];
   }
 
   inline float Cz(loop_idx_t i) const
   {
+    assert(i < z_size_);
     return Cz_[i];
   }
 
   inline float Dx(loop_idx_t i) const
   {
+    assert(i < x_size_);
     return Dx_[i];
   }
 
   inline float Dy(loop_idx_t i) const
   {
+    assert(i < y_size_);
     return Dy_[i];
   }
 
   inline float Dz(loop_idx_t i) const
   {
+    assert(i < z_size_);
     return Dz_[i];
   }
 

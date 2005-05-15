@@ -266,7 +266,6 @@ void NetCDFDataWriter::add_variable(Result &result)
 
 unsigned int NetCDFDataWriter::write_data(unsigned int time_step, 
                                           Variable &variable, 
-                                          MPI_Datatype t, 
                                           void *ptr, unsigned int len)
 {
   if (!fopen_)
@@ -390,36 +389,37 @@ unsigned int NetCDFDataWriter::write_data(int var_id, size_t *start,
     
   else 
   {
-    int num_ints, num_addrs, num_dts, combiner; 
+//     int num_ints, num_addrs, num_dts, combiner; 
 
-    MPI_Type_get_envelope(t, &num_ints, &num_addrs, &num_dts, 
-                          &combiner);
+//     MPI_Type_get_envelope(t, &num_ints, &num_addrs, &num_dts, 
+//                           &combiner);
 
-    int *ints;
-    MPI_Aint *aints;
-    MPI_Datatype *dts;
+//     int *ints;
+//     MPI_Aint *aints;
+//     MPI_Datatype *dts;
 
-    ints = new int[num_ints];
-    aints = new MPI_Aint[num_addrs];
-    dts = new MPI_Datatype[num_dts];
+//     ints = new int[num_ints];
+//     aints = new MPI_Aint[num_addrs];
+//     dts = new MPI_Datatype[num_dts];
 
-    MPI_Type_get_contents(t, num_ints, num_addrs, num_dts, 
-                          ints, aints, dts);
+//     MPI_Type_get_contents(t, num_ints, num_addrs, num_dts, 
+//                           ints, aints, dts);
 
-    int i = 0;
-    while (i < num_dts && dts[i] > 0)
-    {
-      bytes_written = write_data(var_id, start, count, 
-                                 dts[i], ptr, ints[i]);
-      char *ptr_temp = static_cast<char *>(ptr);
-      ptr_temp += bytes_written;
-      ptr = static_cast<void *>(ptr_temp);
-      i++;
-    }
+//     int i = 0;
+//     while (i < num_dts && dts[i] > 0)
+//     {
+//       bytes_written = write_data(var_id, start, count, 
+//                                  dts[i], ptr, ints[i]);
+//       char *ptr_temp = static_cast<char *>(ptr);
+//       ptr_temp += bytes_written;
+//       ptr = static_cast<void *>(ptr_temp);
+//       i++;
+//     }
 
-    delete[] ints;
-    delete[] aints;
-    delete[] dts;
+//     delete[] ints;
+//     delete[] aints;
+//     delete[] dts;
+    throw DataWriterException("NetCDFDataWriter: unknown data type recieved");
   }
   
   if (status != NC_NOERR)

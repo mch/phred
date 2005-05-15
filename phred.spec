@@ -3,7 +3,7 @@
 # Copyright (c) 2004 Matt Hughes mhughe@uvic.ca
 #
 %define name phred
-%define version 0.1.2
+%define version 0.1.3
 %define release 1
 %define manifest %{_builddir}/%{name}-%{version}-%{release}.manifest
 

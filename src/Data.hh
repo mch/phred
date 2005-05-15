@@ -37,8 +37,10 @@ using namespace std;
  * since we are exposing pointers to member data, but oh well. 
  *
  * Data object can contain multiple pointers, but they must all use
- * the same MPI datatype. An example use is for the BlockResult,
- * which can optionally return more than one field component. 
+ * the same MPI datatype. An example use is for the BlockResult, which
+ * can optionally return more than one field component. Another would
+ * be for complex data, where one pointer goes to the real part and
+ * the second to the imaginary part.
  */
 class Data {
 private:

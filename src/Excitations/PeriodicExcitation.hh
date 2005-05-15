@@ -27,8 +27,6 @@
 /**
  * This class defines an excitation to be used by periodic boundary
  * conditions. 
- *
- * For now, this does nothing. 
  */ 
 class PeriodicExcitation : public Excitation {
 public:
@@ -65,18 +63,6 @@ public:
   void set_region(shared_ptr<CSGBox> box, Face face);
 
   /**
-   * Set the direction of the Poynting vector. Defaults to the normal
-   * of the excitation plane.
-   */ 
-  void set_poynting(float x, float y, float z);
-
-  /**
-   * Returns the poynting vector. 
-   */ 
-  point get_poynting() const
-  { return poynting_; } 
-
-  /**
    * Returns the face
    */ 
   Face get_face() const
@@ -86,8 +72,6 @@ private:
   void set_region(shared_ptr<CSGBox> box) {}
 
   Face face_; /**< The face to apply the excitation to */ 
-  point poynting_; 
-
 };
 
 #endif // PERIODIC_EXCITE_H

@@ -802,7 +802,7 @@ void MatlabDataWriter::add_variable(Result &result)
 }
 
 unsigned int MatlabDataWriter::write_data(unsigned int time_step, 
-                                         Variable &variable, MPI_Datatype t, 
+                                         Variable &variable, 
                                          void *ptr, unsigned int len)
 {
   const Data &data = variable.get_data();

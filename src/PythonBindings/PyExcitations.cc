@@ -216,8 +216,6 @@ void export_excitations()
      "conditions.", init<shared_ptr<Signal> >())
     .def("excite", &PeriodicExcitation::excite)
     .def("set_region", (void(PeriodicExcitation::*)(shared_ptr<CSGBox>, Face))&PeriodicExcitation::set_region)
-    .def("set_poynting", &PeriodicExcitation::set_poynting)
-    .def("get_poynting", &PeriodicExcitation::get_poynting)
     .def("get_face", &PeriodicExcitation::get_face)
     ;
 }

@@ -46,8 +46,8 @@ public:
   {}
 
   unsigned int write_data(unsigned int time_step, 
-                          Variable &var, MPI_Datatype t, 
-                          void *ptr, unsigned int len)
+                          Variable &var, void *ptr, 
+                          unsigned int len)
   {}
 
   void add_variable(Result &result)

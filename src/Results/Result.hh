@@ -55,6 +55,12 @@ typedef struct {
  * \bug Now that we've got this pre and post variables stuff, we can
  * probably get rid of this has_time_dimension stuff, since stuff in
  * the variables_ map obviously is intended to have a time dimension.
+ *
+ * \bug This should probably be split into two classes inheriting from
+ * a common base class. One type of variable should support common
+ * multidimensional arrays, one should support structures (which this
+ * doesn't really do that well right now, and which hasn't been used
+ * at all), and perhaps there should be another for scalars. 
  */
 class Variable 
 {
@@ -265,6 +271,27 @@ public:
   {
     data_.set_num(num);
   }
+
+  /**
+   * A convenience function for quicker more concise variable set up. 
+   *
+   * @param name The name of the variable
+   * param has_time True if this variable has a time dimension
+   * @param datatype The MPI datatype used to access memory in the
+   *                 sending process
+   * @param ptr The pointer to the source data in the sending process
+   * @param num The number of items of type datatype to send
+   */ 
+  inline void setup(const string &name, bool has_time, 
+                    MPI_Datatype datatype, const void *ptr, 
+                    unsigned int num)
+  {
+    set_name(name);
+    has_time_dimension(has_time);
+    set_datatype(datatype);
+    set_ptr(ptr);
+    set_num(num);
+  }
 };
 
 /**
@@ -441,8 +468,9 @@ public:
   }
 
   /**
-   * Returns the map of variables. They are not expected to have any
-   * output available at this point.
+   * Returns the map of all variables, including pre, post, and time
+   * variables. They are not expected to have any output available at
+   * this point.
    */
   inline const map<string, Variable *> get_variables() const
   {

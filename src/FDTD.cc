@@ -192,7 +192,7 @@ void FDTD::setup_datawriters()
 
     if (riter != results_.end() && dwiter != datawriters_.end())
     {
-      (*dwiter).second->add_variable(*(*riter).second);
+      (*dwiter).second->add_variable((*riter)->second);
     }
     
     ++iter;
