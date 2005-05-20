@@ -145,7 +145,7 @@ protected:
 #ifdef ADE_DRUDE
   float *drudeC1_, *drudeC2_, *drudeC3_, *drudeC4_, *drudeC5_;
 #else
-  float *vcdt_, *omegasq_;
+  mat_prop_t *vcdt_, *omegasq_, *eps_inf_;
 #endif
 
   /**
@@ -282,11 +282,14 @@ public:
 
 #else
   // Z transform Drude model constants
-  inline float get_vcdt(mat_idx_t mid) const
+  inline mat_prop_t get_vcdt(mat_idx_t mid) const
   { return vcdt_[mid]; }
 
-  inline float get_omegasq(mat_idx_t mid) const
+  inline mat_prop_t get_omegasq(mat_idx_t mid) const
   { return omegasq_[mid]; }
+
+  inline mat_prop_t get_eps_inf(mat_idx_t mid) const
+  { return eps_inf_[mid]; }
 #endif
 
   // Debye constants

@@ -1,11 +1,20 @@
 TODO LIST FOR PHRED
 -------------------
 
+* Ideas
+- The domain decomp algorithm should be able to take a set of 
+  (N, M, P) used to indicate the number of cpus along each dimension
+
+- Domain decomp should be able to take into account the additional
+  cost of non-contiguous memory when computing the decomposition
+
+- Re-order the loops so that OpenMP divides up along y rather than x,
+  since x is the best dimension to divide MPI processes along. z is
+  still the inner. 
+
+
 * Immdiate bugs
 
-- Is taking the datatype apart in the NetCDFDataWriter really
-  necessary? Doesn't DataWriter put the data into a flat N dimensional
-  buffer for easy access? 
 
 
 ----------------------------------------------------------------------

@@ -19,6 +19,11 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
+
+/**********************************************************************
+ * WARNING: THIS FILE HAS BEEN DEPRECATED
+ **********************************************************************/
+
 #ifndef SIMPLE_SD_ALG_H
 #define SIMPLE_SD_ALG_H
 

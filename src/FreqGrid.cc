@@ -1,5 +1,5 @@
 /* 
-   phred - Phred is a parallel finite difference time domain
+   Phred - Phred is a parallel finite difference time domain
    electromagnetics simulator.
 
    Copyright (C) 2004-2005 Matt Hughes <mhughe@uvic.ca>
@@ -32,7 +32,8 @@
 #endif
 
 FreqGrid::FreqGrid()
-  : vcdt_(0), omegapsq_(0), dx_(0), sx_(0), sxm1_(0), sxm2_(0),
+  : vcdt_(0), omegapsq_(0), eps_inf_(0),
+    dx_(0), sx_(0), sxm1_(0), sxm2_(0),
     dy_(0), sy_(0), sym1_(0), sym2_(0),
     dz_(0), sz_(0), szm1_(0), szm2_(0),
     mtype_(0)
@@ -151,14 +152,16 @@ void FreqGrid::load_materials(shared_ptr<MaterialLib> matlib)
   int num_mat = (*matlib).num_materials();  
   vcdt_ = new mat_coef_t[num_mat];
   omegapsq_ = new mat_coef_t[num_mat];
+  eps_inf_ = new mat_coef_t[num_mat];
 
-  if (!vcdt_ || !omegapsq_) {
+  if (!vcdt_ || !omegapsq_ || !eps_inf_) {
     free_material();
     throw MemoryException();
   }
 
   memset(vcdt_, 0, sizeof(mat_coef_t) * num_mat);
   memset(omegapsq_, 0, sizeof(mat_coef_t) * num_mat);
+  memset(eps_inf_, 0, sizeof(mat_coef_t) * num_mat);
 
   mtype_ = new MaterialType[num_mat];
   memset(mtype_, 0, sizeof(MaterialType) * num_mat);
@@ -181,7 +184,20 @@ void FreqGrid::load_materials(shared_ptr<MaterialLib> matlib)
     //if (((*iter).second).get_collision_freq() > 0)
     if (mtype_[index] == DRUDE)
     {
-      vcdt_[index] = exp(-1.0 * ((*iter).second).get_collision_freq() * get_deltat());
+      try {
+        eps_inf_[index] = (iter->second).get_property("drude_epsilon_inf");
+      } 
+      catch (MaterialPropertyException e)
+      {
+        eps_inf_[index] = 0.0;
+      }
+
+// #ifdef ISHIMARU_DRUDE // Ishimaru appears to be wrong...
+      vcdt_[index] = exp(-1.0 * ((*iter).second).get_collision_freq() 
+                         * get_deltat());
+// #else // But this has a pole on the right hand side. 
+//       vcdt_[index] = exp(((*iter).second).get_collision_freq() * get_deltat());
+// #endif
       omegapsq_[index] = ((*iter).second).get_plasma_freq()
         * ((*iter).second).get_plasma_freq()
         * (get_deltat() / ((*iter).second).get_collision_freq());
@@ -212,6 +228,7 @@ void FreqGrid::load_materials(shared_ptr<MaterialLib> matlib)
     } else {
       vcdt_[index] = 0.0;
       omegapsq_[index] = 0.0;
+      eps_inf_[index] = 0.0;
     }
     ++index;
     ++iter;
@@ -232,6 +249,12 @@ void FreqGrid::free_material()
   {
     delete[] omegapsq_;
     omegapsq_ = 0;
+  }
+
+  if (eps_inf_)
+  {
+    delete[] eps_inf_;
+    eps_inf_ = 0;
   }
 }
 
@@ -271,12 +294,17 @@ void FreqGrid::update_ex(region_t update_r)
             
             dx_[idx] = *ex;
             
-            *ex = dx_[idx] - sx_[idx];
-            
+            *ex = (dx_[idx] - sx_[idx]) / eps_inf_[mid];
+
+// #ifdef ISHIMARU_DRUDE            
             sx_[idx] = (1 + vcdt_[mid]) * sxm1_[idx]
               - (vcdt_[mid] * sxm2_[idx])
               + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ex;
-            
+// #else
+//             sx_[idx] = (1 + vcdt_[mid]) * sxm1_[idx]
+//               - (vcdt_[mid] * sxm2_[idx])
+//               - (omegapsq_[mid] * (1 + vcdt_[mid])) * *ex;
+// #endif
             sxm2_[idx] = sxm1_[idx];
             sxm1_[idx] = sx_[idx];
 
@@ -346,11 +374,17 @@ void FreqGrid::update_ey(region_t update_r)
             
             dy_[idx] = *ey;
             
-            *ey = dy_[idx] - sy_[idx];
-            
+            *ey = (dy_[idx] - sy_[idx]) / eps_inf_[mid];
+
+// #ifdef ISHIMARU_DRUDE            
             sy_[idx] = (1 + vcdt_[mid]) * sym1_[idx]
               - (vcdt_[mid] * sym2_[idx])
               + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ey;
+// #else
+//             sy_[idx] = (1 + vcdt_[mid]) * sym1_[idx]
+//               - (vcdt_[mid] * sym2_[idx])
+//               - (omegapsq_[mid] * (1 + vcdt_[mid])) * *ey;
+// #endif
             
             sym2_[idx] = sym1_[idx];
             sym1_[idx] = sy_[idx];
@@ -422,11 +456,17 @@ void FreqGrid::update_ez(region_t update_r)
             
             dz_[idx] = *ez;
             
-            *ez = dz_[idx] - sz_[idx];
-            
+            *ez = (dz_[idx] - sz_[idx]) / eps_inf_[mid];
+
+// #ifdef ISHIMARU_DRUDE            
             sz_[idx] = (1 + vcdt_[mid]) * szm1_[idx]
               - (vcdt_[mid] * szm2_[idx])
               + (omegapsq_[mid] * (1 - vcdt_[mid])) * *ez;
+// #else
+//             sz_[idx] = (1 + vcdt_[mid]) * szm1_[idx]
+//               - (vcdt_[mid] * szm2_[idx])
+//               - (omegapsq_[mid] * (1 + vcdt_[mid])) * *ez;
+// #endif
           
             szm2_[idx] = szm1_[idx];
             szm1_[idx] = sz_[idx];

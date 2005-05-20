@@ -23,7 +23,7 @@
 
 Material::Material()
   : type_(DIELECTRIC), epsilon_(1), sigma_(0), pec_(false),
-    mu_(1), sigma_star_(0), name_("Free space"), vc_(0.0), fp_(0.0)
+    mu_(1), sigma_star_(0), name_("Free space")
     // Look at me, I'm free space!
 {
   
@@ -84,24 +84,30 @@ void Material::set_name(const char *name)
   name_ = name;
 }
 
-void Material::set_collision_freq(mat_prop_t vc)
-{
-  vc_ = vc;
-}
-
-void Material::set_plasma_freq(mat_prop_t fp)
-{
-  fp_ = fp;
-}
-
 mat_prop_t Material::get_collision_freq() const
 {
-  return vc_;
+  mat_prop_t ret = 0;
+
+  try {
+    ret = get_property("drude_vc");
+  } 
+  catch (MaterialPropertyException e)
+  {}
+
+  return ret; 
 }
 
 mat_prop_t Material::get_plasma_freq() const
 {
-  return fp_;
+  mat_prop_t ret = 0;
+
+  try {
+    ret = get_property("drude_plasma_freq");
+  } 
+  catch (MaterialPropertyException e)
+  {}
+
+  return ret; 
 }
 
 const map<string, mat_prop_t> &Material::get_properties() const
@@ -122,7 +128,7 @@ MaterialType Material::type() const
     = properties_.find("lorentz_param");
 
   map<string, mat_prop_t>::const_iterator drude
-    = properties_.find("plasma_freq");
+    = properties_.find("drude_plasma_freq");
 
   if (pec_)
     ret = PERF_COND;
@@ -133,12 +139,34 @@ MaterialType Material::type() const
   else if (lorentz != iter_e)
     ret = LORENTZ;
 
-  //else if (drude != iter_e)
-  else if (fp_ != 0.0) // gah!
+  else if (drude != iter_e)
     ret = DRUDE;
 
   else if (sigma_ != 0.0) // Gah!
     ret = LOSSY;
 
   return ret;
+}
+
+void Material::set_property(const char *name, mat_prop_t prop)
+{
+  properties_[name] = prop;
+}
+
+mat_prop_t Material::get_property(const char *name) const
+{
+  map<string, mat_prop_t>::const_iterator iter = properties_.find(name);
+  
+  if (iter == properties_.end())
+    throw MaterialPropertyException("Property not found.");
+  
+  return (*iter).second;
+}
+
+void Material::setup_drude(mat_prop_t eps_inf, mat_prop_t plasma_freq, 
+                           mat_prop_t collision_freq)
+{
+  properties_["drude_epsilon_inf"] = eps_inf;
+  properties_["drude_plasma_freq"] = plasma_freq;
+  properties_["drude_vc"] = collision_freq;
 }

@@ -623,13 +623,22 @@ void UPml::update_ex(Grid &grid)
             // ADE in UPML results in instability due to the small
             // error.
             float s_temp;
-            *ex = d_temp - aux2_x_[pml_idx];
+            *ex = (d_temp - aux2_x_[pml_idx]) / common_->get_eps_inf(mid);
+
+// #ifdef ISHIMARU_DRUDE  
             
             s_temp = 
               (1 + common_->get_vcdt(mid)) * aux2_x_[pml_idx]
               - (common_->get_vcdt(mid) * aux3_x_[pml_idx])
               + (common_->get_omegasq(mid) * (1 - common_->get_vcdt(mid)))
               * *ex;
+// #else
+//             s_temp = 
+//               (1 + common_->get_vcdt(mid)) * aux2_x_[pml_idx]
+//               - (common_->get_vcdt(mid) * aux3_x_[pml_idx])
+//               - (common_->get_omegasq(mid) * (1 + common_->get_vcdt(mid)))
+//               * *ex;
+// #endif
 
             // Advance storage locations. 
             aux3_x_[pml_idx] = aux2_x_[pml_idx];
@@ -807,13 +816,21 @@ void UPml::update_ey(Grid &grid)
             // ADE in UPML results in instability due to the small
             // error.
             float s_temp;
-            *ey = d_temp - aux2_y_[pml_idx];
-            
+            *ey = (d_temp - aux2_y_[pml_idx]) / common_->get_eps_inf(mid);
+
+// #ifdef ISHIMARU_DRUDE            
             s_temp = 
               (1 + common_->get_vcdt(mid)) * aux2_y_[pml_idx]
               - (common_->get_vcdt(mid) * aux3_y_[pml_idx])
               + (common_->get_omegasq(mid) * (1 - common_->get_vcdt(mid)))
               * *ey;
+// #else
+//             s_temp = 
+//               (1 + common_->get_vcdt(mid)) * aux2_y_[pml_idx]
+//               - (common_->get_vcdt(mid) * aux3_y_[pml_idx])
+//               - (common_->get_omegasq(mid) * (1 + common_->get_vcdt(mid)))
+//               * *ey;
+// #endif
 
             // Advance storage locations. 
             aux3_y_[pml_idx] = aux2_y_[pml_idx];
@@ -994,13 +1011,22 @@ void UPml::update_ez(Grid &grid)
             // ADE in UPML results in instability due to the small
             // error.
             float s_temp;
-            *ez = d_temp - aux2_z_[pml_idx];
+            *ez = (d_temp - aux2_z_[pml_idx]) / common_->get_eps_inf(mid);
+
+// #ifdef ISHIMARU_DRUDE      
             
             s_temp = 
               (1 + common_->get_vcdt(mid)) * aux2_z_[pml_idx]
               - (common_->get_vcdt(mid) * aux3_z_[pml_idx])
               + (common_->get_omegasq(mid) * (1 - common_->get_vcdt(mid)))
               * *ez;
+// #else
+//             s_temp = 
+//               (1 + common_->get_vcdt(mid)) * aux2_z_[pml_idx]
+//               - (common_->get_vcdt(mid) * aux3_z_[pml_idx])
+//               - (common_->get_omegasq(mid) * (1 + common_->get_vcdt(mid)))
+//               * *ez;
+// #endif
 
             // Advance storage locations. 
             aux3_z_[pml_idx] = aux2_z_[pml_idx];

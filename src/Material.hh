@@ -34,8 +34,9 @@
  *   debye_eps_s - Permittivity as frequency goes to zero
  *
  * Drude: 
+ *   drude_epsilon_inf - Reletive permittivity at infinite frequency
  *   drude_plasma_freq - Plasma frequency (rad/sec)
- *   drude_vc - Collision frequency (rad/sec)
+ *   drude_vc - Collision frequency (Hz)
  *
  * Lorentz: NONE YET
  */
@@ -75,10 +76,6 @@ private:
 
   string name_; /**< Human readable material name */
 
-  // These are used for plasma implementation
-  mat_prop_t vc_; /**< Collision frequency */
-  mat_prop_t fp_; /**< Plasma frequency */
-
   map<string, mat_prop_t> properties_; /**< Additional material
                                           properties that may be used
                                           by the grid. */ 
@@ -117,24 +114,13 @@ private:
    * overwritten. Consult the documentation for the Grid classes for
    * a list of material properties required. 
    */ 
-  inline void set_property(const char *name, mat_prop_t prop)
-  {
-    properties_[name] = prop;
-  }
+  void set_property(const char *name, mat_prop_t prop);
 
   /**
    * Returns a named material property. THROWS AN EXCEPTION if the
    * requested property is not found. 
    */ 
-  inline mat_prop_t get_property(const char *name) const
-  {
-    map<string, mat_prop_t>::const_iterator iter = properties_.find(name);
-    
-    if (iter == properties_.end())
-      throw MaterialPropertyException("Property not found.");
-
-    return (*iter).second;
-  }
+  mat_prop_t get_property(const char *name) const;
 
   /**
    * Returns the permittivity
@@ -200,16 +186,6 @@ private:
    * @param name
    */
   void set_name(const char *name);
-
-  /**
-   * Set the collision frequency for plasma materials
-   */
-  void set_collision_freq(mat_prop_t vc);
-
-  /**
-   * Set the plasma frequency, in radians per second!
-   */
-  void set_plasma_freq(mat_prop_t fp);
   
   /**
    * Get the collision frequency
@@ -234,6 +210,15 @@ private:
    */ 
   MaterialType type() const;
 
+  /**
+   * A conveniece function to help with setting up Drude materials. 
+   *
+   * @param eps_inf Reletive permittivity at infinite frequency
+   * @param plasma_freq Plasma frequency (rad/sec)
+   * @param collision_freq Collision frequency (Hz)
+   */
+  void setup_drude(mat_prop_t eps_inf, mat_prop_t plasma_freq, 
+                   mat_prop_t collision_freq);
 };
 
 #endif // MATERIAL

@@ -19,6 +19,10 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
 
+/**********************************************************************
+ * WARNING: THIS FILE HAS BEEN DEPRECATED
+ **********************************************************************/
+
 #include "SimpleSDAlg.hh"
 #include "Globals.hh"
 #include <exception>

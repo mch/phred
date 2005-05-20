@@ -5,6 +5,15 @@ there!
 
 http://techpubs.sgi.com/library/tpl/cgi-bin/browse.cgi?coll=linux&db=bks&cmd=toc&pth=/SGI_Developer/MPT_UG
 
+
+Some interesting man pages: 
+     numa(5), migration(5), mtune(4), /var/sysgen/mtune/numa, refcnt(5),
+     replication(5), nstats(1), sn(1), mld(3c), mldset(3c), pm(3c),
+     migration(3c), pminfo(3c), numa_view(1), dplace(1), dprof(1).
+
+Also, see mmci(5).
+
+
 * Checkpointing 
 
 Pass the -cpr or -miser flag to to mpirun in the PBS script. The cpr
@@ -65,7 +74,6 @@ export _DSM_VERBOSE=1
 
 
 
-
 ----------------------------------------------------------------------
 -- DEBUGGING USING THE PRODEV WORKSHOP DEBUGGER
 ----------------------------------------------------------------------
@@ -78,3 +86,21 @@ See: http://techpubs.sgi.com/library/tpl/cgi-bin/getdoc.cgi?coll=0650&db=bks&fna
    cvd> stop pgrp all in MPI_SGI_init
 
 3) In command window: /usr/bin/mpirun -np 2 phred problem.py
+
+
+----------------------------------------------------------------------
+-- PROFILING AND TIMING
+----------------------------------------------------------------------
+
+Arcturus should get about 4.15 MNPS per CPU: 
+
+Number of updated nodes: 1000000, millions of updated nodes: 1
+Average wall time: 0.241, avg cpu time: 0.2408
+Average millions of nodes per second, w.r.t. wall clock time: 4.14938
+Average millions of nodes per second, w.r.t. CPU time: 4.15282
+Note: MNPS w.r.t. CPU time may be incorrect.
+Execution took 241 wall clock seconds, and 240.98 cpu seconds.
+
+
+So 32 MNPS with 64 CPUs is rather disappointing. 256 MNPS would be
+nicer. 

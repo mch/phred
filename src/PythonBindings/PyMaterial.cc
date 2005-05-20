@@ -35,10 +35,9 @@ void export_materials()
                   &Material::set_sigma_star)
     .add_property("mu", &Material::get_mu, &Material::set_mu)
     .add_property("name", &Material::get_name, &Material::set_name)
-    .add_property("collision_freq", &Material::get_collision_freq, 
-                  &Material::set_collision_freq)
-    .add_property("plasma_freq", &Material::get_plasma_freq, 
-                  &Material::set_plasma_freq)
+    .def("set_property", &Material::set_property)
+    .def("get_property", &Material::get_property)
+    .def("setup_drude", &Material::setup_drude)
     ;
 
   class_<MaterialLib>("MaterialLib", "Materials Library")

@@ -23,7 +23,7 @@ UPmlCommon::UPmlCommon(const Grid &grid)
 #ifdef ADE_DRUDE
     drudeC1_(0), drudeC2_(0), drudeC3_(0), drudeC4_(0), drudeC5_(0),
 #else
-    vcdt_(0), omegasq_(0),
+    vcdt_(0), omegasq_(0), eps_inf_(0),
 #endif
     debyeA_(0), debyeB_(0), debyeC_(0)
 {
@@ -239,8 +239,9 @@ void UPmlCommon::init_sigmas()
     memset(drudeC4_, 0, sizeof(float) * nm);
     memset(drudeC5_, 0, sizeof(float) * nm);
 #else
-    vcdt_ = new float[nm];
-    omegasq_ = new float[nm];
+    vcdt_ = new mat_prop_t[nm];
+    omegasq_ = new mat_prop_t[nm];
+    eps_inf_ = new mat_prop_t[nm];
 #endif
   }
 
@@ -282,6 +283,14 @@ void UPmlCommon::init_sigmas()
       mat_prop_t omega_p = (*iter).second.get_plasma_freq();
       mat_prop_t vc = (*iter).second.get_collision_freq();
 
+      try {
+        eps_inf_[mid] = (iter->second).get_property("drude_epsilon_inf");
+      } 
+      catch (MaterialPropertyException e)
+      {
+        eps_inf_[mid] = 0.0;
+      }
+
 #ifdef ADE_DRUDE
       mat_prop_t drudeC6 = eps * (
                                   (omega_p * omega_p / 4) 
@@ -303,7 +312,11 @@ void UPmlCommon::init_sigmas()
       drudeC5_[mid] = (-vc * dt - 2) 
         / (2 * dt * dt * drudeC6);
 #else
+// #ifdef ISHIMARU_DRUDE
       vcdt_[mid] = exp(-1.0 * vc * dt);
+// #else
+//       vcdt_[mid] = exp(vc * dt);
+// #endif
       omegasq_[mid] = omega_p * omega_p * (dt / vc);
 #endif
     }
@@ -597,6 +610,9 @@ void UPmlCommon::deinit()
 
     delete[] omegasq_;
     omegasq_ = 0;
+
+    delete[] eps_inf_;
+    eps_inf_ = 0;
   }
 #endif
 

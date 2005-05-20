@@ -664,8 +664,7 @@ void square_hole_Ag(int ysize)
     = shared_ptr<MaterialLib>(new MaterialLib());
 
   Material mat;
-  mat.set_collision_freq(5.7e13 * 2 * M_PI);
-  mat.set_plasma_freq(2e15 * 2 * M_PI);
+  mat.setup_drude(1, 2e15 * 2 * M_PI, 5.7e13);
   (*mlib).add_material("AgPlasma", mat);
 
   fdtd.load_materials(mlib);

@@ -10,14 +10,16 @@ mu = 1.256637061435917e-06
 eps_0 = 8.854185336732027e-12
 
 # Plasma Frequency
-w_p = 2e15 * 2 * pi
+#w_p = 2e15 * 2 * pi
+w_p = 2.17e15 * 2 * pi
 
 # Collision Frequency
-v = 5.7e13 # * 2 * pi
+#v = 5.7e13
+v = 32.258e12
 
 # Frequency of interest
-#w = arrayrange(300, 750, 20) * 1e12 * 2 * pi;
-w = (3e8 / arrayrange(0.4e-6, 0.8e-6, 0.05e-6)) * 2 * pi;
+w = (3e8 / (arrayrange(200, 1200, 20) * 1e-9)) * 2 * pi;
+#w = (3e8 / arrayrange(0.4e-6, 0.8e-6, 0.05e-6)) * 2 * pi;
 #print w
 
 k_0 = w * sqrt(mu * eps_0)
@@ -43,4 +45,12 @@ p.ylabel = "Relative Permativity"
 #p.add( biggles.Curve(w / (1e12 * 2 * pi), alpha, color="red") )
 p.add( biggles.Curve(w / (2 * pi), eps_r.real, color="red") )
 p.add( biggles.Curve(w / (2 * pi), eps_r.imag, color="green") )
+p.show()  
+
+
+p = biggles.FramedPlot()
+p.xlabel = "Wavelength (nm)"
+p.ylabel = "Relative Permativity"
+p.add( biggles.Curve(3e8 / (w / (2 * pi)) * 1e9, eps_r.real, color="red") )
+p.add( biggles.Curve(3e8 / (w / (2 * pi)) * 1e9, eps_r.imag, color="green") )
 p.show()  
