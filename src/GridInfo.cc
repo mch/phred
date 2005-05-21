@@ -128,6 +128,19 @@ void GridInfo::apply_boundaries(Grid &grid, FieldType type)
     face_bc_[f].get()->apply(f, grid, type);
   }
 
+  // The Subdomain boundary conditions may have started all
+  // transactions using non-blocking comunication. We must now wait on
+  // those to finish before comtinuing.
+  for (int i = 0; i < 6; i++)
+  {
+    Face f = bc_order_[i];
+    BoundaryCondition t = face_bc_[f].get()->get_type();
+
+    if (t == SUBDOMAIN)
+    {
+      dynamic_cast<SubdomainBc *>(face_bc_[f].get())->wait();
+    }
+  }
 }
 
 void GridInfo::reorder_boundaries()

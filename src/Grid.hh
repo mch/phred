@@ -373,7 +373,7 @@ class Grid {
    * Apply the boundary conditions to the faces. This function only
    * has an effect when the grid is not in define mode. 
    */
-  virtual void apply_boundaries(FieldType type);
+  void apply_boundaries(FieldType type);
 
   /**
    * Calculate the material constants from the given material

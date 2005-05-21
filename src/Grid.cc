@@ -285,6 +285,11 @@ void Grid::set_define_mode(bool d)
 
         // Check ajacent faces and see if there are any subdomains
         // that need to have data shared across them.
+
+//         cout << "RANK " << MPI_RANK << ", "  
+//              << face_string(static_cast<Face>(i)) 
+//              << " shares data across [";
+
         for (int j = 0; j < 6; j++)
         {
           if (j != i 
@@ -295,12 +300,16 @@ void Grid::set_define_mode(bool d)
             {
               SubdomainBc *sd = dynamic_cast<SubdomainBc *>
                 (&info_.get_boundary(static_cast<Face>(j)));
-              
+
+//               cout << face_string(static_cast<Face>(j)) << ", ";
+
               p->add_sd_bcs(sd, static_cast<Face>(i), 
                             static_cast<Face>(j));
             }
           }
         }
+
+//         cout << "\b\b]" << endl;
       }
 
       // Tell subdomains about Grid data that needs to be exchanged
@@ -309,6 +318,18 @@ void Grid::set_define_mode(bool d)
       if (sd)
       {
         setup_subdomain_data(sd, static_cast<Face>(i));
+      }
+    }
+
+    // Init subdomains
+    for (int i = 0; i < 6; i++)
+    {
+      SubdomainBc *sd = 
+        dynamic_cast<SubdomainBc *>(&info_.get_boundary(static_cast<Face>(i)));
+      
+      if(sd)
+      {
+        sd->sd_init(*this, static_cast<Face>(i));
       }
     }
 

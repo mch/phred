@@ -154,6 +154,9 @@ private:
   MPI_Datatype type_; /**< LOCAL datatype. For interperting data sent
                        * from a single node. */
 
+  MPI_Request send_req_; /**< Request object for non-blocking send */ 
+  MPI_Request recv_req_; /**< Request object for non-blocking recieve */ 
+
 protected:
   FieldType field_type_; /**< The field type of the data being exchanged */
 
@@ -161,6 +164,18 @@ public:
   RxTxData()
     : rx_ptr_(0), tx_ptr_(0), field_type_(E)
   {}
+
+  /**
+   * Return the send request object
+   */
+  inline MPI_Request get_send_req()
+  { return send_req_; }
+
+  /**
+   * Return the recieve request object
+   */
+  inline MPI_Request get_recv_req()
+  { return recv_req_; }
 
   /**
    * Set the rx pointer

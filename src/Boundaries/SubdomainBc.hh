@@ -40,6 +40,15 @@ protected:
   int neighbour_;
   int rank_;
 
+  // The boundary becomes locked after init() is called, after which
+  // no more items can be added for transmission.
+  bool locked_;
+
+  // For non-blocking communication
+  int num_;
+  int num_used_;
+  MPI_Request *req_;
+
   /**
    * A list of items to transmit each time the boundary condition is
    * applied. The communication is assumed to be bidirectional and
@@ -53,14 +62,20 @@ protected:
    * @param tx_ptr pointer to area to recieve to 
    * @param dt MPI Derived data type describing the data
    */
-  void send_recv(const void *tx_ptr, void *rx_ptr, MPI_Datatype &t);
+  void send_recv(const void *tx_ptr, void *rx_ptr, 
+                 MPI_Datatype &t);
+
+  /**
+   * A helper function that sends arrays of data between two ranks. 
+   * @param data the data object to work on
+   * @param idx an index into the Request array
+   */
+  void non_blocking(RxTxData &data, int &idx);
 
 public:
-  SubdomainBc() 
-  {}
+  SubdomainBc();
 
-  ~SubdomainBc()
-  {}
+  ~SubdomainBc();
 
   /**
    * Exchanges the overlaping part of the grid with the adjacent processor. 
@@ -113,5 +128,23 @@ public:
    */
   virtual BoundaryCondition get_type() const;
 
+  /**
+   * This function blocks until all non-blocking communication has
+   * completed.
+   */ 
+  void wait();
+
+  /**
+   * Set up data structures for non-blocking communication. This does
+   * not override the lifecycle init() because it needs to be handled
+   * differently by the Grid.
+   */ 
+  void sd_init(const Grid &grid, Face face);  
+
+  /**
+   * De-allocate data structures. This does not override the lifecycle
+   * init() because it needs to be handled differently by the Grid.
+   */ 
+  void sd_deinit();
 };
 #endif // SUBDOMAIN_BC_H

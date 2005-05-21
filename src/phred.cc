@@ -137,7 +137,7 @@ static string get_extension(string filename);
 // Ugly globals
 string inputfile, test_case;
 const char *program_name;
-bool interactive, estimate_memory, quiet, extra_quiet_g;
+bool interactive, estimate_memory, quiet, extra_quiet_g, blocking_g;
 bool test_run, setup_only;
 int MPI_RANK, MPI_SIZE, argi_g;
 //MPI_Errhandler MPI_ERROR_HANDLER;
@@ -153,7 +153,7 @@ decode_switches (int argc, char **argv)
 #ifdef HAVE_GETOPT
   opterr = 0;
 
-  while ((c = getopt (argc, argv, "+Vhif:mbqts")) != -1)
+  while ((c = getopt (argc, argv, "+VhiBmbqts")) != -1)
     switch (c)
     {
     case 'V':
@@ -170,18 +170,6 @@ decode_switches (int argc, char **argv)
       interactive = true;
       break;
       
-    case 'f':
-      arg = const_cast<char *>(optarg);
-
-      if (arg)
-        inputfile = arg;
-      else 
-      {
-        cout << "No filename given for the -f switch." << endl;
-        usage(0);
-      }
-      break;
-
     case 'm':
       estimate_memory = true; 
       break;
@@ -199,6 +187,10 @@ decode_switches (int argc, char **argv)
 
     case 's':
       setup_only = true;
+      break;
+
+    case 'B':
+      blocking_g = true;
       break;
     }
 
@@ -250,6 +242,7 @@ electromagnetics simulator.\n", program_name);
   -s          Parse the input file and set up data structures,\n\
               but do not run simulation. Use this to test the\n\
               script file. \n\
+  -B          Use blocking send/receives to exchange data\n\
   -V          output version information and exit\n\
 ");
 
@@ -308,6 +301,10 @@ int main (int argc, char **argv)
   interactive = false;
   estimate_memory = false;
   quiet = false;
+  extra_quiet_g = false;
+  test_run = false;
+  setup_only = false;
+  blocking_g = false;
 
   //std::set_terminate (__gnu_cxx::__verbose_terminate_handler);
 

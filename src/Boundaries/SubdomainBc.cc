@@ -24,48 +24,114 @@
 #include "../Grid.hh"
 #include "../Globals.hh"
 
+SubdomainBc::SubdomainBc()
+  : locked_(false), num_(0), num_used_(0), req_(0)
+{}
+
+SubdomainBc::~SubdomainBc()
+{
+  if (req_)
+  {
+    delete[] req_;
+    req_ = 0;
+  }
+}
+
+void SubdomainBc::sd_deinit()
+{
+  if (req_)
+  {
+    delete[] req_;
+    req_ = 0;
+  }
+}
+
+void SubdomainBc::sd_init(const Grid &grid, Face face)
+{}
+
 void SubdomainBc::apply(Face face, Grid &grid, FieldType type)
 {
   // Send and recieve and data we've be contracted to do. 
   vector<RxTxData>::iterator iter = rx_tx_data_.begin();
   vector<RxTxData>::iterator iter_end = rx_tx_data_.end();
+  int idx = 0;
 
   while (iter != iter_end) 
   {
     if (type == (*iter).get_field_type()) 
     {
       MPI_Datatype dtype = (*iter).get_datatype();
-      send_recv((*iter).get_tx_ptr(), 
-                (*iter).get_rx_ptr(), 
-                dtype);
 
-// #ifdef DEBUG
-//       int sz;
-//       MPI_Aint ext;
-//       MPI_Type_size((*iter).get_datatype(), &sz);
-//       MPI_Type_extent((*iter).get_datatype(), &ext);
-      
-//       cout << "SubdomainBc::apply(), extent: " << ext << ", sent " 
-//            << sz << " bytes from " 
-//            << (*iter).get_tx_ptr() << "\nrecieved same number at " 
-//            << (*iter).get_rx_ptr() << endl;
-// #endif
+      if (blocking_g)
+      {
+        send_recv((*iter).get_tx_ptr(), 
+                  (*iter).get_rx_ptr(), 
+                  dtype);
+      }
+      else
+      {
+        non_blocking((*iter), idx);
+      }
     }
 
     ++iter;
   }
+
+  num_used_ = idx;
 }
 
-void SubdomainBc::send_recv(const void *tx_ptr, void *rx_ptr, MPI_Datatype &t)
+void SubdomainBc::send_recv(const void *tx_ptr, void *rx_ptr, 
+                            MPI_Datatype &t)
 {
   MPI_Status status;
+  int err;
+
+  // Classic method
+  if (rank_ > neighbour_) {
+    err = MPI_Send(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, 
+                   MPI_COMM_PHRED);
+    err = MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_PHRED, &status);
+  } else {
+    err = MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_PHRED, &status);
+    err = MPI_Send(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, 
+                   MPI_COMM_PHRED);
+  }
+}
+
+void SubdomainBc::non_blocking(RxTxData &data, int &idx)
+{
+  const void *tx_ptr = data.get_tx_ptr();
+  void *rx_ptr = data.get_rx_ptr();
+  MPI_Datatype t = data.get_datatype();
+  int err;
+
+  //req_[idx++] = data.get_send_req();
+  //req_[idx++] = data.get_recv_req();
 
   if (rank_ > neighbour_) {
-    MPI_Send(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, MPI_COMM_PHRED);
-    MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_PHRED, &status);
+    err = MPI_Isend(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, 
+                    MPI_COMM_PHRED, &req_[idx++]);
+
+    if (err != MPI_SUCCESS)
+      cerr << "ERROR ON RANK " << MPI_RANK << " calling MPI_Isend." << endl;
+
+    err = MPI_Irecv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_PHRED, 
+                    &req_[idx++]);
+
+    if (err != MPI_SUCCESS)
+      cerr << "ERROR ON RANK " << MPI_RANK << " calling MPI_Irecv." << endl;
   } else {
-    MPI_Recv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_PHRED, &status);
-    MPI_Send(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, MPI_COMM_PHRED);
+    err = MPI_Irecv(rx_ptr, 1, t, neighbour_, 1, MPI_COMM_PHRED, 
+                    &req_[idx++]);
+
+    if (err != MPI_SUCCESS)
+      cerr << "ERROR ON RANK " << MPI_RANK << " calling MPI_Irecv." << endl;
+
+    err = MPI_Isend(const_cast<void *>(tx_ptr), 1, t, neighbour_, 1, 
+                    MPI_COMM_PHRED, &req_[idx++]);
+
+    if (err != MPI_SUCCESS)
+      cerr << "ERROR ON RANK " << MPI_RANK << " calling MPI_Isend." << endl;
   }
 }
 
@@ -92,9 +158,26 @@ int SubdomainBc::get_rank()
 void SubdomainBc::add_tx_rx_data(const RxTxData &x)
 {
   rx_tx_data_.push_back(x);
+
+  if (!blocking_g)
+  {
+    if (req_)
+      delete[] req_;
+
+    num_ = 2 * rx_tx_data_.size();
+    req_ = new MPI_Request[num_];
+
+    //memset(req_, 0, sizeof(MPI_Request) * num_);
+  }
 }
 
 BoundaryCondition SubdomainBc::get_type() const
 {
   return SUBDOMAIN;
+}
+
+void SubdomainBc::wait()
+{
+  if (!blocking_g)
+    int err = MPI_Waitall(num_used_, req_, MPI_STATUSES_IGNORE);
 }

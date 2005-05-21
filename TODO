@@ -12,6 +12,12 @@ TODO LIST FOR PHRED
   since x is the best dimension to divide MPI processes along. z is
   still the inner. 
 
+- Low hanging fruit: the Sullivan version of the Drude model +
+  \epsilon_\inf
+
+- J&C Drude model is unstable of signal processing... origins of drude
+  model? 
+
 
 * Immdiate bugs
 
