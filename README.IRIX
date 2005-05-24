@@ -33,8 +33,8 @@ cvperf my_prog.usertime.m88888
 
 Use a CPU list? 
 
-Use MPI_DSM_PLACEMENT... firsttouch or threadroundrobin? fixed is
-default...
+Use MPI_DSM_PLACEMENT... firsttouch or threadroundrobin? Firsttouch
+caused an error on one run. 
 
 MPI_DSM_TOPOLOGY=cube? 
 
@@ -104,3 +104,15 @@ Execution took 241 wall clock seconds, and 240.98 cpu seconds.
 
 So 32 MNPS with 64 CPUs is rather disappointing. 256 MNPS would be
 nicer. 
+
+
+----------------------------------------------------------------------
+-- ENABLING SINGLE COPY
+----------------------------------------------------------------------
+http://techpubs.sgi.com/library/tpl/cgi-bin/getdoc.cgi/linux/bks/SGI_Developer/books/MPT_UG/sgi_html/ch06.html#Z1028132313jlb
+
+"For MPI_Isend, MPI_Sendrecv, MPI_Alltoall, MPI_Bcast, MPI_Allreduce ,
+and MPI_Reduce, this optimization is enabled by default for large
+message sizes."
+
+Since MPI_Isend is now being used, this may work fine. 
