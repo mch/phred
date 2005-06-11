@@ -25,6 +25,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <cmath>
 
 using namespace std;
 
@@ -40,7 +41,6 @@ using namespace boost;
 #include "DataWriters/DataWriter.hh"
 #include "Constants.hh"
 #include "Exceptions.hh"
-#include "SimpleSDAlg.hh"
 #include "MPISubdomainAlg.hh"
 #include "ProblemGeometry.hh"
 #include "FreqGrid.hh"

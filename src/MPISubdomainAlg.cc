@@ -77,11 +77,12 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
       divided = true;
     }
       
-    else if (sdz >= sdx && sdz >= sdy && n*m*(p+1) <= sz) {
-      p++;
-      sdz = info.global_dimz_ / p;
-      divided = true;
-    }
+    // TEMPORARY, UNTIL UPML with z divisions is fixed
+//     else if (sdz >= sdx && sdz >= sdy && n*m*(p+1) <= sz) {
+//       p++;
+//       sdz = info.global_dimz_ / p;
+//       divided = true;
+//     }
       
     if (!divided) {
       if ((n+1)*m*p <= sz) {
@@ -92,10 +93,12 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
         m++;
         sdy = info.global_dimy_ / m;
       }
-      else if (n*m*(p+1) <= sz) {
-        p++;
-        sdz = info.global_dimz_ / p;
-      }
+
+      // TEMPORARY, UNTIL UPML with z divisions is fixed
+//       else if (n*m*(p+1) <= sz) {
+//         p++;
+//         sdz = info.global_dimz_ / p;
+//       }
     }
 
     divided = false;
@@ -110,6 +113,9 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
     // anything about minimizing message size, or other factors. The
     // good thing is that it handles any MPI_SIZE.
     
+    // TEMPORARY, UNTIL UPML with z divisions is fixed
+    dims[2] = 1;
+
     //  MPI_DIMS_CREATE chooses dimensions so that the resulting grid
     //  is as close as possible to being an ndims-dimensional cube.
     MPI_Dims_create(MPI_SIZE, 3, dims);

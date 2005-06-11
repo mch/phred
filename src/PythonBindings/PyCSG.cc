@@ -56,46 +56,43 @@ void export_csg()
   class_<CSGOperator, bases<CSGObject> >("CSGOperator", no_init)
     ;
 
-  class_<CSGDifference, bases<CSGOperator> >("CSGDifference", 
-                                             "Represents a difference between two CSG objects.",
-                                             init<shared_ptr<CSGObject>, 
-                                             shared_ptr<CSGObject> >())
+  class_<CSGDifference, bases<CSGOperator> >
+    ("CSGDifference", "Represents a difference between two CSG objects.",
+     init<shared_ptr<CSGObject>, shared_ptr<CSGObject> >())
     ;
 
-  class_<CSGUnion, bases<CSGOperator> >("CSGUnion", 
-                                        "Represents a union between two CSG objects.",
-                                        init<shared_ptr<CSGObject>, 
-                                        shared_ptr<CSGObject> >())
+  class_<CSGUnion, bases<CSGOperator> >
+    ("CSGUnion", "Represents a union between two CSG objects.",
+     init<shared_ptr<CSGObject>, shared_ptr<CSGObject> >())
     ;
 
-  class_<CSGIntersection, bases<CSGOperator> >("CSGIntersection", 
-                                               "Represents an intersection between two CSG objects.",
-                                               init<shared_ptr<CSGObject>, 
-                                               shared_ptr<CSGObject> >())
+  class_<CSGIntersection, bases<CSGOperator> >
+    ("CSGIntersection", "Represents an intersection between two CSG objects.",
+     init<shared_ptr<CSGObject>, shared_ptr<CSGObject> >())
     ;
 
-  class_<CSGArray, bases<CSGObject> >("CSGArray", 
-                                      "Represents an array of items",
-                                      init<shared_ptr<CSGObject> >())
+  class_<CSGArray, bases<CSGObject> >
+    ("CSGArray", "Represents an array of CSG objects.",
+     init<shared_ptr<CSGObject> >())
     .def("set_lengths", &CSGArray::set_lengths)
     .def("set_spacing", &CSGArray::set_spacing)
     ;
 
-  class_<CSGBox, bases<CSGPrimitive> >("CSGBox", 
-                                       "A CSG object representing a box.")
+  class_<CSGBox, bases<CSGPrimitive> >
+    ("CSGBox", "A CSG object representing a box.")
     .def("set_size", &CSGBox::set_size)
     .def("get_size", &CSGBox::get_size)
     ;
 
-  class_<CSGSphere, bases<CSGPrimitive> >("CSGSphere",
-                                          "A CSG object representing a sphere.")
+  class_<CSGSphere, bases<CSGPrimitive> >
+    ("CSGSphere", "A CSG object representing a sphere.")
     .def("set_radius", &CSGSphere::set_radius)
     .def("get_radius", &CSGSphere::get_radius)
     .add_property("radius", &CSGSphere::get_radius, &CSGSphere::set_radius)
     ;
 
-  class_<CSGCylinder, bases<CSGPrimitive> >("CSGCylinder", 
-                                            "A CSG cylinder oriented along the z axis")
+  class_<CSGCylinder, bases<CSGPrimitive> >
+    ("CSGCylinder", "A CSG cylinder oriented along the z axis")
     .def("set_radius", &CSGCylinder::set_radius)
     .def("get_radius", &CSGCylinder::get_radius)
     .def("set_height", &CSGCylinder::set_height)
@@ -106,9 +103,9 @@ void export_csg()
                   &CSGCylinder::set_height)
     ;
 
-  class_<CSGTransform, bases<CSGObject> >("CSGTransform",
-                                          "Scale, rotate, and translate an object.", 
-                                          init<shared_ptr<CSGObject> >())
+  class_<CSGTransform, bases<CSGObject> >
+    ("CSGTransform", "Scale, rotate, and translate an object.", 
+     init<shared_ptr<CSGObject> >())
     .def("set_rotation", &CSGTransform::set_rotation)
     .def("set_scaling", &CSGTransform::set_scaling)
     .def("set_translation", &CSGTransform::set_translation)

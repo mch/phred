@@ -22,7 +22,6 @@
 // In order to actually do stuff...
 #include "MaterialLib.hh"
 #include "Grid.hh"
-#include "SimpleSDAlg.hh"
 #include "Signals/Gaussm.hh"
 #include "Boundaries/Ewall.hh"
 #include "Boundaries/Hwall.hh"
