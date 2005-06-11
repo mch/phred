@@ -233,6 +233,18 @@ public:
   {
     if (dt_scale > 0.0 && dt_scale < 1.0)
       dt_scale_ = dt_scale;
+
+    if (global_ginfo_.deltax_ > 0
+        && global_ginfo_.deltay_ > 0
+        && global_ginfo_.deltaz_ > 0)
+    {
+      field_t dx = global_ginfo_.deltax_;
+      field_t dy = global_ginfo_.deltay_;
+      field_t dz = global_ginfo_.deltaz_;
+
+      global_ginfo_.deltat_ = dt_scale_ / 
+        ( C * sqrt( 1/(dx*dx) + 1/(dy*dy) + 1/(dz*dz)));
+    }
   }
 
   /**

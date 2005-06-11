@@ -517,6 +517,9 @@ PYTHON_INCLUDES=`echo "import distutils.sysconfig; print distutils.sysconfig.get
 PYTHON_VERSION=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('VERSION')" | python -`
 PYTHON_VERSION_MINOR=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('VERSION').split('.')[[1]]" | python -`
 PYTHON_VERSION_MAJOR=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('VERSION').split('.')[[0]]" | python -`
+
+PYTHON_STATIC_LIB_PATH=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LIBPL')" | python -`
+
 PYTHON_LIBS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LIBS') + ' ' + distutils.sysconfig.get_config_var('MODLIBS') + ' ' + distutils.sysconfig.get_config_var('SYSLIBS')"| python -`
 
         saveCPPFLAGS=$CPPFLAGS
@@ -532,6 +535,10 @@ PYTHON_LIBS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_con
 
         if [[ ! -z "$with_python_libs" ]]; then
           LDFLAGS="$LDFLAGS -L$with_python_libs"
+        fi
+
+        if [[ ! -z "$PYTHON_STATIC_LIB_PATH" ]]; then
+          LDFLAGS="$LDFLAGS -L$PYTHON_STATIC_LIB_PATH"
         fi
 
         AC_CHECK_HEADER([Python.h], [], [])
