@@ -36,73 +36,65 @@
 using namespace boost::python;
 
 /**
- * Helper function for Python classes derived from Excitation
- */
-void call_excite(Excitation& ex, Grid &grid, 
-                 unsigned int time_step, FieldType type) 
-{ return ex.excite(grid, time_step, type); }
-
-/**
- * Helper function for Python classes derived from Signal
- */
-field_t call_signal_function(Signal& sf, float time) 
-{ return sf.signal_function(time); }
-
-/**
- * This wrapper allows for derived classes built in Python.
- */
-class ExcitationWrap : public Excitation
-{
-  PyObject* self_;
-
-public:
-  ExcitationWrap(PyObject* self, shared_ptr<Signal> sf)
-    :  Excitation(sf), self_(self) {}
-
-  ExcitationWrap(PyObject *self, const Excitation &e)
-    : Excitation(e), self_(self)
-  {}
-
-  void excite(Grid &grid, unsigned int time_step,
-              FieldType type) 
-  { call_method<void>(self_, "excite", boost::ref(grid), time_step, type); }
-
-  void default_excite(Grid &grid, unsigned int time_step,
-                      FieldType type) 
-  { Excitation::excite(grid, time_step, type); }
-};
-
-/**
- * Free helper function for calling window() on WindowedExcitation's. 
- */
-field_t call_window(WindowedExcitation &w, 
-                    float x, float y, float z)
-{ return w.window(x, y, z); }
-
-/**
  * This wrapper allows subclasses of WindowedExcitation written in Python
  */
-class WindowedExcitationWrap : public WindowedExcitation
+class WindowedExcitationWrap : public WindowedExcitation //, 
+//wrapper<WindowedExcitation>
 {
 private:
   PyObject *self_;
 
 public:
   WindowedExcitationWrap(PyObject *self, shared_ptr<Signal> sf)
-    : WindowedExcitation(sf)
-  {}
+    : self_(self), WindowedExcitation(sf)
+  { }
 
-  void excite(Grid &grid, unsigned int time_step,
-              FieldType type) 
-  { return call_method<void>(self_, "excite", boost::ref(grid),
-                             time_step, type); }
+//   WindowedExcitationWrap(shared_ptr<Signal> sf)
+//     : WindowedExcitation(sf)
+//   { cout << "WindowedExcitationWrap constructor()" << endl; }
 
-  void default_excite(Grid &grid, unsigned int time_step,
-                      FieldType type) 
-  { WindowedExcitation::excite(grid, time_step, type); }  
+  void init(const Grid &grid)
+  { 
+    WindowedExcitation::init(grid);
+    return call_method<void>(self_, "init", boost::ref(grid)); 
+    //return this->get_override("init")(grid);
+
+    // if (override init = this->get_override("init"))
+//       init(grid);
+  }
 
   field_t window(float x, float y, float z)
-  { return call_method<field_t>(self_, "window", x, y, z); }
+  { 
+    return call_method<field_t>(self_, "window", x, y, z); 
+    //return this->get_override("window")(x, y, z);
+  }
+
+  float get_xmin() 
+  { return xmin_; }
+
+  float get_ymin() 
+  { return ymin_; }
+
+  float get_zmin() 
+  { return zmin_; }
+
+  float get_xmax() 
+  { return xmax_; }
+
+  float get_ymax() 
+  { return ymax_; }
+
+  float get_zmax() 
+  { return zmax_; }
+
+  float get_lxmin() 
+  { return lxmin_; }
+
+  float get_lymin() 
+  { return lymin_; }
+
+  float get_lzmin() 
+  { return lzmin_; }
 };
 
 /**
@@ -126,12 +118,11 @@ public:
 
 void export_excitations()
 {
-  //def("call_excite", call_excite);
-  //def("call_signal_function", call_signal_function);
-    
-  class_<Excitation, ExcitationWrap>("Excitation", "Excitations applied to the FDTD grid", init<shared_ptr<Signal> >())
-    .def("excite", &ExcitationWrap::excite)
-    .def("excite", &ExcitationWrap::default_excite)
+  class_<Excitation>("Excitation", 
+                     "Excitations applied to the FDTD grid", 
+                     init<shared_ptr<Signal> >())
+    //.def("excite", &ExcitationWrap::excite)
+    //.def("excite", &ExcitationWrap::default_excite)
     .def("set_polarization", &Excitation::set_polarization)
     .def("set_type", &Excitation::set_type)
     .def("set_soft", &Excitation::set_soft)
@@ -142,18 +133,35 @@ void export_excitations()
 
   class_<WindowedExcitation, WindowedExcitationWrap, bases<Excitation>,
     boost::noncopyable>("WindowedExcitation", 
-                        "Excitations that apply a windowing function to the excitation in the FDTD grid", 
+                        "Excitations that apply a windowing function "
+                        "to the excitation in the FDTD grid", 
                         init<shared_ptr<Signal> >())
-    .def("excite", &WindowedExcitation::excite, 
-         &WindowedExcitationWrap::default_excite)
+    .def("init", &WindowedExcitation::init)
+    .def("window", pure_virtual(&WindowedExcitation::window))
+
+    .add_property("lxmin", &WindowedExcitationWrap::get_lxmin)
+    .add_property("lymin", &WindowedExcitationWrap::get_lymin)
+    .add_property("lzmin", &WindowedExcitationWrap::get_lzmin)
+
+    .add_property("xmin", &WindowedExcitationWrap::get_xmin)
+    .add_property("ymin", &WindowedExcitationWrap::get_ymin)
+    .add_property("zmin", &WindowedExcitationWrap::get_zmin)
+
+    .add_property("xmax", &WindowedExcitationWrap::get_xmax)
+    .add_property("ymax", &WindowedExcitationWrap::get_ymax)
+    .add_property("zmax", &WindowedExcitationWrap::get_zmax)
+    //.def("excite", &WindowedExcitation::excite, 
+    //     &WindowedExcitationWrap::default_excite)
     ;
 
-  class_<Signal, SignalWrap, boost::noncopyable>("Signal", "Make derived classes from this to create signal functions for excitations")
+  class_<Signal, SignalWrap, boost::noncopyable>
+    ("Signal", "Make derived classes from this to create "
+     "signal functions for excitations")
     .def("signal_function", &SignalWrap::signal_function)
     ;
-  //.def("call_sf", call_sf)
 
-  class_<Gaussm, bases<Signal> >("Gaussm", "Gaussian modulated sine function")
+  class_<Gaussm, bases<Signal> >("Gaussm", 
+                                 "Gaussian modulated sine function")
     .def("signal_function", &Gaussm::signal_function)
     .def("set_parameters", &Gaussm::set_parameters)
     .def("get_alpha", &Gaussm::get_alpha)
@@ -163,7 +171,8 @@ void export_excitations()
     .def("signal_function", &Gaussm::signal_function) // in Signal
     ;
 
-  class_<GaussPulse, bases<Signal> >("GaussPulse", "Gaussian pulse function")
+  class_<GaussPulse, bases<Signal> >("GaussPulse", 
+                                     "Gaussian pulse function")
     .def("signal_function", &GaussPulse::signal_function)
     .def("set_parameters", &GaussPulse::set_parameters)
     .def("get_alpha", &GaussPulse::get_alpha)
@@ -191,23 +200,26 @@ void export_excitations()
     .def("signal_function", &ExpSine::signal_function)
     ;
 
-  class_<BartlettExcitation, bases<WindowedExcitation> >("BartlettExcitation", "Bartlett windowed excitation; an attempt at a plane wave.", init<shared_ptr<Signal> >())
+  class_<BartlettExcitation, bases<WindowedExcitation> >
+    ("BartlettExcitation", "Bartlett windowed excitation; an "
+     "attempt at a plane wave.", 
+     init<shared_ptr<Signal> >())
     .def("excite", &BartlettExcitation::excite)
     ;
 
-  class_<WaveguideExcitation, bases<WindowedExcitation> >("WaveguideExcitation", "Waveguide excitation; you know, for those pesky waveguides!", init<shared_ptr<Signal> >())
+  class_<WaveguideExcitation, bases<WindowedExcitation> >
+    ("WaveguideExcitation", "Waveguide excitation; you know, "
+     "for those pesky waveguides!", 
+     init<shared_ptr<Signal> >())
     .def("excite", &WaveguideExcitation::excite)
     .def("set_mode", &WaveguideExcitation::set_mode)
     ;
 
-  class_<GaussWindExcitation, bases<WindowedExcitation> >("GaussWindow", "Gaussian windowed excitation; approximates a plane wave.", init<shared_ptr<Signal> >())
+  class_<GaussWindExcitation, bases<WindowedExcitation> >
+    ("GaussWindow", "Gaussian windowed excitation; approximates "
+     "a plane wave.", 
+     init<shared_ptr<Signal> >())
     .def("excite", &GaussWindExcitation::excite)
-//     .add_property("sdev_x", &GaussWindExcitation::get_sdev_x,
-//                   &GaussWindExcitation::set_sdev_x)
-//     .add_property("sdev_y", &GaussWindExcitation::get_sdev_y,
-//                   &GaussWindExcitation::set_sdev_y)
-//     .add_property("sdev_z", &GaussWindExcitation::get_sdev_z,
-//                   &GaussWindExcitation::set_sdev_z)
     ;
 
   class_<PeriodicExcitation, bases<Excitation> >

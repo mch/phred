@@ -44,6 +44,7 @@ void export_csg();
 
 BOOST_PYTHON_MODULE(Phred)
 {
+  export_grids();
   export_results();
   export_excitations();
   export_fdtd();
@@ -51,7 +52,6 @@ BOOST_PYTHON_MODULE(Phred)
   export_materials();
   export_types();
   export_datawriters();
-  export_grids();
   export_csg();
 }
 
