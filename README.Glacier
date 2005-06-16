@@ -94,4 +94,6 @@ cat $PBS_NODEFILE | ~/bin/rejigger_nodes.py > nodes.txt
 mpirun -np 2 -machinefile nodes.txt /path/to/program args > output.txt 2>&1
 ----
 
-
+It may be necessary to use the -B flag to Phred. The MPICH
+implementation use on Glacier has a bug that seems to manifest itself
+when using lots of non-blokcing communication (as Phred does). 

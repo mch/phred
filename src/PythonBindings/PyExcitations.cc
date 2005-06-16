@@ -128,6 +128,7 @@ void export_excitations()
     .def("set_soft", &Excitation::set_soft)
     .def("get_soft", &Excitation::get_soft)
     .def("set_region", &Excitation::set_region)
+    .def("get_region", &Excitation::get_region)
     .def("set_time_param", &Excitation::set_time_param)
     ;
 

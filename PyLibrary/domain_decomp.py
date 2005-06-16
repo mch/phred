@@ -18,26 +18,26 @@ np is the number of processors available
     divided = False
 
     for i in range(np):
-        if (sdx >= sdy and sdx >= sdz and (n+1)*m*p <= np):
+        if (sdx >= sdy and (n+1)*m*p <= np): # and sdx >= sdz 
             n = n + 1
             sdx = grid_size[0] / n
             divided = True
-            print "divided along x, n = %i, sdx = %f, sdy = %f, sdz = %f" \
+            print "divided along x, n = %i, sdx = %g, sdy = %g, sdz = %g" \
                   % (n, sdx, sdy, sdz)
 
-        elif (sdy >= sdx and sdy >= sdz and n*(m+1)*p <= np):
+        elif (sdy >= sdx and n*(m+1)*p <= np): # and sdy >= sdz 
             m = m + 1
             sdy = grid_size[1] / m
             divided = True
-            print "divided along y, m = %i, sdx = %f, sdy = %f, sdz = %f" \
+            print "divided along y, m = %i, sdx = %g, sdy = %g, sdz = %g" \
                   % (m, sdx, sdy, sdz)
       
-        elif (sdz >= sdx and sdz >= sdy and n*m*(p+1) <= np):
-            p = p + 1
-            sdz = grid_size[2] / p
-            divided = True
-            print "divided along z, p = %i, sdx = %f, sdy = %f, sdz = %f" \
-                  % (p, sdx, sdy, sdz)
+        #elif (sdz >= sdx and sdz >= sdy and n*m*(p+1) <= np):
+        #    p = p + 1
+        #    sdz = grid_size[2] / p
+        #    divided = True
+        #    print "divided along z, p = %i, sdx = %g, sdy = %g, sdz = %g" \
+        #          % (p, sdx, sdy, sdz)
             
         if (divided == False):
             if ((n+1)*m*p <= np):
@@ -48,9 +48,9 @@ np is the number of processors available
                 m = m + 1
                 sdy = grid_size[1] / m
 
-            elif (n*m*(p+1) <= np):
-                p = p + 1;
-                sdz = grid_size[2] / p
+            #elif (n*m*(p+1) <= np):
+            #    p = p + 1;
+            #    sdz = grid_size[2] / p
 
         divided = False
 

@@ -65,13 +65,13 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
     // as when the YZ plane must be transmitted (domain divided along X
     // axis).
     
-    if (sdx >= sdy && sdx >= sdz && (n+1)*m*p <= sz) {
+    if (sdx >= sdy && /*sdx >= sdz &&*/ (n+1)*m*p <= sz) {
       n++;
       sdx = info.global_dimx_ / n;
       divided = true;
     }
       
-    else if (sdy >= sdx && sdy >= sdz && n*(m+1)*p <= sz) {
+    else if (sdy >= sdx /*&& sdy >= sdz*/ && n*(m+1)*p <= sz) {
       m++;
       sdy = info.global_dimy_ / m;
       divided = true;

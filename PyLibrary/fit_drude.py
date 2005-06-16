@@ -2,6 +2,7 @@
 
 from Numeric import *
 from pylab import *
+import pyx
 
 H_ev = 4.13566743e-15 # eV s
 H_j = 6.6260693e-34 # J s
@@ -54,6 +55,112 @@ def plot_drude(eps_inf, wp, v, jc_data):
     legend(('JC Imag', 'Test imag'))
     show()
     
+def write_plot_gold():
+    eps_inf = 11.4577
+    wp = 9.4027 / H_ev * 2 * pi
+    v = 0.08314 / H_ev
+
+    jc_data = load_data('Johnson_Christy_gold.data')
+
+    jc_n = jc_data[:,1] + jc_data[:,2] * 1j
+    jc_eps = jc_n**2
+
+    f = jc_data[:,0] / H_ev
+    wl = C / f
+    wld = wl * 1e9
+
+    eps = drude(f * 2 * pi, eps_inf, wp, v)
+
+    g = pyx.graph.graphxy(width=12, key=pyx.graph.key.key(hdist=2),
+                          x=pyx.graph.axis.linear(min=0, max=2000,
+                                                  title='Wavelength (nm)'),
+                          y=pyx.graph.axis.linear(min=-200, max=10,
+                                                  title='Real permittivity'),
+                          y2=pyx.graph.axis.linear(min=0, max=30,
+                                                   title='Imaginary permittivity'))
+
+    data_real1 = transpose(array((wld, jc_eps.real)))
+    data_real2 = transpose(array((wld, eps.real)))
+    data_imag1 = transpose(array((wld, jc_eps.imag)))
+    data_imag2 = transpose(array((wld, eps.imag)))
+    
+    g.plot(pyx.graph.data.list(data_real1.tolist(), x=1, y=2,
+                               title='J \& C $\Re\{\epsilon\}$'),
+           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+                                  pyx.style.linestyle.dashed,
+                                  pyx.color.rgb.blue])])
+    g.plot(pyx.graph.data.list(data_real2.tolist(), x=1, y=2,
+                               title='Drude $\Re\{\epsilon\}$'),
+           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+                                  pyx.style.linestyle.solid,
+                                  pyx.color.rgb.blue])])
+
+    g.plot(pyx.graph.data.list(data_imag1.tolist(), x=1, y2=2,
+                               title='J \& C $\Im\{\epsilon\}$'),
+           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+                                  pyx.style.linestyle.dashed,
+                                  pyx.color.rgb.green])])
+    g.plot(pyx.graph.data.list(data_imag2.tolist(), x=1, y2=2,
+                               title='Drude $\Im\{\epsilon\}$'),
+           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+                                  pyx.style.linestyle.solid,
+                                  pyx.color.rgb.green])])    
+    
+    g.writeEPSfile("gold_permittivity.eps") 
+
+def write_plot_silver():
+    eps_inf = 1
+    wp = 2.17e15*2*pi
+    v = 32.258e12
+
+    jc_data = load_data('Johnson_Christy_silver.data')
+
+    jc_n = jc_data[:,1] + jc_data[:,2] * 1j
+    jc_eps = jc_n**2
+
+    f = jc_data[:,0] / H_ev
+    wl = C / f
+    wld = wl * 1e9
+
+    eps = drude(f * 2 * pi, eps_inf, wp, v)
+
+    g = pyx.graph.graphxy(width=12, key=pyx.graph.key.key(hdist=2),
+                          x=pyx.graph.axis.linear(min=0, max=2000,
+                                                  title='Wavelength (nm)'),
+                          y=pyx.graph.axis.linear(min=-200, max=10,
+                                                  title='Real permittivity'),
+                          y2=pyx.graph.axis.linear(min=0, max=7,
+                                                   title='Imaginary permittivity'))
+
+    data_real1 = transpose(array((wld, jc_eps.real)))
+    data_real2 = transpose(array((wld, eps.real)))
+    data_imag1 = transpose(array((wld, jc_eps.imag)))
+    data_imag2 = transpose(array((wld, eps.imag)))
+    
+    g.plot(pyx.graph.data.list(data_real1.tolist(), x=1, y=2,
+                               title='J \& C $\Re\{\epsilon\}$'),
+           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+                                  pyx.style.linestyle.dashed,
+                                  pyx.color.rgb.blue])])
+    g.plot(pyx.graph.data.list(data_real2.tolist(), x=1, y=2,
+                               title='Drude $\Re\{\epsilon\}$'),
+           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+                                  pyx.style.linestyle.solid,
+                                  pyx.color.rgb.blue])])
+
+    g.plot(pyx.graph.data.list(data_imag1.tolist(), x=1, y2=2,
+                               title='J \& C $\Im\{\epsilon\}$'),
+           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+                                  pyx.style.linestyle.dashed,
+                                  pyx.color.rgb.green])])
+    g.plot(pyx.graph.data.list(data_imag2.tolist(), x=1, y2=2,
+                               title='Drude $\Im\{\epsilon\}$'),
+           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+                                  pyx.style.linestyle.solid,
+                                  pyx.color.rgb.green])])    
+    
+    g.writeEPSfile("silver_permittivity.eps") 
+
 
 def gold():
     eps_inf = 11.4577
@@ -69,10 +176,15 @@ def silver():
     wp = 2.17e15*2*pi
     v = 32.258e12
 
-    jc_ag = load_data('Johnson_Christy_silver.data')
+    print "Silver plasma freq: %g eV" % (wp / (2 * pi) * H_ev)
+    print "Silver collision frequency: %g eV" % (v * H_ev)
 
+    jc_ag = load_data('Johnson_Christy_silver.data')
+    
     plot_drude(eps_inf, wp, v, jc_ag)
     
-    
 if (__name__ == "__main__"):
-    gold()
+    
+    
+    write_plot_gold()
+    write_plot_silver()
