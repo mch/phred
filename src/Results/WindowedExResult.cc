@@ -47,6 +47,7 @@ void WindowedExResult::init(const Grid &grid)
   var_.set_ptr(wnd_);
   var_.set_num(sz);
   //var_.set_element_type(MPI_FLOAT);
+  var_.set_name(base_name_);
 }
 
 void WindowedExResult::deinit()
