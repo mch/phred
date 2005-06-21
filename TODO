@@ -2,12 +2,25 @@ TODO LIST FOR PHRED
 -------------------
 
 * Ideas
+
 - The subdomaining interface should change so that a function is
   called to decide the number of divisions along each axis, while a
   different function handles breaking up the domain and assigning
   boundary conditions etc. 
+  
+  New functions:
+   - assign_cpus: Assign N cpus along x,y,z axis so that N = n*m*p
+   - decomp_domain: For a grid (gx,gy,gz), returns a list of subdomain
+     sizes along each axis. 
 
-- FDTD needs some cleaning
+- Add some library paths to where to look for Python modules. Like
+  ~/.phred_fdtd/lib, $install_dir/lib, $PHRED_PYTHON_LIB. 
+
+- Add something to look at the field intensity within the domain every
+  so often, and abort the time stepping loop if all components are
+  below a certain threshold. 
+
+- FDTD needs some cleaning and refactoring
 
 - The domain decomp algorithm should be able to take a set of 
   (N, M, P) used to indicate the number of cpus along each dimension
@@ -21,9 +34,9 @@ TODO LIST FOR PHRED
 
 
 
-* Immdiate bugs
+* Immediate bugs
 
-
+- UPML buggers up when the domain is decomposed along the z axis. 
 
 ----------------------------------------------------------------------
 
