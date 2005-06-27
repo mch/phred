@@ -179,38 +179,46 @@ void GridInfo::reorder_boundaries()
   }
 
 #ifdef DEBUG
-  cout << "Boundary condition order: \n\t";
+  to_string(cout);
+#endif
+}
+
+
+ostream& GridInfo::to_string(ostream &os) const
+{
+  os << "Boundary condition application order: \n\t";
   for (int i = 0; i < 6; i++)
   {
-    cout << face_string(bc_order_[i]) << " [";
+    os << face_string(bc_order_[i]) << " [";
 
     BoundaryCondition t = face_bc_[bc_order_[i]].get()->get_type();
     switch (t)
     {
     case UNKNOWN:
-      cout << "unknown";
+      os << "unknown";
       break;
     case SUBDOMAIN:
-      cout << "subdomain";
+      os << "subdomain";
       break;
     case EWALL:
-      cout << "ewall";
+      os << "ewall";
       break;
     case HWALL:
-      cout << "hwall";
+      os << "hwall";
       break;
     case PML:
-      cout << "pml";
+      os << "pml";
       break;
     case UPML:
-      cout << "upml";
+      os << "upml";
       break;
     case PERIODIC:
-      cout << "periodic";
+      os << "periodic";
       break;
     }
-    cout << "]\n\t";
+    os << "]\n\t";
   }
-  cout << endl;
-#endif
+  os << endl;
+
+  return os;
 }

@@ -234,6 +234,12 @@ public:
    */
   void apply_boundaries(Grid &grid, FieldType type);
 
+  /**
+   * Writes some cool info about the boundary conditions to the given
+   * stream.
+   */ 
+  ostream& to_string(ostream &os) const;
+
 };
 
 #endif // GRID_INFO_H

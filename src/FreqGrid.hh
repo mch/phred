@@ -85,6 +85,11 @@ protected:
   field_t *debyeA_, *debyeB_, *debyeC_;
 
   /**
+   * True when all of mtype_ is DRUDE. 
+   */ 
+  bool all_drude_;
+
+  /**
    * Free the memory allocated for the grid. Calls Grid::free_grid(),
    * but also frees the memory allocated to keep track of the sums. 
    */ 
@@ -104,6 +109,24 @@ protected:
    * Compute the update equatations for the Ez field component. 
    */
   virtual void update_ez(region_t update_r);
+
+  /**
+   * Compute the update equatations for the Ex field component, when
+   * only Drude material or normal dielectrics are present.
+   */
+  virtual void drude_update_ex(region_t update_r);
+
+  /**
+   * Compute the update equatations for the Ey field component, when
+   * only Drude material or normal dielectrics are present.
+   */
+  virtual void drude_update_ey(region_t update_r);
+
+  /**
+   * Compute the update equatations for the Ez field component, when
+   * only Drude material or normal dielectrics are present.
+   */
+  virtual void drude_update_ez(region_t update_r);
 
   /**
    * This is called by set_define_mode(true), and it should add any

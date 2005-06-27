@@ -119,10 +119,11 @@ void Grid::set_define_mode(bool d)
     if (get_deltat() > 1/temp)
       throw StabilityException();
     
-    alloc_grid();
+    if (!setup_only)
+      alloc_grid();
 
     // Set up the grid geometry. 
-    if (pg_)
+    if (!setup_only && pg_)
     {
       info_.default_mat_ = pg_->get_grid_material_id();
 
@@ -819,6 +820,9 @@ void Grid::setup_grid(const GridInfo &info)
 // Straight out of Taflove.
 void Grid::update_e_field()
 {
+  if (setup_only)
+    return;
+
   if (define_)
   {
     cerr << "Unable to update fields; the grid is in define mode." << endl;
@@ -832,6 +836,9 @@ void Grid::update_e_field()
 
 void Grid::update_h_field()
 {
+  if (setup_only)
+    return;
+
   if (define_)
   {
     cerr << "Unable to update fields; the grid is in define mode." << endl;
@@ -1104,7 +1111,8 @@ void Grid::apply_boundaries(FieldType type)
     return;
   }
 
-  info_.apply_boundaries(*this, type);
+  if (!setup_only)
+    info_.apply_boundaries(*this, type);
 }
 
 field_t *Grid::get_face_start(Face face, FieldComponent comp,

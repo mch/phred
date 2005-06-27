@@ -285,7 +285,12 @@ void FDTD::run()
     }
 
   if (!quiet)
+  {
+    // It's nice to know what's going on
+    grid_->get_grid_info().to_string(cout);
+
     cout << "Initializing grid..." << endl;
+  }
 
   grid_->setup_grid(local_ginfo_);
 
@@ -406,28 +411,26 @@ void FDTD::run()
   // trouble with a data writer or something. 
   MPI_Barrier(MPI_COMM_PHRED);
 
-  // Run
-  unsigned int ts = 0;
-
-  // Do data output for results that do that first thing, like GridResult
-  vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
-  vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();
-
-  while (iter != iter_e)
-  {
-    riter = results_.find((*iter).first);
-    dwiter = datawriters_.find((*iter).second);      
-    
-    if (riter != riter_e && dwiter != dwiter_e)
-      (*dwiter).second->handle_data(0, 
-                                    (*riter).second->get_pre_result(*grid_));
-    
-    
-    ++iter;
-  }
-
   if (!setup_only)
   {
+    // Run
+    unsigned int ts = 0;
+    
+    // Do data output for results that do that first thing, like GridResult
+    vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
+    vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();
+    
+    while (iter != iter_e)
+    {
+      riter = results_.find((*iter).first);
+      dwiter = datawriters_.find((*iter).second);      
+    
+      if (riter != riter_e && dwiter != dwiter_e)
+        (*dwiter).second->handle_data(0, 
+                                      (*riter).second->get_pre_result(*grid_));
+      ++iter;
+    }
+
     cout << "\nStarting FDTD time stepping, running for " 
          << time_steps_ << " time steps..." << endl;
 

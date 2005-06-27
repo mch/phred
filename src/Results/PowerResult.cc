@@ -147,7 +147,7 @@ void PowerResult::init(const Grid &grid)
                           frequencies_.length(), 0);
   power_var_.add_dimension("Power", 1, 1, 0);
   
-  if (has_data_)
+  if (!setup_only && has_data_)
   {
     /* GRR, ARGH! */
     unsigned int sz = frequencies_.length() * x_size_ * y_size_ * z_size_;

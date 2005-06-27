@@ -242,33 +242,31 @@ void MetaFDTD::run()
   // trouble with a data writer or something. 
   MPI_Barrier(MPI_COMM_PHRED);
 
-  // Run
-  unsigned int ts = 0;
-
-  // Do data output for results that do that first thing, like GridResult
-  vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
-  vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();
-
-  while (iter != iter_e)
-  {
-    riter = results_.find((*iter).first);
-    dwiter = datawriters_.find((*iter).second);      
-    
-    if (riter != riter_e && dwiter != dwiter_e)
-      (*dwiter).second->handle_data(0, 
-                                    (*riter).second->get_pre_result(*grid_));
-    
-    
-    ++iter;
-  }
-
-  // Set up the GridUpdate stuff
-  GridUpdateData gud(*grid_);
-
-  compute_update_regions();
-
   if (!setup_only)
   {
+    // Run
+    unsigned int ts = 0;
+    
+    // Do data output for results that do that first thing, like GridResult
+    vector< pair<string, string> >::iterator iter = r_dw_map_.begin();
+    vector< pair<string, string> >::iterator iter_e = r_dw_map_.end();
+    
+    while (iter != iter_e)
+    {
+      riter = results_.find((*iter).first);
+      dwiter = datawriters_.find((*iter).second);      
+      
+      if (riter != riter_e && dwiter != dwiter_e)
+        (*dwiter).second->handle_data(0, 
+                                      (*riter).second->get_pre_result(*grid_));
+      ++iter;
+    }
+    
+    // Set up the GridUpdate stuff
+    GridUpdateData gud(*grid_);
+    
+    compute_update_regions();
+    
     cout << "\nStarting FDTD time stepping, running for " 
          << time_steps_ << " time steps..." << endl;
 

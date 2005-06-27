@@ -131,7 +131,7 @@ void AvgPowerResult::init(const Grid &grid)
   freq_var_.add_dimension("Frequency", frequencies_.length(), 
                           frequencies_.length(), 0);
   
-  if (has_data_)
+  if (!setup_only && has_data_)
   {
     cos_temp_ = new field_t[frequencies_.length()];
     sin_temp_ = new field_t[frequencies_.length()];

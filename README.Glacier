@@ -96,4 +96,11 @@ mpirun -np 2 -machinefile nodes.txt /path/to/program args > output.txt 2>&1
 
 It may be necessary to use the -B flag to Phred. The MPICH
 implementation use on Glacier has a bug that seems to manifest itself
-when using lots of non-blokcing communication (as Phred does). 
+when using lots of non-blocking communication (as Phred does). 
+
+
+** IMPORTANT **
+Clean up output files before re-running jobs. None of the files Phred
+writes to should exist before it is run. It may also be a good idea to
+get rid of the output of rejigger_nodes.py, any PI* files, and any
+*.{e,o}* files that exist before restarting things. 

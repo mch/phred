@@ -26,6 +26,7 @@
 
 #include "../config.h"
 #include "../Types.hh"
+#include "../Globals.hh"
 
 /** TEMP **/
 /*#undef USE_OPENMP*/
@@ -254,14 +255,24 @@ void UPml::init(const Grid &grid, Face face)
     * (grid_r_.ymax - grid_r_.ymin + 1) 
     * (grid_r_.zmax - grid_r_.zmin + 1);
   
-  // new gleefully throws exceptions on low memory.
-  dx_ = new field_t[sz];
-  dy_ = new field_t[sz];
-  dz_ = new field_t[sz];
+  if (!setup_only)
+  {
+    // new gleefully throws exceptions on low memory.
+    dx_ = new field_t[sz];
+    dy_ = new field_t[sz];
+    dz_ = new field_t[sz];
+    
+    bx_ = new field_t[sz];
+    by_ = new field_t[sz];
+    bz_ = new field_t[sz];
 
-  bx_ = new field_t[sz];
-  by_ = new field_t[sz];
-  bz_ = new field_t[sz];
+    memset(dx_, 0, sizeof(field_t) * sz);
+    memset(dy_, 0, sizeof(field_t) * sz);
+    memset(dz_, 0, sizeof(field_t) * sz);
+    memset(bx_, 0, sizeof(field_t) * sz);
+    memset(by_, 0, sizeof(field_t) * sz);
+    memset(bz_, 0, sizeof(field_t) * sz);
+  }
 
 #ifdef DEBUG
   cout << "UPml::init(). sz = " << sz << " field_t's. \ndx_ = " 
@@ -271,13 +282,6 @@ void UPml::init(const Grid &grid, Face face)
        << bx_ << " -> " << bx_ + sz << "\nby_ = " << by_ << " -> " 
        << by_ + sz << "\nbz_ = " << bz_ << " -> " << bz_ + sz << endl;
 #endif 
-
-  memset(dx_, 0, sizeof(field_t) * sz);
-  memset(dy_, 0, sizeof(field_t) * sz);
-  memset(dz_, 0, sizeof(field_t) * sz);
-  memset(bx_, 0, sizeof(field_t) * sz);
-  memset(by_, 0, sizeof(field_t) * sz);
-  memset(bz_, 0, sizeof(field_t) * sz);
 
   shared_ptr<MaterialLib> mlib = grid.get_material_lib();
   map<string, Material>::const_iterator iter 
@@ -303,35 +307,37 @@ void UPml::init(const Grid &grid, Face face)
     ++iter;
   }
 
-  if (need_lossy || need_drude || need_debye)
+  if (!setup_only)
   {
-    aux1_x_ = new field_t[sz];
-    aux1_y_ = new field_t[sz];
-    aux1_z_ = new field_t[sz];
+    if (need_lossy || need_drude || need_debye)
+    {
+      aux1_x_ = new field_t[sz];
+      aux1_y_ = new field_t[sz];
+      aux1_z_ = new field_t[sz];
     
-    memset(aux1_x_, 0, sizeof(field_t) * sz);
-    memset(aux1_y_, 0, sizeof(field_t) * sz);
-    memset(aux1_z_, 0, sizeof(field_t) * sz);
-  }
+      memset(aux1_x_, 0, sizeof(field_t) * sz);
+      memset(aux1_y_, 0, sizeof(field_t) * sz);
+      memset(aux1_z_, 0, sizeof(field_t) * sz);
+    }
 
-  if (need_drude)
-  {
-    aux2_x_ = new field_t[sz];
-    aux2_y_ = new field_t[sz];
-    aux2_z_ = new field_t[sz];
+    if (need_drude)
+    {
+      aux2_x_ = new field_t[sz];
+      aux2_y_ = new field_t[sz];
+      aux2_z_ = new field_t[sz];
     
-    memset(aux2_x_, 0, sizeof(field_t) * sz);
-    memset(aux2_y_, 0, sizeof(field_t) * sz);
-    memset(aux2_z_, 0, sizeof(field_t) * sz);
+      memset(aux2_x_, 0, sizeof(field_t) * sz);
+      memset(aux2_y_, 0, sizeof(field_t) * sz);
+      memset(aux2_z_, 0, sizeof(field_t) * sz);
 
-    aux3_x_ = new field_t[sz];
-    aux3_y_ = new field_t[sz];
-    aux3_z_ = new field_t[sz];
+      aux3_x_ = new field_t[sz];
+      aux3_y_ = new field_t[sz];
+      aux3_z_ = new field_t[sz];
     
-    memset(aux3_x_, 0, sizeof(field_t) * sz);
-    memset(aux3_y_, 0, sizeof(field_t) * sz);
-    memset(aux3_z_, 0, sizeof(field_t) * sz);
-
+      memset(aux3_x_, 0, sizeof(field_t) * sz);
+      memset(aux3_y_, 0, sizeof(field_t) * sz);
+      memset(aux3_z_, 0, sizeof(field_t) * sz);
+    }
   }
 
 #ifdef DEBUG

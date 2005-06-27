@@ -24,6 +24,7 @@
 #include "../Exceptions.hh"
 #include "../Constants.hh"
 #include "../config.h"
+#include "../Globals.hh"
 
 /** TEMP **/
 /* #undef USE_OPENMP */
@@ -138,47 +139,49 @@ void Pml::alloc_pml_fields(Face face, const Grid &grid)
   unsigned int sz = (grid_r_.xmax - grid_r_.xmin) 
     * (grid_r_.ymax - grid_r_.ymin) * (grid_r_.zmax - grid_r_.zmin);
   
-  exy_ = new field_t[sz];
-  exz_ = new field_t[sz];
-
-  eyx_ = new field_t[sz];
-  eyz_ = new field_t[sz];
-
-  ezx_ = new field_t[sz];
-  ezy_ = new field_t[sz];
-
-  hxy_ = new field_t[sz];
-  hxz_ = new field_t[sz];
-
-  hyx_ = new field_t[sz];
-  hyz_ = new field_t[sz];
-
-  hzx_ = new field_t[sz];
-  hzy_ = new field_t[sz];
-  
-  if (exy_ && exz_ && eyx_ && eyz_ && ezx_ && ezy_
-      && exy_ && exz_ && eyx_ && eyz_ && ezx_ && ezy_)
+  if (!setup_only)
   {
-    alloced_ = true;
-  } else {
-    free_pml_fields();
-    throw MemoryException(); // Insufficent memory
+    exy_ = new field_t[sz];
+    exz_ = new field_t[sz];
+
+    eyx_ = new field_t[sz];
+    eyz_ = new field_t[sz];
+
+    ezx_ = new field_t[sz];
+    ezy_ = new field_t[sz];
+
+    hxy_ = new field_t[sz];
+    hxz_ = new field_t[sz];
+
+    hyx_ = new field_t[sz];
+    hyz_ = new field_t[sz];
+
+    hzx_ = new field_t[sz];
+    hzy_ = new field_t[sz];
+  
+    if (exy_ && exz_ && eyx_ && eyz_ && ezx_ && ezy_
+        && exy_ && exz_ && eyx_ && eyz_ && ezx_ && ezy_)
+    {
+      alloced_ = true;
+    } else {
+      free_pml_fields();
+      throw MemoryException(); // Insufficent memory
+    }
+
+    memset(exy_, 0, sizeof(field_t) * sz);  
+    memset(exz_, 0, sizeof(field_t) * sz);  
+    memset(eyx_, 0, sizeof(field_t) * sz);  
+    memset(eyz_, 0, sizeof(field_t) * sz);  
+    memset(ezx_, 0, sizeof(field_t) * sz);  
+    memset(ezy_, 0, sizeof(field_t) * sz);  
+
+    memset(hxy_, 0, sizeof(field_t) * sz);  
+    memset(hxz_, 0, sizeof(field_t) * sz);  
+    memset(hyx_, 0, sizeof(field_t) * sz);  
+    memset(hyz_, 0, sizeof(field_t) * sz);  
+    memset(hzx_, 0, sizeof(field_t) * sz);  
+    memset(hzy_, 0, sizeof(field_t) * sz);  
   }
-
-  memset(exy_, 0, sizeof(field_t) * sz);  
-  memset(exz_, 0, sizeof(field_t) * sz);  
-  memset(eyx_, 0, sizeof(field_t) * sz);  
-  memset(eyz_, 0, sizeof(field_t) * sz);  
-  memset(ezx_, 0, sizeof(field_t) * sz);  
-  memset(ezy_, 0, sizeof(field_t) * sz);  
-
-  memset(hxy_, 0, sizeof(field_t) * sz);  
-  memset(hxz_, 0, sizeof(field_t) * sz);  
-  memset(hyx_, 0, sizeof(field_t) * sz);  
-  memset(hyz_, 0, sizeof(field_t) * sz);  
-  memset(hzx_, 0, sizeof(field_t) * sz);  
-  memset(hzy_, 0, sizeof(field_t) * sz);  
-
 }
 
 void Pml::init(const Grid &grid, Face face)
