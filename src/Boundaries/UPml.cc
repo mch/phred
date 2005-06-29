@@ -557,28 +557,29 @@ void UPml::update_ex(Grid &grid)
           mid = grid.material_[grid_idx];
 
           // Update equations go here!
-          if (common_->mtype(mid) == PERF_COND) {
-            *ex = *ex; 
-          } 
-          else if (common_->mtype(mid) == LOSSY) 
-          {
-            field_t q_temp;
-            q_temp = aux1_x_[pml_idx] * common_->lossy_A(mid)
-              + common_->lossy_B(mid) 
-              * ( idy*(*hz1 - *hz2) - idz*(*hy - *(hy - 1)) );
+//           if (common_->mtype(mid) == PERF_COND) {
+//             *ex = *ex; 
+//           } 
+//           else if (common_->mtype(mid) == LOSSY) 
+//           {
+//             field_t q_temp;
+//             q_temp = aux1_x_[pml_idx] * common_->lossy_A(mid)
+//               + common_->lossy_B(mid) 
+//               * ( idy*(*hz1 - *hz2) - idz*(*hy - *(hy - 1)) );
 
-            d_temp = common_->Ay(jt) * *dx
-              + idt * common_->By(jt) * (q_temp - aux1_x_[pml_idx]);
+//             d_temp = common_->Ay(jt) * *dx
+//               + idt * common_->By(jt) * (q_temp - aux1_x_[pml_idx]);
 
-            aux1_x_[pml_idx] = q_temp;
+//             aux1_x_[pml_idx] = q_temp;
 
-            *ex = *ex * common_->Az(kt) 
-              + common_->Bz(kt) * common_->er(mid) 
-              * (d_temp * common_->Cx(it) - *dx * common_->Dx(it));
+//             *ex = *ex * common_->Az(kt) 
+//               + common_->Bz(kt) * common_->er(mid) 
+//               * (d_temp * common_->Cx(it) - *dx * common_->Dx(it));
             
-            *dx = d_temp;
-          } 
-          else if (common_->mtype(mid) == DRUDE) 
+//             *dx = d_temp;
+//           } 
+//           else 
+          if (common_->mtype(mid) == DRUDE) 
           {
             // Unmagnatized plasma update
 
@@ -752,28 +753,29 @@ void UPml::update_ey(Grid &grid)
           mid = grid.material_[grid_idx];
 
           // Update equations go here!
-          if (common_->mtype(mid) == PERF_COND) {
-            *ey = *ey;
-          } 
-          else if (common_->mtype(mid) == LOSSY) 
-          {
-            field_t q_temp;
-            q_temp = aux1_y_[pml_idx] * common_->lossy_A(mid)
-              + common_->lossy_B(mid) 
-              * ( idz*(*hx - *(hx-1)) - idx*(*hz2 - *hz1));
+          // if (common_->mtype(mid) == PERF_COND) {
+//             *ey = *ey;
+//           } 
+//           else if (common_->mtype(mid) == LOSSY) 
+//           {
+//             field_t q_temp;
+//             q_temp = aux1_y_[pml_idx] * common_->lossy_A(mid)
+//               + common_->lossy_B(mid) 
+//               * ( idz*(*hx - *(hx-1)) - idx*(*hz2 - *hz1));
 
-            d_temp = common_->Az(kt) * *dy
-              + idt * common_->Bz(kt) * (q_temp - aux1_y_[pml_idx]);
+//             d_temp = common_->Az(kt) * *dy
+//               + idt * common_->Bz(kt) * (q_temp - aux1_y_[pml_idx]);
 
-            aux1_y_[pml_idx] = q_temp;
+//             aux1_y_[pml_idx] = q_temp;
 
-            *ey = *ey * common_->Ax(it) 
-              + common_->Bx(it) * common_->er(mid)
-              * ( d_temp * common_->Cy(jt) - *dy * common_->Dy(jt) );
+//             *ey = *ey * common_->Ax(it) 
+//               + common_->Bx(it) * common_->er(mid)
+//               * ( d_temp * common_->Cy(jt) - *dy * common_->Dy(jt) );
             
-            *dy = d_temp;
-          } 
-          else if (common_->mtype(mid) == DRUDE) 
+//             *dy = d_temp;
+//           } 
+//           else 
+          if (common_->mtype(mid) == DRUDE) 
           {
             // Unmagnatized plasma update
 
@@ -948,28 +950,29 @@ void UPml::update_ez(Grid &grid)
           mid = grid.material_[grid_idx];
           
           // Update equations go here!
-          if (common_->mtype(mid) == PERF_COND) {
-            *ez = *ez;
-          } 
-          else if (common_->mtype(mid) == LOSSY) 
-          {
-            field_t q_temp;
-            q_temp = aux1_z_[pml_idx] * common_->lossy_A(mid)
-              + common_->lossy_B(mid) 
-              * ( idx*(*hy1 - *hy2) - idy*(*hx2 - *hx1) );
+          // if (common_->mtype(mid) == PERF_COND) {
+//             *ez = *ez;
+//           } 
+//           else if (common_->mtype(mid) == LOSSY) 
+//           {
+//             field_t q_temp;
+//             q_temp = aux1_z_[pml_idx] * common_->lossy_A(mid)
+//               + common_->lossy_B(mid) 
+//               * ( idx*(*hy1 - *hy2) - idy*(*hx2 - *hx1) );
 
-            d_temp = common_->Ax(it) * *dz
-              + idt * common_->Bx(it) * (q_temp - aux1_z_[pml_idx]);
+//             d_temp = common_->Ax(it) * *dz
+//               + idt * common_->Bx(it) * (q_temp - aux1_z_[pml_idx]);
 
-            aux1_z_[pml_idx] = q_temp;
+//             aux1_z_[pml_idx] = q_temp;
 
-            *ez = *ez * common_->Ay(jt)
-              + common_->By(jt) * common_->er(mid) 
-              * (d_temp * common_->Cz(kt) - *dz * common_->Dz(kt));
+//             *ez = *ez * common_->Ay(jt)
+//               + common_->By(jt) * common_->er(mid) 
+//               * (d_temp * common_->Cz(kt) - *dz * common_->Dz(kt));
 
-            *dz = d_temp;
-          } 
-          else if (common_->mtype(mid) == DRUDE) 
+//             *dz = d_temp;
+//           } 
+//           else 
+          if (common_->mtype(mid) == DRUDE) 
           {
             // Unmagnatized plasma update
 

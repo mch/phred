@@ -71,12 +71,12 @@ def write_plot_gold():
 
     eps = drude(f * 2 * pi, eps_inf, wp, v)
 
-    g = pyx.graph.graphxy(width=12, key=pyx.graph.key.key(hdist=2),
-                          x=pyx.graph.axis.linear(min=0, max=2000,
+    g = pyx.graph.graphxy(width=12, key=pyx.graph.key.key(), #hdist=2),
+                          x=pyx.graph.axis.linear(min=300, max=1000,
                                                   title='Wavelength (nm)'),
-                          y=pyx.graph.axis.linear(min=-200, max=10,
+                          y=pyx.graph.axis.linear(min=-50, max=10,
                                                   title='Real permittivity'),
-                          y2=pyx.graph.axis.linear(min=0, max=30,
+                          y2=pyx.graph.axis.linear(min=-1, max=8,
                                                    title='Imaginary permittivity'))
 
     data_real1 = transpose(array((wld, jc_eps.real)))
@@ -109,7 +109,7 @@ def write_plot_gold():
     g.writeEPSfile("gold_permittivity.eps") 
 
 def write_plot_silver():
-    eps_inf = 1
+    eps_inf = 4.15
     wp = 2.17e15*2*pi
     v = 32.258e12
 
@@ -124,12 +124,12 @@ def write_plot_silver():
 
     eps = drude(f * 2 * pi, eps_inf, wp, v)
 
-    g = pyx.graph.graphxy(width=12, key=pyx.graph.key.key(hdist=2),
-                          x=pyx.graph.axis.linear(min=0, max=2000,
+    g = pyx.graph.graphxy(width=12, key=pyx.graph.key.key(), #hdist=2),
+                          x=pyx.graph.axis.linear(min=300, max=1000, #min=0, max=2000,
                                                   title='Wavelength (nm)'),
-                          y=pyx.graph.axis.linear(min=-200, max=10,
+                          y=pyx.graph.axis.linear(min=-60, max=10,
                                                   title='Real permittivity'),
-                          y2=pyx.graph.axis.linear(min=0, max=7,
+                          y2=pyx.graph.axis.linear(min=-1, max=3,
                                                    title='Imaginary permittivity'))
 
     data_real1 = transpose(array((wld, jc_eps.real)))
