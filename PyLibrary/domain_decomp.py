@@ -1,6 +1,8 @@
 # This is a test program for my domain decomposition algorithm as
 # implemented in MPISubdomain.cc.
 
+import sys
+
 def decomp(grid_size, np):
     """Performs domain decomposition,
 
@@ -59,3 +61,11 @@ np is the number of processors available
     print " -> %i, %i, %i" % (n, m, p)
 
     return (n, m, p)
+
+if (__name__ == "__main__"):
+    gx = int(sys.argv[1])
+    gy = int(sys.argv[2])
+    gz = int(sys.argv[3])
+    np = int(sys.argv[4])
+
+    decomp((gx, gy, gz), np)

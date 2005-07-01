@@ -140,6 +140,26 @@ const char *program_name;
 bool interactive, estimate_memory, quiet, extra_quiet_g, blocking_g;
 bool test_run, setup_only;
 int MPI_RANK, MPI_SIZE, argi_g;
+
+// This is used to indicate that a sigterm has been recieved, at which
+// point we must drop everything and quickly write post-processing
+// results.
+bool sigterm_g; 
+
+/* Signal handling, to catch SIGTERM, so there is a chance of writing
+   out partial results. */
+#include <signal.h>
+
+static void sig_handler(int signo)
+{
+  if (signo == SIGTERM)
+  {
+    cout << "Recieved SIGTERM" << endl;
+    sigterm_g = true;
+  }
+}
+
+
 //MPI_Errhandler MPI_ERROR_HANDLER;
 
 /* Set all the option flags according to the switches specified.
@@ -294,6 +314,10 @@ int main (int argc, char **argv)
   // Install a handler for low memory conditions. 
   std::set_new_handler(no_memory);
 
+  // Install a signal handler for SIGTERM
+  if (signal(SIGTERM, sig_handler) == SIG_ERR)
+    cout << "WARNING: Unable to install SIGTERM handler." << endl;
+
   start=time(NULL);
 
   string prog_name;
@@ -327,11 +351,12 @@ int main (int argc, char **argv)
   } 
   // else { // rank 0 passes appropriate args
   
-  cout << PACKAGE_NAME << " version " << PACKAGE_VERSION 
-       << ", Copyright (C) 2004-2005 Matt Hughes <mch@ieee.org>\n"
-       << PACKAGE_NAME << " comes with ABSOLUTELY NO WARRANTY.\n"
-       << "This is free software, and you are welcome to redistribute it\n"
-       << "under certian conditions. See the COPYING file for details.\n";
+  if (MPI_RANK == 0 || !quiet)
+    cout << PACKAGE_NAME << " version " << PACKAGE_VERSION 
+         << ", Copyright (C) 2004-2005 Matt Hughes <mch@ieee.org>\n"
+         << PACKAGE_NAME << " comes with ABSOLUTELY NO WARRANTY.\n"
+         << "This is free software, and you are welcome to redistribute it\n"
+         << "under certian conditions. See the COPYING file for details.\n";
 
   if (interactive)
   {
@@ -339,29 +364,30 @@ int main (int argc, char **argv)
          << "For redistribution conditions type `print conditions'.\n";
   }
 
-  cout << "\nMPI information: \nThis process is rank number " << MPI_RANK
-       << ".\nThere are a total of " << MPI_SIZE
-       << " processes in this group." << endl;
+  if (MPI_RANK == 0 || !quiet)
+  {
+    cout << "\nMPI information: \nThis process is rank number " << MPI_RANK
+         << ".\nThere are a total of " << MPI_SIZE
+         << " processes in this group." << endl;
 
 #ifdef USE_OPENMP
-  int max_threads = omp_get_max_threads();
-  omp_set_num_threads(max_threads);
+    int max_threads = omp_get_max_threads();
+    omp_set_num_threads(max_threads);
 
-  cout << "\nOpenMP information: \nNumber of threads in team: " 
-       << omp_get_num_threads()
-       << "\nMaximum number of threads in team: " << max_threads
-       << "\nNumber of processors: " << omp_get_num_procs()
-       << "\nCurrent thread number: " << omp_get_thread_num()
-       << "\nDynamic thread adjustment? " 
-       << (omp_get_dynamic() ? "yes" : "no")
-       << "\nIn parallel? "
-       << (omp_in_parallel() ? "yes" : "no")
-       << "\nNested parallism? "
-       << (omp_get_nested() ? "yes" : "no")
-       << "\n" << endl << endl;
+    cout << "\nOpenMP information: \nNumber of threads in team: " 
+         << omp_get_num_threads()
+         << "\nMaximum number of threads in team: " << max_threads
+         << "\nNumber of processors: " << omp_get_num_procs()
+         << "\nCurrent thread number: " << omp_get_thread_num()
+         << "\nDynamic thread adjustment? " 
+         << (omp_get_dynamic() ? "yes" : "no")
+         << "\nIn parallel? "
+         << (omp_in_parallel() ? "yes" : "no")
+         << "\nNested parallism? "
+         << (omp_get_nested() ? "yes" : "no")
+         << "\n" << endl << endl;
 #endif
-	
-
+  }
 
   // Parse the input script (each process will just load it's own file
   // for now. ) 

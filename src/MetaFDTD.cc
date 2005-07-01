@@ -267,8 +267,9 @@ void MetaFDTD::run()
     
     compute_update_regions();
     
-    cout << "\nStarting FDTD time stepping, running for " 
-         << time_steps_ << " time steps..." << endl;
+    if (MPI_RANK == 0)
+      cout << "\nStarting FDTD time stepping, running for " 
+           << time_steps_ << " time steps..." << endl;
 
     // For optionally tracking millions of nodes per second. 
     time_t start = time(NULL);
@@ -302,6 +303,10 @@ void MetaFDTD::run()
 
       update_h(gud);
 
+      if (sigterm_g) {
+        break;
+      }
+
       // Excitations
       h_eiter = h_eiter_b;
       while (h_eiter != h_eiter_e)
@@ -315,6 +320,10 @@ void MetaFDTD::run()
 
       update_e(gud);
     
+      if (sigterm_g) {
+        break;
+      }
+
       // Excitations
       e_eiter = e_eiter_b;
       while (e_eiter != e_eiter_e)

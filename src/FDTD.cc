@@ -431,8 +431,9 @@ void FDTD::run()
       ++iter;
     }
 
-    cout << "\nStarting FDTD time stepping, running for " 
-         << time_steps_ << " time steps..." << endl;
+    if (MPI_RANK == 0)
+      cout << "\nStarting FDTD time stepping, running for " 
+           << time_steps_ << " time steps..." << endl;
 
     // For optionally tracking millions of nodes per second. 
     time_t start = time(NULL);
@@ -466,6 +467,10 @@ void FDTD::run()
 
       grid_->update_h_field();
 
+      if (sigterm_g) {
+        break;
+      }
+
       // Excitations
       h_eiter = h_eiter_b;
       while (h_eiter != h_eiter_e)
@@ -478,6 +483,10 @@ void FDTD::run()
       grid_->apply_boundaries(H);
 
       grid_->update_e_field();
+
+      if (sigterm_g) {
+        break;
+      }
     
       // Excitations
       e_eiter = e_eiter_b;
@@ -502,8 +511,6 @@ void FDTD::run()
         if (riter != riter_e && dwiter != dwiter_e)
           (*dwiter).second->handle_data(ts, 
                                         (*riter).second->get_result(*grid_, ts));
-
-
         ++iter;
       }
     
