@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+#include <string.h>
+
 static void update_ex();
 static void update_ey();
 static void update_ez();
@@ -28,7 +30,7 @@ void update_ex()
 {
   unsigned int mid, idx, idx2;
   int i, j, k;
-  field_t *ex, *hz1, *hz2, *hy, *temp2;
+  field_t *ex, *hz1, *hz2, *hy, *hy2;
 
   for (i = 0; i < dimx_; i++) {
     for (j = 1; j < dimy_; j++) {
@@ -39,31 +41,46 @@ void update_ex()
       hz1 = &(hz_[idx]);
       hz2 = &(hz_[idx2]);
       hy = &(hy_[idx]);
-      temp2 = temp;
+      hy2 = hy - 1;
 
-      for (k = 0; k < dimz_ - 1; k++, idx++) {
+      int up_bound = dimz_ - 1;
+
+      for (k = 0; k < up_bound; k++) {
         mid = material_[idx];
-        
-        *temp2 = /*Ca_[mid] */ ex[k]; // Hot, 12.83
-        *temp2 += /*Cby_[mid] */ (hz1[k] - hz2[k]);
-        *temp2 += /*Cbz_[mid] */ (hy[k - 1] - hy[k]);
-
-        //ex++;
-        //hz1++;
-        //hz2++;
-        //hy++;
-        //idx++;
-        temp2++;
+        Ca_temp_[k] = Ca_[mid];
+        Cby_temp_[k] = Cby_[mid];
+        Cbz_temp_[k] = Cbz_[mid];
       }
-      memcpy(&ex_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
+
+      float *ca = Ca_temp_;
+      float *cby = Cby_temp_;
+      float *cbz = Cbz_temp_;
+
+      #pragma ivdep
+      for (k = 0; k < up_bound; k++) {
+        *ex = *ca * *ex // Hot, 12.83
+          + *cby * (*hz1 - *hz2)
+          + *cbz * (*hy2 - *hy);
+
+        ca++;
+        cby++;
+        cbz++;
+        ex++;
+        hz1++;
+        hz2++;
+        hy++;
+        hy2++;
+        //temp2++;
+      }
+      //memcpy(&ex_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
     }
   }
 }
 
 void update_ey() 
 {
-  unsigned int mid, i, j, k, idx, *mat;
-  field_t *ey, *hx, *hz1, *hz2, *temp2;
+  unsigned int mid, i, j, k, idx;
+  field_t *ey, *hx, *hx2, *hz1, *hz2;
 
   for (i = 1; i < dimx_; i++) {
     for (j = 0; j < dimy_; j++) {
@@ -71,26 +88,35 @@ void update_ey()
       idx = pi(i, j, 1);
       ey = &(ey_[idx]);
       hx = &(hx_[idx]);
+      hx2 = hx - 1;
       hz1 = &(hz_[pi(i-1, j, 1)]);
       hz2 = &(hz_[idx]);
-      mat = &material_[idx];
 
-      temp2 = temp;
-      for (k = 1; k < dimz_; k++) {
-        mid = *mat++;
+      int up_bound = dimz_;
 
-        *temp2 = /*Ca_[mid] * */ *ey;
-        *temp2 += /*Cbz_[mid] * */(*hx - *(hx-1));
-        *temp2 += /*Cbx_[mid] * */(*hz1 - *hz2);
+      for (k = 0; k < up_bound; k++) {
+        mid = material_[idx];
+        Ca_temp_[k] = Ca_[mid];
+        Cbz_temp_[k] = Cbz_[mid];
+        Cbx_temp_[k] = Cbx_[mid];
+      }
+      float *ca = Ca_temp_;
+      float *cbz = Cbz_temp_;
+      float *cbx = Cbx_temp_;
 
-        ey++;
+      #pragma ivdep
+      for (k = 1; k < up_bound; k++) {
+        *ey = *ca * *ey
+          + *cbz * (*hx - *hx2)
+          + *cbx * (*hz1 - *hz2);
+
+        ey++; ca++; cbz++; cbz++;
         hx++;
         hz1++;
         hz2++;
-        idx++;
-        temp2++;
+        //temp2++;
       }
-      memcpy(&ey_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
+      //memcpy(&ey_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
     }
   }
 
@@ -111,18 +137,29 @@ void update_ez()
       hx1 = &(hx_[pi(i, j-1, 0)]);
       hx2 = &(hx_[idx]);
 
-      for (k = 0; k < dimz_; k++) {
+      int up_bound = dimz_;
+
+      for (k = 0; k < up_bound; k++) {
         mid = material_[idx];
+        Ca_temp_[k] = Ca_[mid];
+        Cbx_temp_[k] = Cbx_[mid];
+        Cby_temp_[k] = Cby_[mid];
+      }
+      float *ca = Ca_temp_;
+      float *cby = Cby_temp_;
+      float *cbx = Cbx_temp_;
 
-        temp[k] = Ca_[mid] * *ez
-          + Cbx_[mid] * (*hy1 - *hy2)
-          + Cby_[mid] * (*hx1 - *hx2);
+      #pragma ivdep
+      for (k = 0; k < up_bound; k++) {
+        *ez = *ca * *ez
+          + *cbx * (*hy1 - *hy2)
+          + *cby * (*hx1 - *hx2);
 
+        ca++; cbx++; cby++;
         ez++;
         hy1++; hy2++; hx1++; hx2++;
-        idx++;
       }
-      memcpy(&ez_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
+      //memcpy(&ez_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
     }
   }
 }
@@ -141,17 +178,29 @@ void update_hx()
       ez2 = &(ez_[pi(i, j+1, 0)]);
       ey = &(ey_[idx]);
 
-      for (k = 0; k < dimz_ - 1; k++) {
+      int up_bound = dimz_ - 1;
+
+      for (k = 0; k < up_bound; k++) {
         mid = material_[idx];
+        Da_temp_[k] = Da_[mid];
+        Dbz_temp_[k] = Dbz_[mid];
+        Dby_temp_[k] = Dby_[mid];
+      }
+      float *da = Da_temp_;
+      float *dby = Dby_temp_;
+      float *dbz = Dbz_temp_;
 
-        temp[k] = Da_[mid] * *hx
-          + Dby_[mid] * (*ez1 - *ez2)
-          + Dbz_[mid] * (*(ey+1) - *ey);
+      #pragma ivdep
+      for (k = 0; k < up_bound; k++) {
+        *hx = *da * *hx
+          + *dby * (*ez1 - *ez2)
+          + *dbz * (*(ey+1) - *ey);
 
+        da++; dby++; dbz++;
         hx++; idx++;
         ez1++; ez2++; ey++;
       }
-      memcpy(&hx_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
+      //memcpy(&hx_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
     }
   }
 }
@@ -170,17 +219,29 @@ void update_hy()
       ez1 = &(ez_[pi(i+1, j, 0)]);
       ez2 = &(ez_[idx]);
 
-      for (k = 0; k < dimz_ - 1; k++) {
-        mid = material_[idx];
+      int up_bound = dimz_ - 1;
 
-        temp[k] = Da_[mid] * *hy // Hot, 19.39
-          + Dbz_[mid] * (*ex - *(ex + 1))
-          + Dbx_[mid] * (*ez1 - *ez2);        
+      for (k = 0; k < up_bound; k++) {
+        mid = material_[idx];
+        Da_temp_[k] = Da_[mid];
+        Dbz_temp_[k] = Dbz_[mid];
+        Dbx_temp_[k] = Dbx_[mid];
+      }
+      float *da = Da_temp_;
+      float *dbx = Dbx_temp_;
+      float *dbz = Dbz_temp_;
+
+      #pragma ivdep
+      for (k = 0; k < up_bound; k++) {
+        *hy = *da * *hy // Hot, 19.39
+          + *dbz * (*ex - *(ex + 1))
+          + *dbx * (*ez1 - *ez2);        
         
+        da++; dbz++; dbx++;
         hy++; idx++;
         ex++; ez1++; ez2++;
       }
-      memcpy(&hy_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
+      //memcpy(&hy_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
     }
   }
 }
@@ -200,18 +261,30 @@ void update_hz()
       ex1 = &(ex_[pi(i, j+1, 0)]);
       ex2 = &(ex_[idx]);
 
-      for (k = 0; k < dimz_; k++) {
+      int up_bound = dimz_;
+
+      for (k = 0; k < up_bound; k++) {
         mid = material_[idx];
+        Da_temp_[k] = Da_[mid];
+        Dbx_temp_[k] = Dbx_[mid];
+        Dby_temp_[k] = Dby_[mid];
+      }
+      float *da = Da_temp_;
+      float *dby = Dby_temp_;
+      float *dbx = Dbx_temp_;
 
-        temp[k] = Da_[mid] * *hz1
-          + Dbx_[mid] * (*ey1 - *ey2)
-          + Dby_[mid] * (*ex1 - *ex2);
+      #pragma ivdep
+      for (k = 0; k < up_bound; k++) {
+        *hz1 = *da * *hz1
+          + *dbx * (*ey1 - *ey2)
+          + *dby * (*ex1 - *ex2);
 
+        da++; dbx++; dby++;
         hz1++; idx++;
         ey1++; ey2++;
         ex1++; ex2++;
       }
-      memcpy(&hz_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
+      //memcpy(&hz_[pi(i, j, 0)], temp, sizeof(field_t) * dimz_);
     }
   }
 }

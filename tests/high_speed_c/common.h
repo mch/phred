@@ -44,6 +44,16 @@ extern mat_coef_t * restrict Dbx_temp_;
 extern mat_coef_t * restrict Dby_temp_;
 extern mat_coef_t * restrict Dbz_temp_;
 
+extern mat_coef_t * restrict Ca_temp_orig_;
+extern mat_coef_t * restrict Cbx_temp_orig_;
+extern mat_coef_t * restrict Cby_temp_orig_;
+extern mat_coef_t * restrict Cbz_temp_orig_;
+
+extern mat_coef_t * restrict Da_temp_orig_;
+extern mat_coef_t * restrict Dbx_temp_orig_;
+extern mat_coef_t * restrict Dby_temp_orig_;
+extern mat_coef_t * restrict Dbz_temp_orig_;
+
 /* The fields that get operated on. These are padded a bit so that
    better use of cache can be made. */ 
 extern field_t *ex_;
@@ -81,6 +91,10 @@ extern unsigned int dimx_;
 extern unsigned int dimy_;
 extern unsigned int dimz_;
 
+/* Padding along the z and y axis such that the length of a block of
+   memory along the z axis is a multiple of 16 bytes. */
+extern int z_padding_;
+extern int y_padding_;
 
 /****************************************************************
  * Option flags from the command line
@@ -114,9 +128,12 @@ void restricted_h_update();
 void cache_e_update();
 void cache_h_update();
 
+void combined_e_update();
+void combined_h_update();
+
 static inline unsigned int pi(unsigned int x, unsigned int y, 
                        unsigned int z)
 {
-  return z + (y + x*dimy_) * dimz_;
+  return z + (y + x*(y_padding_ + dimy_)) * (z_padding_ + dimz_);
 }
 

@@ -58,6 +58,16 @@ mat_coef_t * restrict Dbx_temp_;
 mat_coef_t * restrict Dby_temp_;
 mat_coef_t * restrict Dbz_temp_;
 
+mat_coef_t * restrict Ca_temp_orig_;
+mat_coef_t * restrict Cbx_temp_orig_;
+mat_coef_t * restrict Cby_temp_orig_;
+mat_coef_t * restrict Cbz_temp_orig_;
+
+mat_coef_t * restrict Da_temp_orig_;
+mat_coef_t * restrict Dbx_temp_orig_;
+mat_coef_t * restrict Dby_temp_orig_;
+mat_coef_t * restrict Dbz_temp_orig_;
+
 /* The fields that get operated on. These are padded a bit so that
    better use of cache can be made. */ 
 field_t *ex_;
@@ -95,6 +105,10 @@ unsigned int dimx_;
 unsigned int dimy_;
 unsigned int dimz_;
 
+/* Padding along the z and y axis such that the length of a block of
+   memory along the z axis is a multiple of 16 bytes. */
+extern int z_padding_;
+extern int y_padding_;
 
 /****************************************************************
  * Functions for this file
@@ -119,6 +133,7 @@ char quiet_g_;
 char openmp_loop_g_;
 char simple_loop_g_;
 char cache_loop_g_;
+char combined_loop_g_;
 int x_size_g_;
 int y_size_g_;
 int z_size_g_;
@@ -161,7 +176,11 @@ decode_switches (int argc, char **argv)
       break;
 
     case 'c':
-      cache_padding_g_ = 1;
+      //cache_padding_g_ = 1;
+      combined_loop_g_ = 1;
+      simple_loop_g_ = 0;
+      openmp_loop_g_ = 0;
+      cache_loop_g_ = 0;
       break;
 
     case 'x':
@@ -205,6 +224,7 @@ int main(int argc, char **argv)
   z_size_g_ = 192;
   n_g_ = 100;
   quiet_g_ = 0;
+  combined_loop_g_ = 0;
 
   decode_switches(argc, argv);
 
@@ -217,6 +237,8 @@ int main(int argc, char **argv)
 
   dimx_ = x_size_g_; dimy_ = y_size_g_; dimz_ = z_size_g_;
   num_time_steps = n_g_;
+  z_padding_ = 0;
+  y_padding_ = 0;
 
   eps[0] = 1;
   eps[1] = 2.2;
@@ -249,6 +271,8 @@ int main(int argc, char **argv)
   if (cache_loop_g_)
     printf("Using the loops that hopefully exploit cache better.\n");
 
+  if (combined_loop_g_)
+    printf("Using the combined updates; 3 field components at once.\n");
 
 #ifdef USE_OPENMP
 
@@ -316,6 +340,9 @@ void run(unsigned int num_time_steps)
     if (cache_loop_g_)
       cache_e_update();
 
+    if (combined_loop_g_)
+      combined_e_update();
+
     ey_[pi(20, 20, 20)] = ey_[pi(20, 20, 20)] + gaussm(i, 500e12, 1, 300e12);
 
 #ifdef USE_OPENMP
@@ -329,6 +356,9 @@ void run(unsigned int num_time_steps)
 
     if (cache_loop_g_)
       cache_h_update();
+
+    if (combined_loop_g_)
+      combined_h_update();
 
 /*      fprintf(fields, "%i %g %g %g %g %g %g %g\n",  */
 /*  	    i, i * deltat_, ex_[pi(x, y, z)], */
@@ -352,7 +382,7 @@ void alloc_grid()
 {
   unsigned int sz = 0;
 
-  sz = dimx_ * dimy_ * dimz_ * sizeof(field_t);
+  sz = dimx_ * dimy_ * dimz_ * sizeof(field_t) + 16;
 
   temp = (field_t *)malloc(sizeof(field_t) * dimz_ + 16);
 
@@ -378,16 +408,54 @@ void alloc_grid()
     hy_orig_ = (field_t *)malloc(sz);
     hz_orig_ = (field_t *)malloc(sz);
     
-    unsigned int zbytes = dimz_ * sizeof(mat_coef_t);
-    Ca_temp_ = (mat_coef_t *)malloc(zbytes);
-    Cbx_temp_ = (mat_coef_t *)malloc(zbytes);
-    Cby_temp_ = (mat_coef_t *)malloc(zbytes);
-    Cbz_temp_ = (mat_coef_t *)malloc(zbytes);
+    printf("Allocated offset from 16 byte boundaries for origional ex, ey, ez, etc:\n");
+    printf("0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n",
+           (uintptr_t)ex_orig_ & 0xf, 
+           (uintptr_t)ey_orig_ & 0xf, 
+           (uintptr_t)ez_orig_ & 0xf, 
+           (uintptr_t)hx_orig_ & 0xf, 
+           (uintptr_t)hy_orig_ & 0xf, 
+           (uintptr_t)hz_orig_ & 0xf);
 
-    Da_temp_ = (mat_coef_t *)malloc(zbytes);
-    Dbx_temp_ = (mat_coef_t *)malloc(zbytes);
-    Dby_temp_ = (mat_coef_t *)malloc(zbytes);
-    Dbz_temp_ = (mat_coef_t *)malloc(zbytes);
+    unsigned int zbytes = dimz_ * sizeof(mat_coef_t) + 16;
+    Ca_temp_orig_ = (mat_coef_t *)malloc(zbytes);
+    Cbx_temp_orig_ = (mat_coef_t *)malloc(zbytes);
+    Cby_temp_orig_ = (mat_coef_t *)malloc(zbytes);
+    Cbz_temp_orig_ = (mat_coef_t *)malloc(zbytes);
+
+    Da_temp_orig_ = (mat_coef_t *)malloc(zbytes);
+    Dbx_temp_orig_ = (mat_coef_t *)malloc(zbytes);
+    Dby_temp_orig_ = (mat_coef_t *)malloc(zbytes);
+    Dbz_temp_orig_ = (mat_coef_t *)malloc(zbytes);
+
+    Ca_temp_ = Ca_temp_orig_ + ((uintptr_t)Ca_temp_orig_ & 0x0f) 
+      / sizeof(mat_coef_t);
+    Cbx_temp_ = Cbx_temp_orig_ + ((uintptr_t)Cbx_temp_orig_ & 0x0f) 
+      / sizeof(mat_coef_t);
+    Cby_temp_ = Cby_temp_orig_ + ((uintptr_t)Cby_temp_orig_ & 0x0f) 
+      / sizeof(mat_coef_t);
+    Cbz_temp_ = Cbz_temp_orig_ + ((uintptr_t)Cbz_temp_orig_ & 0x0f) 
+      / sizeof(mat_coef_t);
+
+    Da_temp_ = Da_temp_orig_ + ((uintptr_t)Da_temp_orig_ & 0x0f) 
+      / sizeof(mat_coef_t);
+    Dbx_temp_ = Dbx_temp_orig_ + ((uintptr_t)Dbx_temp_orig_ & 0x0f) 
+      / sizeof(mat_coef_t);
+    Dby_temp_ = Dby_temp_orig_ + ((uintptr_t)Dby_temp_orig_ & 0x0f) 
+      / sizeof(mat_coef_t);
+    Dbz_temp_ = Dbz_temp_orig_ + ((uintptr_t)Dbz_temp_orig_ & 0x0f) 
+      / sizeof(mat_coef_t);
+
+    printf("Allocated offset from 16 byte boundaries for origional Ca, Da, etc:\n");
+    printf("0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n",
+           (uintptr_t)Ca_temp_ & 0xf, 
+           (uintptr_t)Cbx_temp_ & 0xf, 
+           (uintptr_t)Cby_temp_ & 0xf, 
+           (uintptr_t)Cbz_temp_ & 0xf, 
+           (uintptr_t)Da_temp_ & 0xf, 
+           (uintptr_t)Dbx_temp_ & 0xf,
+           (uintptr_t)Dby_temp_ & 0xf,
+           (uintptr_t)Dbz_temp_ & 0xf);
 
     material_ = (unsigned int *)malloc(sz);
 
@@ -406,89 +474,58 @@ void alloc_grid()
 
       memset(material_, 0, sz);
 
-      memset(Ca_temp_, 0, zbytes);
-      memset(Cbx_temp_, 0, zbytes);
-      memset(Cby_temp_, 0, zbytes);
-      memset(Cbz_temp_, 0, zbytes);
+      memset(Ca_temp_orig_, 0, zbytes);
+      memset(Cbx_temp_orig_, 0, zbytes);
+      memset(Cby_temp_orig_, 0, zbytes);
+      memset(Cbz_temp_orig_, 0, zbytes);
 
-      memset(Da_temp_, 0, zbytes);
-      memset(Dbx_temp_, 0, zbytes);
-      memset(Dby_temp_, 0, zbytes);
-      memset(Dbz_temp_, 0, zbytes);
+      memset(Da_temp_orig_, 0, zbytes);
+      memset(Dbx_temp_orig_, 0, zbytes);
+      memset(Dby_temp_orig_, 0, zbytes);
+      memset(Dbz_temp_orig_, 0, zbytes);
 
     } else {
       printf("Insufficient memory; try reducing the grid size. \n");
       exit(1);
     }
     
-    if (cache_padding_g_)
-    {
-      uintptr_t e = (uintptr_t)ex_orig_;
-      printf("Padding the field arrays to increase cache potential.\n");
-      printf("ex_orig ptr and low 22 bits of ex_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-      e = (uintptr_t)ey_orig_;
-      printf("ey_orig ptr and low 22 bits of ey_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-      e = (uintptr_t)ez_orig_;
-      printf("ez_orig ptr and low 22 bits of ez_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
+    ex_ = ex_orig_ + ((uintptr_t)ex_orig_ & 0x0f) / sizeof(field_t);
+    ey_ = ey_orig_ + ((uintptr_t)ey_orig_ & 0x0f) / sizeof(field_t);
+    ez_ = ez_orig_ + ((uintptr_t)ez_orig_ & 0x0f) / sizeof(field_t);
 
-      ex_ = ex_orig_;
-      ey_ = ey_orig_;
-      ez_ = ez_orig_;
-      hx_ = hx_orig_;
-      hy_ = hy_orig_;
-      hz_ = hz_orig_;
-      
-      e = (uintptr_t)ex_;
-      printf("ex_orig ptr and low 22 bits of ex_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-      e = (uintptr_t)ey_;
-      printf("ey_orig ptr and low 22 bits of ey_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-      e = (uintptr_t)ez_;
-      printf("ez_orig ptr and low 22 bits of ez_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
+    hx_ = hx_orig_ + ((uintptr_t)hx_orig_ & 0x0f) / sizeof(field_t);
+    hy_ = hy_orig_ + ((uintptr_t)hy_orig_ & 0x0f) / sizeof(field_t);
+    hz_ = hz_orig_ + ((uintptr_t)hz_orig_ & 0x0f) / sizeof(field_t);
 
-      e = (uintptr_t)hx_;
-      printf("hx_orig ptr and low 22 bits of hx_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-      e = (uintptr_t)hy_;
-      printf("hy_orig ptr and low 22 bits of hy_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-      e = (uintptr_t)hz_;
-      printf("hz_orig ptr and low 22 bits of hz_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-    } else {
-      ex_ = ex_orig_;
-      ey_ = ey_orig_;
-      ez_ = ez_orig_;
-      hx_ = hx_orig_;
-      hy_ = hy_orig_;
-      hz_ = hz_orig_;
+    printf("Allocated offset from 16 byte boundaries for ex, ey, ez, etc:\n");
+    printf("0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n",
+           (uintptr_t)ex_ & 0xf, 
+           (uintptr_t)ey_ & 0xf, 
+           (uintptr_t)ez_ & 0xf, 
+           (uintptr_t)hx_ & 0xf, 
+           (uintptr_t)hy_ & 0xf, 
+           (uintptr_t)hz_ & 0xf);
 
-      printf("No padding for cache:\n");
-      uintptr_t e = (uintptr_t)ex_;
-      printf("ex_orig ptr and low 22 bits of ex_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-      e = (uintptr_t)ey_;
-      printf("ey_orig ptr and low 22 bits of ey_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-      e = (uintptr_t)ez_;
-      printf("ez_orig ptr and low 22 bits of ez_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
+    printf("No padding for cache:\n");
+    uintptr_t e = (uintptr_t)ex_;
+    printf("ex_orig ptr and low 22 bits of ex_orig pointer: %p, %p\n", 
+           (void *)e, (void *)(e & 0x3FFFFF));
+    e = (uintptr_t)ey_;
+    printf("ey_orig ptr and low 22 bits of ey_orig pointer: %p, %p\n", 
+           (void *)e, (void *)(e & 0x3FFFFF));
+    e = (uintptr_t)ez_;
+    printf("ez_orig ptr and low 22 bits of ez_orig pointer: %p, %p\n", 
+           (void *)e, (void *)(e & 0x3FFFFF));
 
-      e = (uintptr_t)hx_;
-      printf("hx_orig ptr and low 22 bits of hx_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-      e = (uintptr_t)hy_;
-      printf("hy_orig ptr and low 22 bits of hy_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-      e = (uintptr_t)hz_;
-      printf("hz_orig ptr and low 22 bits of hz_orig pointer: %p, %p\n", 
-             (void *)e, (void *)(e & 0x3FFFFF));
-    }
+    e = (uintptr_t)hx_;
+    printf("hx_orig ptr and low 22 bits of hx_orig pointer: %p, %p\n", 
+           (void *)e, (void *)(e & 0x3FFFFF));
+    e = (uintptr_t)hy_;
+    printf("hy_orig ptr and low 22 bits of hy_orig pointer: %p, %p\n", 
+           (void *)e, (void *)(e & 0x3FFFFF));
+    e = (uintptr_t)hz_;
+    printf("hz_orig ptr and low 22 bits of hz_orig pointer: %p, %p\n", 
+           (void *)e, (void *)(e & 0x3FFFFF));
     
     int idx1 = pi(16, 16, 0);
     int idx2 = pi(15, 16, 0);
@@ -500,7 +537,7 @@ void alloc_grid()
     field_t *hx1 = &hx_[idx3];
     field_t *hx2 = &hx_[idx1];
 
-    uintptr_t e = (uintptr_t)ez;
+    e = (uintptr_t)ez;
     printf("ez ptr and low 22 bits of ez pointer: %p, %p\n", 
            (void *)e, (void *)(e & 0x3FFFFF));
     e = (uintptr_t)hy1;
@@ -521,25 +558,25 @@ void alloc_grid()
 void free_grid()
 {
   if (ex_ || ey_ || ez_ || hx_ || hy_ || hz_) {
-    free(ex_);
-    free(ey_);
-    free(ez_);
+    free(ex_orig_);
+    free(ey_orig_);
+    free(ez_orig_);
 
-    free(hx_);
-    free(hy_);
-    free(hz_);
+    free(hx_orig_);
+    free(hy_orig_);
+    free(hz_orig_);
 
     free(material_);
 
-    free(Ca_temp_);
-    free(Cbx_temp_);
-    free(Cby_temp_);
-    free(Cbz_temp_);
+    free(Ca_temp_orig_);
+    free(Cbx_temp_orig_);
+    free(Cby_temp_orig_);
+    free(Cbz_temp_orig_);
 
-    free(Da_temp_);
-    free(Dbx_temp_);
-    free(Dby_temp_);
-    free(Dbz_temp_);
+    free(Da_temp_orig_);
+    free(Dbx_temp_orig_);
+    free(Dby_temp_orig_);
+    free(Dbz_temp_orig_);
   }
 }
 

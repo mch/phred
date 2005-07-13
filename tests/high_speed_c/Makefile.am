@@ -6,6 +6,7 @@ hscfdtd_SOURCES=high_speed.c \
 	simple_update.c \
 	restrict_update.c \
 	cache_update.c \
+	combined_update.c \
 	common.h
 
 hscfdtd_LDADD=-lm
