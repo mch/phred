@@ -43,7 +43,7 @@ void update_ex()
       for (k = 0; k < dimz_ - 1; k++, idx++) {
         mid = material_[idx];
         
-        ex[k] = Ca_[mid] * ex[k]
+        ex[k] = Ca_[mid] * ex[k] // HOT, 13.23
           + Cby_[mid] * (hz1[k] - hz2[k])
           + Cbz_[mid] * (hy[k - 1] - hy[k]);
 
@@ -89,6 +89,7 @@ void update_ey()
 
 }
 
+// This one is the slowest
 void update_ez() 
 {
   unsigned int mid, i, j, k, idx;
@@ -105,9 +106,9 @@ void update_ez()
       hx2 = &(hx_[idx]);
 
       for (k = 0; k < dimz_; k++) {
-        mid = material_[pi(i, j, k)];
+        mid = material_[idx];
 
-        *ez = Ca_[mid] * *ez
+        *ez = Ca_[mid] * *ez // hot
           + Cbx_[mid] * (*hy1 - *hy2)
           + Cby_[mid] * (*hx1 - *hx2);
 
@@ -164,7 +165,7 @@ void update_hy()
       for (k = 0; k < dimz_ - 1; k++) {
         mid = material_[idx];
 
-        *hy = Da_[mid] * *hy
+        *hy = Da_[mid] * *hy // Hot, 18.58 seconds
           + Dbz_[mid] * (*ex - *(ex + 1))
           + Dbx_[mid] * (*ez1 - *ez2);        
         

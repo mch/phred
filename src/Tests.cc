@@ -72,7 +72,8 @@ float deltaz = 20e-9;
 void mn_benchmark()
 {
 
-  MetaFDTD fdtd;
+  //MetaFDTD fdtd;
+  FDTD fdtd;
   fdtd.set_grid_deltas(1e-2, 1e-2, 1e-2);
   fdtd.set_grid_size(1,1,1);
 

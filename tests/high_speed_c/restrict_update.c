@@ -30,10 +30,10 @@ void restricted_h_update()
 void update_e_common()
 {
   unsigned int mid, idx, idxi, idxj, i, j, k;
-  field_t * __restrict__ ex, * __restrict__ ey, * __restrict__ ez, 
-    * __restrict__ hx, * __restrict__ hy, * __restrict__ hz, 
-    * __restrict__ y_hz1, * __restrict__ x_hz2, * __restrict__ z_hy2, 
-    * __restrict__ z_hx1;
+  field_t * restrict ex, * restrict ey, * restrict ez, 
+    * restrict hx, * restrict hy, * restrict hz, 
+    * restrict y_hz1, * restrict x_hz2, * restrict z_hy2, 
+    * restrict z_hx1;
 
   for (i = 1; i < dimx_ - 1; i++) {
     for (j = 1; j < dimy_ - 1; j++) {
@@ -92,10 +92,10 @@ void update_e_common()
 void update_h_common()
 {
   unsigned int mid, idx, idxi, idxj, i, j, k;
-  field_t * __restrict__ ex, * __restrict__ ey, * __restrict__ ez, 
-    * __restrict__ hx, * __restrict__ hy, * __restrict__ hz, 
-    * __restrict__ y_ez1, * __restrict__ x_ez2, * __restrict__ z_ey2, 
-    * __restrict__ z_ex1;
+  field_t * restrict ex, * restrict ey, * restrict ez, 
+    * restrict hx, * restrict hy, * restrict hz, 
+    * restrict y_ez1, * restrict x_ez2, * restrict z_ey2, 
+    * restrict z_ex1;
 
   for (i = 1; i < dimx_ - 1; i++) {
     for (j = 1; j < dimy_ - 1; j++) {
@@ -153,7 +153,7 @@ void update_h_common()
 /* void update_ex()  */
 /* { */
 /*   unsigned int mid, idx, idx2, i, j, k; */
-/*   field_t * __restrict__ ex, * __restrict__ hz1, * __restrict__ hz2, * __restrict__ hy; */
+/*   field_t * restrict ex, * restrict hz1, * restrict hz2, * restrict hy; */
 
 /*   for (i = 0; i < dimx_; i++) { */
 /*     for (j = 1; j < dimy_; j++) { */
@@ -191,7 +191,7 @@ void update_h_common()
 /* void update_ey()  */
 /* { */
 /*   unsigned int mid, i, j, k, idx; */
-/*   field_t * __restrict__ ey, * __restrict__ hx, * __restrict__ hz1, * __restrict__ hz2; */
+/*   field_t * restrict ey, * restrict hx, * restrict hz1, * restrict hz2; */
 
 /*   for (i = 1; i < dimx_; i++) { */
 /*     for (j = 0; j < dimy_; j++) { */
@@ -223,8 +223,8 @@ void update_h_common()
 /* void update_ez()  */
 /* { */
 /*   unsigned int mid, i, j, k, idx; */
-/*   field_t * __restrict__ ez, * __restrict__ hy1, * __restrict__ hy2,  */
-/*     * __restrict__ hx1, * __restrict__ hx2; */
+/*   field_t * restrict ez, * restrict hy1, * restrict hy2,  */
+/*     * restrict hx1, * restrict hx2; */
   
 /*   for (i = 1; i < dimx_; i++) { */
 /*     for (j = 1; j < dimy_; j++) { */
@@ -256,7 +256,7 @@ void update_h_common()
 /* void update_hx() */
 /* { */
 /*   unsigned int mid, i, j, k, idx; */
-/*   field_t * __restrict__ hx, * __restrict__ ez1, * __restrict__ ez2, * __restrict__ ey; */
+/*   field_t * restrict hx, * restrict ez1, * restrict ez2, * restrict ey; */
 
 /*   for (i = 0; i < dimx_; i++) { */
 /*     for (j = 0; j < dimy_ - 1; j++) { */
@@ -287,7 +287,7 @@ void update_h_common()
 /* void update_hy() */
 /* { */
 /*   unsigned int mid, i, j, k, idx; */
-/*   field_t * __restrict__ hy, * __restrict__ ex, * __restrict__ ez1, * __restrict__ ez2; */
+/*   field_t * restrict hy, * restrict ex, * restrict ez1, * restrict ez2; */
 
 /*   for (i = 0; i < dimx_ - 1; i++) { */
 /*     for (j = 0; j < dimy_; j++) { */
@@ -318,8 +318,8 @@ void update_h_common()
 /* void update_hz() */
 /* { */
 /*   unsigned int mid, i, j, k, idx; */
-/*   field_t * __restrict__ hz1, * __restrict__ ey1, * __restrict__ ey2,  */
-/*     * __restrict__ ex1, * __restrict__ ex2; */
+/*   field_t * restrict hz1, * restrict ey1, * restrict ey2,  */
+/*     * restrict ex1, * restrict ex2; */
 
 /*   for (i = 0; i < dimx_ - 1; i++) { */
 /*     for (j = 0; j < dimy_ - 1; j++) { */

@@ -173,7 +173,7 @@ decode_switches (int argc, char **argv)
 #ifdef HAVE_GETOPT
   opterr = 0;
 
-  while ((c = getopt (argc, argv, "+VhiBmbqts")) != -1)
+  while ((c = getopt (argc, argv, "+VhiBmqts")) != -1)
     switch (c)
     {
     case 'V':
@@ -240,8 +240,6 @@ electromagnetics simulator.\n", program_name);
               start up, etc. Use twice to suppress estimated\n\
               time remaining messages.\n\
   -m          Estimate amount of required memory and exit\n\
-  -b          Benchmark: estimate the millions of nodes \n\
-              processed per second\n\
   -t          Run a hard coded test problem; select from:\n\
               H   Single circular hole\n\
               M   Million node benchmark\n\

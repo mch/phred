@@ -39,7 +39,7 @@ ostream& operator<< (ostream& os, const point &p)
   return os << "(" << p.x << ", " << p.y << ", " << p.z << ")";
 }
 
-const char *field_component_string(const FieldComponent &fc)
+const char *field_component_string(const FieldComponent fc)
 {
   switch(fc)
   {
@@ -79,7 +79,7 @@ const char *field_component_string(const FieldComponent &fc)
   return "invalid FieldComponent value";
 }
 
-const char *face_string(const Face &f)
+const char *face_string(const Face f)
 {
   switch (f)
   {

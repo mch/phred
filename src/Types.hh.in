@@ -118,10 +118,12 @@ enum Face {
   TOP = 5 /**< z = dimz, XY plane */
 };
 
+#ifdef __cplusplus
 /**
  * Converts a Face value to a human readable string
  */
-const char *face_string(const Face &f);
+const char *face_string(const Face f);
+#endif
 
 /**
  * Field components. Electric and magnetic
@@ -137,10 +139,12 @@ enum FieldComponent {
   FC_H /* H field intensity */ 
 };
 
+#ifdef __cplusplus
 /**
  * Converts a FieldComponent value to a human readable string
  */
-const char *field_component_string(const FieldComponent &f);
+const char *field_component_string(const FieldComponent f);
+#endif
 
 /**
  * Field types, E and H

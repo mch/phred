@@ -18,54 +18,75 @@
  ****************************************************************/
 
 /* Number of materials we know about (0 is PEC)*/
-unsigned int num_materials_;
+extern unsigned int num_materials_;
 
 /* E Field Material Coefficients */
-mat_coef_t *Ca_;
-mat_coef_t *Cbx_;
-mat_coef_t *Cby_;
-mat_coef_t *Cbz_;
+extern mat_coef_t *Ca_;
+extern mat_coef_t *Cbx_;
+extern mat_coef_t *Cby_;
+extern mat_coef_t *Cbz_;
 
 /* H Field Coefficients */
-mat_coef_t *Da_;
-mat_coef_t *Dbx_;
-mat_coef_t *Dby_;
-mat_coef_t *Dbz_;
+extern mat_coef_t *Da_;
+extern mat_coef_t *Dbx_;
+extern mat_coef_t *Dby_;
+extern mat_coef_t *Dbz_;
 
 /* Temporary coefficient holders. Pulls all the non-contiguous memory
    access out of the main update loop... hopefully making it faster. */
-mat_coef_t * __restrict__ Ca_temp_;
-mat_coef_t * __restrict__ Cbx_temp_;
-mat_coef_t * __restrict__ Cby_temp_;
-mat_coef_t * __restrict__ Cbz_temp_;
+extern mat_coef_t * restrict Ca_temp_;
+extern mat_coef_t * restrict Cbx_temp_;
+extern mat_coef_t * restrict Cby_temp_;
+extern mat_coef_t * restrict Cbz_temp_;
 
-mat_coef_t * __restrict__ Da_temp_;
-mat_coef_t * __restrict__ Dbx_temp_;
-mat_coef_t * __restrict__ Dby_temp_;
-mat_coef_t * __restrict__ Dbz_temp_;
+extern mat_coef_t * restrict Da_temp_;
+extern mat_coef_t * restrict Dbx_temp_;
+extern mat_coef_t * restrict Dby_temp_;
+extern mat_coef_t * restrict Dbz_temp_;
 
-field_t *ex_;
-field_t *ey_;
-field_t *ez_;
-field_t *hx_;
-field_t *hy_;
-field_t *hz_;
+/* The fields that get operated on. These are padded a bit so that
+   better use of cache can be made. */ 
+extern field_t *ex_;
+extern field_t *ey_;
+extern field_t *ez_;
+extern field_t *hx_;
+extern field_t *hy_;
+extern field_t *hz_;
+
+/* These are the origionally allocated pointers for field data. Used
+   to free() the memory. */ 
+extern field_t *ex_orig_;
+extern field_t *ey_orig_;
+extern field_t *ez_orig_;
+extern field_t *hx_orig_;
+extern field_t *hy_orig_;
+extern field_t *hz_orig_;
+
+/* Temporary data if needed */ 
+extern field_t *temp;
 
 /* The material for each point in the grid. This is an index into
  * the material arrays, Ca, Cbx, etc. */
-unsigned int *material_;
+extern unsigned int *material_;
 
 /* Time and space steppings; the distance between each point in the
  * grid. */ 
-delta_t deltax_;
-delta_t deltay_;
-delta_t deltaz_;
-delta_t deltat_;
+extern delta_t deltax_;
+extern delta_t deltay_;
+extern delta_t deltaz_;
+extern delta_t deltat_;
 
 /* Size of the grid along each dimension */
-unsigned int dimx_;
-unsigned int dimy_;
-unsigned int dimz_;
+extern unsigned int dimx_;
+extern unsigned int dimy_;
+extern unsigned int dimz_;
+
+
+/****************************************************************
+ * Option flags from the command line
+ ****************************************************************/
+extern char cache_padding_g_;
+
 
 /****************************************************************
  * Function declarations
@@ -90,6 +111,12 @@ void h_update();
 void restricted_e_update();
 void restricted_h_update();
 
-unsigned int pi(unsigned int x, unsigned int y, 
-                unsigned int z);
+void cache_e_update();
+void cache_h_update();
+
+static inline unsigned int pi(unsigned int x, unsigned int y, 
+                       unsigned int z)
+{
+  return z + (y + x*dimy_) * dimz_;
+}
 

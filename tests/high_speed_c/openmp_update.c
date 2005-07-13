@@ -3,6 +3,10 @@
 #include "common.h"
 
 #ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
+#ifdef USE_OPENMP
 
 static void omp_update_ex();
 static void omp_update_ey();

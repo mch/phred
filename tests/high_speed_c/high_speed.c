@@ -19,6 +19,10 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
+
+/* For pointer arithmetic */ 
+#include <inttypes.h>
 
 #include "common.h"
 
@@ -28,6 +32,73 @@
 #include <omp.h>
 #endif
 
+unsigned int num_materials_;
+
+/* E Field Material Coefficients */
+mat_coef_t *Ca_;
+mat_coef_t *Cbx_;
+mat_coef_t *Cby_;
+mat_coef_t *Cbz_;
+
+/* H Field Coefficients */
+mat_coef_t *Da_;
+mat_coef_t *Dbx_;
+mat_coef_t *Dby_;
+mat_coef_t *Dbz_;
+
+/* Temporary coefficient holders. Pulls all the non-contiguous memory
+   access out of the main update loop... hopefully making it faster. */
+mat_coef_t * restrict Ca_temp_;
+mat_coef_t * restrict Cbx_temp_;
+mat_coef_t * restrict Cby_temp_;
+mat_coef_t * restrict Cbz_temp_;
+
+mat_coef_t * restrict Da_temp_;
+mat_coef_t * restrict Dbx_temp_;
+mat_coef_t * restrict Dby_temp_;
+mat_coef_t * restrict Dbz_temp_;
+
+/* The fields that get operated on. These are padded a bit so that
+   better use of cache can be made. */ 
+field_t *ex_;
+field_t *ey_;
+field_t *ez_;
+field_t *hx_;
+field_t *hy_;
+field_t *hz_;
+
+/* These are the origionally allocated pointers for field data. Used
+   to free() the memory. */ 
+field_t *ex_orig_;
+field_t *ey_orig_;
+field_t *ez_orig_;
+field_t *hx_orig_;
+field_t *hy_orig_;
+field_t *hz_orig_;
+
+/* Temporary data if needed */ 
+field_t *temp;
+
+/* The material for each point in the grid. This is an index into
+ * the material arrays, Ca, Cbx, etc. */
+unsigned int *material_;
+
+/* Time and space steppings; the distance between each point in the
+ * grid. */ 
+delta_t deltax_;
+delta_t deltay_;
+delta_t deltaz_;
+delta_t deltat_;
+
+/* Size of the grid along each dimension */
+unsigned int dimx_;
+unsigned int dimy_;
+unsigned int dimz_;
+
+
+/****************************************************************
+ * Functions for this file
+ ****************************************************************/
 void alloc_grid();
 void free_grid();
 
@@ -41,16 +112,101 @@ field_t gaussm(unsigned int time_step, field_t deltaf,
 void run(unsigned int num_time_steps);
 
 /****************************************************************
+ * Da switches
+ ****************************************************************/
+char cache_padding_g_;
+char quiet_g_;
+char openmp_loop_g_;
+char simple_loop_g_;
+char cache_loop_g_;
+int x_size_g_;
+int y_size_g_;
+int z_size_g_;
+int n_g_;
+
+static int
+decode_switches (int argc, char **argv)
+{
+  opterr = 0;
+  int c;
+  char *arg = 0;
+
+  while ((c = getopt (argc, argv, "qoscCx:y:z:n:")) != -1)
+    switch (c)
+    {
+    case 'o':
+#ifdef USE_OPENMP
+      openmp_loop_g_ = 1;
+      simple_loop_g_ = 0;
+      cache_loop_g_ = 0;
+#else
+      printf("OpenMP is not available.\n");
+#endif
+      break;
+
+    case 'q':
+      quiet_g_ = 1;
+      break;
+
+    case 's':
+      simple_loop_g_ = 1;
+      openmp_loop_g_ = 0;
+      cache_loop_g_ = 0;
+      break;
+
+    case 'C':
+      cache_loop_g_ = 1;
+      simple_loop_g_ = 0;
+      openmp_loop_g_ = 0;
+      break;
+
+    case 'c':
+      cache_padding_g_ = 1;
+      break;
+
+    case 'x':
+      x_size_g_ = atoi((char *)optarg);
+      break;
+
+    case 'y':
+      y_size_g_ = atoi((char *)optarg);
+      break;
+
+    case 'z':
+      z_size_g_ = atoi((char *)optarg);
+      break;
+
+    case 'n':
+      n_g_ = atoi((char *)optarg);
+      break;
+    }
+
+  return 0;
+}
+
+
+/****************************************************************
  * MAIN
  ****************************************************************/
 int main(int argc, char **argv)
 {
   field_t eps[2], mu[2];
-  unsigned int num_time_steps = 100, i, j, k; 
+  unsigned int num_time_steps, i, j, k; 
   FILE *fields;
   unsigned int x, y, z, numthreads;
+  int idx;
   time_t start, now;
   clock_t cpu_start, cpu_now;
+
+  simple_loop_g_ = 1;
+  openmp_loop_g_ = 0;
+  cache_padding_g_ = 0;
+  x_size_g_ = y_size_g_ = 128;
+  z_size_g_ = 192;
+  n_g_ = 100;
+  quiet_g_ = 0;
+
+  decode_switches(argc, argv);
 
   x = 20;
   y = 20;
@@ -59,7 +215,8 @@ int main(int argc, char **argv)
   deltax_ = deltay_ = deltaz_ = 18.75e-9;
   deltat_ = 36e-18;
 
-  dimx_ = 100; dimy_ = 100; dimz_ = 200;
+  dimx_ = x_size_g_; dimy_ = y_size_g_; dimz_ = z_size_g_;
+  num_time_steps = n_g_;
 
   eps[0] = 1;
   eps[1] = 2.2;
@@ -69,16 +226,29 @@ int main(int argc, char **argv)
   printf("High speed C FDTD test program\n");
   printf("Grid is %ix%ix%i, running for %i time steps.\n\n",
          dimx_, dimy_, dimz_, num_time_steps);
-
+  
   load_materials(2, eps, mu);
   alloc_grid();
 
-  for (i = 0; i < 40; i++)
-    for (j = 0; j < 40; j++)
-      for (k = 0; k < 40; k++)
-	material_[pi(i, j, k)] = 1;
+  for (i = 0; i < dimx_; i++)
+    for (j = 0; j < dimy_; j++)
+    {
+      idx = pi(i,j,0);
+      for (k = 0; k < dimz_; k++)
+	material_[idx++] = 1;
+    }
 
   /*fields = fopen("fields.txt", "w");*/
+
+  if (openmp_loop_g_)
+    printf("Using the OpenMP update loops.\n");
+
+  if (simple_loop_g_)
+    printf("Using the simple update loops.\n");
+  
+  if (cache_loop_g_)
+    printf("Using the loops that hopefully exploit cache better.\n");
+
 
 #ifdef USE_OPENMP
 
@@ -131,24 +301,34 @@ void run(unsigned int num_time_steps)
   /* Run loop */
   for (i = 0; i < num_time_steps; i++)
   {
-    printf("High speed C, time step %i, source: %g\n", 
-           i, gaussm(i, 500e12, 1, 300e12));
+    if (!quiet_g_)
+      printf("High speed C, time step %i, source: %g\n", 
+             i, gaussm(i, 500e12, 1, 300e12));
 
 #ifdef USE_OPENMP
-    omp_e_update();
-#else
-    /* restricted_e_update(); */
-    e_update(); 
+    if (openmp_loop_g_)
+      omp_e_update();
 #endif
+
+    if (simple_loop_g_)
+      e_update(); 
+
+    if (cache_loop_g_)
+      cache_e_update();
 
     ey_[pi(20, 20, 20)] = ey_[pi(20, 20, 20)] + gaussm(i, 500e12, 1, 300e12);
 
 #ifdef USE_OPENMP
-    omp_h_update();
-#else
-    /* restricted_h_update(); */
-    h_update(); 
+    if (openmp_loop_g_)
+      omp_h_update();
 #endif
+
+    /* restricted_h_update(); */
+    if (simple_loop_g_)
+      h_update(); 
+
+    if (cache_loop_g_)
+      cache_h_update();
 
 /*      fprintf(fields, "%i %g %g %g %g %g %g %g\n",  */
 /*  	    i, i * deltat_, ex_[pi(x, y, z)], */
@@ -174,42 +354,55 @@ void alloc_grid()
 
   sz = dimx_ * dimy_ * dimz_ * sizeof(field_t);
 
+  temp = (field_t *)malloc(sizeof(field_t) * dimz_ + 16);
+
+  /* Now with padding for cache considerations */ 
+  if (cache_padding_g_)
+  {
+    sz = sz + 301; 
+  }
+
   if (sz > 0) 
   {
+    /* The allocated memory should be aligned on 128 byte boundaries,
+       and each should be arranged so that it starts a different cache
+       line than the rest. */ 
+
     /* Fortunatly for us, on OS X malloc returns memory block aligned
        on 16 byte boundaries required by AltiVec */ 
-    ex_ = malloc(sz);
-    ey_ = malloc(sz);
-    ez_ = malloc(sz);
+    ex_orig_ = (field_t *)malloc(sz);
+    ey_orig_ = (field_t *)malloc(sz);
+    ez_orig_ = (field_t *)malloc(sz);
     
-    hx_ = malloc(sz);
-    hy_ = malloc(sz);
-    hz_ = malloc(sz);
+    hx_orig_ = (field_t *)malloc(sz);
+    hy_orig_ = (field_t *)malloc(sz);
+    hz_orig_ = (field_t *)malloc(sz);
     
     unsigned int zbytes = dimz_ * sizeof(mat_coef_t);
-    Ca_temp_ = malloc(zbytes);
-    Cbx_temp_ = malloc(zbytes);
-    Cby_temp_ = malloc(zbytes);
-    Cbz_temp_ = malloc(zbytes);
+    Ca_temp_ = (mat_coef_t *)malloc(zbytes);
+    Cbx_temp_ = (mat_coef_t *)malloc(zbytes);
+    Cby_temp_ = (mat_coef_t *)malloc(zbytes);
+    Cbz_temp_ = (mat_coef_t *)malloc(zbytes);
 
-    Da_temp_ = malloc(zbytes);
-    Dbx_temp_ = malloc(zbytes);
-    Dby_temp_ = malloc(zbytes);
-    Dbz_temp_ = malloc(zbytes);
+    Da_temp_ = (mat_coef_t *)malloc(zbytes);
+    Dbx_temp_ = (mat_coef_t *)malloc(zbytes);
+    Dby_temp_ = (mat_coef_t *)malloc(zbytes);
+    Dbz_temp_ = (mat_coef_t *)malloc(zbytes);
 
-    material_ = malloc(sz);
+    material_ = (unsigned int *)malloc(sz);
 
-    if (ex_ && ey_ && ez_ && hx_ && hy_ && hz_ && material_
+    if (ex_orig_ && ey_orig_ && ez_orig_ && hx_orig_ && hy_orig_ 
+        && hz_orig_ && material_
         && Ca_temp_ && Cbx_temp_ && Cby_temp_ && Cbz_temp_
         && Da_temp_ && Dbx_temp_ && Dby_temp_ && Dbz_temp_)
     {
-      memset(ex_, 0, sz);
-      memset(ey_, 0, sz);
-      memset(ez_, 0, sz);
+      memset(ex_orig_, 0, sz);
+      memset(ey_orig_, 0, sz);
+      memset(ez_orig_, 0, sz);
       
-      memset(hx_, 0, sz);
-      memset(hy_, 0, sz);
-      memset(hz_, 0, sz);
+      memset(hx_orig_, 0, sz);
+      memset(hy_orig_, 0, sz);
+      memset(hz_orig_, 0, sz);
 
       memset(material_, 0, sz);
 
@@ -227,6 +420,101 @@ void alloc_grid()
       printf("Insufficient memory; try reducing the grid size. \n");
       exit(1);
     }
+    
+    if (cache_padding_g_)
+    {
+      uintptr_t e = (uintptr_t)ex_orig_;
+      printf("Padding the field arrays to increase cache potential.\n");
+      printf("ex_orig ptr and low 22 bits of ex_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+      e = (uintptr_t)ey_orig_;
+      printf("ey_orig ptr and low 22 bits of ey_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+      e = (uintptr_t)ez_orig_;
+      printf("ez_orig ptr and low 22 bits of ez_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+
+      ex_ = ex_orig_;
+      ey_ = ey_orig_;
+      ez_ = ez_orig_;
+      hx_ = hx_orig_;
+      hy_ = hy_orig_;
+      hz_ = hz_orig_;
+      
+      e = (uintptr_t)ex_;
+      printf("ex_orig ptr and low 22 bits of ex_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+      e = (uintptr_t)ey_;
+      printf("ey_orig ptr and low 22 bits of ey_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+      e = (uintptr_t)ez_;
+      printf("ez_orig ptr and low 22 bits of ez_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+
+      e = (uintptr_t)hx_;
+      printf("hx_orig ptr and low 22 bits of hx_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+      e = (uintptr_t)hy_;
+      printf("hy_orig ptr and low 22 bits of hy_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+      e = (uintptr_t)hz_;
+      printf("hz_orig ptr and low 22 bits of hz_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+    } else {
+      ex_ = ex_orig_;
+      ey_ = ey_orig_;
+      ez_ = ez_orig_;
+      hx_ = hx_orig_;
+      hy_ = hy_orig_;
+      hz_ = hz_orig_;
+
+      printf("No padding for cache:\n");
+      uintptr_t e = (uintptr_t)ex_;
+      printf("ex_orig ptr and low 22 bits of ex_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+      e = (uintptr_t)ey_;
+      printf("ey_orig ptr and low 22 bits of ey_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+      e = (uintptr_t)ez_;
+      printf("ez_orig ptr and low 22 bits of ez_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+
+      e = (uintptr_t)hx_;
+      printf("hx_orig ptr and low 22 bits of hx_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+      e = (uintptr_t)hy_;
+      printf("hy_orig ptr and low 22 bits of hy_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+      e = (uintptr_t)hz_;
+      printf("hz_orig ptr and low 22 bits of hz_orig pointer: %p, %p\n", 
+             (void *)e, (void *)(e & 0x3FFFFF));
+    }
+    
+    int idx1 = pi(16, 16, 0);
+    int idx2 = pi(15, 16, 0);
+    int idx3 = pi(16, 15, 0);
+    
+    field_t *ez = &ez_[idx1];
+    field_t *hy1 = &hy_[idx1];
+    field_t *hy2 = &hy_[idx2];
+    field_t *hx1 = &hx_[idx3];
+    field_t *hx2 = &hx_[idx1];
+
+    uintptr_t e = (uintptr_t)ez;
+    printf("ez ptr and low 22 bits of ez pointer: %p, %p\n", 
+           (void *)e, (void *)(e & 0x3FFFFF));
+    e = (uintptr_t)hy1;
+    printf("hy1 ptr and low 22 bits of hy1 pointer: %p, %p\n", 
+           (void *)e, (void *)(e & 0x3FFFFF));
+    e = (uintptr_t)hy2;
+    printf("hy2 ptr and low 22 bits of hy2 pointer: %p, %p\n", 
+           (void *)e, (void *)(e & 0x3FFFFF));
+    e = (uintptr_t)hx1;
+    printf("hx1 ptr and low 22 bits of hx1 pointer: %p, %p\n", 
+           (void *)e, (void *)(e & 0x3FFFFF));
+    e = (uintptr_t)hx2;
+    printf("hx2 ptr and low 22 bits of hx2 pointer: %p, %p\n", 
+           (void *)e, (void *)(e & 0x3FFFFF));
   }
 }
 
@@ -265,11 +553,11 @@ void load_materials(unsigned int num_materials, field_t *epsarg,
   mat_prop_t mu;
   mat_prop_t sigs;
 
-  Ca_ = malloc(sz);
-  Da_ = malloc(sz);
+  Ca_ = (mat_coef_t *)malloc(sz);
+  Da_ = (mat_coef_t *)malloc(sz);
 
-  Cbx_ = malloc(sz);
-  Dbx_ = malloc(sz);
+  Cbx_ = (mat_coef_t *)malloc(sz);
+  Dbx_ = (mat_coef_t *)malloc(sz);
 
   /* Save some memory if possible. */
   if (deltay_ == deltax_)
@@ -277,8 +565,8 @@ void load_materials(unsigned int num_materials, field_t *epsarg,
     Cby_ = Cbx_;
     Dby_ = Dbx_;
   } else {
-    Cby_ = malloc(sz);
-    Dby_ = malloc(sz);
+    Cby_ = (mat_coef_t *)malloc(sz);
+    Dby_ = (mat_coef_t *)malloc(sz);
   }
 
   if (deltaz_ == deltax_)
@@ -289,8 +577,8 @@ void load_materials(unsigned int num_materials, field_t *epsarg,
     Cbz_ = Cby_;
     Dbz_ = Dby_;
   } else {
-    Cbz_ = malloc(sz);
-    Dbz_ = malloc(sz);
+    Cbz_ = (mat_coef_t *)malloc(sz);
+    Dbz_ = (mat_coef_t *)malloc(sz);
   }
 
   /* The first one is always PEC */
@@ -361,11 +649,6 @@ void free_material()
   }
 }
 
-unsigned int pi(unsigned int x, unsigned int y, 
-                unsigned int z)
-{
-  return z + (y + x*dimy_) * dimz_;
-}
 
 
 
