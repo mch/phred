@@ -107,8 +107,8 @@ unsigned int dimz_;
 
 /* Padding along the z and y axis such that the length of a block of
    memory along the z axis is a multiple of 16 bytes. */
-extern int z_padding_;
-extern int y_padding_;
+int z_padding_;
+int y_padding_;
 
 /****************************************************************
  * Functions for this file
