@@ -28,7 +28,9 @@
 #include <cmath>
 
 AvgPowerResult::AvgPowerResult()
-  : power_real_(0), power_imag_(0), prev_et1_(0), prev_et2_(0), 
+  : power_real_(0), power_imag_(0), 
+    et1_(0), et2_(0), ht1_(0), ht2_(0),
+    prev_et1_(0), prev_et2_(0), 
     cos_temp_(0), sin_temp_(0),
     e_cos_temp_(0), e_sin_temp_(0)
 {}
@@ -36,7 +38,9 @@ AvgPowerResult::AvgPowerResult()
 AvgPowerResult::AvgPowerResult(field_t freq_start, field_t freq_stop, 
                                unsigned int num_freqs)
   : DFTResult(freq_start, freq_stop, num_freqs), 
-    power_real_(0), power_imag_(0), prev_et1_(0), prev_et2_(0),
+    power_real_(0), power_imag_(0), 
+    et1_(0), et2_(0), ht1_(0), ht2_(0),
+    prev_et1_(0), prev_et2_(0),
     cos_temp_(0), sin_temp_(0),
     e_cos_temp_(0), e_sin_temp_(0)
 {}
