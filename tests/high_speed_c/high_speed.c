@@ -134,6 +134,7 @@ char openmp_loop_g_;
 char simple_loop_g_;
 char cache_loop_g_;
 char combined_loop_g_;
+char combined_simple_mat_loop_g_;
 int x_size_g_;
 int y_size_g_;
 int z_size_g_;
@@ -146,7 +147,7 @@ decode_switches (int argc, char **argv)
   int c;
   char *arg = 0;
 
-  while ((c = getopt (argc, argv, "qoscCx:y:z:n:")) != -1)
+  while ((c = getopt (argc, argv, "mqoscCx:y:z:n:")) != -1)
     switch (c)
     {
     case 'o':
@@ -154,6 +155,8 @@ decode_switches (int argc, char **argv)
       openmp_loop_g_ = 1;
       simple_loop_g_ = 0;
       cache_loop_g_ = 0;
+      combined_loop_g_ = 0;
+      combined_simple_mat_loop_g_ = 0;
 #else
       printf("OpenMP is not available.\n");
 #endif
@@ -167,20 +170,32 @@ decode_switches (int argc, char **argv)
       simple_loop_g_ = 1;
       openmp_loop_g_ = 0;
       cache_loop_g_ = 0;
+      combined_loop_g_ = 0;
+      combined_simple_mat_loop_g_ = 0;
       break;
 
     case 'C':
       cache_loop_g_ = 1;
       simple_loop_g_ = 0;
       openmp_loop_g_ = 0;
+      combined_loop_g_ = 0;
+      combined_simple_mat_loop_g_ = 0;
       break;
 
     case 'c':
-      //cache_padding_g_ = 1;
       combined_loop_g_ = 1;
       simple_loop_g_ = 0;
       openmp_loop_g_ = 0;
       cache_loop_g_ = 0;
+      combined_simple_mat_loop_g_ = 0;
+      break;
+
+    case 'm':
+      combined_loop_g_ = 0;
+      simple_loop_g_ = 0;
+      openmp_loop_g_ = 0;
+      cache_loop_g_ = 0;
+      combined_simple_mat_loop_g_ = 1;
       break;
 
     case 'x':
@@ -274,6 +289,9 @@ int main(int argc, char **argv)
   if (combined_loop_g_)
     printf("Using the combined updates; 3 field components at once.\n");
 
+  if (combined_simple_mat_loop_g_)
+    printf("Using the combined updates; with homogeneuous material properties.\n");
+
 #ifdef USE_OPENMP
 
   printf("Number of threads in team: %i\n", omp_get_num_threads());
@@ -343,6 +361,9 @@ void run(unsigned int num_time_steps)
     if (combined_loop_g_)
       combined_e_update();
 
+    if(combined_simple_mat_loop_g_)
+      combined_simple_mat_e_update();
+
     ey_[pi(20, 20, 20)] = ey_[pi(20, 20, 20)] + gaussm(i, 500e12, 1, 300e12);
 
 #ifdef USE_OPENMP
@@ -359,6 +380,9 @@ void run(unsigned int num_time_steps)
 
     if (combined_loop_g_)
       combined_h_update();
+
+    if(combined_simple_mat_loop_g_)
+      combined_simple_mat_h_update();
 
 /*      fprintf(fields, "%i %g %g %g %g %g %g %g\n",  */
 /*  	    i, i * deltat_, ex_[pi(x, y, z)], */

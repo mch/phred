@@ -790,14 +790,14 @@ void Grid::load_materials(shared_ptr<MaterialLib> matlib)
     }
 
 #ifdef DEBUG
-//     cerr << "Material '" << (*iter).second.get_name() << "', index: " 
-//          << index << "\n\tCa_ = " << Ca_[index]
-//          << ", Da_ = " << Da_[index] 
-//          << "\n\tCbx_ = " << Cbx_[index] << ", Cby_" << Cby_[index]
-//          << ", Cbz_ = " << Cbz_[index]
-//          << "\n\tDbx_ = " << Dbx_[index] << ", Dby_" << Dby_[index]
-//          << ", Dbz_ = " << Dbz_[index]
-//          << endl;
+    cerr << "Material '" << (*iter).second.get_name() << "', index: " 
+         << index << "\n\tCa_ = " << get_Ca(index)
+         << ", Da_ = " << get_Da(index)
+         << "\n\tCbx_ = " << get_Cbx(index) << ", Cby_ = " << get_Cby(index)
+         << ", Cbz_ = " << get_Cbz(index)
+         << "\n\tDbx_ = " << get_Dbx(index) << ", Dby_ = " << get_Dby(index)
+         << ", Dbz_ = " << get_Dbz(index)
+         << endl;
 #endif
 
     ++iter;

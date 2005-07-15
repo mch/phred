@@ -32,20 +32,11 @@ MPISubdomainAlg::MPISubdomainAlg()
 MPISubdomainAlg::~MPISubdomainAlg()
 {}
 
-GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
+void MPISubdomainAlg::assign_processes(const GridInfo &info, int sz, 
+                                       int dims[3])
 {
-  // Set up subdomains
-  int dims[3], periods[3];
-
-  for (int i = 0; i < 3; i++)
-  {
-    dims[i] = 0;
-    periods[i] = 0;
-  }
-
   unsigned int sdx, sdy, sdz, n, m, p;
   bool divided = false;
-  unsigned int sz = static_cast<unsigned int>(MPI_SIZE);
   
   // The following divides up the domain such that the message size is
   // minimized. n, m, and p are the number of divisions along the x,
@@ -128,27 +119,17 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
   dims[0] = n;
   dims[1] = m;
   dims[2] = p;
+}
 
-  // Set up a new communicator
-  MPI_Cart_create(MPI_COMM_WORLD, 3, dims, periods, 1, &MPI_COMM_PHRED);
-
-  // Create a new GridInfo for this rank, depending on where it is
-  // within the topology.
-  int coords[3], new_rank;
-  MPI_Comm_rank(MPI_COMM_PHRED, &new_rank);
-  MPI_Cart_coords(MPI_COMM_PHRED, new_rank, 3, coords);
-
-#ifdef DEBUG
-  cerr << "MPISubdomainAlg: old rank is " << MPI_RANK << ", new rank is " 
-       << new_rank << endl;
-
-  cerr << "This rank is at (" << coords[0] << ", " << coords[1] 
-       << ", " << coords[2] << ") in the cartesian topology." << endl;
-#endif
-
-  MPI_RANK = new_rank;
-
-  GridInfo result = info; 
+GridInfo MPISubdomainAlg::calc_subdomain(const GridInfo &gi,
+                                         const int coords[3], 
+                                         const int dims[3])
+{
+  GridInfo result = gi; 
+  int n, m, p;
+  n = dims[0];
+  m = dims[1];
+  p = dims[2];
 
   // Assign sizes and starting points including overlap
   result.dimx_ = static_cast<unsigned int>
@@ -191,137 +172,6 @@ GridInfo MPISubdomainAlg::decompose_domain(GridInfo &info)
   result.dimx_no_sd_ = result.dimx_;
   result.dimy_no_sd_ = result.dimy_;
   result.dimz_no_sd_ = result.dimz_;
-
-  // Set up subdomain boundary conditions and tell GridInfo where the
-  // real boundaryies are.
-  SubdomainBc *sdbc = 0;
-
-  int n_coords[3];
-  int n_rank;
-
-  if (coords[0] != 0) { // Back
-    sdbc = new SubdomainBc();
-
-
-    n_coords[0] = coords[0] - 1;
-    n_coords[1] = coords[1];
-    n_coords[2] = coords[2];
-    MPI_Cart_rank(MPI_COMM_PHRED, n_coords, &n_rank);
-
-    sdbc->set_neighbour(n_rank);
-    sdbc->set_rank(MPI_RANK);
-    result.set_boundary(BACK, sdbc);
-
-    result.dimx_++;
-    result.start_x_--;
-
-#ifdef DEBUG
-    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
-         << n_rank << " at it's back face. " << endl;
-#endif
-  }
-
-  if (coords[0] != dims[0] - 1) { // front
-    sdbc = new SubdomainBc();
-
-    n_coords[0] = coords[0] + 1;
-    n_coords[1] = coords[1];
-    n_coords[2] = coords[2];
-    MPI_Cart_rank(MPI_COMM_PHRED, n_coords, &n_rank);
-
-    sdbc->set_neighbour(n_rank);
-    sdbc->set_rank(MPI_RANK);
-    result.set_boundary(FRONT, sdbc);
-
-    result.dimx_++;
-
-#ifdef DEBUG
-    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
-         << n_rank << " at it's front face. " << endl;
-#endif
-  }
-
-  if (coords[1] != 0) { // LEFT
-    sdbc = new SubdomainBc();
-
-    n_coords[0] = coords[0];
-    n_coords[1] = coords[1] - 1;
-    n_coords[2] = coords[2];
-    MPI_Cart_rank(MPI_COMM_PHRED, n_coords, &n_rank);
-
-    sdbc->set_neighbour(n_rank);
-    sdbc->set_rank(MPI_RANK);
-    result.set_boundary(LEFT, sdbc);
-
-    result.dimy_++;
-    result.start_y_--;
-
-#ifdef DEBUG
-    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
-         << n_rank << " at it's left face. " << endl;
-#endif
-  }
-
-  if (coords[1] != dims[1] - 1) { // RIGHT
-    sdbc = new SubdomainBc();
-
-    n_coords[0] = coords[0];
-    n_coords[1] = coords[1] + 1;
-    n_coords[2] = coords[2];
-    MPI_Cart_rank(MPI_COMM_PHRED, n_coords, &n_rank);
-
-    sdbc->set_neighbour(n_rank);
-    sdbc->set_rank(MPI_RANK);
-    result.set_boundary(RIGHT, sdbc);
-
-    result.dimy_++;
-
-#ifdef DEBUG
-    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
-         << n_rank << " at it's right face. " << endl;
-#endif
-  }
-
-  if (coords[2] != 0) { // BOTTOM
-    sdbc = new SubdomainBc();
-
-    n_coords[0] = coords[0];
-    n_coords[1] = coords[1];
-    n_coords[2] = coords[2] - 1;
-    MPI_Cart_rank(MPI_COMM_PHRED, n_coords, &n_rank);
-
-    sdbc->set_neighbour(n_rank);
-    sdbc->set_rank(MPI_RANK);
-    result.set_boundary(BOTTOM, sdbc);
-
-    result.dimz_++;
-    result.start_z_--;
-
-#ifdef DEBUG
-    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
-         << n_rank << " at it's bottom face. " << endl;
-#endif
-  }
-
-  if (coords[2] != dims[2] - 1) { // TOP
-    sdbc = new SubdomainBc();
-
-    n_coords[0] = coords[0];
-    n_coords[1] = coords[1];
-    n_coords[2] = coords[2] + 1;
-    MPI_Cart_rank(MPI_COMM_PHRED, n_coords, &n_rank);
-
-    sdbc->set_neighbour(n_rank);
-    sdbc->set_rank(MPI_RANK);
-    result.set_boundary(TOP, sdbc);
-
-    result.dimz_++;
-
-#ifdef DEBUG
-    cerr << "MPISubdomainAlg: Rank " << MPI_RANK << " sharing data with "
-         << n_rank << " at it's top face. " << endl;
-#endif
-  }
-
+  
   return result;
 }

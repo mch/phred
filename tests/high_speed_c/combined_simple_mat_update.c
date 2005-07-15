@@ -15,7 +15,7 @@ static void update_hx();
 static void update_hy();
 static void update_hz();
 
-void combined_e_update()
+void combined_simple_mat_e_update()
 {
   unsigned int mid;
   int i, j, k, idx, idx_x, idx_y, idx_z, low_bound, up_bound;
@@ -24,10 +24,10 @@ void combined_e_update()
   field_t *hy_x, *hy_z;
   field_t *hz, *hz_x, *hz_y;
 
-  float *ca;
-  float *cbx;
-  float *cby;
-  float *cbz;
+  float ca;
+  float cbx;
+  float cby;
+  float cbz;
 
   // Calculate the upper and lower bounds of the iteration over the z
   // array such that the starting address is aligned on a 16 byte
@@ -35,6 +35,11 @@ void combined_e_update()
   low_bound = 4;
   up_bound = dimz_ - 1;
   up_bound = up_bound - ((up_bound - low_bound) % 4);
+
+  ca = Ca_[low_bound];
+  cbx = Cbx_[low_bound];
+  cby = Cby_[low_bound];
+  cbz = Cbz_[low_bound];
 
   for (i = 1; i < dimx_; i++) {
     for (j = 1; j < dimy_; j++) {
@@ -61,62 +66,36 @@ void combined_e_update()
 
       up_bound = dimz_ - 1;
 
-      for (k = 1; k < up_bound; k++) {
-        mid = material_[idx++];
-        Ca_temp_[k] = Ca_[mid];
-        Cbx_temp_[k] = Cbx_[mid];
-        Cby_temp_[k] = Cby_[mid];
-        Cbz_temp_[k] = Cbz_[mid];
-      }
-
-      ca = &Ca_temp_[low_bound];
-      cbx = &Cbx_temp_[low_bound];
-      cby = &Cby_temp_[low_bound];
-      cbz = &Cbz_temp_[low_bound];
-
       #pragma ivdep
       for (k = low_bound; k < up_bound; k++) {
-        *ex = *ca * *ex
-          + *cby * (*hz - *hz_y)
-          + *cbz * (*hy_z - *(hy_z + 1));
+        *ex = ca * *ex
+          + cby * (*hz - *hz_y)
+          + cbz * (*hy_z - *(hy_z + 1));
 
-        ca++; cby++; cbz++;
         ex++;
 
         hz++; hz_y++;
         hy_z++; 
       }
 
-      ca = Ca_temp_;
-      cbx = Cbx_temp_;
-      cby = Cby_temp_;
-      cbz = Cbz_temp_;
-
       #pragma ivdep
       for (k = low_bound; k < up_bound; k++) {
-        *ey = *ca * *ey
-          + *cbz * (*(hx_z + 1) - *hx_z)
-          + *cbx * (*hz_x - *hz);
+        *ey = ca * *ey
+          + cbz * (*(hx_z + 1) - *hx_z)
+          + cbx * (*hz_x - *hz);
 
-        ca++; cbx++; cbz++;
         ey++;
 
         hz++; hz_x++;
         hx_z++;
       }
 
-      ca = Ca_temp_;
-      cbx = Cbx_temp_;
-      cby = Cby_temp_;
-      cbz = Cbz_temp_;
-
       #pragma ivdep
       for (k = low_bound; k < up_bound; k++) {
-        *ez = *ca * *ez
-          + *cbx * (*(hy_z + 1) - *hy_x) 
-          + *cby * (*hx_y - *(hx_z + 1));
+        *ez = ca * *ez
+          + cbx * (*(hy_z + 1) - *hy_x) 
+          + cby * (*hx_y - *(hx_z + 1));
 
-        ca++; cbx++; cby++;
         ez++;
 
         hy_z++; hy_x++;
@@ -126,7 +105,7 @@ void combined_e_update()
   }
 }
 
-void combined_h_update()
+void combined_simple_mat_h_update()
 {
   unsigned int mid;
   int i, j, k, idx, idx_x, idx_y, idx_z, low_bound, up_bound;
@@ -135,16 +114,21 @@ void combined_h_update()
   field_t *ey, *ey_x;
   field_t *ez, *ez_x, *ez_y;
 
-  float *da;
-  float *dbx;
-  float *dby;
-  float *dbz;
+  float da;
+  float dbx;
+  float dby;
+  float dbz;
 
   // Calculate the upper and lower bounds of the iteration over the z
   // array such that the starting address is aligned on a 16 byte
   // boundary and the span is a multiple of 16. 
   low_bound = 4;
   up_bound = dimz_ - 1;
+
+  da = Da_[low_bound];
+  dbx = Dbx_[low_bound];
+  dby = Dby_[low_bound];
+  dbz = Dbz_[low_bound];
 
   for (i = 1; i < dimx_; i++) {
     for (j = 1; j < dimy_; j++) {
@@ -168,60 +152,34 @@ void combined_h_update()
       ex_y = &ex_[idx_y];
       ez_y = &ez_[idx_y];
 
-      for (k = low_bound; k < up_bound; k++) {
-        mid = material_[idx++];
-        Da_temp_[k] = Da_[mid];
-        Dbx_temp_[k] = Dbx_[mid];
-        Dby_temp_[k] = Dby_[mid];
-        Dbz_temp_[k] = Dbz_[mid];
-      }
-
-      da = Da_temp_;
-      dbx = Dbx_temp_;
-      dby = Dby_temp_;
-      dbz = Dbz_temp_;
-
       #pragma ivdep
       for (k = low_bound; k < up_bound; k++) {
-        *hx = *da * *hx
-          + *dby * (*ez - *ez_y)
-          + *dbz * (*(ey + 1) - *ey);
+        *hx = da * *hx
+          + dby * (*ez - *ez_y)
+          + dbz * (*(ey + 1) - *ey);
 
-        da++; dbx++; dby++; dbz++;
         hx++;
 
         ez++; ez_y++; ey++;
       }
 
-      da = Da_temp_;
-      dbx = Dbx_temp_;
-      dby = Dby_temp_;
-      dbz = Dbz_temp_;
-
       #pragma ivdep
       for (k = low_bound; k < up_bound; k++) {
-        *hy = *da * *hy
-          + *dbz * (*ex - *(ex + 1))
-          + *dbx * (*ez_x - *ez);
+        *hy = da * *hy
+          + dbz * (*ex - *(ex + 1))
+          + dbx * (*ez_x - *ez);
 
-        da++; dbx++; dby++; dbz++;
         hy++;
 
         ex++; ez_x++; ez++;
       }
 
-      da = Da_temp_;
-      dbx = Dbx_temp_;
-      dby = Dby_temp_;
-      dbz = Dbz_temp_;
-
       #pragma ivdep
       for (k = low_bound; k < up_bound; k++) {
-        *hz = *da * *hz
-          + *dbx * (*ey - *ey_x)
-          + *dby * (*ex_y - *ex);
+        *hz = da * *hz
+          + dbx * (*ey - *ey_x)
+          + dby * (*ex_y - *ex);
 
-        da++; dbx++; dby++; dbz++;
         hz++;
 
         ex++; ey++;

@@ -131,6 +131,9 @@ void cache_h_update();
 void combined_e_update();
 void combined_h_update();
 
+void combined_e_simple_mat_update();
+void combined_h_simple_mat_update();
+
 static inline unsigned int pi(unsigned int x, unsigned int y, 
                        unsigned int z)
 {

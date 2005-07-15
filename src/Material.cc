@@ -169,4 +169,7 @@ void Material::setup_drude(mat_prop_t eps_inf, mat_prop_t plasma_freq,
   properties_["drude_epsilon_inf"] = eps_inf;
   properties_["drude_plasma_freq"] = plasma_freq;
   properties_["drude_vc"] = collision_freq;
+
+  epsilon_ = 1; sigma_ = 0; pec_ = false;
+  mu_ = 1; sigma_star_ = 0;
 }

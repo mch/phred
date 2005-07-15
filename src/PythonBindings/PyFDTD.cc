@@ -26,7 +26,31 @@
 
 using namespace boost::python;
 
+/**
+ * This wrapper allows for subclasses of SubdomainAlg written in
+ * Python
+ */
+class SubdomainAlgWrap : public SubdomainAlg
+{
+private:
+  PyObject *self_;
 
+public:
+  SubdomainAlgWrap(PyObject *self)
+    : self_(self)
+  {}
+
+  void assign_processes(const GridInfo &info, int N, int dims[3])
+  { return call_method<void>(self_, "assign_processes",
+                             boost::ref(info), N, dims); }
+
+  GridInfo calc_subdomain(const GridInfo &gi,
+                          const int coords[3], 
+                          const int dims[3])
+  { return call_method<GridInfo>(self_, "calc_subdomain", 
+                                 boost::ref(gi), coords, dims); }
+
+};
 void export_fdtd()
 {
   class_<FDTD, boost::noncopyable>("FDTD", "This object holds all "
@@ -93,8 +117,13 @@ void export_fdtd()
     .add_property("dt_scale", &FDTD::get_dt_scale, 
                   &FDTD::set_dt_scale /*, 
                   "A scale factor used in the calculation of the time "
-                  "step size. Range is 0 < sf < 1. Defaults to 0.9." */);
-
+                  "step size. Range is 0 < sf < 1. Defaults to 0.9." */)
+    .def("set_dd_alg", &FDTD::set_dd_alg, 
+         "Set the domain decomposition algorithm to use.")
+    .def("get_dd_alg", &FDTD::get_dd_alg,
+         "Returns the domain decomposition algorithm in use.")
+    ;
+  
   // DEPRECATED:
 //     .def("set_decomp_alg", &FDTD::set_decomp_alg)
 //     .def("get_decomp_alg", &FDTD::get_decomp_alg)

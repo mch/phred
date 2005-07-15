@@ -28,6 +28,32 @@ using namespace boost::python;
 
 void export_grids()
 {
+  class_<GridInfo>("GridInfo")
+    .def_readonly("global_dimx_", &GridInfo::global_dimx_)
+    .def_readonly("global_dimy_", &GridInfo::global_dimy_)
+    .def_readonly("global_dimz_", &GridInfo::global_dimz_)
+
+    .def_readwrite("start_x_", &GridInfo::start_x_)
+    .def_readwrite("start_y_", &GridInfo::start_y_)
+    .def_readwrite("start_z_", &GridInfo::start_z_)
+
+    .def_readwrite("dimx_", &GridInfo::dimx_)
+    .def_readwrite("dimy_", &GridInfo::dimy_)
+    .def_readwrite("dimz_", &GridInfo::dimz_)
+
+    .def_readwrite("dimx_no_sd_", &GridInfo::dimx_no_sd_)
+    .def_readwrite("dimy_no_sd_", &GridInfo::dimy_no_sd_)
+    .def_readwrite("dimz_no_sd_", &GridInfo::dimz_no_sd_)
+
+    .def_readwrite("start_x_no_sd_", &GridInfo::start_x_)
+    .def_readwrite("start_y_no_sd_", &GridInfo::start_y_)
+    .def_readwrite("start_z_no_sd_", &GridInfo::start_z_)
+
+    .def_readonly("deltax_", &GridInfo::deltax_)
+    .def_readonly("deltay_", &GridInfo::deltay_)
+    .def_readonly("deltaz_", &GridInfo::deltaz_)
+    ;
+
   class_<Grid, boost::noncopyable>("Grid", no_init)
     .def("get_define_mode", &Grid::get_define_mode)
     .def("set_define_mode", &Grid::set_define_mode)
@@ -54,7 +80,7 @@ void export_grids()
     .def("set_material", &Grid::set_material)
     .def("get_material", &Grid::get_material)
 
-    .def("setup_gird", &Grid::setup_grid)
+    .def("setup_grid", &Grid::setup_grid)
     .def("load_materials", &Grid::load_materials)
     .def("load_geometry", &Grid::load_geometry)
     ;

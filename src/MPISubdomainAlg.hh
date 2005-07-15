@@ -38,20 +38,29 @@ public:
   MPISubdomainAlg();
   ~MPISubdomainAlg();
 
+protected:
   /**
-   * Implements an algorithm for domain decomposition using MPI
-   * functions. Also creats a MPI_Communicator to help map processes
-   * to hardware topology.
+   * This function divides a set of N processors into n processors
+   * along the x axis, m processors along the y axis, and p processors
+   * along the z axis. n*m*p == N.
    *
-   * @param grid_info an object containing information about the
-   * global grid as determined by parsing the input file. 
-   *
-   * @return a Grid object (class instance) which has its sizes set
-   * but which has not yet allocated any memory.
-   */
-  GridInfo decompose_domain(GridInfo &info);
+   * Subclasses must override this function. 
+   */ 
+  virtual void assign_processes(const GridInfo &info, int N, int dims[3]);
 
-private:
+  /**
+   * Calculate the size and start of the subdomain on a specific rank.
+   *
+   * @param gi GridInfo for global computational domain
+   * @param coords The (x,y,z) coordinates of the process within the
+   * Cartesian topology.
+   * @param dims The number of processors along the x, y, and z axis. 
+   * @return a new GridInfo object based on gi which represents the
+   * subdomain on process rank.
+   */ 
+  virtual GridInfo calc_subdomain(const GridInfo &gi,
+                                  const int coords[3], 
+                                  const int dims[3]);
 
 };
 

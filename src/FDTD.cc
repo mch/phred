@@ -24,9 +24,10 @@
 #include "Globals.hh"
 
 FDTD::FDTD()
-  : time_steps_(0), ddalg_(DDA_MPICART), dt_scale_(0.9)
+  : time_steps_(0), dt_scale_(0.9)
 {
   mlib_ = shared_ptr<MaterialLib>(new MaterialLib()); // Empty default. 
+  dd_alg_ = shared_ptr<SubdomainAlg>(new MPISubdomainAlg());
 }
 
 FDTD::~FDTD()

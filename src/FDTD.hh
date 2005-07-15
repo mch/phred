@@ -253,6 +253,18 @@ public:
   inline float get_dt_scale()
   { return dt_scale_; }
 
+  /**
+   * Set the domain decomposition algorithm to use
+   */ 
+  inline void set_dd_alg(shared_ptr<SubdomainAlg> alg)
+  { dd_alg_ = alg; }
+
+  /**
+   * Returns the domain decomposition algorithm in use
+   */ 
+  inline shared_ptr<SubdomainAlg> get_dd_alg()
+  { return dd_alg_; }
+
 protected:
   /**
    * The grid to operate on; what kind of grid specifically is decided
@@ -341,7 +353,7 @@ protected:
   /**
    * The domain decomposition algorithm to use
    */ 
-  DomainDecompAlg ddalg_;
+  shared_ptr<SubdomainAlg> dd_alg_;
 
   /**
    * This factor scales down the size of the time step from that

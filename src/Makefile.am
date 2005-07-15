@@ -57,6 +57,7 @@ phred_SOURCES=\
 	Exceptions.hh \
 	Data.hh \
 	SubdomainAlg.hh \
+	SubdomainAlg.cc \
 	MPISubdomainAlg.cc \
 	MPISubdomainAlg.hh \
 	Contiguous.hh \
