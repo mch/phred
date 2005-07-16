@@ -44,6 +44,7 @@ protected:
   FieldComponent field_comp_;
 
   bool init_; /**< Set to true after init() has been called. */
+  bool has_data_; /**< True if we have something to talk about. */ 
 
   Variable var_; /**< Our variable */
 

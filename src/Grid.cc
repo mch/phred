@@ -1414,7 +1414,6 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in) const
 
   r.is_global_ = false;
 
-
   // Calculate Block parameters for a new Block in the local grid that
   // DOES NOT include ghost cells.
   if (in->xmin_ >= sx) 
@@ -1427,6 +1426,13 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in) const
       r.faces_[BACK] = false;
       r.has_data_ = false;
     }
+  }
+  else if (in->xmax_ < sx)
+  {
+    r.xmin_ = 0;
+    r.xoffset_ = 0;
+    r.faces_[BACK] = false;
+    r.has_data_ = false;
   } else {
     r.xmin_ = sx - sxg;
     r.xoffset_ = sx - in->xmin_;
@@ -1443,6 +1449,13 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in) const
       r.faces_[LEFT] = false;
       r.has_data_ = false;
     }
+  }
+  else if (in->ymax_ < sy)
+  {
+    r.ymin_ = 0;
+    r.yoffset_ = 0;
+    r.faces_[LEFT] = false;
+    r.has_data_ = false;
   } else {
     r.ymin_ = sy - syg;
     r.yoffset_ = sy - in->ymin_;
@@ -1459,6 +1472,13 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in) const
       r.faces_[BOTTOM] = false;
       r.has_data_ = false;
     }
+  }
+  else if (in->zmax_ < sz)
+  {
+    r.zmin_ = 0;
+    r.zoffset_ = 0;
+    r.faces_[BOTTOM] = false;
+    r.has_data_ = false;
   } else {
     r.zmin_ = sz - szg; 
     r.zoffset_ = sz - in->zmin_;
@@ -1466,48 +1486,90 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in) const
   }
 
   // Maximums... 
-  if (in->xmax_ >= sx) {
-    if (in->xmax_ < sx + dx) {
+  if (in->xmax_ >= sx) 
+  {
+    if (in->xmax_ < sx + dx) 
+    {
       r.xmax_ = in->xmax_ - sxg;
       r.faces_[FRONT] = true;
-    } else {
+    } 
+    else if (in->xmin_ >= sx + dx)
+    {
+      r.faces_[FRONT] = false;
+      r.has_data_ = false;
+    } 
+    else 
+    {
       r.xmax_ = sx - sxg + dx - 1;
       r.faces_[FRONT] = false;
     }
-  } else {
+  } 
+  else 
+  {
     r.xmax_ = 0;
     r.faces_[FRONT] = false;
   }
 
-  if (in->ymax_ >= sy) {
-    if (in->ymax_ < sy + dy) {
+  if (in->ymax_ >= sy) 
+  {
+    if (in->ymax_ < sy + dy) 
+    {
       r.ymax_ = in->ymax_ - syg;
       r.faces_[RIGHT] = true;
-    } else {
+    } 
+    else if (in->ymin_ >= sy + dy)
+    {
+      r.faces_[RIGHT] = false;
+      r.has_data_ = false;
+    } 
+    else 
+    {
       r.ymax_ = sy - syg + dy - 1;
       r.faces_[RIGHT] = false;
     }
-  } else {
+  } 
+  else 
+  {
     r.ymax_ = 0;
     r.faces_[RIGHT] = false;
   }
 
-  if (in->zmax_ >= sz) {
-    if (in->zmax_ < sz + dz) {
+  if (in->zmax_ >= sz) 
+  {
+    if (in->zmax_ < sz + dz) 
+    {
       r.zmax_ = in->zmax_ - szg;
       r.faces_[TOP] = true;
-    } else {
+    } 
+    else if (in->zmin_ >= sz + dz)
+    {
+      r.faces_[TOP] = false;
+      r.has_data_ = false;
+    } 
+    else 
+    {
       r.zmax_ = sz - szg + dz - 1;
       r.faces_[TOP] = false;
     }
-  } else {
+  } 
+  else 
+  {
     r.zmax_ = 0;
     r.faces_[TOP] = false;
   }
 
-  r.xlen_ = r.xmax_ - r.xmin_ + 1;
-  r.ylen_ = r.ymax_ - r.ymin_ + 1;
-  r.zlen_ = r.zmax_ - r.zmin_ + 1;
+  if (r.has_data_)
+  {
+    r.xlen_ = r.xmax_ - r.xmin_ + 1;
+    r.ylen_ = r.ymax_ - r.ymin_ + 1;
+    r.zlen_ = r.zmax_ - r.zmin_ + 1;
+  }
+  else
+  {
+    r.xlen_ = 0;
+    r.ylen_ = 0;
+    r.zlen_ = 0;
+  }
 
   return shared_ptr<Block> (new Block(r));
 }

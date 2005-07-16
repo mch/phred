@@ -89,7 +89,7 @@ void UPml::compute_regions(Face face, const Grid &grid)
 
   grid_ex_r_.xmax--;
   grid_ey_r_.ymax--;
-  grid_ez_r_.zmax--;
+  grid_ez_r_.zmax--; 
 
   // Don't allow external face E field updates (electric walls)
   // Make sure that the PML computes all components at internal faces. 
@@ -120,6 +120,23 @@ void UPml::compute_regions(Face face, const Grid &grid)
       grid_ex_r_.ymax--;
 
       break;
+
+      // Added July 15, 2005... UPML Maybe reaching into places it
+      // shouldn't be!
+//     case BACK:
+//       grid_ey_r_.xmin++;
+//       grid_ez_r_.xmin++;
+//       break;
+
+//     case LEFT:
+//       grid_ex_r_.ymin++;
+//       grid_ez_r_.ymin++;
+//       break;
+
+//     case BOTTOM:
+//       grid_ex_r_.zmin++;
+//       grid_ey_r_.zmin++;
+//       break;
     }
 
     // Don't overlap compute corners and edges more than once
@@ -199,6 +216,20 @@ void UPml::compute_regions(Face face, const Grid &grid)
         grid_ex_r_.zmax--;
         grid_ey_r_.zmax--;
       }
+
+      // Added July 15, 2005... UPML Maybe reaching into places it
+      // shouldn't be!
+      if (grid.get_boundary(BOTTOM).get_type() == UPML)
+      {
+        grid_ex_r_.zmin++;
+        grid_ey_r_.zmin++;
+      }
+
+      if (grid.get_boundary(LEFT).get_type() == UPML)
+      {
+        grid_ex_r_.ymin++;
+        grid_ez_r_.ymin++;
+      }
       break;
 
     case TOP:
@@ -214,6 +245,20 @@ void UPml::compute_regions(Face face, const Grid &grid)
         grid_ez_r_.ymax--;
         grid_ex_r_.ymax--;
       }
+
+      // Added July 15, 2005... UPML Maybe reaching into places it
+      // shouldn't be!
+      if (grid.get_boundary(LEFT).get_type() == UPML)
+      {
+        grid_ex_r_.ymin++;
+        grid_ez_r_.ymin++;
+      }
+
+      if (grid.get_boundary(BACK).get_type() == UPML)
+      {
+        grid_ey_r_.xmin++;
+        grid_ez_r_.xmin++;
+      }
       break;
       
     case LEFT:
@@ -228,6 +273,20 @@ void UPml::compute_regions(Face face, const Grid &grid)
       {
         grid_ex_r_.zmax--;
         grid_ey_r_.zmax--;
+      }
+
+      // Added July 15, 2005... UPML Maybe reaching into places it
+      // shouldn't be!
+      if (grid.get_boundary(BOTTOM).get_type() == UPML)
+      {
+        grid_ex_r_.zmin++;
+        grid_ey_r_.zmin++;
+      }
+
+      if (grid.get_boundary(BACK).get_type() == UPML)
+      {
+        grid_ey_r_.xmin++;
+        grid_ez_r_.xmin++;
       }
       break;
     }

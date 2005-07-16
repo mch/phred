@@ -56,24 +56,24 @@ void MPISubdomainAlg::assign_processes(const GridInfo &info, int sz,
     // as when the YZ plane must be transmitted (domain divided along X
     // axis).
     
-    if (sdx >= sdy && /*sdx >= sdz &&*/ (n+1)*m*p <= sz) {
+    if (sdx >= sdy && sdx >= sdz && (n+1)*m*p <= sz) {
       n++;
       sdx = info.global_dimx_ / n;
       divided = true;
     }
       
-    else if (sdy >= sdx /*&& sdy >= sdz*/ && n*(m+1)*p <= sz) {
+    else if (sdy >= sdx && sdy >= sdz && n*(m+1)*p <= sz) {
       m++;
       sdy = info.global_dimy_ / m;
       divided = true;
     }
       
     // TEMPORARY, UNTIL UPML with z divisions is fixed
-//     else if (sdz >= sdx && sdz >= sdy && n*m*(p+1) <= sz) {
-//       p++;
-//       sdz = info.global_dimz_ / p;
-//       divided = true;
-//     }
+    else if (sdz >= sdx && sdz >= sdy && n*m*(p+1) <= sz) {
+      p++;
+      sdz = info.global_dimz_ / p;
+      divided = true;
+    }
       
     if (!divided) {
       if ((n+1)*m*p <= sz) {
@@ -86,10 +86,10 @@ void MPISubdomainAlg::assign_processes(const GridInfo &info, int sz,
       }
 
       // TEMPORARY, UNTIL UPML with z divisions is fixed
-//       else if (n*m*(p+1) <= sz) {
-//         p++;
-//         sdz = info.global_dimz_ / p;
-//       }
+      else if (n*m*(p+1) <= sz) {
+        p++;
+        sdz = info.global_dimz_ / p;
+      }
     }
 
     divided = false;
@@ -105,7 +105,7 @@ void MPISubdomainAlg::assign_processes(const GridInfo &info, int sz,
     // good thing is that it handles any MPI_SIZE.
     
     // TEMPORARY, UNTIL UPML with z divisions is fixed
-    dims[2] = 1;
+    //dims[2] = 1;
 
     //  MPI_DIMS_CREATE chooses dimensions so that the resulting grid
     //  is as close as possible to being an ndims-dimensional cube.

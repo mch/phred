@@ -26,7 +26,7 @@
 #include <cmath>
 
 BlockResult::BlockResult()
-  : field_comp_(FC_EY), init_(false), field_data_(0)
+  : field_comp_(FC_EY), init_(false), has_data_(false), field_data_(0)
 {
   variables_["block"] = &var_;
 }
@@ -59,6 +59,9 @@ void BlockResult::init(const Grid &grid)
     throw ResultException("BlockResult has no CSGBox defined!");
   }
 
+  cout << "BlockResult global cells on rank " << MPI_RANK 
+       << ": \n" << *global_b << endl;
+
   var_.add_dimension("x", region_->xlen(), global_b->xlen(), 
                      region_->xoffset());
   var_.add_dimension("y", region_->ylen(), global_b->ylen(), 
@@ -68,76 +71,82 @@ void BlockResult::init(const Grid &grid)
   
   var_.set_name(base_name_);
 
-
-  if (field_comp_ == FC_E || field_comp_ == FC_H)
-  {
-    unsigned int sz = region_->xlen()
-      * region_->ylen() 
-      * region_->zlen();
-
-    field_data_ = new field_t[sz];
-    var_.set_ptr(field_data_);
-
-    MPI_Type_contiguous(sz, GRID_MPI_TYPE, &datatype_);
-    MPI_Type_commit(&datatype_);
-  } 
-  else
-  {
-    int *dsize = new int[3];
-    int *coord = new int[3];
-    int *lens = new int[3];
-    unsigned int ndisps = 0;
-    int *displacements = 0;
-    const GridInfo &info = grid.get_grid_info();
-
-    dsize[0] = grid.get_ldx_sd();
-    dsize[1] = grid.get_ldy_sd();
-    dsize[2] = grid.get_ldz_sd();
-
-    coord[0] = region_->xmin();
-    coord[1] = region_->ymin();
-    coord[2] = region_->zmin();
-
-    lens[0] = region_->xlen();
-    lens[1] = region_->ylen();
-    lens[2] = region_->zlen();
-
-//     Contiguous::compute_displacements(3, dsize, coord, lens, &ndisps, 
-//                                       &displacements);
-
-//     if (ndisps > 0)
-//     {
-//       int *contig_lens = new int[ndisps];
-
-//       for (int i = 0; i < ndisps; i++)
-//         contig_lens[i] = static_cast<int>(region_->zlen());
-
-//       MPI_Type_indexed(ndisps, contig_lens, displacements, 
-//                        GRID_MPI_TYPE, &datatype_);
-//       MPI_Type_commit(&datatype_);
-//     } else {
-//       throw ResultException("BlockResult error: number of displacements is zero. ");
-//     }
-    MPI_Type_create_subarray(3, dsize, lens, coord, MPI_ORDER_C,
-                             GRID_MPI_TYPE, &datatype_);
-    MPI_Type_commit(&datatype_);    
-
-    //delete[] displacements;
+  unsigned int sz = region_->xlen()
+    * region_->ylen() 
+    * region_->zlen();
   
-    var_.set_ptr(const_cast<field_t *>
-                 (grid.get_pointer(grid_point(0,0,0), 
-                                   field_comp_)));
+  if (sz > 0)
+  {
+    has_data_ = true; 
+
+    if (field_comp_ == FC_E || field_comp_ == FC_H)
+    {
+      field_data_ = new field_t[sz];
+      var_.set_ptr(field_data_);
+
+      MPI_Type_contiguous(sz, GRID_MPI_TYPE, &datatype_);
+      MPI_Type_commit(&datatype_);
+    } 
+    else
+    {
+      int *dsize = new int[3];
+      int *coord = new int[3];
+      int *lens = new int[3];
+      unsigned int ndisps = 0;
+      int *displacements = 0;
+      const GridInfo &info = grid.get_grid_info();
+
+      dsize[0] = grid.get_ldx_sd();
+      dsize[1] = grid.get_ldy_sd();
+      dsize[2] = grid.get_ldz_sd();
+
+      coord[0] = region_->xmin();
+      coord[1] = region_->ymin();
+      coord[2] = region_->zmin();
+
+      lens[0] = region_->xlen();
+      lens[1] = region_->ylen();
+      lens[2] = region_->zlen();
+
+      //     Contiguous::compute_displacements(3, dsize, coord, lens, &ndisps, 
+      //                                       &displacements);
+
+      //     if (ndisps > 0)
+      //     {
+      //       int *contig_lens = new int[ndisps];
+
+      //       for (int i = 0; i < ndisps; i++)
+      //         contig_lens[i] = static_cast<int>(region_->zlen());
+
+      //       MPI_Type_indexed(ndisps, contig_lens, displacements, 
+      //                        GRID_MPI_TYPE, &datatype_);
+      //       MPI_Type_commit(&datatype_);
+      //     } else {
+      //       throw ResultException("BlockResult error: number of displacements is zero. ");
+      //     }
+      MPI_Type_create_subarray(3, dsize, lens, coord, MPI_ORDER_C,
+                               GRID_MPI_TYPE, &datatype_);
+      MPI_Type_commit(&datatype_);    
+
+      //delete[] displacements;
+  
+      var_.set_ptr(const_cast<field_t *>
+                   (grid.get_pointer(grid_point(0,0,0), 
+                                     field_comp_)));
+    }
+
+    var_.set_datatype(datatype_);
+  } else {
+    var_.set_num(0);
   }
 
-  var_.set_datatype(datatype_);
-  
   init_ = true;
 }
 
 void BlockResult::calculate_result(const Grid &grid, 
                                    unsigned int time_step)
 {
-  if (init_ && result_time(time_step))
+  if (init_ && has_data_ && result_time(time_step))
   {
     if (field_comp_ == FC_E)
     {

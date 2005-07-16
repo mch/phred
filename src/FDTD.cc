@@ -215,13 +215,12 @@ void FDTD::run()
   if (!quiet)
     cout << "Performing domain decomposition..." << endl;
 
-  SubdomainAlg *alg = 0;
-  
-  alg = new MPISubdomainAlg();
-
-  local_ginfo_ = alg->decompose_domain(global_ginfo_);
-
-  delete alg;
+  if (dd_alg_.get())
+    local_ginfo_ = dd_alg_->decompose_domain(global_ginfo_);
+  else {
+    cout << "No domain decomposition algorithm available! Aborting.\n";
+    return;
+  }
 
   if (!quiet)
   {

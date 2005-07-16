@@ -53,6 +53,8 @@ std::ostream &operator<<(std::ostream &os, const Block &b)
 //     os << "This block has faces [";
     
 //     os << " in the grid. " << endl;
+  } else {
+    os << "\n\tThis block DOES NOT contain data. " << std::endl;
   }
 
   return os;
