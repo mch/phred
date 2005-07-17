@@ -1599,7 +1599,7 @@ shared_ptr<Block> Grid::global_to_local_ghost(shared_ptr<Block> in) const
 
 
   // Calculate Block parameters for a new Block in the local grid that
-  // DOES NOT include ghost cells.
+  // *DOES* include ghost cells.
   if (in->xmin_ >= sxg) 
   {
     if (in->xmin_ < sxg + dxg) {
@@ -1610,6 +1610,13 @@ shared_ptr<Block> Grid::global_to_local_ghost(shared_ptr<Block> in) const
       r.faces_[BACK] = false;
       r.has_data_ = false;
     }
+  } 
+  else if (in->xmax_ < sxg)
+  {
+    r.xmin_ = 0;
+    r.xoffset_ = 0;
+    r.faces_[BACK] = false;
+    r.has_data_ = false;
   } else {
     r.xmin_ = 0;
     r.xoffset_ = sxg - in->xmin_;
@@ -1626,6 +1633,13 @@ shared_ptr<Block> Grid::global_to_local_ghost(shared_ptr<Block> in) const
       r.faces_[LEFT] = false;
       r.has_data_ = false;
     }
+  }
+  else if (in->ymax_ < syg)
+  {
+    r.ymin_ = 0;
+    r.yoffset_ = 0;
+    r.faces_[LEFT] = false;
+    r.has_data_ = false;
   } else {
     r.ymin_ = 0;
     r.yoffset_ = syg - in->ymin_;
@@ -1642,6 +1656,13 @@ shared_ptr<Block> Grid::global_to_local_ghost(shared_ptr<Block> in) const
       r.faces_[BOTTOM] = false;
       r.has_data_ = false;
     }
+  }
+  else if (in->zmax_ < szg)
+  {
+    r.zmin_ = 0;
+    r.zoffset_ = 0;
+    r.faces_[BOTTOM] = false;
+    r.has_data_ = false;
   } else {
     r.zmin_ = 0;
     r.zoffset_ = szg - in->zmin_;
@@ -1653,6 +1674,11 @@ shared_ptr<Block> Grid::global_to_local_ghost(shared_ptr<Block> in) const
     if (in->xmax_ < sxg + dxg) {
       r.xmax_ = in->xmax_ - sxg;
       r.faces_[FRONT] = true;
+    } 
+    else if (in->xmin_ >= sxg + dxg)
+    {
+      r.faces_[FRONT] = false;
+      r.has_data_ = false;
     } else {
       r.xmax_ = dxg - 1;
       r.faces_[FRONT] = false;
@@ -1666,6 +1692,11 @@ shared_ptr<Block> Grid::global_to_local_ghost(shared_ptr<Block> in) const
     if (in->ymax_ < syg + dyg) {
       r.ymax_ = in->ymax_ - syg;
       r.faces_[RIGHT] = true;
+    } 
+    else if (in->ymin_ >= syg + dyg)
+    {
+      r.faces_[RIGHT] = false;
+      r.has_data_ = false;
     } else {
       r.ymax_ = dyg - 1;
       r.faces_[RIGHT] = false;
@@ -1679,6 +1710,11 @@ shared_ptr<Block> Grid::global_to_local_ghost(shared_ptr<Block> in) const
     if (in->zmax_ < szg + dzg) {
       r.zmax_ = in->zmax_ - szg;
       r.faces_[TOP] = true;
+    } 
+    else if (in->zmin_ >= szg + dzg)
+    {
+      r.faces_[TOP] = false;
+      r.has_data_ = false;
     } else {
       r.zmax_ = dzg - 1;
       r.faces_[TOP] = false;
@@ -1688,9 +1724,18 @@ shared_ptr<Block> Grid::global_to_local_ghost(shared_ptr<Block> in) const
     r.faces_[TOP] = false;
   }
 
-  r.xlen_ = r.xmax_ - r.xmin_ + 1;
-  r.ylen_ = r.ymax_ - r.ymin_ + 1;
-  r.zlen_ = r.zmax_ - r.zmin_ + 1;
+  if (r.has_data_)
+  {
+    r.xlen_ = r.xmax_ - r.xmin_ + 1;
+    r.ylen_ = r.ymax_ - r.ymin_ + 1;
+    r.zlen_ = r.zmax_ - r.zmin_ + 1;
+  }
+  else
+  {
+    r.xlen_ = 0;
+    r.ylen_ = 0;
+    r.zlen_ = 0;
+  }
 
   return shared_ptr<Block> (new Block(r));
 }

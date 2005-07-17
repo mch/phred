@@ -87,9 +87,6 @@ void UPml::compute_regions(Face face, const Grid &grid)
   grid_hz_r_.xmax--;
   grid_hz_r_.ymax--;
 
-  grid_ex_r_.xmax--;
-  grid_ey_r_.ymax--;
-  grid_ez_r_.zmax--; 
 
   // Don't allow external face E field updates (electric walls)
   // Make sure that the PML computes all components at internal faces. 
@@ -102,6 +99,8 @@ void UPml::compute_regions(Face face, const Grid &grid)
 
       grid_ey_r_.xmax--;
       grid_ez_r_.xmax--;
+
+      break;
 
     case TOP:
       grid_ex_r_.zmin--;
@@ -121,22 +120,17 @@ void UPml::compute_regions(Face face, const Grid &grid)
 
       break;
 
-      // Added July 15, 2005... UPML Maybe reaching into places it
-      // shouldn't be!
-//     case BACK:
-//       grid_ey_r_.xmin++;
-//       grid_ez_r_.xmin++;
-//       break;
+    case BACK:
+      grid_ex_r_.xmax--;
+      break;
 
-//     case LEFT:
-//       grid_ex_r_.ymin++;
-//       grid_ez_r_.ymin++;
-//       break;
+    case LEFT:
+      grid_ey_r_.ymax--;
+      break;
 
-//     case BOTTOM:
-//       grid_ex_r_.zmin++;
-//       grid_ey_r_.zmin++;
-//       break;
+    case BOTTOM:
+      grid_ez_r_.zmax--;
+      break;
     }
 
     // Don't overlap compute corners and edges more than once
@@ -200,71 +194,32 @@ void UPml::compute_regions(Face face, const Grid &grid)
       }
     }
 
-    // Clean up, make E walls on outer edges
+    // Clean up... merge into above? 
     switch (face) {
-
-    case FRONT:
-    case BACK:
-      if (grid.get_boundary(RIGHT).get_type() == UPML)
-      {
-        grid_ex_r_.ymax--;
-        grid_ez_r_.ymax--;
-      }
-
-      if (grid.get_boundary(TOP).get_type() == UPML)
-      {
-        grid_ex_r_.zmax--;
-        grid_ey_r_.zmax--;
-      }
-
-      // Added July 15, 2005... UPML Maybe reaching into places it
-      // shouldn't be!
-      if (grid.get_boundary(BOTTOM).get_type() == UPML)
-      {
-        grid_ex_r_.zmin++;
-        grid_ey_r_.zmin++;
-      }
-
-      if (grid.get_boundary(LEFT).get_type() == UPML)
-      {
-        grid_ex_r_.ymin++;
-        grid_ez_r_.ymin++;
-      }
-      break;
 
     case TOP:
     case BOTTOM:
       if (grid.get_boundary(FRONT).get_type() == UPML)
       {
+        grid_ex_r_.xmax--;
         grid_ey_r_.xmax--;
         grid_ez_r_.xmax--;
       }
 
       if (grid.get_boundary(RIGHT).get_type() == UPML)
       {
-        grid_ez_r_.ymax--;
         grid_ex_r_.ymax--;
+        grid_ey_r_.ymax--;
+        grid_ez_r_.ymax--;
       }
 
-      // Added July 15, 2005... UPML Maybe reaching into places it
-      // shouldn't be!
-      if (grid.get_boundary(LEFT).get_type() == UPML)
-      {
-        grid_ex_r_.ymin++;
-        grid_ez_r_.ymin++;
-      }
-
-      if (grid.get_boundary(BACK).get_type() == UPML)
-      {
-        grid_ey_r_.xmin++;
-        grid_ez_r_.xmin++;
-      }
       break;
       
     case LEFT:
     case RIGHT:
       if (grid.get_boundary(FRONT).get_type() == UPML)
       {
+        grid_ex_r_.xmax--;
         grid_ey_r_.xmax--;
         grid_ez_r_.xmax--;
       }
@@ -275,19 +230,6 @@ void UPml::compute_regions(Face face, const Grid &grid)
         grid_ey_r_.zmax--;
       }
 
-      // Added July 15, 2005... UPML Maybe reaching into places it
-      // shouldn't be!
-      if (grid.get_boundary(BOTTOM).get_type() == UPML)
-      {
-        grid_ex_r_.zmin++;
-        grid_ey_r_.zmin++;
-      }
-
-      if (grid.get_boundary(BACK).get_type() == UPML)
-      {
-        grid_ey_r_.xmin++;
-        grid_ez_r_.xmin++;
-      }
       break;
     }
 
