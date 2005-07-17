@@ -274,8 +274,8 @@ public:
     // It is necessary to store the old value of E so that the average
     // of two time steps can be calculated, otherwise the result will
     // be incorrect.
-    field_t et1_tavg = (f.et1_avg + data.prev_et1_[data.idx]) / 2;
-    field_t et2_tavg = (f.et2_avg + data.prev_et2_[data.idx]) / 2;
+    field_t et1_tavg = (f.et1_avg);// + data.prev_et1_[data.idx]) / 2;
+    field_t et2_tavg = (f.et2_avg);// + data.prev_et2_[data.idx]) / 2;
 
     data.tp_ += (et1_tavg * f.ht2_avg - et2_tavg * f.ht1_avg) 
       * data.area_;
@@ -392,8 +392,8 @@ void PowerResult::calculate_result(const Grid &grid,
   }
 
   // Store the current value of Et1, Et2
-  PrevEupdate::Data pedata(prev_et1_, prev_et2_);
-  PlaneTiling<PrevEupdate, PrevEupdate::Data>::loop(grid, (*region_),
-                                                    face_, pedata);
+  //PrevEupdate::Data pedata(prev_et1_, prev_et2_);
+  //PlaneTiling<PrevEupdate, PrevEupdate::Data>::loop(grid, (*region_),
+  //                                                  face_, pedata);
 
 }

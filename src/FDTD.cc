@@ -222,19 +222,25 @@ void FDTD::run()
     return;
   }
 
-  if (!quiet)
+  if (!extra_quiet_g)
   {
     cout
       << "Size of the entire (global) grid: \n\t-> " 
       << local_ginfo_.global_dimx_ << " x " 
       << local_ginfo_.global_dimy_ << " x " 
-      << local_ginfo_.global_dimz_ << ".\n"
-    
-      << "Size of the local grid on rank " << MPI_RANK << ":\n\t-> "
-      << local_ginfo_.dimx_ << " x " 
-      << local_ginfo_.dimy_ << " x " 
-      << local_ginfo_.dimz_ << ".\n"
+      << local_ginfo_.global_dimz_ << ".\n";
 
+    if (MPI_SIZE > 1)
+      cout
+        << "Size of the local grid on rank " << MPI_RANK << ":\n\t-> "
+        << local_ginfo_.dimx_ << " x " 
+        << local_ginfo_.dimy_ << " x " 
+        << local_ginfo_.dimz_ << ".\n";
+  }
+
+  if (!quiet && MPI_SIZE > 1)
+  {
+    cout
       << "Size of the local grid excluding ghost cells:\n\t-> "
       << local_ginfo_.dimx_no_sd_ << " x " 
       << local_ginfo_.dimy_no_sd_ << " x " 
