@@ -46,7 +46,7 @@ private:
 
 public:
   WindowedExcitationWrap(PyObject *self, shared_ptr<Signal> sf)
-    : self_(self), WindowedExcitation(sf)
+    : WindowedExcitation(sf), self_(self)
   { }
 
 //   WindowedExcitationWrap(shared_ptr<Signal> sf)

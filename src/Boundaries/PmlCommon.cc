@@ -231,7 +231,7 @@ void PmlCommon::init_coeffs(Grid &grid)
   // And finally, init coefficients
   delta_t dt = grid.get_deltat();
 
-  for(unsigned int i = 0; i < grid.get_ldx_sd(); i++)
+  for(int i = 0; i < grid.get_ldx_sd(); i++)
   {
     e_x_coef1_[i] = (ratio_x_[i] == 0.0 ? 1.0
                      : exp(-ratio_x_[i] * dt));
@@ -249,7 +249,7 @@ void PmlCommon::init_coeffs(Grid &grid)
   }
                 
 
-  for(unsigned int j = 0; j < grid.get_ldy_sd(); j++)
+  for(int j = 0; j < grid.get_ldy_sd(); j++)
   {
     e_y_coef1_[j] = (ratio_y_[j] == 0.0 ? 1.0 
                      : exp(-ratio_y_[j] * dt));
@@ -266,7 +266,7 @@ void PmlCommon::init_coeffs(Grid &grid)
                      / (ratio_star_y_[j] * dt));
   }
 
-  for(unsigned int k = 0; k < grid.get_ldz_sd(); k++)
+  for(int k = 0; k < grid.get_ldz_sd(); k++)
   {
     e_z_coef1_[k] = (ratio_z_[k] == 0.0 ? 1.0
                      : exp(-ratio_z_[k] * dt));

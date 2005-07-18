@@ -122,6 +122,20 @@ void export_fdtd()
          "Set the domain decomposition algorithm to use.")
     .def("get_dd_alg", &FDTD::get_dd_alg,
          "Returns the domain decomposition algorithm in use.")
+    .def("set_e_check_time", &FDTD::set_e_check_time,
+         "Set the number of time steps between checks to see if the "
+         "e field intensity has dropped below a certain threshold.")
+    .def("get_e_check_time", &FDTD::get_e_check_time,
+         "Returns the number of time steps between checks to see if the "
+         "e field intensity has dropped below a certain threshold.")
+    .def("set_e_threshold", &FDTD::set_e_threshold,
+         "Set the e intensity threshold below which the simulation stops.")
+    .def("get_e_threshold", &FDTD::get_e_threshold,
+         "Returns the e intensity threshold below which the simulation stops.")
+    .def("set_max_exec_time", &FDTD::set_max_exec_time,
+         "Set the maximum execution time in seconds")
+    .def("get_max_exec_time", &FDTD::get_max_exec_time,
+         "Returns the maximum number of seconds the simulation can run for.")
     ;
   
   // DEPRECATED:

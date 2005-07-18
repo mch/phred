@@ -48,7 +48,7 @@ public:
   {
     unsigned int idx = coord[0];
 
-    for (int i = 0; i < N - 1; i++)
+    for (unsigned int i = 0; i < N - 1; i++)
       idx = coord[i + 1] + idx * size[i + 1];
     
     return idx;
@@ -83,7 +83,7 @@ public:
     unsigned int offset = dsize[N - 1];
     unsigned int negoffset = 1;
     
-    for (int i = 0; i < N - 1; i++)
+    for (unsigned int i = 0; i < N - 1; i++)
     {
       num_disps *= lens[i];
     }
@@ -119,7 +119,7 @@ private:
       return disp_idx;
     }
     
-    int j = 0;
+    unsigned int j = 0;
     
     if (first) {
       j = 1;

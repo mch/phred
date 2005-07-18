@@ -340,7 +340,7 @@ void PowerResult::calculate_result(const Grid &grid,
 
   // I think these may be backwards
   delta_t e_time = dt * time_step;
-  delta_t h_time = dt * (static_cast<delta_t>(time_step) - 0.5);
+  //delta_t h_time = dt * (static_cast<delta_t>(time_step) - 0.5);
 
 //   dftdata.et1_ = et1_;
 //   dftdata.et2_ = et2_;
@@ -351,8 +351,10 @@ void PowerResult::calculate_result(const Grid &grid,
 //   dftdata.prev_et1_ = prev_et1_;
 //   dftdata.prev_et2_ = prev_et2_;
 
-  for (unsigned int i = 0; i < frequencies_.length(); i++)
+  if (has_data_)
   {
+    for (unsigned int i = 0; i < frequencies_.length(); i++)
+    {
 //     dftdata.p_real = 0;
 //     dftdata.p_imag = 0;
 
@@ -387,8 +389,11 @@ void PowerResult::calculate_result(const Grid &grid,
 //     power_real_[i] = dftdata.p_real;
 //     power_imag_[i] = dftdata.p_imag;
 
-    power_real_[i] += time_power_ * cos(-2 * PI * frequencies_.get(i) * e_time);
-    power_imag_[i] += time_power_ * sin(-2 * PI * frequencies_.get(i) * e_time);
+      power_real_[i] += time_power_ 
+        * cos(-2 * PI * frequencies_.get(i) * e_time);
+      power_imag_[i] += time_power_ 
+        * sin(-2 * PI * frequencies_.get(i) * e_time);
+    }
   }
 
   // Store the current value of Et1, Et2

@@ -442,11 +442,11 @@ FarfieldResult2::calculate_post_result(const Grid &grid)
   //export_dfts();  
 
   unsigned int idx = 0;
-  for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
+  for (unsigned int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
   {
-    for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
+    for (unsigned int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
     {
-      for (int freq_idx = 0; freq_idx < frequencies_.length(); 
+      for (unsigned int freq_idx = 0; freq_idx < frequencies_.length(); 
            freq_idx++, idx++)
       {
         // Calculate N and L by integrating J and M respectivly over
@@ -793,11 +793,11 @@ void FarfieldResult2::calc_currents(const Grid &grid,
     h_cos_temp = cos(-2 * PI * frequencies_.get(f_idx) * h_time);
     h_sin_temp = sin(-2 * PI * frequencies_.get(f_idx) * h_time);
 
-    for (unsigned int i = cells.xmin; i <= cells.xmax; i++)
+    for (int i = cells.xmin; i <= cells.xmax; i++)
     {
-      for (unsigned int j = cells.ymin; j <= cells.ymax; j++)
+      for (int j = cells.ymin; j <= cells.ymax; j++)
       {
-        for (unsigned int k = cells.zmin; k <= cells.zmax; k++)
+        for (int k = cells.zmin; k <= cells.zmax; k++)
         {
           e_t1 = p.get_avg_e_t1(i, j, k);
           e_t2 = p.get_avg_e_t2(i, j, k);

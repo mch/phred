@@ -48,7 +48,9 @@ public:
   unsigned int write_data(unsigned int time_step, 
                           Variable &var, void *ptr, 
                           unsigned int len)
-  {}
+  {
+    return 0;
+  }
 
   void add_variable(Result &result)
   {}

@@ -221,12 +221,12 @@ typedef @FIELD_TYPE@ delta_t;
  * region and all new loop must use <= in the condition test. 
  */
 typedef struct {
-  unsigned int xmin;
-  unsigned int xmax;
-  unsigned int ymin;
-  unsigned int ymax;
-  unsigned int zmin;
-  unsigned int zmax;
+  int xmin;
+  int xmax;
+  int ymin;
+  int ymax;
+  int zmin;
+  int zmax;
 } region_t;
 
 /** \struct update_region
@@ -277,9 +277,9 @@ public:
 class grid_point
 {
 public:
-  unsigned int x;
-  unsigned int y;
-  unsigned int z;
+  int x;
+  int y;
+  int z;
 
   grid_point()
     : x(0), y(0), z(0)
@@ -297,9 +297,9 @@ std::ostream& operator<< (std::ostream& os, const region_t &r);
 
 #else
 typedef struct {
-  unsigned int x;
-  unsigned int y;
-  unsigned int z;
+  int x;
+  int y;
+  int z;
 } grid_point;
 
 typedef struct {

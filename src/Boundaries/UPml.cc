@@ -196,7 +196,6 @@ void UPml::compute_regions(Face face, const Grid &grid)
 
     // Clean up... merge into above? 
     switch (face) {
-
     case TOP:
     case BOTTOM:
       if (grid.get_boundary(FRONT).get_type() == UPML)
@@ -231,6 +230,12 @@ void UPml::compute_regions(Face face, const Grid &grid)
       }
 
       break;
+
+    case FRONT:
+    case BACK:
+      // Do nothing
+      break;
+      
     }
 
   }
@@ -521,7 +526,7 @@ void UPml::update_ex(Grid &grid)
   // Inverted delta's
   field_t idy = 1 / grid.get_deltay();
   field_t idz = 1 / grid.get_deltaz();
-  field_t idt = 1 / grid.get_deltat();
+  //field_t idt = 1 / grid.get_deltat();
 
   // This is outside of the for() statement so that OpenMP can
   // parallelize the loop.
@@ -720,7 +725,7 @@ void UPml::update_ey(Grid &grid)
   // Inverted delta's
   field_t idx = 1 / grid.get_deltax();
   field_t idz = 1 / grid.get_deltaz();
-  field_t idt = 1 / grid.get_deltat();
+  //field_t idt = 1 / grid.get_deltat();
 
   loop_idx_t offset = grid_ey_r_.xmin - pml_r.xmin;
 
@@ -915,7 +920,7 @@ void UPml::update_ez(Grid &grid)
   // Inverted delta's
   field_t idx = 1 / grid.get_deltax();
   field_t idy = 1 / grid.get_deltay();
-  field_t idt = 1 / grid.get_deltat();
+  //field_t idt = 1 / grid.get_deltat();
 
   loop_idx_t offset = grid_ez_r_.xmin - pml_r.xmin;
 

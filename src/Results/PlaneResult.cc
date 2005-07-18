@@ -56,6 +56,14 @@ void PlaneResult::calculate_result(const Grid &grid,
           }
         }
         break;
+
+        // SERIOUSLY NOT DONE YET
+      case BACK:
+      case LEFT:
+      case RIGHT:
+      case TOP:
+      case BOTTOM:
+        break;
       }
     }
 

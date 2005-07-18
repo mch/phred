@@ -265,6 +265,46 @@ public:
   inline shared_ptr<SubdomainAlg> get_dd_alg()
   { return dd_alg_; }
 
+  /**
+   * Set the number of timesteps between checks of the maximum E field
+   * intensity in the grid.
+   */ 
+  inline void set_e_check_time(unsigned int t)
+  { max_e_space_ = t; }
+
+  /**
+   * Returns the number of timesteps between checks of the maximum E field
+   * intensity in the grid.
+   */ 
+  inline unsigned int get_e_check_time()
+  { return max_e_space_; }
+
+  /**
+   * Set the E field intensity threshold value below which the
+   * simulation will stop.
+   */ 
+  inline void set_e_threshold(field_t threshold)
+  { e_threshold_ = threshold; }
+
+  /**
+   * Returns the E field intensity threshold value below which the
+   * simulation will stop.
+   */ 
+  inline field_t get_e_threshold()
+  { return e_threshold_; }
+
+  /** 
+   * Set the maximum execution time in seconds
+   */ 
+  inline void set_max_exec_time(int secs)
+  { max_exec_time_ = secs; }
+
+  /**
+   * Returns the maximum number of seconds the simulation can run for. 
+   */ 
+  inline int get_max_exec_time()
+  { return max_exec_time_; }
+
 protected:
   /**
    * The grid to operate on; what kind of grid specifically is decided
@@ -364,6 +404,29 @@ protected:
    * the user.
    */ 
   float dt_scale_; 
+
+  /**
+   * The number of timesteps between each check of the maximum e field
+   * in the domain. Set to 0 to disable (default). 
+   */ 
+  unsigned int max_e_space_;
+
+  /**
+   * The value the maximum E field intensity must be below before
+   * stopping the simulation.
+   */ 
+  field_t e_threshold_;
+
+  /**
+   * The maximum number of seconds the simulation may run. If this is
+   * exceeded, the loop will end and whatever data is available will
+   * be written out. 
+   *
+   * In the future, this may be the time to check point. 
+   *
+   * 0 by default, so no bound is placed on the execution time. 
+   */ 
+  int max_exec_time_;
 
 };
 

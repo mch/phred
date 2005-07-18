@@ -24,7 +24,8 @@
 #include "Globals.hh"
 
 FDTD::FDTD()
-  : time_steps_(0), dt_scale_(0.9)
+  : time_steps_(0), dt_scale_(0.9), max_e_space_(0), 
+    e_threshold_(0.0), max_exec_time_(0)
 {
   mlib_ = shared_ptr<MaterialLib>(new MaterialLib()); // Empty default. 
   dd_alg_ = shared_ptr<SubdomainAlg>(new MPISubdomainAlg());
@@ -441,6 +442,12 @@ void FDTD::run()
       cout << "\nStarting FDTD time stepping, running for " 
            << time_steps_ << " time steps..." << endl;
 
+    if (max_exec_time_ > 0)
+    {
+      cout << "Maximum execution time is ";
+      print_elapsed_time(max_exec_time_);
+    }
+
     // For optionally tracking millions of nodes per second. 
     time_t start = time(NULL);
     time_t now;
@@ -457,10 +464,10 @@ void FDTD::run()
     unsigned int rt_steps = 9;
   
     for (ts = 1; ts <= time_steps_; ts++) {
-    
+      rt_now = time(NULL);
+
       if (MPI_RANK == 0 && (ts - 10) % 100 == 0)
       {
-        rt_now = time(NULL);
         int secs = static_cast<int>((static_cast<double>(rt_now - rt_start) 
                                      / rt_steps) * (time_steps_ - ts));
 
@@ -469,6 +476,12 @@ void FDTD::run()
 
         rt_steps = 100;
         rt_start = time(NULL);
+      }
+
+      if (max_exec_time_ > 0 && (rt_now - rt_start) > max_exec_time_)
+      {
+        cout << "Maximum execution time exceeded." << endl;
+        break;
       }
 
       grid_->update_h_field();

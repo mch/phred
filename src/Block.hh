@@ -41,19 +41,19 @@ public:
   /**
    * First cell in the grid along X which is part of this Block.
    */ 
-  inline unsigned int xmin() const
+  inline int xmin() const
   { return xmin_; }
 
   /**
    * First cell in the grid along Y which is part of this Block.
    */ 
-  inline unsigned int ymin() const
+  inline int ymin() const
   { return ymin_; }
 
   /**
    * First cell in the grid along Z which is part of this Block.
    */ 
-  inline unsigned int zmin() const
+  inline int zmin() const
   { return zmin_; }
 
 
@@ -64,21 +64,21 @@ public:
    * The index of the last cell in the grid along X which is part of
    * this Block.
    */ 
-  inline unsigned int xmax() const
+  inline int xmax() const
   { return xmax_; }
 
   /**
    * The index of the last cell in the grid along Y which is part of
    * this Block.
    */ 
-  inline unsigned int ymax() const
+  inline int ymax() const
   { return ymax_; }
 
   /**
    * The index of the last cell in the grid along Z which is part of
    * this Block.
    */ 
-  inline unsigned int zmax() const
+  inline int zmax() const
   { return zmax_; }
 
   /**
@@ -86,25 +86,25 @@ public:
    * global Block. This is used to decide where in the global block
    * this local contribution belongs. Usually for results. 
    */ 
-  inline unsigned int xoffset() const
+  inline int xoffset() const
   { return xoffset_; }
 
-  inline unsigned int yoffset() const
+  inline int yoffset() const
   { return yoffset_; }
 
-  inline unsigned int zoffset() const
+  inline int zoffset() const
   { return zoffset_; }
 
   /** 
    * The length of this Block along each axis. 
    */ 
-  inline unsigned int xlen() const
+  inline int xlen() const
   { return xlen_; }
 
-  inline unsigned int ylen() const
+  inline int ylen() const
   { return ylen_; }
 
-  inline unsigned int zlen() const
+  inline int zlen() const
   { return zlen_; }
 
   /**
@@ -133,7 +133,7 @@ public:
   /**
    * Returns the number of cells this Block occupies.
    */ 
-  inline unsigned int volume() const
+  inline int volume() const
   { return (xmax_ - xmin_) * (ymax_ - ymin_) * (zmax_ - zmin_); }
 
 private:
@@ -148,16 +148,16 @@ private:
       faces_[i] = true;
   }
 
-  unsigned int xmin_, ymin_, zmin_;
-  unsigned int xmax_, ymax_, zmax_;
+  int xmin_, ymin_, zmin_;
+  int xmax_, ymax_, zmax_;
 
   // Offset of the start of this local block from the start of the
   // global block.
-  unsigned int xoffset_, yoffset_, zoffset_;
+  int xoffset_, yoffset_, zoffset_;
   
   // Total number of cells, or length, of the total global block, of
   // which this object represents a subset.
-  unsigned int xlen_, ylen_, zlen_;
+  int xlen_, ylen_, zlen_;
 
   bool faces_[6]; // True if the face is in the local grid at all. 
   bool has_data_; // True if this block has any data at all in the

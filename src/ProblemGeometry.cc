@@ -24,8 +24,9 @@
 #include "CSG/CSGSphere.hh"
 
 ProblemGeometry::ProblemGeometry()
-  : unit_(1), grid_box_(string("freespace"), 
-                        shared_ptr<CSGObject>(new CSGBox()))
+  : grid_box_(string("freespace"), 
+              shared_ptr<CSGObject>(new CSGBox())), 
+    unit_(1)
 {}
 
 ProblemGeometry::~ProblemGeometry()

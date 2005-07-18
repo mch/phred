@@ -92,9 +92,6 @@ void BlockResult::init(const Grid &grid)
       int *dsize = new int[3];
       int *coord = new int[3];
       int *lens = new int[3];
-      unsigned int ndisps = 0;
-      int *displacements = 0;
-      const GridInfo &info = grid.get_grid_info();
 
       dsize[0] = grid.get_ldx_sd();
       dsize[1] = grid.get_ldy_sd();
@@ -159,15 +156,15 @@ void BlockResult::calculate_result(const Grid &grid,
       const field_t *ey = grid.get_pointer(gp, FC_EY);
       const field_t *ez = grid.get_pointer(gp, FC_EZ);
 
-      for (unsigned int i = region_->xmin(); i <= region_->xmax(); i++)
+      for (int i = region_->xmin(); i <= region_->xmax(); i++)
       {
-        for (unsigned int j = region_->ymin(); j <= region_->ymax(); j++)
+        for (int j = region_->ymin(); j <= region_->ymax(); j++)
         {
           ex = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_EX);
           ey = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_EY);
           ez = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_EZ);
 
-          for (unsigned int k = region_->zmin(); k <= region_->zmax(); 
+          for (int k = region_->zmin(); k <= region_->zmax(); 
                k++, f++, ex++, ey++, ez++)
           {
             *f = sqrt(*ex * *ex + *ey * *ey + *ez * *ez);
@@ -189,15 +186,15 @@ void BlockResult::calculate_result(const Grid &grid,
 #undef hz
       const field_t *hz = grid.get_pointer(gp, FC_HZ);
 
-      for (unsigned int i = region_->xmin(); i <= region_->xmax(); i++)
+      for (int i = region_->xmin(); i <= region_->xmax(); i++)
       {
-        for (unsigned int j = region_->ymin(); j <= region_->ymax(); j++)
+        for (int j = region_->ymin(); j <= region_->ymax(); j++)
         {
           hx = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_HX);
           hy = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_HY);
           hz = grid.get_pointer(grid_point(i, j, region_->zmin()), FC_HZ);
 
-          for (unsigned int k = region_->zmin(); k <= region_->zmax(); 
+          for (int k = region_->zmin(); k <= region_->zmax(); 
                k++, f++, hx++, hy++, hz++)
           {
             *f = sqrt(*hx * *hx + *hy * *hy + *hz * *hz);

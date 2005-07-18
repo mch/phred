@@ -97,7 +97,9 @@ protected:
   virtual unsigned int write_data(unsigned int time_step, 
                                   Variable &var, void *ptr, 
                                   unsigned int len)
-  {}
+  {
+    return 0;
+  }
 
   /**
    * Returns a vector of MPI data types that describe how the data

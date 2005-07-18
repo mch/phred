@@ -87,9 +87,9 @@ protected:
   // Quick and dirty, these will be equal to the local grid
   // size. Since a lot of the interior space will be equal to zero,
   // this should be changed so that it's 2*PML thickness.
-  unsigned int x_size_; /**< Length in X of coefficient matricies */
-  unsigned int y_size_; /**< Length in Y of coefficient matricies */
-  unsigned int z_size_; /**< Length in Z of coefficient matricies */
+  int x_size_; /**< Length in X of coefficient matricies */
+  int y_size_; /**< Length in Y of coefficient matricies */
+  int z_size_; /**< Length in Z of coefficient matricies */
 
   /**
    * Conductivity along the X axis inside the PML. 

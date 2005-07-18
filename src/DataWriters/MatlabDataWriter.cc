@@ -126,7 +126,7 @@ void write_compress_helper(ostream &stream, data_tag_t tag,
   unsigned int size = tag.num_bytes / sizeof(T);
   const T *tptr = reinterpret_cast<const T *>(ptr);
 
-  for (int idx = 0; idx < size; idx++)
+  for (unsigned int idx = 0; idx < size; idx++)
   {
     temp = *tptr;
 
@@ -216,6 +216,10 @@ unsigned int sizeof_matlab(MATLAB_data_type type)
 
   case miDOUBLE:
     return sizeof(double);
+    break;
+
+  case miMATRIX:
+    // size unknown...
     break;
   }
 
@@ -322,6 +326,12 @@ void MatlabElement::compress()
       case miDOUBLE:
         compress_helper<double>();
         break;
+
+      case miINT64:
+      case miUINT64:
+      case miMATRIX:
+        // Not done...
+        break;
       }
     } else
       compressed_tag_ = tag_;
@@ -367,6 +377,12 @@ void MatlabElement::write_compress(ostream &stream)
       case miDOUBLE:
         write_compress_helper<double>(stream, tag_,
                                       compressed_tag_, buffer_);
+        break;
+
+      case miINT64:
+      case miUINT64:
+      case miMATRIX:
+        // Not done...
         break;
       }
     } else {
@@ -805,8 +821,6 @@ unsigned int MatlabDataWriter::write_data(unsigned int time_step,
                                          Variable &variable, 
                                          void *ptr, unsigned int len)
 {
-  const Data &data = variable.get_data();
-
   if (!file_.is_open()) 
   {
     throw DataWriterException("MatlabDataWriter: File should already "

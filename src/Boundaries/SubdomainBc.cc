@@ -179,5 +179,5 @@ BoundaryCondition SubdomainBc::get_type() const
 void SubdomainBc::wait()
 {
   if (!blocking_g)
-    int err = MPI_Waitall(num_used_, req_, MPI_STATUSES_IGNORE);
+    MPI_Waitall(num_used_, req_, MPI_STATUSES_IGNORE);
 }

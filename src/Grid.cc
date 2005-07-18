@@ -1163,6 +1163,11 @@ field_t *Grid::get_face_start(Face face, FieldComponent comp,
   case FC_HZ:
     ptr = &(hz_[idx]);
     break;
+
+  case FC_E:
+  case FC_H:
+    // Do nothing
+    break;
   }
 
   return ptr;
@@ -1230,6 +1235,11 @@ const field_t *Grid::get_pointer(grid_point point,
     if (hz_)
       ret = &(hz_[idx]);
     break;
+
+  case FC_E:
+  case FC_H:
+    // Do nothing
+    break;
   }
 
   return ret;
@@ -1296,9 +1306,9 @@ grid_point Grid::get_global_cell(float x, float y, float z) const
     float ys = centre.y - size.y / 2;
     float zs = centre.z - size.z / 2;
     
-    unsigned int i = 0; 
-    unsigned int j = 0; 
-    unsigned int k = 0;
+    int i = 0; 
+    int j = 0; 
+    int k = 0;
 
     // Will need modification for graded meshes. 
     if (x > xs)
@@ -1396,20 +1406,20 @@ shared_ptr<Block> Grid::global_to_local(shared_ptr<Block> in) const
   Block r;
 
   // Size of the local grid, including ghost cells
-  unsigned int dxg = info_.dimx_, dyg = info_.dimy_, dzg = info_.dimz_;
+  //int dxg = info_.dimx_, dyg = info_.dimy_, dzg = info_.dimz_;
 
   // Size of the local grid, NOT including ghost cells
-  unsigned int dx = info_.dimx_no_sd_, dy = info_.dimy_no_sd_, 
+  int dx = info_.dimx_no_sd_, dy = info_.dimy_no_sd_, 
     dz = info_.dimz_no_sd_;
 
   // Starting points of the local grid within the global grid,
   // including ghost cells.
-  unsigned int sxg = info_.start_x_, syg = info_.start_y_, 
+  int sxg = info_.start_x_, syg = info_.start_y_, 
     szg = info_.start_z_;
 
   // Starting points of the local grid within the global grid,
   // NOT including ghost cells.
-  unsigned int sx = info_.start_x_no_sd_, sy = info_.start_y_no_sd_, 
+  int sx = info_.start_x_no_sd_, sy = info_.start_y_no_sd_, 
     sz = info_.start_z_no_sd_;
 
   r.is_global_ = false;
@@ -1579,21 +1589,21 @@ shared_ptr<Block> Grid::global_to_local_ghost(shared_ptr<Block> in) const
   Block r;
 
   // Size of the local grid, including ghost cells
-  unsigned int dxg = info_.dimx_, dyg = info_.dimy_, dzg = info_.dimz_;
+  int dxg = info_.dimx_, dyg = info_.dimy_, dzg = info_.dimz_;
 
   // Size of the local grid, NOT including ghost cells
-  unsigned int dx = info_.dimx_no_sd_, dy = info_.dimy_no_sd_, 
-    dz = info_.dimz_no_sd_;
+  //int dx = info_.dimx_no_sd_, dy = info_.dimy_no_sd_, 
+  //  dz = info_.dimz_no_sd_;
 
   // Starting points of the local grid within the global grid,
   // including ghost cells.
-  unsigned int sxg = info_.start_x_, syg = info_.start_y_, 
+  int sxg = info_.start_x_, syg = info_.start_y_, 
     szg = info_.start_z_;
 
   // Starting points of the local grid within the global grid,
   // NOT including ghost cells.
-  unsigned int sx = info_.start_x_no_sd_, sy = info_.start_y_no_sd_, 
-    sz = info_.start_z_no_sd_;
+  //int sx = info_.start_x_no_sd_, sy = info_.start_y_no_sd_, 
+  //  sz = info_.start_z_no_sd_;
 
   r.is_global_ = false;
 
@@ -1764,3 +1774,60 @@ grid_point Grid::global_to_local(grid_point p) const
 
   return r;
 }
+
+field_t Grid::max_e_field()
+{
+  field_t max_e;
+
+  unsigned int xmax = get_ldx_sd();
+  unsigned int ymax = get_ldy_sd();
+  unsigned int zmax = get_ldz_sd();
+
+  field_t *ex, *ey, *ez;
+  field_t temp[3];
+
+  unsigned int idx;
+
+// #ifdef USE_OPENMP
+// #pragma omp parallel private(idx, ex, ey, ez, temp)
+// #endif
+//   {
+// #ifdef USE_OPENMP
+// #pragma omp for
+// #endif
+    for (int i = 0; i < xmax; i++)
+    {
+      for (int j = 0; j < ymax; j++)
+      {
+        idx = pi(i, j, 0);
+        ex = &ex_[idx];
+        ey = &ey_[idx];
+        ez = &ez_[idx];
+        
+        for (int k = 0; k < zmax; k++)
+        {
+          temp[0] = *ex * *ex;
+          temp[1] = *ey * *ey;
+          temp[2] = *ez * *ez;
+
+          for (int l = 0; l < 3; l++)
+          {
+            if (temp[l] > max_e)
+              max_e = temp[l];
+          }
+          
+          ex++; ey++; ez++;
+        }
+      }
+    }
+// #ifdef USE_OPENMP
+//   }
+// #endif
+
+  field_t temp_max_e = 0;
+  MPI_Allreduce(&max_e, &temp_max_e, 1, GRID_MPI_TYPE, MPI_MAX, 
+                MPI_COMM_PHRED);
+
+  return temp_max_e;
+}
+

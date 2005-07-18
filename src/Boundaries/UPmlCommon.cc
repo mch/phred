@@ -201,8 +201,6 @@ void UPmlCommon::init_sigmas()
 
   while (iter != iter_e) 
   {
-    mat_idx_t mid = (*iter).second.get_id();
-  
     if ((*iter).second.type() == LOSSY)
       need_lossy = true;
 

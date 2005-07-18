@@ -57,8 +57,6 @@ void GridResult::init(const Grid &grid)
     int *dsize = new int[3];
     int *coord = new int[3];
     int *lens = new int[3];
-    unsigned int ndisps = 0;
-    int *displacements = 0;
     const GridInfo &info = grid.get_grid_info();
 
     dsize[0] = info.dimx_;

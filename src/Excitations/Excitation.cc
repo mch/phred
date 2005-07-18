@@ -120,7 +120,9 @@ void Excitation::excite(Grid &grid, unsigned int time_step,
             grid.set_hy(i,j,k, h_fld[1]);
             grid.set_hz(i,j,k, h_fld[2]);
             break;
-
+            
+          case BOTH:
+            break;
           }
         }
       }
@@ -162,6 +164,8 @@ void Excitation::excite(Grid &grid, unsigned int time_step,
                           h_fld[2] + grid.get_hz(i,j,k));
             break;
 
+          case BOTH:
+            break;
           }
         }
       }

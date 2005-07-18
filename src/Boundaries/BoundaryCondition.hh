@@ -80,8 +80,7 @@ protected:
    * @param z
    * @param an index into the field component and material arrays. 
    */
-  inline unsigned int pi(unsigned int x, unsigned int y, 
-                         unsigned int z)
+  inline unsigned int pi(int x, int y, int z)
   {
     assert(x < bc_r_.xmax && y < bc_r_.ymax && z < bc_r_.zmax);
     //assert(z + (y + x*(bc_r_.ymax - bc_r_.ymin) 

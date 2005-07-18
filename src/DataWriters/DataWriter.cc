@@ -219,7 +219,6 @@ vector<MPI_Datatype> DataWriter::gather_types(const Variable &var)
   unsigned int *dim_lengths = new unsigned int[num_dimensions];
   unsigned int dim_idx = 0;
   vector<MPI_Datatype> ret;
-  const Data &data = var.get_data();
 
   for (; iter != iter_e; ++iter, ++dim_idx)
   {
@@ -250,7 +249,6 @@ vector<MPI_Datatype> DataWriter::gather_types(const Variable &var)
     // Construct data types for each node's incoming data. 
     int *dim_sizes, *dim_sub_sizes, *starts;
     int *displacements = 0;
-    unsigned int num_displacements = 0;
 
     dim_sizes = new int[num_dimensions];
     dim_sub_sizes = new int[num_dimensions];
@@ -261,7 +259,7 @@ vector<MPI_Datatype> DataWriter::gather_types(const Variable &var)
       dim_sizes[dim_idx] = dimensions[dim_idx].global_len_;
     }
 
-    for (unsigned int node_idx = 0; node_idx < MPI_SIZE; node_idx++)
+    for (int node_idx = 0; node_idx < MPI_SIZE; node_idx++)
     {
       MPI_Datatype arr_type;
 

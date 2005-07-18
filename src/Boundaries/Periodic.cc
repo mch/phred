@@ -149,9 +149,6 @@ void Periodic::copy_e(Face face, Grid &grid)
 {
   MPI_Status status;
   int idx = grid.pi(grid.get_ldx_sd() - 1, 0, 0);
-  int mpi_err = 0;
-  int sz = 0;
-  MPI_Aint extnt = 0;
   
   MPI_Datatype t; 
   t = grid.get_plane_dt(face);

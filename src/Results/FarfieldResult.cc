@@ -468,7 +468,7 @@ public:
   // # farthest from each other on the Huygen's surface.
   field_t t_cross;
 
-  unsigned int ff_tsteps;
+  int ff_tsteps;
 
   // Correct of the direction of the outward normal vector of the
   // surface of the Huygens box.
@@ -505,9 +505,9 @@ public:
     double phi, theta;
     int wuidx = 0;
 
-    for (int phi_idx = 0; phi_idx < data.phi_data->length(); phi_idx++)
+    for (unsigned int phi_idx = 0; phi_idx < data.phi_data->length(); phi_idx++)
     {
-      for (int theta_idx = 0; theta_idx < data.theta_data->length(); 
+      for (unsigned int theta_idx = 0; theta_idx < data.theta_data->length(); 
            theta_idx++)
       {
         phi = data.phi_data->get(phi_idx);
@@ -732,11 +732,11 @@ void FarfieldResult::calculate_post_result(const Grid &grid)
 
   int idx = 0;
 
-  for (int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
+  for (unsigned int phi_idx = 0; phi_idx < phi_data_.length(); phi_idx++)
   {
-    for (int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
+    for (unsigned int theta_idx = 0; theta_idx < theta_data_.length(); theta_idx++)
     {
-      for (int fft_idx = 0; fft_idx < ff_tsteps_; fft_idx++)
+      for (unsigned int fft_idx = 0; fft_idx < ff_tsteps_; fft_idx++)
       {
         double phi = phi_data_.get(phi_idx);
         double theta = theta_data_.get(theta_idx);
@@ -776,7 +776,7 @@ void FarfieldResult::calculate_post_result(const Grid &grid)
 //         }
 
         int dft_idx = dft_index(phi_idx, theta_idx, 0);
-        for (int f_idx = 0; f_idx < frequencies_.length(); f_idx++)
+        for (unsigned int f_idx = 0; f_idx < frequencies_.length(); f_idx++)
         {
           field_t e_cos = cos(-2 * PI * frequencies_.get(f_idx) 
                               * fft_idx * grid.get_deltat());

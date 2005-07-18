@@ -39,7 +39,7 @@ using namespace boost;
 class GeomObject {
 public:
   GeomObject(string material, shared_ptr<CSGObject> obj)
-    : material_(material), obj_(obj)
+    : obj_(obj), material_(material)
   {}
 
   shared_ptr<CSGObject> obj_;

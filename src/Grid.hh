@@ -444,7 +444,7 @@ class Grid {
    *
    * @return global grid x size
    */
-  inline unsigned int get_gdx() const
+  inline int get_gdx() const
   {
     return info_.global_dimx_;
   }
@@ -454,7 +454,7 @@ class Grid {
    *
    * @return global grid y size
    */
-  inline unsigned int get_gdy() const
+  inline int get_gdy() const
   {
     return info_.global_dimy_;
   }
@@ -464,7 +464,7 @@ class Grid {
    *
    * @return global grid z size
    */
-  inline unsigned int get_gdz() const
+  inline int get_gdz() const
   {
     return info_.global_dimz_;
   }
@@ -474,7 +474,7 @@ class Grid {
    *
    * @return local grid x start
    */
-  inline unsigned int get_lsx() const
+  inline int get_lsx() const
   {
     return info_.start_x_no_sd_;
   }
@@ -484,7 +484,7 @@ class Grid {
    *
    * @return local grid y start
    */
-  inline unsigned int get_lsy() const
+  inline int get_lsy() const
   {
     return info_.start_y_no_sd_;
   }
@@ -494,7 +494,7 @@ class Grid {
    *
    * @return local grid z start
    */
-  inline unsigned int get_lsz() const
+  inline int get_lsz() const
   {
     return info_.start_z_no_sd_;
   }
@@ -505,7 +505,7 @@ class Grid {
    *
    * @return local grid x start
    */
-  inline unsigned int get_lsx_ol() const
+  inline int get_lsx_ol() const
   {
     return info_.start_x_;
   }
@@ -515,7 +515,7 @@ class Grid {
    *
    * @return local grid y start
    */
-  inline unsigned int get_lsy_ol() const
+  inline int get_lsy_ol() const
   {
     return info_.start_y_;
   }
@@ -525,7 +525,7 @@ class Grid {
    *
    * @return local grid z start
    */
-  inline unsigned int get_lsz_ol() const
+  inline int get_lsz_ol() const
   {
     return info_.start_z_;
   }
@@ -535,7 +535,7 @@ class Grid {
    *
    * @return local grid x size
    */
-  inline unsigned int get_ldx() const 
+  inline int get_ldx() const 
   {
     return info_.dimx_no_sd_;
   }
@@ -545,7 +545,7 @@ class Grid {
    *
    * @return local grid y size
    */
-  inline unsigned int get_ldy() const 
+  inline int get_ldy() const 
   {
     return info_.dimy_no_sd_;
   }
@@ -555,7 +555,7 @@ class Grid {
    *
    * @return local grid z size
    */
-  inline unsigned int get_ldz() const
+  inline int get_ldz() const
   {
     return info_.dimz_no_sd_;
   }
@@ -566,7 +566,7 @@ class Grid {
    *
    * @return local grid x size
    */
-  inline unsigned int get_ldx_sd() const 
+  inline int get_ldx_sd() const 
   {
     return info_.dimx_;
   }
@@ -577,7 +577,7 @@ class Grid {
    *
    * @return local grid y size
    */
-  inline unsigned int get_ldy_sd() const 
+  inline int get_ldy_sd() const 
   {
     return info_.dimy_;
   }
@@ -588,7 +588,7 @@ class Grid {
    *
    * @return local grid z size
    */
-  inline unsigned int get_ldz_sd() const
+  inline int get_ldz_sd() const
   {
     return info_.dimz_;
   }
@@ -1093,6 +1093,18 @@ class Grid {
   inline mat_coef_t get_Dbz(mat_idx_t idx)
   { return D_[idx * 4 + 3]; }
 #endif
+
+  /**
+   * Return the value of the largest electric field component within
+   * the Grid. This is intended to be used by the FDTD controller
+   * object to determine when to stop the simulation, i.e., when the
+   * fields within the domain have decayed to a "small enough"
+   * value. 
+   *
+   * This checks the entire comutational domain, not just the
+   * sub-domain on the local process.
+   */ 
+  field_t max_e_field();
 
 };
 

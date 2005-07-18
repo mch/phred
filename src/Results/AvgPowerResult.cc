@@ -164,21 +164,21 @@ void AvgPowerResult::init(const Grid &grid)
     memset(prev_et1_, 0, sizeof(field_t) * sz);
     memset(prev_et2_, 0, sizeof(field_t) * sz);
 
-    /* Set up the frequencies */ 
-    power_real_ = new field_t[frequencies_.length()];
-    power_imag_ = new field_t[frequencies_.length()];
-
-    memset(power_imag_, 0, sizeof(field_t) * (frequencies_.length()));
-    memset(power_real_, 0, sizeof(field_t) * (frequencies_.length()));
-
-    /* Set up output variables. */
-    imag_var_.set_ptr(power_imag_);
-    real_var_.set_ptr(power_real_);  
-    freq_var_.set_ptr(frequencies_.get_ptr());
-
     if (MPI_RANK == 0) // All data is collected to rank 0 by this
                        // result, rather than by the DataWriters.
     {
+      /* Set up the frequencies */ 
+      power_real_ = new field_t[frequencies_.length()];
+      power_imag_ = new field_t[frequencies_.length()];
+      
+      memset(power_imag_, 0, sizeof(field_t) * (frequencies_.length()));
+      memset(power_real_, 0, sizeof(field_t) * (frequencies_.length()));
+      
+      /* Set up output variables. */
+      imag_var_.set_ptr(power_imag_);
+      real_var_.set_ptr(power_real_);  
+      freq_var_.set_ptr(frequencies_.get_ptr());
+
       real_var_.set_num(frequencies_.length());
       imag_var_.set_num(frequencies_.length());
       freq_var_.set_num(frequencies_.length());
@@ -329,7 +329,7 @@ public:
     field_t et1_tavg = (f.et1_avg); // + data.prev_et1_[data.idx]) / 2;
     field_t et2_tavg = (f.et2_avg); // + data.prev_et2_[data.idx]) / 2;
 
-    for (unsigned int i = 0; i < data.num_f_; i++)
+    for (int i = 0; i < data.num_f_; i++)
     {
       // THE TIME AVERAGING SEEMS TO BE CAUSING PROBLEMS
       data.et1_[data.idx] += complex<field_t>
@@ -531,9 +531,12 @@ void AvgPowerResult::calculate_post_result(const Grid &grid)
                GRID_MPI_TYPE, MPI_SUM, 0, 
                MPI_COMM_PHRED);
     data.p_imag = temp_imag;
-
-    power_real_[i] = data.p_real;
-    power_imag_[i] = data.p_imag;
+    
+    if (MPI_RANK == 0)
+    {
+      power_real_[i] = data.p_real;
+      power_imag_[i] = data.p_imag;
+    }
   }
 }
 

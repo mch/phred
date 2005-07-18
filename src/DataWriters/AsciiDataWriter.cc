@@ -97,7 +97,6 @@ unsigned int AsciiDataWriter::write_data(unsigned int time_step,
                                          Variable &variable,
                                          void *ptr, unsigned int len)
 {
-  const Data &data = variable.get_data();
   if (!file_.is_open()) 
   {
     cerr << "AsciiDataWriter is unable to open file '" << filename_ 
