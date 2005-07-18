@@ -164,33 +164,6 @@ void PowerResult::init(const Grid &grid)
     memset(prev_et1_, 0, sizeof(field_t) * sz);
     memset(prev_et2_, 0, sizeof(field_t) * sz);
 
-    /* Set up the frequencies */ 
-    power_real_ = new field_t[frequencies_.length()];
-    power_imag_ = new field_t[frequencies_.length()];
-
-    memset(power_imag_, 0, sizeof(field_t) * (frequencies_.length()));
-    memset(power_real_, 0, sizeof(field_t) * (frequencies_.length()));
-
-    /* Set up output variables. */
-    imag_var_.set_ptr(power_imag_);
-    real_var_.set_ptr(power_real_);  
-    freq_var_.set_ptr(frequencies_.get_ptr());
-    power_var_.set_ptr(&time_power_);
-
-    if (MPI_RANK == 0) // All data is collected to rank 0 by this
-                       // result, rather than by the DataWriters.
-    {
-      power_var_.set_num(1);
-      real_var_.set_num(frequencies_.length());
-      imag_var_.set_num(frequencies_.length());
-      freq_var_.set_num(frequencies_.length());
-    } else {
-      power_var_.set_num(0);
-      real_var_.set_num(0);
-      imag_var_.set_num(0);
-      freq_var_.set_num(0);
-    }
-
 // #ifdef DEBUG
 //     cerr << "PowerResult::init(), computing power through a surface which is "
 //          << x_size_ << " x " << y_size_ << " x " << z_size_ 
@@ -201,16 +174,35 @@ void PowerResult::init(const Grid &grid)
 //          << frequencies_.length() << endl;
 //     cerr << "Cell area is " << cell_area_ << endl;
 // #endif 
+  }
+
+  if (MPI_RANK == 0) // All data is collected to rank 0 by this
+    // result, rather than by the DataWriters.
+  {
+    /* Set up the frequencies */ 
+    power_real_ = new field_t[frequencies_.length()];
+    power_imag_ = new field_t[frequencies_.length()];
+    
+    memset(power_imag_, 0, sizeof(field_t) * (frequencies_.length()));
+    memset(power_real_, 0, sizeof(field_t) * (frequencies_.length()));
+    
+    /* Set up output variables. */
+    imag_var_.set_ptr(power_imag_);
+    real_var_.set_ptr(power_real_);  
+    freq_var_.set_ptr(frequencies_.get_ptr());
+    power_var_.set_ptr(&time_power_);
+    
+    power_var_.set_num(1);
+    real_var_.set_num(frequencies_.length());
+    imag_var_.set_num(frequencies_.length());
+    freq_var_.set_num(frequencies_.length());
   } else {
-// #ifdef DEBUG
-//     cerr << "PowerResult::init(), rank " << MPI_RANK << " has no data to " 
-//          << "contribute. " << endl;
-// #endif
     power_var_.set_num(0);
     real_var_.set_num(0);
     imag_var_.set_num(0);
     freq_var_.set_num(0);
   }
+
 }
 
 void PowerResult::deinit()
@@ -351,7 +343,7 @@ void PowerResult::calculate_result(const Grid &grid,
 //   dftdata.prev_et1_ = prev_et1_;
 //   dftdata.prev_et2_ = prev_et2_;
 
-  if (has_data_)
+  if (has_data_ && MPI_RANK == 0)
   {
     for (unsigned int i = 0; i < frequencies_.length(); i++)
     {
