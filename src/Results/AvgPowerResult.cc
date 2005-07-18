@@ -163,31 +163,30 @@ void AvgPowerResult::init(const Grid &grid)
 
     memset(prev_et1_, 0, sizeof(field_t) * sz);
     memset(prev_et2_, 0, sizeof(field_t) * sz);
+  } else {
+    real_var_.set_num(0);
+    imag_var_.set_num(0);
+    freq_var_.set_num(0);
+  }
 
-    if (MPI_RANK == 0) // All data is collected to rank 0 by this
-                       // result, rather than by the DataWriters.
-    {
-      /* Set up the frequencies */ 
-      power_real_ = new field_t[frequencies_.length()];
-      power_imag_ = new field_t[frequencies_.length()];
+  if (!setup_only && MPI_RANK == 0) // All data is collected to rank 0 by this
+    // result, rather than by the DataWriters.
+  {
+    /* Set up the frequencies */ 
+    power_real_ = new field_t[frequencies_.length()];
+    power_imag_ = new field_t[frequencies_.length()];
+    
+    memset(power_imag_, 0, sizeof(field_t) * (frequencies_.length()));
+    memset(power_real_, 0, sizeof(field_t) * (frequencies_.length()));
       
-      memset(power_imag_, 0, sizeof(field_t) * (frequencies_.length()));
-      memset(power_real_, 0, sizeof(field_t) * (frequencies_.length()));
-      
-      /* Set up output variables. */
-      imag_var_.set_ptr(power_imag_);
-      real_var_.set_ptr(power_real_);  
-      freq_var_.set_ptr(frequencies_.get_ptr());
-
-      real_var_.set_num(frequencies_.length());
-      imag_var_.set_num(frequencies_.length());
-      freq_var_.set_num(frequencies_.length());
-    } else {
-      real_var_.set_num(0);
-      imag_var_.set_num(0);
-      freq_var_.set_num(0);
-    }
-
+    /* Set up output variables. */
+    imag_var_.set_ptr(power_imag_);
+    real_var_.set_ptr(power_real_);  
+    freq_var_.set_ptr(frequencies_.get_ptr());
+    
+    real_var_.set_num(frequencies_.length());
+    imag_var_.set_num(frequencies_.length());
+    freq_var_.set_num(frequencies_.length());
   } else {
     real_var_.set_num(0);
     imag_var_.set_num(0);
