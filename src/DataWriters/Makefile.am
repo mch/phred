@@ -9,7 +9,7 @@ libdatawriters_a_SOURCES = DataWriter.hh \
 	NetCDFDataWriter.hh \
 	NetCDFDataWriter.cc \
 	HdfDataWriter.hh \
-	Hdf5DataWriter.hh \
-	PyDataWriter.hh \
-	PyDataWriter.cc
+	Hdf5DataWriter.hh
+#	PyDataWriter.hh \
+#	PyDataWriter.cc
 

@@ -727,7 +727,8 @@ void Grid::load_materials(shared_ptr<MaterialLib> matlib)
            << "    of zero. Perfect electric conductor can have eps=0, \n"
            << "    but that is a special material defined by Phred.\n\n"
            << "Program aborting. Check material library." << endl;
-      MPI_Abort(MPI_COMM_PHRED, 1);
+      throw FDTDException("Material library broken: permittivity or "
+                          "permeability of zero not allowed.");
     }
     else 
     {

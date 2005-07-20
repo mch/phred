@@ -63,6 +63,57 @@ if test "$with_cxx" = yes; then
    AC_MSG_ERROR(--with-cxx requires the C++ compiler name)
 fi
 
+dnl Set up compiler flags, so that libraries will be tested with these
+dnl (so that 64 bit tests will fail to work against 32 bit libs for
+dnl instance).
+
+if test "x$build_vendor" = "xibm"; then
+  if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then
+dnl Turn on inlining, template registry, RTTI, 2 GB memory access
+    CXXFLAGS="$CXXFLAGS -qtemplateregistry -qrtti=all"
+    if test "x$WANT_64BIT" = "x1"; then
+      CXXFLAGS="-q64 -qwarn64 $CXXFLAGS"
+      CFLAGS="-q64 -qwarn64 $CFLAGS"
+    else
+      CXXFLAGS="-bmaxdata:0x80000000 $CXXFLAGS"
+      CFLAGS="-bmaxdata:0x80000000 $CFLAGS"
+    fi
+  fi
+
+  if test "$CXX" = "g++"; then
+    CXXFLAGS="$CXXFLAGS -mpe"
+    if test "x$WANT_64BIT" = "x1"; then
+      CXXFLAGS="$CXXFLAGS -maix64"
+    fi
+  fi
+fi
+
+dnl SGI IRIX  and MIPSPro C++ stuff
+if test "x$build_vendor" = "xsgi"; then
+  CXXFLAGS="$CXXFLAGS -LANG:std -ptused -prelink"
+
+  if test "x$USE_OPENMP" = "x1"; then
+    LIBS="$LIBS -lm -lmp -lmpi++ -lmpi";
+  else
+    LIBS="$LIBS -lm -lmpi++ -lmpi";
+  fi
+
+  if test "x$WANT_64BIT" = "x1"; then
+    CXXFLAGS="$CXXFLAGS -64"
+    CFLAGS="$CFLAGS -64"
+  else
+    CXXFLAGS="$CXXFLAGS -n32"
+    CFLAGS="$CFLAGS -n32"
+  fi
+fi
+
+dnl HP SC45 stuff
+if test "x$build_vendor" = "xdec"; then
+  CXXFLAGS="$CXXFLAGS -D__USE_STD_IOSTREAM -tused"
+  LIBS="$LIBS -lm -lmpi";
+fi
+
+
 CFLAGS_SAVE="$CFLAGS"
 CXXFLAGS_SAVE="$CXXFLAGS"
 CPPFLAGS_SAVE="$CPPFLAGS"
@@ -79,6 +130,7 @@ AC_PROG_LIBTOOL
 CFLAGS="$CFLAGS_SAVE"
 CXXFLAGS="$CXXFLAGS_SAVE"
 CPPFLAGS="$CPPFLAGS_SAVE"
+
 
 dnl Check for compiler things
 AC_C_INLINE
@@ -144,46 +196,6 @@ if [[ "x$with_efence" = "xyes" ]]; then
 fi
 
 
-dnl Set up compiler flags, so that libraries will be tested with these
-dnl (so that 64 bit tests will fail to work against 32 bit libs for
-dnl instance).
-
-if test "$CXX" = "mpCC" || test "$CXX" = "mpCC_r" || test "$CXX" = "xlC" || test "$CXX" = "xlC_r"; then
-dnl Turn on inlining, template registry, RTTI, 2 GB memory access
-   CXXFLAGS="$CXXFLAGS -qtemplateregistry -qrtti=all"
-   if test "x$WANT_64BIT" = "x1"; then
-      CXXFLAGS="-q64 -qwarn64 $CXXFLAGS"
-      CFLAGS="-q64 -qwarn64 $CFLAGS"
-   else
-      CXXFLAGS="-bmaxdata:0x80000000 $CXXFLAGS"
-      CFLAGS="-bmaxdata:0x80000000 $CFLAGS"
-   fi
-fi
-
-dnl SGI IRIX  and MIPSPro C++ stuff
-if test "x$build_vendor" = "xsgi"; then
-  CXXFLAGS="$CXXFLAGS -LANG:std -ptused -prelink"
-
-  if test "x$USE_OPENMP" = "x1"; then
-    LIBS="$LIBS -lm -lmp -lmpi++ -lmpi";
-  else
-    LIBS="$LIBS -lm -lmpi++ -lmpi";
-  fi
-
-  if test "x$WANT_64BIT" = "x1"; then
-    CXXFLAGS="$CXXFLAGS -64"
-    CFLAGS="$CFLAGS -64"
-  else
-    CXXFLAGS="$CXXFLAGS -n32"
-    CFLAGS="$CFLAGS -n32"
-  fi
-fi
-
-dnl HP SC45 stuff
-if test "x$build_vendor" = "xdec"; then
-  CXXFLAGS="$CXXFLAGS -D__USE_STD_IOSTREAM -tused"
-  LIBS="$LIBS -lm -lmpi";
-fi
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -342,8 +354,13 @@ if [[ "$ac_cxx_python" = "yes" ]]; then
 
 dnl Use readline? 
         if test ! "$with_readline" = "no"; then
-        AC_CHECK_LIB(readline, readline, [], [])
-        AC_CHECK_HEADER([readline/readline.h], [], [])
+            AC_CHECK_LIB(readline, readline, [
+                         LIBS="$LIBS -lreadline"
+                         AC_CHECK_HEADER([readline/readline.h], [
+                         HAVE_READLINE="1"
+                         AC_DEFINE([HAVE_READLINE], [1], 
+                                   [Use readline for interactive python])], 
+                                   [], [])], [], [])
         fi
 
 dnl Is Numeric or numarray available? 

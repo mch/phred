@@ -595,6 +595,10 @@ PYTHON_LIBS=`echo "import distutils.sysconfig; print distutils.sysconfig.get_con
                 if [[ ! -z "$with_python_libs" ]]; then
                         LDFLAGS="$LDFLAGS -L$with_python_libs"
                 fi
+
+                if [[ ! -z "$PYTHON_STATIC_LIB_PATH" ]]; then
+                        LDFLAGS="$LDFLAGS -L$PYTHON_STATIC_LIB_PATH"
+                fi
         fi
         
 fi

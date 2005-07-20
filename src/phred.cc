@@ -99,7 +99,6 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include "config.h"
 
 #ifdef USE_PY_BINDINGS
-#include <Python.h>
 #include "PythonBindings/PyInterpreter.hh"
 #endif
 
@@ -110,16 +109,6 @@ using namespace std; // Too lazy to type namespaces all the time.
 #include <boost/lexical_cast.hpp>
 using boost::lexical_cast;
 using boost::bad_lexical_cast;
-
-/* For handling low memory conditions, which happens quite often */
-#include <new>
-
-void no_memory()
-{
-  //throw MemoryException();
-  cerr << "Out of memory. Aborting program.";
-  MPI_Abort(MPI_COMM_PHRED, 1);
-}
 
 // TESTING ONLY! REMOVE AT SOME POINT
 #include "Tests.hh"
@@ -157,6 +146,19 @@ static void sig_handler(int signo)
     cout << "Recieved SIGTERM" << endl;
     sigterm_g = true;
   }
+}
+
+/* For handling low memory conditions, which happens quite often */
+#include <new>
+
+void no_memory()
+{
+  //throw MemoryException();
+  cerr << "Out of memory. Aborting program.";
+
+  // Restore the default SIGTERM handler, as MPI_Abort sends a SIGTERM
+  signal(SIGTERM, SIG_DFL);
+  MPI_Abort(MPI_COMM_PHRED, 1);
 }
 
 
@@ -561,7 +563,7 @@ int main (int argc, char **argv)
   } catch (const std::exception &e) {
     cout << "Caught exception: " << e.what() << endl;
     cout << "Phred terminated with an error. " << endl;
-    MPI_Abort(MPI_COMM_PHRED, 1);
+    //MPI_Abort(MPI_COMM_PHRED, 1);
   }
 
   now = time(NULL);

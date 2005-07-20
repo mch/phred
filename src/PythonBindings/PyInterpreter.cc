@@ -63,7 +63,7 @@ static struct _inittab modules_[] =
   
 #include <stdio.h>
 
-#ifdef HAVE_LIBREADLINE
+#ifdef HAVE_READLINE
 #include <unistd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -84,7 +84,7 @@ PyInterpreter::PyInterpreter(int argc, char **argv)
   // Setup command line arguments
   setup_args(argc, argv);
 
-#ifdef HAVE_LIBREADLINE
+#ifdef HAVE_READLINE
   rl_bind_key ('\t', rl_insert);
 #endif
 }
@@ -203,7 +203,7 @@ void PyInterpreter::master()
   add_modules();
 
   //if (size_ > 1) {
-#ifdef HAVE_LIBREADLINE
+#ifdef HAVE_READLINE
     cout << "Phred interactive Python interpreter running. Type ctrl-d to quit." << endl;
     char *ln = 0; 
     const char *prompt, *p1 = ">>> ", *p2 = "... ";
@@ -534,7 +534,7 @@ of promoting the sharing and reuse of software generally.\n\
 
 char *PyInterpreter::rl()
 {
-#ifdef HAVE_LIBREADLINE
+#ifdef HAVE_READLINE
   char *line_read = readline (">> ");
 
   /* If the line has any text in it,
