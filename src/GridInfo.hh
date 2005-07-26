@@ -29,6 +29,7 @@
 #include "Boundaries/SubdomainBc.hh"
 #include "Boundaries/Pml.hh"
 
+#include <sys/types.h>
 #include <boost/shared_ptr.hpp>
 using namespace boost;
 

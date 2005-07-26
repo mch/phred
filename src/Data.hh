@@ -22,13 +22,12 @@
 #ifndef DATA_H
 #define DATA_H
 
-#include <string>
-#include <map>
-
 #include <mpi.h>
 
 #include "Types.hh"
 
+#include <string>
+#include <map>
 using namespace std;
 
 /**

@@ -24,6 +24,7 @@
  * machine type.
  */
 
+#include <sys/types.h>
 #include "config.h"
 
 /* Use only C comments, or the AIX C compiler with complain */ 

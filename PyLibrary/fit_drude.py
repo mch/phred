@@ -56,9 +56,16 @@ def plot_drude(eps_inf, wp, v, jc_data):
     show()
     
 def write_plot_gold():
+
+    # Chang et. al. data:
     eps_inf = 11.4577
     wp = 9.4027 / H_ev * 2 * pi
     v = 0.08314 / H_ev
+
+    # My fit using lqsnonlin in Matlab:
+    #eps_inf = 8.09179
+    #wp = 8.79336 / H_ev * 2 * pi
+    #v = 0.452878 / H_ev
 
     jc_data = load_data('Johnson_Christy_gold.data')
 
@@ -71,7 +78,8 @@ def write_plot_gold():
 
     eps = drude(f * 2 * pi, eps_inf, wp, v)
 
-    g = pyx.graph.graphxy(width=12, key=pyx.graph.key.key(), #hdist=2),
+    g = pyx.graph.graphxy(width=9.6, height=7.2, #width=12, height=9,
+                          key=pyx.graph.key.key(), #hdist=2),
                           x=pyx.graph.axis.linear(min=300, max=1000,
                                                   title='Wavelength (nm)'),
                           y=pyx.graph.axis.linear(min=-50, max=10,
@@ -86,18 +94,21 @@ def write_plot_gold():
     
     g.plot(pyx.graph.data.list(data_real1.tolist(), x=1, y=2,
                                title='J \& C $\Re\{\epsilon\}$'),
-           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+           [pyx.graph.style.line([pyx.style.linewidth.Thick,
+                                  #pyx.style.linewidth.Thin,
                                   pyx.style.linestyle.dashed,
                                   pyx.color.rgb.blue])])
     g.plot(pyx.graph.data.list(data_real2.tolist(), x=1, y=2,
                                title='Drude $\Re\{\epsilon\}$'),
-           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+           [pyx.graph.style.line([pyx.style.linewidth.Thick,
+                                  #pyx.style.linewidth.Thin,
                                   pyx.style.linestyle.solid,
                                   pyx.color.rgb.blue])])
 
     g.plot(pyx.graph.data.list(data_imag1.tolist(), x=1, y2=2,
                                title='J \& C $\Im\{\epsilon\}$'),
-           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+           [pyx.graph.style.line([pyx.style.linewidth.Thick,
+                                  #pyx.style.linewidth.Thin,
                                   pyx.style.linestyle.dashed,
                                   pyx.color.rgb.green])])
     g.plot(pyx.graph.data.list(data_imag2.tolist(), x=1, y2=2,
@@ -109,10 +120,16 @@ def write_plot_gold():
     g.writeEPSfile("gold_permittivity.eps") 
 
 def write_plot_silver():
+    # Hand calculations
     eps_inf = 4.15
     wp = 2.17e15*2*pi
     v = 32.258e12
 
+    # My fit using lqsnonlin in Matlab:
+    #eps_inf = 3.87717
+    #wp = 9.17494 / H_ev * 2 * pi
+    #v = 0.122595 / H_ev
+    
     jc_data = load_data('Johnson_Christy_silver.data')
 
     jc_n = jc_data[:,1] + jc_data[:,2] * 1j
@@ -124,7 +141,8 @@ def write_plot_silver():
 
     eps = drude(f * 2 * pi, eps_inf, wp, v)
 
-    g = pyx.graph.graphxy(width=12, key=pyx.graph.key.key(), #hdist=2),
+    g = pyx.graph.graphxy(width=9.6, height=7.2, #width=12, height=9,
+                          key=pyx.graph.key.key(), #hdist=2),
                           x=pyx.graph.axis.linear(min=300, max=1000, #min=0, max=2000,
                                                   title='Wavelength (nm)'),
                           y=pyx.graph.axis.linear(min=-60, max=10,
@@ -139,23 +157,27 @@ def write_plot_silver():
     
     g.plot(pyx.graph.data.list(data_real1.tolist(), x=1, y=2,
                                title='J \& C $\Re\{\epsilon\}$'),
-           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+           [pyx.graph.style.line([pyx.style.linewidth.Thick,
+                                  #pyx.style.linewidth.Thin,
                                   pyx.style.linestyle.dashed,
                                   pyx.color.rgb.blue])])
     g.plot(pyx.graph.data.list(data_real2.tolist(), x=1, y=2,
                                title='Drude $\Re\{\epsilon\}$'),
-           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+           [pyx.graph.style.line([pyx.style.linewidth.Thick,
+                                  #pyx.style.linewidth.Thin,
                                   pyx.style.linestyle.solid,
                                   pyx.color.rgb.blue])])
 
     g.plot(pyx.graph.data.list(data_imag1.tolist(), x=1, y2=2,
                                title='J \& C $\Im\{\epsilon\}$'),
-           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+           [pyx.graph.style.line([pyx.style.linewidth.Thick,
+                                  #pyx.style.linewidth.Thin,
                                   pyx.style.linestyle.dashed,
                                   pyx.color.rgb.green])])
     g.plot(pyx.graph.data.list(data_imag2.tolist(), x=1, y2=2,
                                title='Drude $\Im\{\epsilon\}$'),
-           [pyx.graph.style.line([pyx.style.linewidth.Thin,
+           [pyx.graph.style.line([pyx.style.linewidth.Thick,
+                                  #pyx.style.linewidth.Thin,
                                   pyx.style.linestyle.solid,
                                   pyx.color.rgb.green])])    
     
@@ -163,19 +185,21 @@ def write_plot_silver():
 
 
 def gold():
-    eps_inf = 11.4577
-    wp = 9.4027 / H_ev * 2 * pi
-    v = 0.08314 / H_ev
+    # My fit using lqsnonlin in Matlab:
+    eps_inf = 8.09179
+    wp = 8.79336 / H_ev * 2 * pi
+    vc = 0.452878 / H_ev
 
     jc_au = load_data('Johnson_Christy_gold.data')
 
     plot_drude(eps_inf, wp, v, jc_au)
 
 def silver():
-    eps_inf = 1
-    wp = 2.17e15*2*pi
-    v = 32.258e12
-
+    # My fit using lqsnonlin in Matlab:
+    eps_inf = 3.87717
+    wp = 9.17494 / H_ev * 2 * pi
+    vc = 0.122595 / H_ev
+    
     print "Silver plasma freq: %g eV" % (wp / (2 * pi) * H_ev)
     print "Silver collision frequency: %g eV" % (v * H_ev)
 

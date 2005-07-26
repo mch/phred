@@ -30,6 +30,7 @@
 #include <vector>
 using namespace std;
 
+#include <sys/types.h>
 #include <boost/shared_ptr.hpp>
 using namespace boost;
 

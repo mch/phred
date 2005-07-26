@@ -22,15 +22,15 @@
 #ifndef DATA_WRITER_H
 #define DATA_WRITER_H
 
-#include <mpi.h>
-
-#include <map>
-#include <vector>
-
 #include "../Data.hh"
 #include "../Types.hh"
 #include "../Results/Result.hh"
 #include "../LifeCycle.hh"
+
+#include <mpi.h>
+
+#include <map>
+#include <vector>
 
 using namespace std;
 

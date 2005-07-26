@@ -23,9 +23,6 @@
 #define CSG_OPERATOR_H
 
 #include "CSGObject.hh"
-#include <boost/shared_ptr.hpp>
-
-using namespace boost;
 
 /**
  * This is an abstract base class for a constructive solid geometry

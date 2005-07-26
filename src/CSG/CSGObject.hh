@@ -25,8 +25,8 @@
 #include "../Types.hh"
 #include "../Exceptions.hh"
 
+#include <sys/types.h>
 #include <boost/shared_ptr.hpp>
-
 using namespace boost;
 
 /**
