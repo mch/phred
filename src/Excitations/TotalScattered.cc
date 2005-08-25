@@ -47,3 +47,9 @@ void TotalScattered::deinit()
 {
 
 }
+
+
+ostream& TotalScattered::to_string(ostream &os) const
+{
+  return os << "TotalScattered excitation is not at all finished yet.\n";
+}

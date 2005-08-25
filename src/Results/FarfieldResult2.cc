@@ -677,17 +677,25 @@ void FarfieldResult2::calc_potentials(vecp_t &p, const field_t &theta,
     
   } // end for (face_idx...)
 
-  p.N_theta = (p.Nx * cos(theta) * cos(phi)
-               + p.Ny * cos(theta) * sin(phi)
-               - p.Nz * sin(theta));
+  // Apparently NEC's implementation of complex<> is too cool to
+  // implement complex<> * float/double operators. All that extra
+  // computation is a waste anyway.
+  complex<field_t> cos_theta(cos(theta),0);
+  complex<field_t> cos_phi(cos(phi),0);
+  complex<field_t> sin_theta(sin(theta),0);
+  complex<field_t> sin_phi(sin(phi),0);
+
+  p.N_theta = (p.Nx * cos_theta * cos_phi
+               + p.Ny * cos_theta * sin_phi
+               - p.Nz * sin_theta);
   
-  p.N_phi = -p.Nx * sin(phi) + p.Ny * cos(phi);
+  p.N_phi = -p.Nx * sin_phi + p.Ny * cos_phi;
   
-  p.L_theta = (p.Lx * cos(theta) * cos(phi)
-               + p.Ly * cos(theta) * sin(phi)
-               - p.Lz * sin(theta));
+  p.L_theta = (p.Lx * cos_theta * cos_phi
+               + p.Ly * cos_theta * sin_phi
+               - p.Lz * sin_theta);
   
-  p.L_phi = -p.Lx * sin(phi) + p.Ly * cos(phi);
+  p.L_phi = -p.Lx * sin_phi + p.Ly * cos_phi;
 
 #endif
   

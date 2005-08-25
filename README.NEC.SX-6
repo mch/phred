@@ -1,0 +1,57 @@
+Building Python, Boost, and Phred using the NEC cross compilers on a Linux box
+------------------------------------------------------------------------------
+Add this stuff to your .bashrc or whatever, where the cross compiler
+and stuff is in /SX and all the tools are prefixed by 'sx':
+
+--
+alias ld=sxld
+alias ar=sxar
+alias c++=sxc++
+alias cc=sxcc
+alias f90=sxf90
+alias ftrace=sxftrace
+alias ld=sxld
+alias mpic++=sxmpic++
+alias mpicc=sxmpicc
+alias mpif90=sxmpif90
+alias nm=sxnm
+alias size=sxsize
+alias strip=sxstrip
+
+export PATH=$PATH:~/bin:/SX/usr/bin
+export CXX=sxmpic++
+export CXXFLAGS="-K exceptions rtti"
+export CXXCPP="sxc++ -E"
+
+# It is necessary to set this because "sxmpic++ -E" always tries to
+# link and fails
+export CPP="sxcc -E" 
+export MANPATH=/SX/usr/man
+--
+
+Download and untar Python. I used 2.4.1. Configure it. It helps if the
+prefix path is the same on both the target machine and the cross
+compile host:
+
+./configure --prefix=/opt/python-2.4.1 --disable-ipv6 --host necsx6 --with-gcc=sxcc
+
+The --host item should probably be set to something else, but this
+seemed to work. The makefile will have to be edited; make sure ar is
+actually sxar, cc is sxcc, etc. Change 'ranlib' to 'ls', since there
+doesn't seem to be an equivalent to ranlib in the cross compiler tool
+chain. Set LINKFORSHARED = to a blank line. 
+
+Run make. It was necessary to edit the makefile and run 'make install'
+from the SX-6 because 'make install' runs python. Once make has built
+everything, you can strip the dependencies off of the install rules in
+the makefile, since you know they are already built. Change
+/usr/bin/install to /usr/local/bin/install, and sxcc to cc. Remove
+-fPIC, and change -shared to -???
+
+Run 'make install'.
+
+
+
+Download and untar Boost. Bootstrap bjam and install it somewhere. sh
+./build.sh works fine with gcc on the host system (you shouldn't need
+to run bjam on the SX-6 itself. 

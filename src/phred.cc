@@ -88,6 +88,8 @@ MPI_Comm MPI_COMM_PHRED; /**< Our own communicator, with topology info
 #include <vector>
 #include <string>
 
+#include <time.h>
+
 #ifdef USE_RUSAGE
 /* rusage() */ 
 #include <sys/ctime>

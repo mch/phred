@@ -95,10 +95,16 @@ compatibility headers. YMMV.
 
 
 * Compaq C++ on HPUX
+No successful compile yet, due to template problems. 
+
 http://h30097.www3.hp.com/cplus/ugu.htm
 
 CPPFLAGS="-I/opt/boost/include/boost-1_31/" CXXFLAGS="-D__USE_STD_IOSTREAM" ../Phred-0.1.0/configure --with-cxx=cxx
 
+
+* NEC C++ for SuperUX on a SX-6
+Python is tempermental about compilers... it's tricky to get it to use
+the cross compiler. This compiler seems to work. 
 
 
 USING PYTHON:
