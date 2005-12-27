@@ -143,9 +143,9 @@ int n_g_;
 static int
 decode_switches (int argc, char **argv)
 {
-  opterr = 0;
   int c;
   char *arg = 0;
+  opterr = 0;
 
   while ((c = getopt (argc, argv, "mqoscCx:y:z:n:")) != -1)
     switch (c)
@@ -405,6 +405,10 @@ field_t gaussm(unsigned int time_step, field_t deltaf,
 void alloc_grid()
 {
   unsigned int sz = 0;
+  unsigned int zbytes;
+  uintptr_t e;
+  int idx1, idx2, idx3;
+  field_t *ez, *hy1, *hy2, *hx1, *hx2;
 
   sz = dimx_ * dimy_ * dimz_ * sizeof(field_t) + 16;
 
@@ -441,7 +445,7 @@ void alloc_grid()
            (uintptr_t)hy_orig_ & 0xf, 
            (uintptr_t)hz_orig_ & 0xf);
 
-    unsigned int zbytes = dimz_ * sizeof(mat_coef_t) + 16;
+    zbytes = dimz_ * sizeof(mat_coef_t) + 16;
     Ca_temp_orig_ = (mat_coef_t *)malloc(zbytes);
     Cbx_temp_orig_ = (mat_coef_t *)malloc(zbytes);
     Cby_temp_orig_ = (mat_coef_t *)malloc(zbytes);
@@ -531,7 +535,7 @@ void alloc_grid()
            (uintptr_t)hz_ & 0xf);
 
     printf("No padding for cache:\n");
-    uintptr_t e = (uintptr_t)ex_;
+    e = (uintptr_t)ex_;
     printf("ex_orig ptr and low 22 bits of ex_orig pointer: %p, %p\n", 
            (void *)e, (void *)(e & 0x3FFFFF));
     e = (uintptr_t)ey_;
@@ -551,15 +555,15 @@ void alloc_grid()
     printf("hz_orig ptr and low 22 bits of hz_orig pointer: %p, %p\n", 
            (void *)e, (void *)(e & 0x3FFFFF));
     
-    int idx1 = pi(16, 16, 0);
-    int idx2 = pi(15, 16, 0);
-    int idx3 = pi(16, 15, 0);
+    idx1 = pi(16, 16, 0);
+    idx2 = pi(15, 16, 0);
+    idx3 = pi(16, 15, 0);
     
-    field_t *ez = &ez_[idx1];
-    field_t *hy1 = &hy_[idx1];
-    field_t *hy2 = &hy_[idx2];
-    field_t *hx1 = &hx_[idx3];
-    field_t *hx2 = &hx_[idx1];
+    ez = &ez_[idx1];
+    hy1 = &hy_[idx1];
+    hy2 = &hy_[idx2];
+    hx1 = &hx_[idx3];
+    hx2 = &hx_[idx1];
 
     e = (uintptr_t)ez;
     printf("ez ptr and low 22 bits of ez pointer: %p, %p\n", 

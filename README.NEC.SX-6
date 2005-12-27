@@ -55,3 +55,19 @@ Run 'make install'.
 Download and untar Boost. Bootstrap bjam and install it somewhere. sh
 ./build.sh works fine with gcc on the host system (you shouldn't need
 to run bjam on the SX-6 itself. 
+
+Boost.Python doesn't appear to work, but it still has to be installed
+for shared_ptr...
+
+
+
+
+* Compiling Phred
+On kikou itself, run configure. The cross compiler suite runs into
+problems in the link phase for some reason. 
+
+It is necessary to use the "-T noauto local" options to compile
+MatlabDatawriter.cc, due to some templates local to that file which
+are not in a header file... should probably move that to eliminate
+this step. 
+

@@ -264,8 +264,17 @@ void UPmlCommon::init_sigmas()
 
     mat_idx_t mid = (*iter).second.get_id();
 
-    er_[mid] = 1 / (eps);
-    ur_[mid] = 1 / (mu);
+    if (((*iter).second).is_pec())
+    {
+      er_[mid] = 0;
+      ur_[mid] = 0;
+    }
+    else 
+    {
+      er_[mid] = 1 / (eps);
+      ur_[mid] = 1 / (mu);
+    }
+
     mtype_[mid] = (*iter).second.type();
 
     if (mtype_[mid] == LOSSY)

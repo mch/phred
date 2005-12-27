@@ -15,7 +15,10 @@ w_p = 2.17e15 * 2 * pi
 
 # Collision Frequency
 #v = 5.7e13
-v = 32.258e12
+#v = 32.258e12
+v = 0.0
+print v
+print w_p
 
 # Frequency of interest
 w = (3e8 / (arrayrange(200, 1200, 20) * 1e-9)) * 2 * pi;
